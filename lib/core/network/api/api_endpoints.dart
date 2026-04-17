@@ -1,18 +1,87 @@
 class ApiEndpoints {
-  static const String baseUrl = 'https://api.example.com';
-  static const AuthEndpoints auth = AuthEndpoints();
-  static const UserEndpoints user = UserEndpoints();
+  static const String baseUrl = 'http://192.168.1.8:8000/api/v1';
+
+  static const admin = _AdminEndpoints();
+  static const employee = _EmployeeEndpoints();
 }
 
-class AuthEndpoints {
-  const AuthEndpoints();
+// ─────────────────────────────────────────
+// Auth (shared — Employee + Admin OTP flow)
+// ─────────────────────────────────────────
+class _AuthEndpoints {
+  final String prefix;
+
+  const _AuthEndpoints({required this.prefix});
+
   static const String _root = '/auth';
-  final String login = '$_root/login';
-  final String register = '$_root/register';
+
+  // Employee auth
+  String get sendOtp => '$prefix$_root/send-otp';
+
+  String get resendOtp => '$prefix$_root/resend-otp';
+
+  String get verifyOtp => '$prefix$_root/verify-otp';
+
+  // Token (Shared across all roles)
+  String get refresh => '$prefix$_root/refresh';
 }
 
-class UserEndpoints {
-  const UserEndpoints();
-  static const String _root = '/user';
-  final String profile = '$_root/profile';
+// ─────────────────────────────────────────
+// Admin endpoints
+// ─────────────────────────────────────────
+class _AdminEndpoints {
+  const _AdminEndpoints();
+
+  static const String _root = '/admin';
+
+  _AuthEndpoints get auth => _AuthEndpoints(prefix: _root);
+
+  // Company
+  String get company => '$_root/company';
+
+  // Members
+  String get members => '$_root/members';
+
+  // Dashboard
+  String get dashboard => '$_root/dashboard';
+
+  // Jobs
+  String get jobs => '$_root/jobs';
+
+  String jobNotify(String jobId) => '$_root/jobs/$jobId/notify';
+
+  // Activity
+  String get activitySummary => '$_root/activity/summary';
+
+  // Notifications
+  String get notifications => '$_root/notifications';
+}
+
+// ─────────────────────────────────────────
+// Employee endpoints
+// ─────────────────────────────────────────
+class _EmployeeEndpoints {
+  const _EmployeeEndpoints();
+
+  static const String _root = '/employee';
+
+  _AuthEndpoints get auth => _AuthEndpoints(prefix: _root);
+
+  // Profile
+  String get profile => '$_root/profile';
+
+  // Jobs
+  String get jobs => '$_root/jobs';
+
+  String jobStatus(String jobId) => '$_root/jobs/$jobId/status';
+
+  String jobProgress(String jobId) => '$_root/jobs/$jobId/progress';
+
+  // Attendance
+  String get attendanceStart => '$_root/attendance/start';
+
+  String get attendanceEnd => '$_root/attendance/end';
+
+  // Notifications
+  String get notifications => '$_root/notifications';
 }

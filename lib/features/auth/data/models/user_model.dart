@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../domain/entities/user_entity.dart';
+import 'package:trackyond/core/common/entities/user/user.dart';
+import 'package:trackyond/core/common/entities/user/user_role.dart';
 
 part 'user_model.freezed.dart';
 part 'user_model.g.dart';
@@ -8,8 +9,8 @@ part 'user_model.g.dart';
 sealed class UserModel with _$UserModel {
   const factory UserModel({
     required String id,
-    required String email,
-    required String name,
+    required String phone,
+    required UserRole role,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -17,15 +18,8 @@ sealed class UserModel with _$UserModel {
 
   const UserModel._();
 
-  UserEntity toEntity() => UserEntity(
-        id: id,
-        email: email,
-        name: name,
-      );
+  User toEntity() => User(id: id, phone: phone, role: role);
 
-  factory UserModel.fromEntity(UserEntity entity) => UserModel(
-        id: entity.id,
-        email: entity.email,
-        name: entity.name,
-      );
+  factory UserModel.fromEntity(User entity) =>
+      UserModel(id: entity.id, phone: entity.phone, role: entity.role);
 }

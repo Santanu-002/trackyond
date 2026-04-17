@@ -25,9 +25,9 @@ class AuthController extends GetxController {
       final userRole = _userService.getUserRole();
 
       if (userRole == UserRole.owner) {
-        // go to owner dashboard
+        Get.offAllNamed(AppRoutes.owner.dashboard);
       } else if (userRole == UserRole.worker) {
-        // go to worker dashboard
+        Get.offAllNamed(AppRoutes.worker.dashboard);
       } else {
         Get.offAllNamed(AppRoutes.common.auth.chooseRole);
       }

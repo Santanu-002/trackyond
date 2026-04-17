@@ -9,11 +9,15 @@ class AppRoutes {
 class _OwnerRoutes {
   const _OwnerRoutes();
 
-  // static const _prefix = '/admin';
+  String get _base => '/owner';
+  String get dashboard => '$_base/dashboard';
 }
 
 class _WorkerRoutes {
   const _WorkerRoutes();
+
+  String get _base => '/worker';
+  String get dashboard => '$_base/dashboard';
 }
 
 class _AuthRoutes {

@@ -1,16 +1,9 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/core/common/entities/user/user_role.dart';
 
-part 'user.freezed.dart';
-part 'user.g.dart';
+class User {
+  final String id;
+  final String phone;
+  final UserRole role;
 
-@freezed
-sealed class User with _$User {
-  const factory User({
-    required String id,
-    required String phone,
-    required UserRole role,
-  }) = _User;
-
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  User({required this.id, required this.phone, required this.role});
 }

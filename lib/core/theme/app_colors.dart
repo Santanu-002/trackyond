@@ -38,8 +38,8 @@ class DarkColors {
   final Color tonalSurface = const Color(0xFF1E1E1E);
   final Color cardSurface = const Color(0xFF2C2C2C);
   
-  final Color brandBlue = const Color(0xFFBB86FC);
-  final Color brandAccent = const Color(0xFFD7BBFB);
+  final Color brandBlue = const Color(0xFF004AC6);
+  final Color brandAccent = const Color(0xFF2563EB);
   
   final Color error = const Color(0xFFCF6679);
   final Color pending = const Color(0xFFFEA619);

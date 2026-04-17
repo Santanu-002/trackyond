@@ -11,7 +11,6 @@ part of 'api_response.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
-
 /// @nodoc
 mixin _$ApiResponse<T> {
 
@@ -22,8 +21,6 @@ mixin _$ApiResponse<T> {
 @pragma('vm:prefer-inline')
 $ApiResponseCopyWith<T, ApiResponse<T>> get copyWith => _$ApiResponseCopyWithImpl<T, ApiResponse<T>>(this as ApiResponse<T>, _$identity);
 
-  /// Serializes this ApiResponse to a JSON map.
-  Map<String, dynamic> toJson(Object? Function(T) toJsonT);
 
 
 @override
@@ -31,7 +28,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is ApiResponse<T>&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.data, data));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,success,message,const DeepCollectionEquality().hash(data));
 
@@ -91,11 +88,12 @@ extension ApiResponsePatterns<T> on ApiResponse<T> {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ApiResponse<T> value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( ApiResponseSuccess<T> value)?  success,TResult Function( ApiResponseError<T> value)?  error,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _ApiResponse() when $default != null:
-return $default(_that);case _:
+case ApiResponseSuccess() when success != null:
+return success(_that);case ApiResponseError() when error != null:
+return error(_that);case _:
   return orElse();
 
 }
@@ -113,11 +111,12 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ApiResponse<T> value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( ApiResponseSuccess<T> value)  success,required TResult Function( ApiResponseError<T> value)  error,}){
 final _that = this;
 switch (_that) {
-case _ApiResponse():
-return $default(_that);}
+case ApiResponseSuccess():
+return success(_that);case ApiResponseError():
+return error(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -131,11 +130,12 @@ return $default(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ApiResponse<T> value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( ApiResponseSuccess<T> value)?  success,TResult? Function( ApiResponseError<T> value)?  error,}){
 final _that = this;
 switch (_that) {
-case _ApiResponse() when $default != null:
-return $default(_that);case _:
+case ApiResponseSuccess() when success != null:
+return success(_that);case ApiResponseError() when error != null:
+return error(_that);case _:
   return null;
 
 }
@@ -152,10 +152,11 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool success,  String message,  T? data)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( bool success,  String message,  T? data)?  success,TResult Function( bool success,  String message,  T? data,  int? statusCode)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _ApiResponse() when $default != null:
-return $default(_that.success,_that.message,_that.data);case _:
+case ApiResponseSuccess() when success != null:
+return success(_that.success,_that.message,_that.data);case ApiResponseError() when error != null:
+return error(_that.success,_that.message,_that.data,_that.statusCode);case _:
   return orElse();
 
 }
@@ -173,10 +174,11 @@ return $default(_that.success,_that.message,_that.data);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool success,  String message,  T? data)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( bool success,  String message,  T? data)  success,required TResult Function( bool success,  String message,  T? data,  int? statusCode)  error,}) {final _that = this;
 switch (_that) {
-case _ApiResponse():
-return $default(_that.success,_that.message,_that.data);}
+case ApiResponseSuccess():
+return success(_that.success,_that.message,_that.data);case ApiResponseError():
+return error(_that.success,_that.message,_that.data,_that.statusCode);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -190,10 +192,11 @@ return $default(_that.success,_that.message,_that.data);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool success,  String message,  T? data)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( bool success,  String message,  T? data)?  success,TResult? Function( bool success,  String message,  T? data,  int? statusCode)?  error,}) {final _that = this;
 switch (_that) {
-case _ApiResponse() when $default != null:
-return $default(_that.success,_that.message,_that.data);case _:
+case ApiResponseSuccess() when success != null:
+return success(_that.success,_that.message,_that.data);case ApiResponseError() when error != null:
+return error(_that.success,_that.message,_that.data,_that.statusCode);case _:
   return null;
 
 }
@@ -202,11 +205,11 @@ return $default(_that.success,_that.message,_that.data);case _:
 }
 
 /// @nodoc
-@JsonSerializable(genericArgumentFactories: true)
 
-class _ApiResponse<T> implements ApiResponse<T> {
-  const _ApiResponse({required this.success, required this.message, this.data});
-  factory _ApiResponse.fromJson(Map<String, dynamic> json,T Function(Object?) fromJsonT) => _$ApiResponseFromJson(json,fromJsonT);
+
+class ApiResponseSuccess<T> implements ApiResponse<T> {
+  const ApiResponseSuccess({required this.success, required this.message, this.data});
+  
 
 @override final  bool success;
 @override final  String message;
@@ -216,33 +219,30 @@ class _ApiResponse<T> implements ApiResponse<T> {
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$ApiResponseCopyWith<T, _ApiResponse<T>> get copyWith => __$ApiResponseCopyWithImpl<T, _ApiResponse<T>>(this, _$identity);
+$ApiResponseSuccessCopyWith<T, ApiResponseSuccess<T>> get copyWith => _$ApiResponseSuccessCopyWithImpl<T, ApiResponseSuccess<T>>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson(Object? Function(T) toJsonT) {
-  return _$ApiResponseToJson<T>(this, toJsonT);
-}
+
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ApiResponse<T>&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.data, data));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ApiResponseSuccess<T>&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.data, data));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode => Object.hash(runtimeType,success,message,const DeepCollectionEquality().hash(data));
 
 @override
 String toString() {
-  return 'ApiResponse<$T>(success: $success, message: $message, data: $data)';
+  return 'ApiResponse<$T>.success(success: $success, message: $message, data: $data)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$ApiResponseCopyWith<T,$Res> implements $ApiResponseCopyWith<T, $Res> {
-  factory _$ApiResponseCopyWith(_ApiResponse<T> value, $Res Function(_ApiResponse<T>) _then) = __$ApiResponseCopyWithImpl;
+abstract mixin class $ApiResponseSuccessCopyWith<T,$Res> implements $ApiResponseCopyWith<T, $Res> {
+  factory $ApiResponseSuccessCopyWith(ApiResponseSuccess<T> value, $Res Function(ApiResponseSuccess<T>) _then) = _$ApiResponseSuccessCopyWithImpl;
 @override @useResult
 $Res call({
  bool success, String message, T? data
@@ -253,21 +253,93 @@ $Res call({
 
 }
 /// @nodoc
-class __$ApiResponseCopyWithImpl<T,$Res>
-    implements _$ApiResponseCopyWith<T, $Res> {
-  __$ApiResponseCopyWithImpl(this._self, this._then);
+class _$ApiResponseSuccessCopyWithImpl<T,$Res>
+    implements $ApiResponseSuccessCopyWith<T, $Res> {
+  _$ApiResponseSuccessCopyWithImpl(this._self, this._then);
 
-  final _ApiResponse<T> _self;
-  final $Res Function(_ApiResponse<T>) _then;
+  final ApiResponseSuccess<T> _self;
+  final $Res Function(ApiResponseSuccess<T>) _then;
 
 /// Create a copy of ApiResponse
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? success = null,Object? message = null,Object? data = freezed,}) {
-  return _then(_ApiResponse<T>(
+  return _then(ApiResponseSuccess<T>(
 success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
 as bool,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as T?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class ApiResponseError<T> implements ApiResponse<T> {
+  const ApiResponseError({required this.success, required this.message, this.data, this.statusCode});
+  
+
+@override final  bool success;
+@override final  String message;
+@override final  T? data;
+ final  int? statusCode;
+
+/// Create a copy of ApiResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ApiResponseErrorCopyWith<T, ApiResponseError<T>> get copyWith => _$ApiResponseErrorCopyWithImpl<T, ApiResponseError<T>>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ApiResponseError<T>&&(identical(other.success, success) || other.success == success)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.statusCode, statusCode) || other.statusCode == statusCode));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,success,message,const DeepCollectionEquality().hash(data),statusCode);
+
+@override
+String toString() {
+  return 'ApiResponse<$T>.error(success: $success, message: $message, data: $data, statusCode: $statusCode)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ApiResponseErrorCopyWith<T,$Res> implements $ApiResponseCopyWith<T, $Res> {
+  factory $ApiResponseErrorCopyWith(ApiResponseError<T> value, $Res Function(ApiResponseError<T>) _then) = _$ApiResponseErrorCopyWithImpl;
+@override @useResult
+$Res call({
+ bool success, String message, T? data, int? statusCode
+});
+
+
+
+
+}
+/// @nodoc
+class _$ApiResponseErrorCopyWithImpl<T,$Res>
+    implements $ApiResponseErrorCopyWith<T, $Res> {
+  _$ApiResponseErrorCopyWithImpl(this._self, this._then);
+
+  final ApiResponseError<T> _self;
+  final $Res Function(ApiResponseError<T>) _then;
+
+/// Create a copy of ApiResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? success = null,Object? message = null,Object? data = freezed,Object? statusCode = freezed,}) {
+  return _then(ApiResponseError<T>(
+success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
+as bool,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
+as T?,statusCode: freezed == statusCode ? _self.statusCode : statusCode // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'auth_tokens.freezed.dart';
+part 'auth_tokens.g.dart';
 
 @freezed
 sealed class AuthTokens with _$AuthTokens {
@@ -11,4 +12,7 @@ sealed class AuthTokens with _$AuthTokens {
     required String refreshExpireAt,
     required String tokenIssuedAt,
   }) = _AuthTokens;
+
+  factory AuthTokens.fromJson(Map<String, dynamic> json) =>
+      _$AuthTokensFromJson(json);
 }

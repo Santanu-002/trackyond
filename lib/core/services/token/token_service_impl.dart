@@ -1,8 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:trackyond/core/common/entities/auth_tokens/auth_tokens.dart';
-import 'package:trackyond/core/services/token/token_service.dart';
 import 'package:synchronized/synchronized.dart';
-
+import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
+import 'package:trackyond/core/services/token/token_service.dart';
 
 class TokenServiceImpl implements TokenService {
   final FlutterSecureStorage _storage;
@@ -16,8 +15,7 @@ class TokenServiceImpl implements TokenService {
   @override
   Future<void> saveTokens(AuthTokens tokens) async {
     await _lock.synchronized(() async {
-      final existingIssuedAt =
-      await _storage.read(key: _keys.tokenIssuedAt);
+      final existingIssuedAt = await _storage.read(key: _keys.tokenIssuedAt);
 
       // If existing token exists → compare timestamps
       if (existingIssuedAt != null) {
@@ -39,7 +37,10 @@ class TokenServiceImpl implements TokenService {
         _storage.write(key: _keys.accessToken, value: tokens.accessToken),
         _storage.write(key: _keys.refreshToken, value: tokens.refreshToken),
         _storage.write(key: _keys.accessExpireAt, value: tokens.accessExpireAt),
-        _storage.write(key: _keys.refreshExpireAt, value: tokens.refreshExpireAt),
+        _storage.write(
+          key: _keys.refreshExpireAt,
+          value: tokens.refreshExpireAt,
+        ),
         _storage.write(key: _keys.tokenIssuedAt, value: tokens.tokenIssuedAt),
       ]);
     });
@@ -122,7 +123,6 @@ class TokenServiceImpl implements TokenService {
     ]);
   }
 }
-
 
 class _TokenKeys {
   final accessToken = 'access_token';

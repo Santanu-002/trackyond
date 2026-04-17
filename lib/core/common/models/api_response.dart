@@ -1,19 +1,43 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'api_response.freezed.dart';
-part 'api_response.g.dart';
 
-@Freezed(genericArgumentFactories: true)
+@freezed
 sealed class ApiResponse<T> with _$ApiResponse<T> {
-  const factory ApiResponse({
+  const factory ApiResponse.success({
     required bool success,
     required String message,
     T? data,
-  }) = _ApiResponse<T>;
+  }) = ApiResponseSuccess<T>;
+
+  const factory ApiResponse.error({
+    required bool success,
+    required String message,
+    T? data,
+    int? statusCode,
+  }) = ApiResponseError<T>;
 
   factory ApiResponse.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
-  ) =>
-      _$ApiResponseFromJson(json, fromJsonT);
+  ) {
+    final success = json['success'] as bool? ?? false;
+    final message = json['message'] as String? ?? (success ? 'Success' : 'Something went wrong');
+    final data = json['data'];
+
+    if (success) {
+      return ApiResponse<T>.success(
+        success: true,
+        message: message,
+        data: data != null ? fromJsonT(data) : null,
+      );
+    } else {
+      return ApiResponse<T>.error(
+        success: false,
+        message: message,
+        data: data != null ? fromJsonT(data) : null,
+        statusCode: json['statusCode'] as int?,
+      );
+    }
+  }
 }

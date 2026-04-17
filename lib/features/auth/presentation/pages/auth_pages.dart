@@ -4,16 +4,16 @@ import 'package:trackyond/features/auth/presentation/screens/send_otp_page.dart'
 import 'package:trackyond/features/auth/presentation/screens/verify_otp_page.dart';
 
 class AuthPages {
-   const AuthPages._();
+  const AuthPages._();
 
-   static final List<GetPage> pages = [
-     GetPage(
-       name: AppRoutes.common.auth.verifyOtp,
-       page: () => const SendOtpPage(),
-     ),
-      GetPage(
-       name: AppRoutes.common.auth.verifyOtp,
-       page: () => const VerifyOtpPage(),
-     ),
-   ];
+  static List<GetPage> get pages => [
+    GetPage(
+      name: AppRoutes.common.auth.sendOtp,
+      page: () => const SendOtpPage(),
+    ),
+    GetPage(
+      name: AppRoutes.common.auth.verifyOtp,
+      page: () => const VerifyOtpPage(),
+    ),
+  ];
 }

@@ -1,20 +1,17 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class WorkerProfile {
+  final String uid;
+  final String name;
+  final String phone;
+  final String designation;
+  final String? gender;
+  final String? image;
 
-part 'worker_profile.freezed.dart';
-part 'worker_profile.g.dart';
-
-@freezed
-sealed class WorkerProfile with _$WorkerProfile {
-  const factory WorkerProfile({
-    required String uid,
-    required String name,
-    required String phone,
-    required String designation,
-    String? gender,
-    String? image,
-  }) = _WorkerProfile;
-
-  factory WorkerProfile.fromJson(Map<String, dynamic> json) =>
-      _$WorkerProfileFromJson(json);
-
+  const WorkerProfile({
+    required this.uid,
+    required this.name,
+    required this.phone,
+    required this.designation,
+    this.gender,
+    this.image,
+  });
 }

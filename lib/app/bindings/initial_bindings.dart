@@ -2,5 +2,7 @@ import 'package:get/get.dart';
 
 class InitialBindings extends Bindings {
   @override
-  void dependencies() async {}
+  void dependencies() {
+    // Global instances are now handled in AppInitializer
+  }
 }

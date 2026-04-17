@@ -1,16 +1,39 @@
 import 'package:dio/dio.dart';
-import '../api/api_endpoints.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:trackyond/core/network/api/api_endpoints.dart';
+import 'package:trackyond/core/network/interceptors/auth_interceptor.dart';
+import 'package:trackyond/core/network/interceptors/network_error_interceptor.dart';
+import 'package:trackyond/core/network/interceptors/platform_info_interceptor.dart';
+import 'package:trackyond/core/services/device_header/platform_info_service.dart';
+import 'package:trackyond/core/services/token/token_service.dart';
 
 class NetworkClient {
-  final Dio dio;
+  late final Dio dio;
 
-  NetworkClient(this.dio) {
-    dio.options.baseUrl = ApiEndpoints.baseUrl;
-    dio.options.connectTimeout = const Duration(seconds: 30);
-    dio.options.receiveTimeout = const Duration(seconds: 30);
-    dio.options.headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
+  NetworkClient({
+    required TokenService tokenService,
+    required PlatformInfoService platformInfoService,
+  }) : dio = Dio(
+         BaseOptions(
+           baseUrl: ApiEndpoints.baseUrl,
+           connectTimeout: const Duration(seconds: 15),
+           receiveTimeout: const Duration(seconds: 15),
+           contentType: 'application/json',
+         ),
+       ) {
+    dio.interceptors.add(AuthInterceptor(tokenService, platformInfoService));
+    dio.interceptors.add(PlatformInfoInterceptor(platformInfoService));
+    dio.interceptors.add(NetworkErrorInterceptor());
+
+    dio.interceptors.add(
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: true,
+        compact: true,
+        error: true,
+      ),
+    );
   }
 }

@@ -1,19 +1,11 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class OwnerProfile {
+  final String uid;
+  final String phone;
+  final bool isNewUser;
 
-part 'owner_profile.freezed.dart';
-part 'owner_profile.g.dart';
-
-
-@freezed
-sealed class OwnerProfile with _$OwnerProfile {
-  const factory OwnerProfile({
-    required String uid,
-    required String phone,
-    required bool isNewUser,
-  }) = _OwnerProfile;
-
-  factory OwnerProfile.fromJson(Map<String, dynamic> json) =>
-      _$OwnerProfileFromJson(json);
-
-
+  OwnerProfile({
+    required this.uid,
+    required this.phone,
+    required this.isNewUser,
+  });
 }

@@ -75,6 +75,8 @@ const AppTheme._();
       scaffoldBackgroundColor: AppColors.dark.background,
       colorScheme: ColorScheme.dark(
         primary: AppColors.dark.brandBlue,
+        onPrimary: Colors.white,
+        primaryContainer: AppColors.dark.brandAccent,
         secondary: AppColors.dark.brandAccent,
         surface: AppColors.dark.cardSurface,
         onSurface: AppColors.dark.textDefault,

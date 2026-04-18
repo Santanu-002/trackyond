@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/services/token/token_service.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
-import 'package:trackyond/features/owner/presentation/controllers/owner_dashboard_controller.dart';
+import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
 
 class OwnerDashboardPage extends GetView<OwnerDashboardController> {
   const OwnerDashboardPage({super.key});

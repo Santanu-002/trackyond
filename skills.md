@@ -83,5 +83,13 @@ All API responses and request bodies must maintain consistent naming conventions
 
 **Rule**: All JSON keys in responses and request bodies must be `camelCase`. Avoid `snake_case`.
 
+## 10. UTC Datetimes (ISO 8601)
+All datetime fields returned in JSON responses must be UTC-formatted with the `Z` suffix (e.g., `2026-04-18T05:34:57Z`).
+
+**Rules**:
+- Use `to_utc_iso()` from `core.utils.datetime_utils` for all ISO string conversions.
+- Always include the `Z` suffix (enforced by the helper).
+- **Timezone-Aware Logic**: Prohibit the use of `datetime.utcnow()`. Always use `now_utc()` or `datetime.now(timezone.utc)` for internal logic and comparisons to avoid `TypeError`.
+
 ---
 *Maintained by Antigravity AI*

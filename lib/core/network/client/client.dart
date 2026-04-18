@@ -6,6 +6,7 @@ import 'package:trackyond/core/network/interceptors/network_error_interceptor.da
 import 'package:trackyond/core/network/interceptors/platform_info_interceptor.dart';
 import 'package:trackyond/core/services/device_header/platform_info_service.dart';
 import 'package:trackyond/core/services/token/token_service.dart';
+import 'package:trackyond/core/services/user/user_service.dart';
 
 class NetworkClient {
   late final Dio dio;
@@ -13,6 +14,7 @@ class NetworkClient {
   NetworkClient({
     required TokenService tokenService,
     required PlatformInfoService platformInfoService,
+    required UserService userService,
   }) : dio = Dio(
          BaseOptions(
            baseUrl: ApiEndpoints.baseUrl,
@@ -21,7 +23,9 @@ class NetworkClient {
            contentType: 'application/json',
          ),
        ) {
-    dio.interceptors.add(AuthInterceptor(tokenService, platformInfoService));
+    dio.interceptors.add(
+      AuthInterceptor(tokenService, platformInfoService, userService),
+    );
     dio.interceptors.add(PlatformInfoInterceptor(platformInfoService));
     dio.interceptors.add(NetworkErrorInterceptor());
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 part 'filled_button.dart';
@@ -30,7 +31,12 @@ class AppButton extends StatelessWidget {
       _FilledAppButton(
         key: key,
         text: text,
-        onPressed: onPressed,
+        onPressed: onPressed != null
+            ? () {
+                HapticFeedback.lightImpact();
+                onPressed();
+              }
+            : null,
         width: width,
         height: height,
         color: color,
@@ -58,7 +64,12 @@ class AppButton extends StatelessWidget {
       _OutlinedAppButton(
         key: key,
         text: text,
-        onPressed: onPressed,
+        onPressed: onPressed != null
+            ? () {
+                HapticFeedback.lightImpact();
+                onPressed();
+              }
+            : null,
         width: width,
         height: height,
         color: color,
@@ -85,7 +96,12 @@ class AppButton extends StatelessWidget {
       _GhostAppButton(
         key: key,
         text: text,
-        onPressed: onPressed,
+        onPressed: onPressed != null
+            ? () {
+                HapticFeedback.lightImpact();
+                onPressed();
+              }
+            : null,
         width: width,
         height: height,
         color: color,
@@ -109,7 +125,12 @@ class AppButton extends StatelessWidget {
     return AppButton._(
       _CustomAppButton(
         key: key,
-        onPressed: onPressed,
+        onPressed: onPressed != null
+            ? () {
+                HapticFeedback.lightImpact();
+                onPressed();
+              }
+            : null,
         width: width,
         height: height,
         color: color,

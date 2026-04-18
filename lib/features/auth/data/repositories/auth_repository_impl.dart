@@ -1,58 +1,89 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/common/entities/owner_profile/owner_profile.dart';
+import 'package:trackyond/core/common/entities/user/user.dart';
 import 'package:trackyond/core/common/entities/user/user_role.dart';
-import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
+import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
+import 'package:trackyond/core/services/token/token_service.dart';
+import 'package:trackyond/core/services/user/user_service.dart';
 import 'package:trackyond/features/auth/data/datasources/auth_datasource.dart';
 import 'package:trackyond/features/auth/domain/entities/send_otp_response_entity.dart';
+import 'package:trackyond/features/auth/domain/entities/verify_otp_entity.dart';
 import 'package:trackyond/features/auth/domain/repositories/i_auth_repository.dart';
 
 class AuthRepositoryImpl implements IAuthRepository {
   final IAuthDataSource _dataSource;
+  final TokenService _tokenService;
+  final UserService _userService;
 
-  AuthRepositoryImpl(this._dataSource);
+  AuthRepositoryImpl(this._dataSource, this._tokenService, this._userService);
 
   @override
   Future<Either<AppFailure, SendOtpResponseEntity>> sendOtp({
     required String phone,
     required UserRole role,
   }) async {
-    try {
-      final response = await _dataSource.sendOtp(phone: phone, role: role);
-      return response.when(
-        success: (_, message, data) {
-          if (data != null) return Right(data.toEntity());
-          return Left(ServerFailure(message));
-        },
-        error: (_, message, _, _) => Left(ServerFailure(message)),
-      );
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    final ApiResponse response = await _dataSource.sendOtp(
+      phone: phone,
+      role: role,
+    );
+    return response.when(
+      success: (_, message, data) {
+        if (data != null) return Right(data.toEntity());
+        return Left(ServerFailure(message));
+      },
+      error: (_, message, _, _) => Left(ServerFailure(message)),
+    );
   }
 
   @override
-  Future<Either<AppFailure, AuthTokens>> verifyOtp({
+  Future<Either<AppFailure, VerifyOtpEntity>> verifyOtp({
     required String phone,
     required String otpId,
     required String otp,
     required UserRole role,
   }) async {
-    try {
-      final response = await _dataSource.verifyOtp(
-        phone: phone,
-        otpId: otpId,
-        otp: otp,
-        role: role,
-      );
-      return response.when(
-        success: (_, message, data) {
-          if (data != null) return Right(data);
-          return Left(ServerFailure(message));
-        },
-        error: (_, message, _, _) => Left(ServerFailure(message)),
-      );
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    final response = await _dataSource.verifyOtp(
+      phone: phone,
+      otpId: otpId,
+      otp: otp,
+      role: role,
+    );
+    return response.when(
+      success: (_, message, data) {
+        if (data != null) {
+          _tokenService.saveTokens(data.tokens);
+          final userModel = data.getUser(role);
+          _userService.setUser(userModel);
+          _userService.saveUserRole(role);
+
+          return Right(VerifyOtpEntity(
+            user: userModel.toEntity(),
+            isNewUser: data.isNewUser,
+            role: role,
+          ));
+        }
+        return Left(ServerFailure(message));
+      },
+      error: (_, message, _, _) => Left(ServerFailure(message)),
+    );
+  }
+
+  @override
+  User? get currentUser => _userService.getUser();
+
+  @override
+  UserRole? get userRole => _userService.getUserRole();
+
+  @override
+  OwnerProfile? get ownerProfile => _userService.getOwnerProfile()?.toEntity();
+
+  @override
+  bool get isAuthenticated => _userService.isLoggedIn;
+
+  @override
+  Future<void> logout() async {
+    await _tokenService.clearTokens();
+    await _userService.clear();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../domain/entities/send_otp_response_entity.dart';
+
+import '../../../domain/entities/send_otp_response_entity.dart';
 
 part 'send_otp_response_model.freezed.dart';
 part 'send_otp_response_model.g.dart';
@@ -20,12 +21,12 @@ sealed class SendOtpResponseModel with _$SendOtpResponseModel {
       _$SendOtpResponseModelFromJson(json);
 
   SendOtpResponseEntity toEntity() => SendOtpResponseEntity(
-        phone: phone,
-        otpId: otpId,
-        expiresAt: expiresAt,
-        resendableAt: resendableAt,
-        remainingAttempts: remainingAttempts,
-      );
+    phone: phone,
+    otpId: otpId,
+    expiresAt: expiresAt,
+    resendableAt: resendableAt,
+    remainingAttempts: remainingAttempts,
+  );
 
   factory SendOtpResponseModel.fromEntity(SendOtpResponseEntity entity) =>
       SendOtpResponseModel(

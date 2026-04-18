@@ -59,7 +59,9 @@ class AppInitializer {
     final networkClient = NetworkClient(
       tokenService: Get.find(),
       platformInfoService: Get.find(),
+      userService: Get.find(),
     );
+
     Get.put<Dio>(networkClient.dio, permanent: true);
   }
-}
+}

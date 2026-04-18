@@ -10,6 +10,7 @@ from core.errors.exceptions import AppException
 from core.constants.app_strings import strings
 import uuid
 from datetime import datetime
+from core.utils.datetime_utils import to_utc_iso
 from typing import Optional
 
 router = APIRouter(prefix="/v1/employee", tags=["Employee"])
@@ -113,7 +114,7 @@ async def get_jobs(worker_uid: str, status: Optional[str] = None, db: Session = 
                     "requirePhotoOnStart": j.require_photo_on_start,
                     "requirePhotoOnComplete": j.require_photo_on_complete,
                     "captureLocation": j.capture_location,
-                    "assignedAt": j.assigned_at.isoformat() if j.assigned_at else None
+                    "assignedAt": to_utc_iso(j.assigned_at) if j.assigned_at else None
                 } for j in jobs
             ],
             "pagination": {"total": len(jobs), "page": 1, "limit": 10}

@@ -1,11 +1,11 @@
 import 'dart:async';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/user/user_role.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/core/services/token/token_service.dart';
-import 'package:trackyond/core/services/user/user_service.dart';
 import 'package:trackyond/core/snackbar/app_snackbar.dart';
 import 'package:trackyond/features/auth/domain/entities/send_otp_response_entity.dart';
 import 'package:trackyond/features/auth/domain/usecases/send_otp_use_case.dart';
@@ -14,27 +14,26 @@ import 'package:trackyond/features/auth/domain/usecases/verify_otp_use_case.dart
 class VerifyOtpController extends GetxController {
   final VerifyOtpUseCase _verifyOtpUseCase;
   final SendOtpUseCase _sendOtpUseCase;
-  final TokenService _tokenService;
-  final UserService _userService;
 
-  VerifyOtpController(
-    this._verifyOtpUseCase,
-    this._sendOtpUseCase,
-    this._tokenService,
-    this._userService,
-  );
+  VerifyOtpController({
+    required VerifyOtpUseCase verifyOtpUseCase,
+    required SendOtpUseCase sendOtpUseCase,
+  }) : _verifyOtpUseCase = verifyOtpUseCase,
+       _sendOtpUseCase = sendOtpUseCase;
 
   late final String phone;
   late Rx<SendOtpResponseEntity> _session;
+
   SendOtpResponseEntity get session => _session.value;
 
   late final UserRole role;
 
   final otpController = TextEditingController();
   final isLoading = false.obs;
-  final isOtpInvalid = false.obs;
+  final otpErrorText = RxnString();
   final remainingSeconds = 0.obs;
   Timer? _timer;
+  late final TapGestureRecognizer resendRecognizer;
 
   @override
   void onInit() {
@@ -48,11 +47,13 @@ class VerifyOtpController extends GetxController {
     _session = (args['sendOtpResponse'] as SendOtpResponseEntity).obs;
     role = args['role'] as UserRole;
 
+    resendRecognizer = TapGestureRecognizer()..onTap = resendOtp;
     _startTimer();
   }
 
   @override
   void onClose() {
+    resendRecognizer.dispose();
     otpController.dispose();
     _timer?.cancel();
     super.onClose();
@@ -60,7 +61,7 @@ class VerifyOtpController extends GetxController {
 
   void _startTimer() {
     _timer?.cancel();
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     final resendAt =
         session.resendableAt ?? now.add(const Duration(seconds: 30));
     final diff = resendAt.difference(now).inSeconds;
@@ -78,6 +79,12 @@ class VerifyOtpController extends GetxController {
         timer.cancel();
       }
     });
+  }
+
+  String get formattedRemainingTime {
+    final minutes = remainingSeconds.value ~/ 60;
+    final seconds = remainingSeconds.value % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   String get title => AppStrings.verifyOtp.title;
@@ -112,9 +119,9 @@ class VerifyOtpController extends GetxController {
         isLoading.value = false;
         _session.value = newSession;
         otpController.clear();
-        isOtpInvalid.value = false;
+        otpErrorText.value = null;
         _startTimer();
-        AppSnackbar.success('OTP resent successfully');
+        AppSnackbar.success(AppStrings.sendOtp.otpResent);
       },
     );
   }
@@ -122,12 +129,12 @@ class VerifyOtpController extends GetxController {
   Future<void> verifyOtp() async {
     final otp = otpController.text.trim();
     if (otp.isEmpty || otp.length < 6) {
-      AppSnackbar.error('Please enter a valid 6-digit OTP');
+      otpErrorText.value = AppStrings.verifyOtp.incompleteOtp;
       return;
     }
 
     isLoading.value = true;
-    isOtpInvalid.value = false;
+    otpErrorText.value = null;
 
     final result = await _verifyOtpUseCase(
       VerifyOtpParams(phone: phone, otpId: session.otpId, otp: otp, role: role),
@@ -136,34 +143,30 @@ class VerifyOtpController extends GetxController {
     result.fold(
       (failure) {
         isLoading.value = false;
-        // Check for specific OTP errors to trigger Pinput error state
         final msg = failure.message.toLowerCase();
-        if (msg.contains('otp') || msg.contains('code') || msg.contains('verification')) {
-          isOtpInvalid.value = true;
-          // Optionally show a snackbar if it's more than just "Invalid OTP"
-          if (!msg.contains('invalid')) {
-             AppSnackbar.error(failure.message);
-          }
+        // OTP-specific errors → inline Pinput error (no toast)
+        if (msg.contains('otp') ||
+            msg.contains('code') ||
+            msg.contains('invalid')) {
+          otpErrorText.value = AppStrings.verifyOtp.invalidOtp;
         } else {
           AppSnackbar.error(failure.message);
         }
       },
-
-      (tokens) async {
-        // Save tokens and user role
-        await _tokenService.saveTokens(tokens);
-        await _userService.saveUserRole(role);
-
+      (entity) async {
         isLoading.value = false;
 
-        // Navigate to dashboard based on role
-        if (role == UserRole.owner) {
-          Get.offAllNamed(AppRoutes.owner.dashboard);
+        if (entity.role == UserRole.owner) {
+          if (entity.isNewUser) {
+            Get.offAllNamed(AppRoutes.owner.setupCompany);
+          } else {
+            Get.offAllNamed(AppRoutes.owner.dashboard);
+          }
         } else {
           Get.offAllNamed(AppRoutes.worker.dashboard);
         }
 
-        AppSnackbar.success('Logged in successfully');
+        AppSnackbar.success(AppStrings.verifyOtp.loginSuccess);
       },
     );
   }

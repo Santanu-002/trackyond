@@ -6,6 +6,8 @@ class SendOtpBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut(() => SendOtpUseCase(Get.find()));
-    Get.lazyPut<SendOtpController>(() => SendOtpController(Get.find()));
+    Get.lazyPut<SendOtpController>(
+      () => SendOtpController(sendOtpUseCase: Get.find()),
+    );
   }
 }

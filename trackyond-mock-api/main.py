@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from datetime import datetime
+from core.utils.datetime_utils import to_utc_iso
 from db import models, database
 from fastapi.exceptions import RequestValidationError
 from api.api import api_router
@@ -42,7 +43,7 @@ async def root():
 async def health():
     health_status = {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": to_utc_iso(),
         "services": {
             "api": "online",
             "database": "unknown",

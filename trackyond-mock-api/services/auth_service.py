@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from core.utils.datetime_utils import to_utc_iso, now_utc
 import uuid
 import random
 from typing import Tuple, Optional
@@ -21,14 +22,14 @@ class AuthService:
         self.COOLDOWN_SECONDS = 7200 # 2 hours cooldown after max attempts
 
     def _generate_otp_token(self, phone: str, device_id: str) -> str:
-        now = datetime.utcnow()
+        now = now_utc()
         exp = now + timedelta(seconds=self.EXPIRY_SECONDS)
         
         payload = {
             "phone": phone,
             "device_id": device_id,
-            "iat": now.isoformat(),
-            "exp": exp.isoformat()
+            "iat": to_utc_iso(now),
+            "exp": to_utc_iso(exp)
         }
         
         payload_str = json.dumps(payload, separators=(',', ':'))
@@ -66,7 +67,7 @@ class AuthService:
             
             # 3. Check Expiry
             exp = datetime.fromisoformat(payload["exp"])
-            if datetime.utcnow() > exp:
+            if now_utc() > exp:
                 raise AppException(message="OTP has expired.", error_code="otp_expired")
             
             # 4. Bind check
@@ -81,7 +82,7 @@ class AuthService:
             raise AppException(message="Malformed OTP ID.", error_code="invalid_otp_id")
 
     def send_otp_logic(self, phone: str, device_id: str, is_resend: bool = False) -> dict:
-        now = datetime.utcnow()
+        now = now_utc()
         # Normalize phone number
         phone = phone.strip()
         limit_key = f"otp_limit:{phone}"
@@ -113,7 +114,7 @@ class AuthService:
              raise AppException(
                 message="Maximum OTP attempts reached. Please try again later.", 
                 error_code="rate_limit_exceeded",
-                retry_after=blocked_until.isoformat()
+                retry_after=to_utc_iso(blocked_until)
             )
         
         # 3. If attempts exceeded but block expired, reset
@@ -124,15 +125,15 @@ class AuthService:
                 # Save the blocked state immediately
                 new_state = {
                     "attempts": attempts,
-                    "last_sent_at": (last_sent_at or now).isoformat(),
-                    "blocked_until": blocked_until.isoformat()
+                    "last_sent_at": to_utc_iso(last_sent_at or now),
+                    "blocked_until": to_utc_iso(blocked_until)
                 }
                 self.r.setex(limit_key, self.COOLDOWN_SECONDS + 3600, json.dumps(new_state))
                 
                 raise AppException(
                     message="Maximum OTP attempts reached. Please try again later.", 
                     error_code="rate_limit_exceeded",
-                    retry_after=blocked_until.isoformat()
+                    retry_after=to_utc_iso(blocked_until)
                 )
             
             # If we reached here, blocked_until passed, so reset attempts for a fresh cycle
@@ -172,28 +173,32 @@ class AuthService:
         new_attempts = attempts + 1
         new_state = {
             "attempts": new_attempts,
-            "last_sent_at": now.isoformat(),
+            "last_sent_at": to_utc_iso(now),
             "blocked_until": None
         }
         
         # If this was the last allowed attempt, calculate and set blocked_until for the next call
         if new_attempts >= self.MAX_ATTEMPTS:
             blocked_until = now + timedelta(seconds=self.COOLDOWN_SECONDS)
-            new_state["blocked_until"] = blocked_until.isoformat()
+            new_state["blocked_until"] = to_utc_iso(blocked_until)
         
         # Keep limit state for cooldown period + 1 hour buffer
         ttl = self.COOLDOWN_SECONDS + 3600
         self.r.setex(limit_key, ttl, json.dumps(new_state))
 
         # 8. Prepare Response Data
-        # Calculate next resendableAt
-        delay_sec = 0
-        if new_attempts < self.MAX_ATTEMPTS:
-            delay_idx = new_attempts - 1
-            delay_sec = self.DELAYS[delay_idx] if 0 <= delay_idx < len(self.DELAYS) else 120
-            
-        resendable_at = (now + timedelta(seconds=delay_sec)).isoformat() if delay_sec > 0 else None
-        expires_at = (now + timedelta(seconds=self.EXPIRY_SECONDS)).isoformat()
+        # Calculate next resendableAt based on current attempt count
+        # For new_attempts=1, delay is DELAYS[0] (30s), etc.
+        delay_idx = new_attempts - 1
+        delay_sec = self.DELAYS[delay_idx] if 0 <= delay_idx < len(self.DELAYS) else self.DELAYS[-1]
+        
+        # If max attempts reached, they can't resend until after cooldown (handled by blocked_until error on next call)
+        # So we return None for resendable_at if they hit the limit
+        if new_attempts >= self.MAX_ATTEMPTS:
+            resendable_at = None
+        else:
+            resendable_at = to_utc_iso(now + timedelta(seconds=delay_sec))
+        expires_at = to_utc_iso(now + timedelta(seconds=self.EXPIRY_SECONDS))
         
         return {
             "phone": phone,
@@ -228,7 +233,7 @@ class AuthService:
         
         # We use the 'exp' from payload to determine TTL for spent status
         exp_dt = datetime.fromisoformat(payload["exp"])
-        ttl = int((exp_dt - datetime.utcnow()).total_seconds())
+        ttl = int((exp_dt - now_utc()).total_seconds())
         if ttl > 0:
             self.r.setex(spent_key, ttl, "1")
 

@@ -4,9 +4,9 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
 import 'package:trackyond/core/common/entities/user/user_role.dart';
-import 'package:trackyond/features/auth/data/models/owner_profile_model.dart';
-import 'package:trackyond/features/auth/data/models/user_model.dart';
-import 'package:trackyond/features/auth/data/models/worker_profile_model.dart';
+import 'package:trackyond/features/auth/data/models/owner_profile/owner_profile_model.dart';
+import 'package:trackyond/features/auth/data/models/user/user_model.dart';
+import 'package:trackyond/features/auth/data/models/worker_profile/worker_profile_model.dart';
 
 class UserService extends GetxService {
   final SharedPreferences _prefs;

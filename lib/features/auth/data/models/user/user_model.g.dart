@@ -7,14 +7,14 @@ part of 'user_model.dart';
 // **************************************************************************
 
 _UserModel _$UserModelFromJson(Map<String, dynamic> json) => _UserModel(
-  id: json['id'] as String,
+  uid: json['uid'] as String,
   phone: json['phone'] as String,
   role: $enumDecode(_$UserRoleEnumMap, json['role']),
 );
 
 Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
     <String, dynamic>{
-      'id': instance.id,
+      'uid': instance.uid,
       'phone': instance.phone,
       'role': _$UserRoleEnumMap[instance.role]!,
     };

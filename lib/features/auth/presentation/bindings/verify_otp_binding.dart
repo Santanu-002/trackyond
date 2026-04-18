@@ -10,10 +10,8 @@ class VerifyOtpBinding extends Bindings {
     Get.lazyPut(() => VerifyOtpUseCase(Get.find()));
     Get.lazyPut<VerifyOtpController>(
       () => VerifyOtpController(
-        Get.find(),
-        Get.find(),
-        Get.find(),
-        Get.find(),
+        sendOtpUseCase: Get.find(),
+        verifyOtpUseCase: Get.find(),
       ),
     );
   }

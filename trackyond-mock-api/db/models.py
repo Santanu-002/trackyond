@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from .database import Base
 
 class Company(Base):
@@ -11,7 +11,7 @@ class Company(Base):
     user_phone_no = Column(String)
     user_full_name = Column(String)
     team_size = Column(Integer)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class Member(Base):
     __tablename__ = "members"
@@ -22,7 +22,7 @@ class Member(Base):
     designation = Column(String)
     image = Column(String, nullable=True)
     gender = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class Job(Base):
     __tablename__ = "jobs"
@@ -38,7 +38,7 @@ class Job(Base):
     require_photo_on_start = Column(Boolean, default=False)
     require_photo_on_complete = Column(Boolean, default=False)
     capture_location = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     assigned_at = Column(DateTime, nullable=True)
 
 class Notification(Base):
@@ -48,7 +48,7 @@ class Notification(Base):
     user_uid = Column(String)
     message = Column(String)
     read = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class Attendance(Base):
     __tablename__ = "attendance"
@@ -57,4 +57,4 @@ class Attendance(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     type = Column(String) # start | end
-    marked_at = Column(DateTime, default=datetime.utcnow)
+    marked_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

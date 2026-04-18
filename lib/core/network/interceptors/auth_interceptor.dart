@@ -7,15 +7,21 @@ import 'package:trackyond/core/network/api/request_extras.dart';
 import 'package:trackyond/core/network/interceptors/platform_info_interceptor.dart';
 import 'package:trackyond/core/services/device_header/platform_info_service.dart';
 import 'package:trackyond/core/services/token/token_service.dart';
+import 'package:trackyond/core/services/user/user_service.dart';
 
 class AuthInterceptor extends Interceptor {
   final TokenService tokenService;
   final PlatformInfoService platformInfoService;
+  final UserService userService;
 
   final Lock _refreshLock = Lock();
   Dio? _refreshDio;
 
-  AuthInterceptor(this.tokenService, this.platformInfoService);
+  AuthInterceptor(
+    this.tokenService,
+    this.platformInfoService,
+    this.userService,
+  );
 
   @override
   void onRequest(
@@ -25,9 +31,22 @@ class AuthInterceptor extends Interceptor {
     final isPublic = options.extra[RequestExtras.isPublic] ?? false;
 
     if (!isPublic) {
-      final UserRole role = UserRole.fromString(
-        options.extra[RequestExtras.userRole],
-      );
+      // 1. Try to get role from RequestExtras (as an override)
+      // 2. If not found, get from UserService
+      final String? roleOverride = options.extra[RequestExtras.userRole];
+      final UserRole? currentUserRole = userService.getUserRole();
+
+      final UserRole? role = roleOverride != null
+          ? UserRole.fromString(roleOverride)
+          : currentUserRole;
+
+      if (role == null) {
+        throw StateError(
+          'User role is missing for non-public request: ${options.path}. '
+          'Either the user is not logged in (UserService role is null) '
+          'or a role override was not provided in RequestExtras.',
+        );
+      }
 
       await _refreshLock.synchronized(() async {
         final isExpired = await tokenService.isAccessTokenAboutToExpired();

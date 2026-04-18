@@ -12,8 +12,17 @@ class AppTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final bool obscureText;
   final Widget? prefix;
+  final IconData? prefixIcon;
   final Widget? suffix;
   final int? maxLength;
+  final String? errorText;
+  final bool readOnly;
+  final bool enabled;
+  final TextCapitalization textCapitalization;
+  final TextInputAction? textInputAction;
+  final Iterable<String>? autofillHints;
+  final void Function(String)? onChanged;
+  final bool autofocus;
 
   const AppTextField({
     super.key,
@@ -25,12 +34,29 @@ class AppTextField extends StatelessWidget {
     this.validator,
     this.obscureText = false,
     this.prefix,
+    this.prefixIcon,
     this.suffix,
     this.maxLength,
+    this.errorText,
+    this.readOnly = false,
+    this.enabled = true,
+    this.textCapitalization = TextCapitalization.sentences,
+    this.textInputAction = TextInputAction.next,
+    this.autofillHints,
+    this.onChanged,
+    this.autofocus = false,
   });
-
   @override
   Widget build(BuildContext context) {
+    final Widget? effectivePrefix = prefix ??
+        (prefixIcon != null
+            ? Icon(
+                prefixIcon,
+                size: 20,
+                color: context.theme.colorScheme.primary,
+              )
+            : null);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -51,46 +77,31 @@ class AppTextField extends StatelessWidget {
           validator: validator,
           obscureText: obscureText,
           maxLength: maxLength,
-          style: context.textTheme.bodyLarge,
+          onChanged: onChanged,
+          readOnly: readOnly,
+          enabled: enabled,
+          textCapitalization: textCapitalization,
+          textInputAction: textInputAction,
+          autofillHints: autofillHints,
+          autofocus: autofocus,
+          style: context.textTheme.bodyLarge?.copyWith(
+            color: (readOnly || !enabled)
+                ? context.theme.colorScheme.onSurface.withValues(alpha: 0.5)
+                : null,
+          ),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: context.textTheme.bodyLarge?.copyWith(
-              color: context.theme.colorScheme.onSurface.withValues(alpha: 0.3),
-            ),
-            prefixIcon: prefix,
+            prefixIcon: effectivePrefix,
             suffixIcon: suffix,
-            filled: true,
-            fillColor: context.theme.colorScheme.surface,
-            contentPadding: EdgeInsets.all(AppUIConstants.spacing.space$16),
-            border: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(AppUIConstants.radius.radius$12),
-              borderSide: BorderSide(
-                color: context.theme.colorScheme.outline.withValues(alpha: 0.2),
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(AppUIConstants.radius.radius$12),
-              borderSide: BorderSide(
-                color: context.theme.colorScheme.outline.withValues(alpha: 0.2),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(AppUIConstants.radius.radius$12),
-              borderSide: BorderSide(
-                color: context.theme.colorScheme.primary,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(AppUIConstants.radius.radius$12),
-              borderSide: BorderSide(
-                color: context.theme.colorScheme.error,
-              ),
-            ),
+            errorText: errorText,
+            fillColor: (readOnly || !enabled)
+                ? context.theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.3,
+                  )
+                : null,
+            focusedBorder: readOnly
+                ? context.theme.inputDecorationTheme.enabledBorder
+                : null,
           ),
         ),
       ],

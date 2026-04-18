@@ -25,6 +25,8 @@ dependencies:
   flutter_secure_storage: ^10.0.0
   device_info_plus: ^12.4.0
   pretty_dio_logger: ^1.4.0
+  intl: ^0.20.2
+  equatable: ^2.0.8
 
 dev_dependencies:
   flutter_test:

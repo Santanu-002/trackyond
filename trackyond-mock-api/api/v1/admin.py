@@ -9,6 +9,7 @@ from services.token_service import token_service
 from core.responses.models import GenericResponse, ErrorResponse
 from core.errors.exceptions import AppException
 from core.constants.app_strings import strings
+from core.utils.datetime_utils import to_utc_iso
 import uuid
 from datetime import datetime
 
@@ -87,7 +88,8 @@ async def create_company(req: CompanyCreate, db: Session = Depends(get_db)):
             name=req.user_full_name,
             phone=req.user_phone_no,
             designation="Admin",
-            gender="Not Specified"
+            gender=None, # Explicitly null
+            image=None   # Explicitly null
         )
         db.add(new_member)
     
@@ -100,7 +102,7 @@ async def create_company(req: CompanyCreate, db: Session = Depends(get_db)):
         data={
             "companyId": new_company.company_id,
             "companyName": new_company.name,
-            "createdAt": new_company.created_at.isoformat()
+            "createdAt": to_utc_iso(new_company.created_at)
         }
     )
 
@@ -149,7 +151,7 @@ async def add_member(req: MemberCreate, db: Session = Depends(get_db)):
             "uid": new_member.uid,
             "memberName": new_member.name,
             "designation": new_member.designation,
-            "createdAt": new_member.created_at.isoformat()
+            "createdAt": to_utc_iso(new_member.created_at)
         }
     )
 

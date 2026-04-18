@@ -8,7 +8,7 @@ part 'user_model.g.dart';
 @freezed
 sealed class UserModel with _$UserModel {
   const factory UserModel({
-    required String id,
+    required String uid,
     required String phone,
     required UserRole role,
   }) = _UserModel;
@@ -18,8 +18,8 @@ sealed class UserModel with _$UserModel {
 
   const UserModel._();
 
-  User toEntity() => User(id: id, phone: phone, role: role);
+  User toEntity() => User(uid: uid, phone: phone, role: role);
 
   factory UserModel.fromEntity(User entity) =>
-      UserModel(id: entity.id, phone: entity.phone, role: entity.role);
+      UserModel(uid: entity.uid, phone: entity.phone, role: entity.role);
 }

@@ -22,7 +22,6 @@ class _AuthEndpoints {
 
   String get verifyOtp => '$prefix$_root/verify-otp';
 
-  // Token (Shared across all roles)
   String get refresh => '$prefix$_root/refresh';
 }
 

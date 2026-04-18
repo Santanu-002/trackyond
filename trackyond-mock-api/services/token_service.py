@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from core.utils.datetime_utils import to_utc_iso, now_utc
 from typing import Literal
 
 import jwt
@@ -25,7 +26,7 @@ class TokenService:
 
     def generate_tokens(self, user_uid: str, phone: str) -> dict:
         """Generate a fresh access + refresh token pair."""
-        now = datetime.now(tz=timezone.utc)
+        now = now_utc()
 
         access_exp = now + timedelta(minutes=JWT_ACCESS_EXPIRE_MINUTES)
         refresh_exp = now + timedelta(days=JWT_REFRESH_EXPIRE_DAYS)
@@ -53,9 +54,9 @@ class TokenService:
         return {
             "accessToken": access_token,
             "refreshToken": refresh_token,
-            "accessExpireAt": access_exp.isoformat(),
-            "refreshExpireAt": refresh_exp.isoformat(),
-            "tokenIssuedAt": now.isoformat(),
+            "accessExpireAt": to_utc_iso(access_exp),
+            "refreshExpireAt": to_utc_iso(refresh_exp),
+            "tokenIssuedAt": to_utc_iso(now),
         }
 
     def decode_token(self, token: str, expected_type: TokenType, verify_exp: bool = True) -> dict:

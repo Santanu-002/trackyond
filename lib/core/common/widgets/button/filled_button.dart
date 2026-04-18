@@ -1,0 +1,65 @@
+part of 'app_button.dart';
+
+class _FilledAppButton extends StatelessWidget {
+  final String? text;
+  final Widget? child;
+  final VoidCallback? onPressed;
+  final double width;
+  final double height;
+  final Color? color;
+  final double? borderRadius;
+  final List<Color>? gradientColors;
+  final bool isLoading;
+
+  const _FilledAppButton({
+    super.key,
+    this.text,
+    this.child,
+    this.onPressed,
+    required this.width,
+    required this.height,
+    this.color,
+    this.borderRadius,
+    this.gradientColors,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(borderRadius ?? 9999);
+    final List<Color> colors = gradientColors ??
+        [
+          color ?? context.theme.colorScheme.primary,
+          color ?? context.theme.colorScheme.primaryContainer,
+        ];
+
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          transform: const GradientRotation(2.35619), // 135 degrees
+        ),
+      ),
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: radius),
+        ),
+        child: _AppButtonContent(
+          text: text,
+          type: AppButtonType.filled,
+          color: color,
+          isLoading: isLoading,
+          child: child,
+        ),
+      ),
+    );
+  }
+}

@@ -1,5 +1,5 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:trackyond/core/common/entities/owner_profile/owner_profile.dart';
+import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
 import 'package:trackyond/core/common/entities/user/user_role.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
@@ -57,11 +57,13 @@ class AuthRepositoryImpl implements IAuthRepository {
           _userService.setUser(userModel);
           _userService.saveUserRole(role);
 
-          return Right(VerifyOtpEntity(
-            user: userModel.toEntity(),
-            isNewUser: data.isNewUser,
-            role: role,
-          ));
+          return Right(
+            VerifyOtpEntity(
+              user: userModel.toEntity(),
+              isNewUser: data.isNewUser,
+              role: role,
+            ),
+          );
         }
         return Left(ServerFailure(message));
       },
@@ -76,7 +78,7 @@ class AuthRepositoryImpl implements IAuthRepository {
   UserRole? get userRole => _userService.getUserRole();
 
   @override
-  OwnerProfile? get ownerProfile => _userService.getOwnerProfile()?.toEntity();
+  MemberProfile? get memberProfile => _userService.getProfile()?.toEntity();
 
   @override
   bool get isAuthenticated => _userService.isLoggedIn;

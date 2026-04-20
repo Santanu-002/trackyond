@@ -1,13 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'worker_profile_model.dart';
+part of 'member_profile_model.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_WorkerProfileModel _$WorkerProfileModelFromJson(Map<String, dynamic> json) =>
-    _WorkerProfileModel(
+_MemberProfileModel _$MemberProfileModelFromJson(Map<String, dynamic> json) =>
+    _MemberProfileModel(
       uid: json['uid'] as String,
       name: json['name'] as String,
       phone: json['phone'] as String,
@@ -16,7 +16,7 @@ _WorkerProfileModel _$WorkerProfileModelFromJson(Map<String, dynamic> json) =>
       image: json['image'] as String?,
     );
 
-Map<String, dynamic> _$WorkerProfileModelToJson(_WorkerProfileModel instance) =>
+Map<String, dynamic> _$MemberProfileModelToJson(_MemberProfileModel instance) =>
     <String, dynamic>{
       'uid': instance.uid,
       'name': instance.name,

@@ -208,7 +208,7 @@ class AuthService:
             "remainingAttempts": self.MAX_ATTEMPTS - new_attempts
         }
 
-    def verify_otp_logic(self, db: Session, phone: str, otp_id: str, otp: str, current_device_id: str) -> Tuple[bool, bool, dict]:
+    def verify_otp_logic(self, db: Session, phone: str, otp_id: str, otp: str, current_device_id: str, device_metadata: dict = None) -> Tuple[bool, bool, dict]:
         # 1. Verify Stateless Token
         payload = self._verify_otp_token(otp_id, phone, current_device_id)
         
@@ -240,27 +240,63 @@ class AuthService:
         # 5. Validation Success - Clean up
         self.r.delete(f"otp_limit:{phone}") # Reset limit on successful login
 
-        # 4. Standard User/Company Checks
-        company = db.query(models.Company).filter(models.Company.user_phone_no == phone).first()
-        is_new_user = company is None
-
-        member = db.query(models.Member).filter(models.Member.phone == phone).first()
-        user_uid = member.uid if member else uuid.uuid4().hex[:10]
+        # 6. Persistent Identity Logic
+        user = db.query(models.User).filter(models.User.phone == phone).first()
         
+        if not user:
+            # Create new user (default to admin for now, as employees are usually created by admins)
+            user = models.User(
+                uid=uuid.uuid4().hex[:10],
+                phone=phone,
+                role="admin",
+                is_new_user=True
+            )
+            db.add(user)
+            db.flush() # Get user.uid
+        
+        # 7. Session management (Overwrite per device_id)
+        existing_session = db.query(models.Session).filter(
+            models.Session.user_uid == user.uid,
+            models.Session.device_id == current_device_id
+        ).first()
+
+        tokens = self.generate_tokens(user.uid, phone)
+        
+        if existing_session:
+            existing_session.refresh_token = tokens["refreshToken"]
+            existing_session.login_at = now_utc()
+            existing_session.session_updated_at = now_utc()
+            existing_session.logout_at = None # Reset logout if any
+            if device_metadata:
+                existing_session.device_metadata = json.dumps(device_metadata)
+        else:
+            new_session = models.Session(
+                user_uid=user.uid,
+                device_id=current_device_id,
+                refresh_token=tokens["refreshToken"],
+                login_at=now_utc(),
+                session_updated_at=now_utc(),
+                device_metadata=json.dumps(device_metadata) if device_metadata else "{}"
+            )
+            db.add(new_session)
+        
+        db.commit()
+
         response_data = {
-            "userUid": user_uid,
+            "userUid": user.uid,
             "phoneNo": phone,
-            "isNewUser": is_new_user,
-            **self.generate_tokens(user_uid, phone)
+            "role": user.role,
+            "isNewUser": user.is_new_user,
+            **tokens
         }
         
-        return True, is_new_user, response_data
+        return True, user.is_new_user, response_data
 
     def generate_tokens(self, user_uid: str, phone: str) -> dict:
         from services.token_service import token_service
         return token_service.generate_tokens(user_uid, phone)
 
-    def refresh_token_logic(self, authorization: str, x_refresh_token: str) -> dict:
+    def refresh_token_logic(self, db: Session, authorization: str, x_refresh_token: str, device_id: str) -> dict:
         from services.token_service import token_service
         
         # 1. Extract access token from Authorization header
@@ -284,7 +320,26 @@ class AuthService:
         user_uid = refresh_payload.get("sub")
         phone = refresh_payload.get("phone")
         
-        # 5. Issue fresh tokens
-        return self.generate_tokens(user_uid, phone)
+        # 5. Update Session
+        session = db.query(models.Session).filter(
+            models.Session.user_uid == user_uid,
+            models.Session.device_id == device_id,
+            models.Session.refresh_token == x_refresh_token
+        ).first()
+
+        if not session:
+             # Fallback to just user/device check if token rotated but old one is sent? 
+             # No, strict session tracking:
+             raise AppException(message="Session invalid or expired.", error_code="session_invalid")
+
+        # 6. Issue fresh tokens
+        tokens = self.generate_tokens(user_uid, phone)
+
+        # 7. Update session with new refresh token and timestamp
+        session.refresh_token = tokens["refreshToken"]
+        session.session_updated_at = now_utc()
+        db.commit()
+        
+        return tokens
 
 auth_service = AuthService()

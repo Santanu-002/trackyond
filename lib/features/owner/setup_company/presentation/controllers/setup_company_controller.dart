@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
-import 'package:trackyond/features/owner/setup_company/presentation/widgets/custom_team_size_bottom_sheet.dart';
+import 'package:trackyond/core/common/entities/company/company_entity.dart';
+import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/snackbar/app_snackbar.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/owner/setup_company/domain/entities/team_size_option.dart';
+import 'package:trackyond/features/owner/setup_company/domain/usecases/save_company_usecase.dart';
 import 'package:trackyond/features/owner/setup_company/domain/usecases/setup_company_usecase.dart';
+import 'package:trackyond/features/owner/setup_company/domain/usecases/update_session_usecase.dart';
+import 'package:trackyond/features/owner/setup_company/presentation/widgets/custom_team_size_bottom_sheet.dart';
 
 class SetupCompanyController extends GetxController {
   final SetupCompanyUseCase _setupCompanyUseCase;
+  final UpdateSessionUseCase _updateSessionUseCase;
+  final SaveCompanyUseCase _saveCompanyUseCase;
 
-  SetupCompanyController({required SetupCompanyUseCase setupCompanyUseCase})
-    : _setupCompanyUseCase = setupCompanyUseCase;
+  SetupCompanyController({
+    required SetupCompanyUseCase setupCompanyUseCase,
+    required UpdateSessionUseCase updateSessionUseCase,
+    required SaveCompanyUseCase saveCompanyUseCase,
+  }) : _setupCompanyUseCase = setupCompanyUseCase,
+       _updateSessionUseCase = updateSessionUseCase,
+       _saveCompanyUseCase = saveCompanyUseCase;
 
   // ------------------ CONTROLLERS ------------------
   late final TextEditingController companyNameController;
@@ -112,15 +123,20 @@ class SetupCompanyController extends GetxController {
         ),
       );
 
-      result.fold(
-        (failure) {
+      await result.fold(
+        (failure) async {
           AppSnackbar.error(failure.toString());
         },
-        (company) {
-          debugPrint('SUCCESS: Company Created - $company');
+        (setupResult) async {
+          // Finalize onboarding locally and globally
+          await completeOwnerOnboarding(
+            profile: setupResult.memberProfile,
+            company: setupResult.company,
+            teamSize: selectedTeamSize.value,
+          );
+
           AppSnackbar.success(AppStrings.setupCompany.setupSuccess);
           FocusManager.instance.primaryFocus?.unfocus();
-          Get.offAllNamed(AppRoutes.owner.dashboard);
         },
       );
     } catch (e) {
@@ -128,5 +144,29 @@ class SetupCompanyController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Finalizes the onboarding process for an owner.
+  /// This updates the local session and persists company details globally.
+  Future<void> completeOwnerOnboarding({
+    required MemberProfile profile,
+    required CompanyEntity company,
+    required int teamSize,
+  }) async {
+    // 1. Update session locally (sets isNewUser: false and saves profile)
+    await _updateSessionUseCase(
+      profile: profile,
+      isNewUser: false,
+    );
+
+    // 2. Persist company details globally
+    await _saveCompanyUseCase.execute(
+      company: company,
+      phone: phoneController.text.trim(),
+      teamSize: teamSize,
+    );
+
+    // 3. Navigate to dashboard
+    Get.offAllNamed(AppRoutes.owner.dashboard);
   }
 }

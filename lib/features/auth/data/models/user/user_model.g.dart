@@ -10,6 +10,7 @@ _UserModel _$UserModelFromJson(Map<String, dynamic> json) => _UserModel(
   uid: json['uid'] as String,
   phone: json['phone'] as String,
   role: $enumDecode(_$UserRoleEnumMap, json['role']),
+  isNewUser: json['isNewUser'] as bool,
 );
 
 Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
@@ -17,6 +18,7 @@ Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
       'uid': instance.uid,
       'phone': instance.phone,
       'role': _$UserRoleEnumMap[instance.role]!,
+      'isNewUser': instance.isNewUser,
     };
 
 const _$UserRoleEnumMap = {UserRole.owner: 'owner', UserRole.worker: 'worker'};

@@ -11,6 +11,7 @@ sealed class UserModel with _$UserModel {
     required String uid,
     required String phone,
     required UserRole role,
+    required bool isNewUser,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -18,8 +19,12 @@ sealed class UserModel with _$UserModel {
 
   const UserModel._();
 
-  User toEntity() => User(uid: uid, phone: phone, role: role);
+  User toEntity() => User(uid: uid, phone: phone, role: role, isNewUser: isNewUser);
 
-  factory UserModel.fromEntity(User entity) =>
-      UserModel(uid: entity.uid, phone: entity.phone, role: entity.role);
+  factory UserModel.fromEntity(User entity) => UserModel(
+        uid: entity.uid,
+        phone: entity.phone,
+        role: entity.role,
+        isNewUser: entity.isNewUser,
+      );
 }

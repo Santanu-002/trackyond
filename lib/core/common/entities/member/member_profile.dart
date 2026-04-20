@@ -1,4 +1,4 @@
-class WorkerProfile {
+class MemberProfile {
   final String uid;
   final String name;
   final String phone;
@@ -6,7 +6,7 @@ class WorkerProfile {
   final String? gender;
   final String? image;
 
-  const WorkerProfile({
+  const MemberProfile({
     required this.uid,
     required this.name,
     required this.phone,

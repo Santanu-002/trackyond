@@ -95,7 +95,7 @@ class VerifyOtpController extends GetxController {
     final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
 
     if (cleaned.startsWith('+91') && cleaned.length == 13) {
-      final last3 = cleaned.substring(10); // last 3 digits
+      final last3 = cleaned.substring(10);
       return '+91 XXXXXXX$last3';
     }
 

@@ -1,5 +1,5 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:trackyond/core/common/entities/owner_profile/owner_profile.dart';
+import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
 import 'package:trackyond/core/common/entities/user/user_role.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
@@ -22,9 +22,8 @@ abstract interface class IAuthRepository {
   /// Getters for session state
   User? get currentUser;
   UserRole? get userRole;
-  OwnerProfile? get ownerProfile;
+  MemberProfile? get memberProfile;
   bool get isAuthenticated;
 
-  /// Session management
   Future<void> logout();
 }

@@ -42,5 +42,5 @@ sealed class VerifyOtpResponseModel with _$VerifyOtpResponseModel {
   );
 
   UserModel getUser(UserRole role) =>
-      UserModel(uid: userUid, phone: phoneNo, role: role);
+      UserModel(uid: userUid, phone: phoneNo, role: role, isNewUser: isNewUser);
 }

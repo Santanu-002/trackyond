@@ -37,10 +37,25 @@ async def resend_otp(req: OTPRequest, device_id: str = Header(alias="device-id")
 async def verify_otp(
     req: VerifyOTPRequest, 
     db: Session = Depends(get_db),
-    device_id: str = Header(alias="device-id")
+    device_id: str = Header(alias="device-id"),
+    device_os: str = Header(alias="device-os"),
+    device_os_version: str = Header(alias="device-os-version"),
+    device_name: str = Header(alias="device-name"),
+    browser: str = Header(alias="browser"),
+    browser_version: str = Header(alias="browser-version"),
+    app_version: str = Header(alias="app-version")
 ):
+    metadata = {
+        "deviceOs": device_os,
+        "deviceOsVersion": device_os_version,
+        "deviceName": device_name,
+        "browser": browser,
+        "browserVersion": browser_version,
+        "appVersion": app_version
+    }
+    
     success, is_new_user, data = auth_service.verify_otp_logic(
-        db, req.phone, req.otp_id, req.otp, device_id
+        db, req.phone, req.otp_id, req.otp, device_id, metadata
     )
     
     if not success:
@@ -54,10 +69,12 @@ async def verify_otp(
 
 @router.post("/auth/refresh", response_model=GenericResponse)
 async def refresh_token(
+    db: Session = Depends(get_db),
     authorization: str = Header(...),
-    x_refresh_token: str = Header(alias="x-refresh-token")
+    x_refresh_token: str = Header(alias="x-refresh-token"),
+    device_id: str = Header(alias="device-id")
 ):
-    tokens = auth_service.refresh_token_logic(authorization, x_refresh_token)
+    tokens = auth_service.refresh_token_logic(db, authorization, x_refresh_token, device_id)
     return GenericResponse(
         success=True,
         message="Token refreshed successfully",
@@ -66,11 +83,27 @@ async def refresh_token(
 
 @router.post("/company", response_model=GenericResponse)
 async def create_company(req: CompanyCreate, db: Session = Depends(get_db)):
-    # Check if company already exists
+    # 1. Check if company already exists
     existing = db.query(models.Company).filter(models.Company.user_phone_no == req.user_phone_no).first()
     if existing:
          return GenericResponse(success=False, message="Company already exists for this user")
 
+    # 2. Update User onboarding status
+    user = db.query(models.User).filter(models.User.phone == req.user_phone_no).first()
+    if not user:
+        # Fallback if user wasn't created during OTP (shouldn't happen with new logic)
+        user = models.User(
+            uid=uuid.uuid4().hex[:10],
+            phone=req.user_phone_no,
+            role="admin",
+            is_new_user=False
+        )
+        db.add(user)
+        db.flush()
+    else:
+        user.is_new_user = False
+
+    # 3. Create Company
     new_company = models.Company(
         company_id="comp_" + str(uuid.uuid4())[:8],
         name=req.company_name,
@@ -80,29 +113,45 @@ async def create_company(req: CompanyCreate, db: Session = Depends(get_db)):
     )
     db.add(new_company)
     
-    # Also add as a member if not exists
-    member = db.query(models.Member).filter(models.Member.phone == req.user_phone_no).first()
+    # 4. Create/Update the Admin's Member profile
+    member = db.query(models.Member).filter(models.Member.uid == user.uid).first()
     if not member:
-        new_member = models.Member(
-            uid=uuid.uuid4().hex[:10],
+        member = models.Member(
+            uid=user.uid,
             name=req.user_full_name,
             phone=req.user_phone_no,
-            designation="Admin",
-            gender=None, # Explicitly null
-            image=None   # Explicitly null
+            designation="Owner",
+            gender=None,
+            image=None
         )
-        db.add(new_member)
+        db.add(member)
+    else:
+        member.name = req.user_full_name
+        member.designation = "Owner"
     
     db.commit()
     db.refresh(new_company)
+    db.refresh(member)
     
     return GenericResponse(
         success=True,
         message=strings.company_created,
         data={
-            "companyId": new_company.company_id,
-            "companyName": new_company.name,
-            "createdAt": to_utc_iso(new_company.created_at)
+            "ownerProfile": {
+                "uid": member.uid,
+                "name": member.name,
+                "phone": member.phone,
+                "designation": member.designation,
+                "image": member.image,
+                "gender": member.gender
+            },
+            "company": {
+                "companyId": new_company.company_id,
+                "companyName": new_company.name,
+                "userPhoneNo": new_company.user_phone_no,
+                "teamSize": new_company.team_size,
+                "createdAt": to_utc_iso(new_company.created_at)
+            }
         }
     )
 
@@ -128,12 +177,24 @@ async def get_members(db: Session = Depends(get_db)):
 
 @router.post("/members", response_model=GenericResponse)
 async def add_member(req: MemberCreate, db: Session = Depends(get_db)):
-    existing = db.query(models.Member).filter(models.Member.phone == req.user_phone_no).first()
-    if existing:
-        return GenericResponse(success=False, message="Member already exists")
+    # 1. Check if user already exists
+    user = db.query(models.User).filter(models.User.phone == req.user_phone_no).first()
+    if user:
+        return GenericResponse(success=False, message="User with this phone already exists")
 
-    new_member = models.Member(
+    # 2. Create User record
+    new_user = models.User(
         uid=uuid.uuid4().hex[:10],
+        phone=req.user_phone_no,
+        role="employee",
+        is_new_user=False # Employees created by admin are not "new users" in onboarding sense
+    )
+    db.add(new_user)
+    db.flush()
+
+    # 3. Create Member profile
+    new_member = models.Member(
+        uid=new_user.uid,
         name=req.member_name,
         phone=req.user_phone_no,
         designation=req.designation,
@@ -150,6 +211,7 @@ async def add_member(req: MemberCreate, db: Session = Depends(get_db)):
         data={
             "uid": new_member.uid,
             "memberName": new_member.name,
+            "phone": new_member.phone,
             "designation": new_member.designation,
             "createdAt": to_utc_iso(new_member.created_at)
         }

@@ -1,8 +1,11 @@
 import 'package:get/get.dart';
+import 'package:trackyond/core/services/user/user_service.dart';
 import 'package:trackyond/features/owner/setup_company/data/datasources/owner_remote_data_source.dart';
 import 'package:trackyond/features/owner/setup_company/data/repositories/company_repository_impl.dart';
 import 'package:trackyond/features/owner/setup_company/domain/repositories/i_company_repository.dart';
+import 'package:trackyond/features/owner/setup_company/domain/usecases/save_company_usecase.dart';
 import 'package:trackyond/features/owner/setup_company/domain/usecases/setup_company_usecase.dart';
+import 'package:trackyond/features/owner/setup_company/domain/usecases/update_session_usecase.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/controllers/setup_company_controller.dart';
 
 class SetupCompanyBinding extends Bindings {
@@ -13,18 +16,29 @@ class SetupCompanyBinding extends Bindings {
       () => OwnerRemoteDataSourceImpl(dio: Get.find()),
     );
     Get.lazyPut<ICompanyRepository>(
-      () => CompanyRepositoryImpl(remoteDataSource: Get.find()),
+      () => CompanyRepositoryImpl(
+        remoteDataSource: Get.find(),
+        userService: Get.find<UserService>(),
+      ),
     );
 
     // Domain Layer (Use Cases)
     Get.lazyPut<SetupCompanyUseCase>(
       () => SetupCompanyUseCase(Get.find()),
     );
+    Get.lazyPut<UpdateSessionUseCase>(
+      () => UpdateSessionUseCase(Get.find()),
+    );
+    Get.lazyPut<SaveCompanyUseCase>(
+      () => SaveCompanyUseCase(Get.find()),
+    );
 
     // Presentation Layer (Controllers)
     Get.lazyPut<SetupCompanyController>(
       () => SetupCompanyController(
         setupCompanyUseCase: Get.find<SetupCompanyUseCase>(),
+        updateSessionUseCase: Get.find<UpdateSessionUseCase>(),
+        saveCompanyUseCase: Get.find<SaveCompanyUseCase>(),
       ),
     );
   }

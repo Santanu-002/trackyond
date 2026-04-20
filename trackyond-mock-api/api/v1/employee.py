@@ -37,10 +37,25 @@ async def resend_otp(req: OTPRequest, device_id: str = Header(alias="device-id")
 async def verify_otp(
     req: VerifyOTPRequest, 
     db: Session = Depends(get_db),
-    device_id: str = Header(alias="device-id")
+    device_id: str = Header(alias="device-id"),
+    device_os: str = Header(alias="device-os"),
+    device_os_version: str = Header(alias="device-os-version"),
+    device_name: str = Header(alias="device-name"),
+    browser: str = Header(alias="browser"),
+    browser_version: str = Header(alias="browser-version"),
+    app_version: str = Header(alias="app-version")
 ):
+    metadata = {
+        "deviceOs": device_os,
+        "deviceOsVersion": device_os_version,
+        "deviceName": device_name,
+        "browser": browser,
+        "browserVersion": browser_version,
+        "appVersion": app_version
+    }
+    
     success, is_new_user, data = auth_service.verify_otp_logic(
-        db, req.phone, req.otp_id, req.otp, device_id
+        db, req.phone, req.otp_id, req.otp, device_id, metadata
     )
     
     if not success:
@@ -63,10 +78,12 @@ async def verify_otp(
 
 @router.post("/auth/refresh", response_model=GenericResponse)
 async def refresh_token(
+    db: Session = Depends(get_db),
     authorization: str = Header(...),
-    x_refresh_token: str = Header(alias="x-refresh-token")
+    x_refresh_token: str = Header(alias="x-refresh-token"),
+    device_id: str = Header(alias="device-id")
 ):
-    tokens = auth_service.refresh_token_logic(authorization, x_refresh_token)
+    tokens = auth_service.refresh_token_logic(db, authorization, x_refresh_token, device_id)
     return GenericResponse(
         success=True,
         message="Token refreshed successfully",

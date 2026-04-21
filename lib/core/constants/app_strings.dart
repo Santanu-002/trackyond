@@ -8,6 +8,8 @@ class AppStrings {
   static const setupCompany = SetupCompanyStrings();
   static const chooseTeamSize = ChooseTeamSizeStrings();
   static const addTeamMember = AddTeamMemberStrings();
+  static const ownerDashboard = OwnerDashboardStrings();
+  static const workerDashboard = WorkerDashboardStrings();
 }
 
 class CommonStrings {
@@ -188,9 +190,56 @@ class AddTeamMemberStrings {
 
   String get addButton => 'Add Member';
 
-  String get skipButton => 'Maybe Later';
+  String get skipButton => 'Skip';
 
   String get continueButton => 'Go to Dashboard';
 
   String get successMessage => 'Member added successfully!';
+
+  String get addNewMemberTile => 'Add new member';
+
+  String get noMembersYet => 'No members added yet';
+
+  String get genderLabel => 'Gender';
+
+  String get genderMale => 'Male';
+
+  String get genderFemale => 'Female';
+
+  String get genderOther => 'Other';
+
+  String get createButton => 'Create Member';
+
+  String get discardTitle => 'Discard Changes?';
+
+  String get discardMessage =>
+      'You have unsaved changes in the form. Are you sure you want to discard them?';
+
+  String get discardConfirm => 'Discard';
+
+  String get discardCancel => 'Cancel';
+}
+
+class OwnerDashboardStrings {
+  const OwnerDashboardStrings();
+
+  String get title => 'Owner Dashboard';
+
+  String welcome(String name) => 'Welcome, $name!';
+
+  String message(String company) => 'Managing $company with precision.';
+
+  String get goBack => 'Go Back';
+}
+
+class WorkerDashboardStrings {
+  const WorkerDashboardStrings();
+
+  String get title => 'Worker Dashboard';
+
+  String welcome(String name) => 'Welcome, $name!';
+
+  String get message => 'Your login was successful.';
+
+  String get goBack => 'Go Back';
 }

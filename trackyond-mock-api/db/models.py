@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from .database import Base
@@ -37,13 +37,21 @@ class Company(Base):
 class Member(Base):
     __tablename__ = "members"
     id = Column(Integer, primary_key=True, index=True)
-    uid = Column(String, ForeignKey("users.uid"), unique=True, index=True)
+    uid = Column(String, ForeignKey("users.uid"), index=True)
     name = Column(String)
-    phone = Column(String, unique=True, index=True)
+    phone = Column(String, index=True)
     designation = Column(String)
     image = Column(String, nullable=True)
     gender = Column(String, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # New fields for multi-tenancy and creator tracking
+    created_by = Column(String, ForeignKey("users.uid"), nullable=True)
+    company_uid = Column(String, ForeignKey("companies.company_id"), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint('uid', 'company_uid', name='_user_company_uc'),
+    )
 
 class Job(Base):
     __tablename__ = "jobs"

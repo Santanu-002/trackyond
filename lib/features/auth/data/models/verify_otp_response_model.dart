@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
 import 'package:trackyond/features/auth/data/models/user/user_model.dart';
 

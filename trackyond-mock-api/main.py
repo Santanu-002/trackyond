@@ -3,6 +3,7 @@ from datetime import datetime
 from core.utils.datetime_utils import to_utc_iso
 from db import models, database
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
 from api.api import api_router
 from core.errors.exceptions import AppException, app_exception_handler, validation_exception_handler
 from core.middleware.device_metadata import DeviceMetadataMiddleware
@@ -23,6 +24,12 @@ app.add_middleware(DeviceMetadataMiddleware)
 
 # Include Routers with /api prefix
 app.include_router(api_router, prefix="/api")
+
+# Serve static files for uploads
+uploads_dir = "uploads"
+if not os.path.exists(uploads_dir):
+    os.makedirs(uploads_dir)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 # Redis client
 r = get_redis()

@@ -5,7 +5,6 @@ import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/auth/presentation/controllers/verify_otp_controller.dart';
-
 import 'package:trackyond/core/common/widgets/scaffold/app_scaffold.dart';
 
 class VerifyOtpPage extends GetView<VerifyOtpController> {
@@ -96,9 +95,7 @@ class VerifyOtpPage extends GetView<VerifyOtpController> {
                         color: context.theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
-                      recognizer: isWaiting
-                          ? null
-                          : controller.resendRecognizer,
+                      recognizer: isWaiting ? null : controller.resendRecognizer,
                     ),
                   ],
                 ),

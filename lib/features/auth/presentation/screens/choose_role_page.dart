@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/widgets/header/app_header.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
+import 'package:trackyond/core/common/widgets/header/app_header.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/core/common/entities/user/user_role.dart';
 import 'package:trackyond/features/auth/presentation/controllers/choose_role_controller.dart';
 
 class ChooseRolePage extends GetView<ChooseRoleController> {
@@ -48,11 +48,13 @@ class ChooseRolePage extends GetView<ChooseRoleController> {
                   children: [
                     AppButton.filled(
                       text: strings.loginEmployee,
-                      onPressed: () => controller.navigateToLogin(UserRole.worker),
+                      onPressed: () =>
+                          controller.navigateToLogin(UserRole.worker),
                     ),
-                    AppButton.outlined(
+                    AppButton.ghost(
                       text: strings.loginCompany,
-                      onPressed: () => controller.navigateToLogin(UserRole.owner),
+                      onPressed: () =>
+                          controller.navigateToLogin(UserRole.owner),
                     ),
                   ],
                 ),

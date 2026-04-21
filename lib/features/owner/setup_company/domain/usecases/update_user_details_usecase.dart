@@ -10,8 +10,8 @@ class UpdateUserDetailsUseCase implements BaseUseCase<Unit, UpdateUserDetailsPar
   UpdateUserDetailsUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, Unit>> call(UpdateUserDetailsParams params) {
-    return _repository.updateUserDetails(
+  Future<Either<AppFailure, Unit>> call(UpdateUserDetailsParams params) async {
+    return await _repository.updateUserDetails(
       profile: params.profile,
       isNewUser: params.isNewUser,
     );

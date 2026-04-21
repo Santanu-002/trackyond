@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MemberProfileModel {
 
- String get uid; String get name; String get phone; String get designation; String? get gender; String? get image;
+ String get uid; String get name; String get phone; String get designation; String? get gender; String? get image; String? get companyUid; String? get createdBy;
 /// Create a copy of MemberProfileModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $MemberProfileModelCopyWith<MemberProfileModel> get copyWith => _$MemberProfileM
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MemberProfileModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.name, name) || other.name == name)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.designation, designation) || other.designation == designation)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.image, image) || other.image == image));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MemberProfileModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.name, name) || other.name == name)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.designation, designation) || other.designation == designation)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.image, image) || other.image == image)&&(identical(other.companyUid, companyUid) || other.companyUid == companyUid)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,name,phone,designation,gender,image);
+int get hashCode => Object.hash(runtimeType,uid,name,phone,designation,gender,image,companyUid,createdBy);
 
 @override
 String toString() {
-  return 'MemberProfileModel(uid: $uid, name: $name, phone: $phone, designation: $designation, gender: $gender, image: $image)';
+  return 'MemberProfileModel(uid: $uid, name: $name, phone: $phone, designation: $designation, gender: $gender, image: $image, companyUid: $companyUid, createdBy: $createdBy)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $MemberProfileModelCopyWith<$Res>  {
   factory $MemberProfileModelCopyWith(MemberProfileModel value, $Res Function(MemberProfileModel) _then) = _$MemberProfileModelCopyWithImpl;
 @useResult
 $Res call({
- String uid, String name, String phone, String designation, String? gender, String? image
+ String uid, String name, String phone, String designation, String? gender, String? image, String? companyUid, String? createdBy
 });
 
 
@@ -65,7 +65,7 @@ class _$MemberProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of MemberProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? name = null,Object? phone = null,Object? designation = null,Object? gender = freezed,Object? image = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? name = null,Object? phone = null,Object? designation = null,Object? gender = freezed,Object? image = freezed,Object? companyUid = freezed,Object? createdBy = freezed,}) {
   return _then(_self.copyWith(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -73,6 +73,8 @@ as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to
 as String,designation: null == designation ? _self.designation : designation // ignore: cast_nullable_to_non_nullable
 as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String?,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as String?,companyUid: freezed == companyUid ? _self.companyUid : companyUid // ignore: cast_nullable_to_non_nullable
+as String?,createdBy: freezed == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -155,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String name,  String phone,  String designation,  String? gender,  String? image)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String name,  String phone,  String designation,  String? gender,  String? image,  String? companyUid,  String? createdBy)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MemberProfileModel() when $default != null:
-return $default(_that.uid,_that.name,_that.phone,_that.designation,_that.gender,_that.image);case _:
+return $default(_that.uid,_that.name,_that.phone,_that.designation,_that.gender,_that.image,_that.companyUid,_that.createdBy);case _:
   return orElse();
 
 }
@@ -176,10 +178,10 @@ return $default(_that.uid,_that.name,_that.phone,_that.designation,_that.gender,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String name,  String phone,  String designation,  String? gender,  String? image)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String name,  String phone,  String designation,  String? gender,  String? image,  String? companyUid,  String? createdBy)  $default,) {final _that = this;
 switch (_that) {
 case _MemberProfileModel():
-return $default(_that.uid,_that.name,_that.phone,_that.designation,_that.gender,_that.image);}
+return $default(_that.uid,_that.name,_that.phone,_that.designation,_that.gender,_that.image,_that.companyUid,_that.createdBy);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -193,10 +195,10 @@ return $default(_that.uid,_that.name,_that.phone,_that.designation,_that.gender,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String name,  String phone,  String designation,  String? gender,  String? image)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String name,  String phone,  String designation,  String? gender,  String? image,  String? companyUid,  String? createdBy)?  $default,) {final _that = this;
 switch (_that) {
 case _MemberProfileModel() when $default != null:
-return $default(_that.uid,_that.name,_that.phone,_that.designation,_that.gender,_that.image);case _:
+return $default(_that.uid,_that.name,_that.phone,_that.designation,_that.gender,_that.image,_that.companyUid,_that.createdBy);case _:
   return null;
 
 }
@@ -208,7 +210,7 @@ return $default(_that.uid,_that.name,_that.phone,_that.designation,_that.gender,
 @JsonSerializable()
 
 class _MemberProfileModel extends MemberProfileModel {
-  const _MemberProfileModel({required this.uid, required this.name, required this.phone, required this.designation, this.gender, this.image}): super._();
+  const _MemberProfileModel({required this.uid, required this.name, required this.phone, required this.designation, this.gender, this.image, this.companyUid, this.createdBy}): super._();
   factory _MemberProfileModel.fromJson(Map<String, dynamic> json) => _$MemberProfileModelFromJson(json);
 
 @override final  String uid;
@@ -217,6 +219,8 @@ class _MemberProfileModel extends MemberProfileModel {
 @override final  String designation;
 @override final  String? gender;
 @override final  String? image;
+@override final  String? companyUid;
+@override final  String? createdBy;
 
 /// Create a copy of MemberProfileModel
 /// with the given fields replaced by the non-null parameter values.
@@ -231,16 +235,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemberProfileModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.name, name) || other.name == name)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.designation, designation) || other.designation == designation)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.image, image) || other.image == image));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MemberProfileModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.name, name) || other.name == name)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.designation, designation) || other.designation == designation)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.image, image) || other.image == image)&&(identical(other.companyUid, companyUid) || other.companyUid == companyUid)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,name,phone,designation,gender,image);
+int get hashCode => Object.hash(runtimeType,uid,name,phone,designation,gender,image,companyUid,createdBy);
 
 @override
 String toString() {
-  return 'MemberProfileModel(uid: $uid, name: $name, phone: $phone, designation: $designation, gender: $gender, image: $image)';
+  return 'MemberProfileModel(uid: $uid, name: $name, phone: $phone, designation: $designation, gender: $gender, image: $image, companyUid: $companyUid, createdBy: $createdBy)';
 }
 
 
@@ -251,7 +255,7 @@ abstract mixin class _$MemberProfileModelCopyWith<$Res> implements $MemberProfil
   factory _$MemberProfileModelCopyWith(_MemberProfileModel value, $Res Function(_MemberProfileModel) _then) = __$MemberProfileModelCopyWithImpl;
 @override @useResult
 $Res call({
- String uid, String name, String phone, String designation, String? gender, String? image
+ String uid, String name, String phone, String designation, String? gender, String? image, String? companyUid, String? createdBy
 });
 
 
@@ -268,7 +272,7 @@ class __$MemberProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of MemberProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? name = null,Object? phone = null,Object? designation = null,Object? gender = freezed,Object? image = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? name = null,Object? phone = null,Object? designation = null,Object? gender = freezed,Object? image = freezed,Object? companyUid = freezed,Object? createdBy = freezed,}) {
   return _then(_MemberProfileModel(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -276,6 +280,8 @@ as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to
 as String,designation: null == designation ? _self.designation : designation // ignore: cast_nullable_to_non_nullable
 as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String?,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as String?,companyUid: freezed == companyUid ? _self.companyUid : companyUid // ignore: cast_nullable_to_non_nullable
+as String?,createdBy: freezed == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

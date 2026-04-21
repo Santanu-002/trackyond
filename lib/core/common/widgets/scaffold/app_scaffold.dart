@@ -8,6 +8,7 @@ class AppScaffold extends StatelessWidget {
   final String? title;
   final VoidCallback? onBackPressed;
   final bool automaticallyImplyLeading;
+  final List<Widget>? actions;
 
   const AppScaffold({
     super.key,
@@ -15,6 +16,7 @@ class AppScaffold extends StatelessWidget {
     this.title,
     this.onBackPressed,
     this.automaticallyImplyLeading = true,
+    this.actions,
   });
 
   @override
@@ -33,6 +35,7 @@ class AppScaffold extends StatelessWidget {
               ? SystemUiOverlayStyle.dark
               : SystemUiOverlayStyle.light,
 
+          actions: actions,
           automaticallyImplyLeading: false,
           leading:
               (onBackPressed != null ||

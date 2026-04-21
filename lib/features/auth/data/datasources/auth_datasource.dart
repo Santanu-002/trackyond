@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';

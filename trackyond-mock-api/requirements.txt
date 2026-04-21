@@ -6,3 +6,5 @@ redis
 python-dotenv
 pydantic[email]
 PyJWT
+alembic
+python-multipart

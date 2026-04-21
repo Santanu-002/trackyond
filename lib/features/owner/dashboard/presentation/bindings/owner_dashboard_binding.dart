@@ -4,6 +4,11 @@ import 'package:trackyond/features/owner/dashboard/presentation/controllers/owne
 class OwnerDashboardBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => OwnerDashboardController());
+    Get.lazyPut(
+      () => OwnerDashboardController(
+        logoutUseCase: Get.find(),
+        userService: Get.find(),
+      ),
+    );
   }
 }

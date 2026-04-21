@@ -2,8 +2,10 @@ import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
-import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
+import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_auth_status_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/check_onboarding_status_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_token_validity_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_authenticated_user_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_member_profile_usecase.dart';
@@ -17,6 +19,7 @@ class AuthController extends GetxController {
   final GetMemberProfileUseCase _getMemberProfileUseCase;
   final LogoutUseCase _logoutUseCase;
   final CheckTokenValidityUseCase _checkTokenValidityUseCase;
+  final CheckOnboardingStatusUseCase _checkOnboardingStatusUseCase;
 
   AuthController({
     required CheckAuthStatusUseCase checkAuthStatusUseCase,
@@ -25,28 +28,54 @@ class AuthController extends GetxController {
     required GetMemberProfileUseCase getMemberProfileUseCase,
     required LogoutUseCase logoutUseCase,
     required CheckTokenValidityUseCase checkTokenValidityUseCase,
+    required CheckOnboardingStatusUseCase checkOnboardingStatusUseCase,
   }) : _checkAuthStatusUseCase = checkAuthStatusUseCase,
        _getAuthenticatedUserUseCase = getAuthenticatedUserUseCase,
        _getUserRoleUseCase = getUserRoleUseCase,
        _getMemberProfileUseCase = getMemberProfileUseCase,
        _logoutUseCase = logoutUseCase,
-       _checkTokenValidityUseCase = checkTokenValidityUseCase;
+       _checkTokenValidityUseCase = checkTokenValidityUseCase,
+       _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase;
 
   // ------------------ STATE ------------------
-
   final _isLoading = false.obs;
 
   bool get isLoading => _isLoading.value;
 
   // ------------------ GETTERS ------------------
 
-  User? get user => _getAuthenticatedUserUseCase.execute();
+  Future<User?> get user async {
+    final userResult = await _getAuthenticatedUserUseCase(const NoParams());
+    return userResult.fold<User?>((_) => null, (user) => user);
+  }
 
-  UserRole? get userRole => _getUserRoleUseCase.execute();
+  Future<UserRole?> get userRole async {
+    final roleResult = await _getUserRoleUseCase(const NoParams());
+    return roleResult.fold<UserRole?>((_) => null, (role) => role);
+  }
 
-  MemberProfile? get profile => _getMemberProfileUseCase.execute();
+  Future<MemberProfile?> get profile async {
+    final profileResult = await _getMemberProfileUseCase(const NoParams());
+    return profileResult.fold<MemberProfile?>(
+      (_) => null,
+      (profile) => profile,
+    );
+  }
 
-  bool get isAuthenticated => _checkAuthStatusUseCase.execute();
+  Future<bool> get isLoggedIn async {
+    final statusResult = await _checkAuthStatusUseCase(const NoParams());
+    return statusResult.fold<bool>((_) => false, (status) => status);
+  }
+
+  Future<bool> get isAuthenticated async {
+    final tokenResult = await _checkTokenValidityUseCase(const NoParams());
+    return tokenResult.fold((_) => false, (valid) => valid);
+  }
+
+  Future<bool> get _hasCompletedOnboarding async {
+    final result = await _checkOnboardingStatusUseCase(const NoParams());
+    return result.fold<bool>((_) => false, (completed) => completed);
+  }
 
   // ------------------ ACTIONS ------------------
 
@@ -54,22 +83,15 @@ class AuthController extends GetxController {
   Future<void> bootstrap() async {
     _isLoading.value = true;
     try {
-      // 1. Check if refresh token is valid
-      final isRefreshValid = await _checkTokenValidityUseCase.isRefreshValid();
+      final isRefreshValid = await isAuthenticated;
 
-      if (!isRefreshValid) {
-        _handleUnauthenticated();
-        return;
-      }
-
-      // 2. Refresh token is valid, check if user exists in local cache
-      if (!isAuthenticated) {
+      if (!isRefreshValid || !await isLoggedIn) {
         _handleUnauthenticated();
         return;
       }
 
       // 3. User exists, check status and navigate
-      _navigateBasedOnRole(userRole);
+      await _navigateBasedOnRole(await userRole);
     } catch (e) {
       _handleUnauthenticated();
     } finally {
@@ -78,23 +100,32 @@ class AuthController extends GetxController {
   }
 
   Future<void> logout() async {
-    await _logoutUseCase.execute();
+    await _logoutUseCase(const NoParams());
     Get.offAllNamed(AppRoutes.common.auth.chooseRole);
   }
 
   // ------------------ HELPERS ------------------
 
-  void _handleUnauthenticated() {
-    Get.offAllNamed(AppRoutes.common.auth.chooseRole);
+  void _handleUnauthenticated() async {
+    await logout();
   }
 
-  void _navigateBasedOnRole(UserRole? role) {
+  Future<void> _navigateBasedOnRole(UserRole? role) async {
+    final userData = await user;
+
     if (role == UserRole.owner) {
-      // Use the isNewUser flag from the User entity for navigation
-      if (user?.isNewUser ?? true) {
-        Get.offAllNamed(AppRoutes.owner.setupCompany);
-      } else {
+      if (userData?.isNewUser ?? true) {
+        Get.offAllNamed(
+          AppRoutes.owner.setupCompany,
+          arguments: <String, dynamic>{'phone': userData?.phone},
+        );
+        return;
+      }
+
+      if (await _hasCompletedOnboarding) {
         Get.offAllNamed(AppRoutes.owner.dashboard);
+      } else {
+        Get.offAllNamed(AppRoutes.owner.addTeamMember);
       }
     } else if (role == UserRole.worker) {
       Get.offAllNamed(AppRoutes.worker.dashboard);

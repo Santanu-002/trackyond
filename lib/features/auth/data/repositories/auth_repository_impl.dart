@@ -1,7 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
-import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/core/services/token/token_service.dart';
@@ -72,20 +72,40 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
-  User? get currentUser => _userService.getUser();
+  Future<Either<AppFailure, User?>> getAuthenticatedUser() async {
+    return Right(_userService.getUser()?.toEntity());
+  }
 
   @override
-  UserRole? get userRole => _userService.getUserRole();
+  Future<Either<AppFailure, UserRole?>> getUserRole() async {
+    return Right(_userService.getUserRole());
+  }
 
   @override
-  MemberProfile? get memberProfile => _userService.getProfile()?.toEntity();
+  Future<Either<AppFailure, MemberProfile?>> getMemberProfile() async {
+    return Right(_userService.getProfile()?.toEntity());
+  }
 
   @override
-  bool get isAuthenticated => _userService.isLoggedIn;
+  Future<Either<AppFailure, bool>> checkAuthStatus() async {
+    return Right(_userService.isLoggedIn);
+  }
 
   @override
-  Future<void> logout() async {
+  Future<Either<AppFailure, bool>> checkOnboardingStatus() async {
+    return Right(_userService.hasCompletedAddTeamMember);
+  }
+
+  @override
+  Future<Either<AppFailure, bool>> checkTokenValidity() async {
+    final isRefreshExpired = await _tokenService.isRefreshTokenExpired();
+    return Right(!isRefreshExpired);
+  }
+
+  @override
+  Future<Either<AppFailure, Unit>> logout() async {
     await _tokenService.clearTokens();
     await _userService.clear();
+    return const Right(unit);
   }
 }

@@ -4,8 +4,8 @@ class _GhostAppButton extends StatelessWidget {
   final String? text;
   final Widget? child;
   final VoidCallback? onPressed;
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
   final Color? color;
   final double? borderRadius;
   final bool isLoading;
@@ -15,8 +15,8 @@ class _GhostAppButton extends StatelessWidget {
     this.text,
     this.child,
     this.onPressed,
-    required this.width,
-    required this.height,
+    this.width,
+    this.height,
     this.color,
     this.borderRadius,
     this.isLoading = false,

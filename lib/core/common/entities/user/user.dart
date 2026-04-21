@@ -1,4 +1,4 @@
-import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 
 class User {
   final String uid;

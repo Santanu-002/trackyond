@@ -6,7 +6,6 @@ import 'package:trackyond/core/common/models/company/company_model.dart';
 import 'package:trackyond/core/common/models/member/member_profile_model.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
-import 'package:trackyond/features/auth/data/models/user/user_model.dart';
 import 'package:trackyond/features/owner/setup_company/data/datasources/owner_remote_data_source.dart';
 import 'package:trackyond/features/owner/setup_company/domain/entities/setup_company_result_entity.dart';
 import 'package:trackyond/features/owner/setup_company/domain/repositories/i_company_repository.dart';
@@ -29,7 +28,7 @@ class CompanyRepositoryImpl implements ICompanyRepository {
     required int teamSize,
   }) async {
     try {
-      final ApiResponse response = await _remoteDataSource.setupCompany(
+      final response = await _remoteDataSource.setupCompany(
         companyName: companyName,
         ownerName: ownerName,
         phone: phone,
@@ -58,9 +57,9 @@ class CompanyRepositoryImpl implements ICompanyRepository {
     try {
       final currentUser = _userService.getUser();
       if (currentUser != null) {
-        final userModelWithUpdatedStatus = UserModel.fromEntity(
-          currentUser,
-        ).copyWith(isNewUser: isNewUser);
+        final userModelWithUpdatedStatus = currentUser.copyWith(
+          isNewUser: isNewUser,
+        );
 
         await _userService.setUser(userModelWithUpdatedStatus);
       }

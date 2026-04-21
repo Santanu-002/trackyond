@@ -14,6 +14,8 @@ _MemberProfileModel _$MemberProfileModelFromJson(Map<String, dynamic> json) =>
       designation: json['designation'] as String,
       gender: json['gender'] as String?,
       image: json['image'] as String?,
+      companyUid: json['companyUid'] as String?,
+      createdBy: json['createdBy'] as String?,
     );
 
 Map<String, dynamic> _$MemberProfileModelToJson(_MemberProfileModel instance) =>
@@ -24,4 +26,6 @@ Map<String, dynamic> _$MemberProfileModelToJson(_MemberProfileModel instance) =>
       'designation': instance.designation,
       'gender': instance.gender,
       'image': instance.image,
+      'companyUid': instance.companyUid,
+      'createdBy': instance.createdBy,
     };

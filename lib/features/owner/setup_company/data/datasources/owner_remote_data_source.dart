@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
-import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/features/owner/setup_company/data/models/company_response_model.dart';
 
 abstract class OwnerRemoteDataSource {
@@ -27,7 +27,7 @@ class OwnerRemoteDataSourceImpl
     required String phone,
     required int teamSize,
   }) async {
-    return performApiRequest(
+    return performApiRequest<CompanyResponseModel>(
       _dio.post(
         ApiEndpoints.admin.company,
         data: {
@@ -37,7 +37,7 @@ class OwnerRemoteDataSourceImpl
           'teamSize': teamSize,
         },
       ),
-      (json) => CompanyResponseModel.fromJson(json as Map<String, dynamic>),
+          (json) => CompanyResponseModel.fromJson(json as Map<String, dynamic>),
     );
   }
 }

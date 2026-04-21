@@ -4,13 +4,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
-import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/auth/domain/entities/send_otp_response_entity.dart';
 import 'package:trackyond/features/auth/domain/usecases/send_otp_use_case.dart';
 import 'package:trackyond/features/auth/domain/usecases/verify_otp_use_case.dart';
-import 'package:trackyond/core/services/user/user_service.dart';
 
 class VerifyOtpController extends GetxController {
   final VerifyOtpUseCase _verifyOtpUseCase;
@@ -145,7 +144,6 @@ class VerifyOtpController extends GetxController {
       (failure) {
         isLoading.value = false;
         final msg = failure.message.toLowerCase();
-        // OTP-specific errors → inline Pinput error (no toast)
         if (msg.contains('otp') ||
             msg.contains('code') ||
             msg.contains('invalid')) {
@@ -159,14 +157,12 @@ class VerifyOtpController extends GetxController {
 
         if (entity.role == UserRole.owner) {
           if (entity.isNewUser) {
-            Get.offAllNamed(AppRoutes.owner.setupCompany);
+            Get.offAllNamed(
+              AppRoutes.owner.setupCompany,
+              arguments: <String, dynamic>{'phone': phone},
+            );
           } else {
-            final userService = Get.find<UserService>();
-            if (!userService.hasCompletedAddTeamMember) {
-              Get.offAllNamed(AppRoutes.owner.addTeamMember);
-            } else {
-              Get.offAllNamed(AppRoutes.owner.dashboard);
-            }
+            Get.offAllNamed(AppRoutes.owner.addTeamMember);
           }
         } else {
           Get.offAllNamed(AppRoutes.worker.dashboard);

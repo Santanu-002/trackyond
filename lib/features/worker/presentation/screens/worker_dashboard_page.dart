@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
-import 'package:trackyond/core/services/token/token_service.dart';
-import 'package:trackyond/app/routes/app_routes.dart';
+import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/worker/presentation/controllers/worker_dashboard_controller.dart';
 
 class WorkerDashboardPage extends GetView<WorkerDashboardController> {
@@ -15,10 +15,7 @@ class WorkerDashboardPage extends GetView<WorkerDashboardController> {
         title: Obx(() => Text(controller.title.value)),
         actions: [
           IconButton(
-            onPressed: () async {
-              await Get.find<TokenService>().clearTokens();
-              Get.offAllNamed(AppRoutes.common.auth.chooseRole);
-            },
+            onPressed: controller.logout,
             icon: const Icon(Icons.logout),
           ),
         ],
@@ -26,19 +23,30 @@ class WorkerDashboardPage extends GetView<WorkerDashboardController> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: AppUIConstants.spacing.space$16,
           children: [
-            const Icon(Icons.person, size: 80, color: Colors.green),
-            const SizedBox(height: 16),
-            const Text(
-              'Welcome, Worker!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Icon(
+              Icons.person,
+              size: 80,
+              color: context.theme.colorScheme.secondary,
             ),
-            const SizedBox(height: 8),
-            const Text('Your login was successful.'),
-            const SizedBox(height: 24),
+            Obx(
+              () => Text(
+                AppStrings.workerDashboard.welcome(controller.workerName),
+                style: context.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Text(
+              AppStrings.workerDashboard.message,
+              style: context.textTheme.bodyLarge,
+            ),
+            AppUIConstants.widgets.verticalBox$8,
             AppButton.outlined(
               onPressed: () => Get.back(),
-              text: 'Go Back',
+              text: AppStrings.workerDashboard.goBack,
             ),
           ],
         ),

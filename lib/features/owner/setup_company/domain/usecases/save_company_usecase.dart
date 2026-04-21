@@ -10,8 +10,8 @@ class SaveCompanyUseCase implements BaseUseCase<Unit, SaveCompanyParams> {
   SaveCompanyUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, Unit>> call(SaveCompanyParams params) {
-    return _repository.saveCompany(company: params.company);
+  Future<Either<AppFailure, Unit>> call(SaveCompanyParams params) async {
+    return await _repository.saveCompany(company: params.company);
   }
 }
 

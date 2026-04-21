@@ -1,12 +1,15 @@
-import 'package:trackyond/core/services/token/token_service.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/exception/app_failures.dart';
+import 'package:trackyond/core/usecase/usecase.dart';
+import 'package:trackyond/features/auth/domain/repositories/i_auth_repository.dart';
 
-class CheckTokenValidityUseCase {
-  final TokenService _tokenService;
+class CheckTokenValidityUseCase implements BaseUseCase<bool, NoParams> {
+  final IAuthRepository _repository;
 
-  CheckTokenValidityUseCase(this._tokenService);
+  CheckTokenValidityUseCase(this._repository);
 
-  Future<bool> isRefreshValid() async {
-    final isRefreshExpired = await _tokenService.isRefreshTokenExpired();
-    return !isRefreshExpired;
+  @override
+  Future<Either<AppFailure, bool>> call(NoParams params) async {
+    return await _repository.checkTokenValidity();
   }
 }

@@ -18,7 +18,7 @@ class TrackyondApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       initialBinding: InitialBindings(),
       initialRoute: AppRoutes.common.auth.splash,
-      defaultTransition: Transition.fadeIn,
+      defaultTransition: Transition.rightToLeftWithFade,
       transitionDuration: const Duration(milliseconds: 300),
       getPages: AppPages.pages,
     );

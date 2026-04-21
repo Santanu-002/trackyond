@@ -5,7 +5,6 @@ import 'package:trackyond/core/common/entities/company/company_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/owner/setup_company/domain/entities/team_size_option.dart';
 import 'package:trackyond/features/owner/setup_company/domain/usecases/save_company_usecase.dart';
 import 'package:trackyond/features/owner/setup_company/domain/usecases/setup_company_usecase.dart';
@@ -65,7 +64,7 @@ class SetupCompanyController extends GetxController {
     companyNameController = TextEditingController();
     userNameController = TextEditingController();
     phoneController = TextEditingController(
-      text: Get.find<AuthController>().user?.phone ?? '',
+      text: (Get.arguments as Map<String, dynamic>)['phone'],
     );
 
     companyNameController.addListener(_validateForm);
@@ -129,10 +128,9 @@ class SetupCompanyController extends GetxController {
         },
         (setupResult) async {
           // Finalize onboarding locally and globally
-          await completeOwnerOnboarding(
+          await completeCompanySetup(
             profile: setupResult.memberProfile,
             company: setupResult.company,
-            teamSize: selectedTeamSize.value,
           );
 
           AppSnackbar.success(AppStrings.setupCompany.setupSuccess);
@@ -148,10 +146,9 @@ class SetupCompanyController extends GetxController {
 
   /// Finalizes the onboarding process for an owner.
   /// This updates the local session and persists company details globally.
-  Future<void> completeOwnerOnboarding({
+  Future<void> completeCompanySetup({
     required MemberProfile profile,
     required CompanyEntity company,
-    required int teamSize,
   }) async {
     // 1. Update session locally (sets isNewUser: false and saves profile)
     final sessionResult = await _updateUserDetailsUseCase(

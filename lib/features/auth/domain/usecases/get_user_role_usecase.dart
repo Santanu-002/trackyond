@@ -1,10 +1,16 @@
-import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
+import 'package:trackyond/core/exception/app_failures.dart';
+import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/auth/domain/repositories/i_auth_repository.dart';
 
-class GetUserRoleUseCase {
+class GetUserRoleUseCase implements BaseUseCase<UserRole?, NoParams> {
   final IAuthRepository _repository;
 
   GetUserRoleUseCase(this._repository);
 
-  UserRole? execute() => _repository.userRole;
+  @override
+  Future<Either<AppFailure, UserRole?>> call(NoParams params) async {
+    return await _repository.getUserRole();
+  }
 }

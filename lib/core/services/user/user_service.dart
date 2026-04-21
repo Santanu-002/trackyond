@@ -2,10 +2,9 @@ import 'dart:convert';
 
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trackyond/core/common/entities/user/user.dart';
-import 'package:trackyond/core/common/entities/user/user_role.dart';
-import 'package:trackyond/core/common/models/member/member_profile_model.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/models/company/company_model.dart';
+import 'package:trackyond/core/common/models/member/member_profile_model.dart';
 import 'package:trackyond/features/auth/data/models/user/user_model.dart';
 
 class UserService extends GetxService {
@@ -19,7 +18,7 @@ class UserService extends GetxService {
 
   // ------------------ STATE ------------------
 
-  final Rxn<User> _user = Rxn<User>();
+  final Rxn<UserModel> _user = Rxn<UserModel>();
   final Rxn<MemberProfileModel> _profile = Rxn<MemberProfileModel>();
   final Rxn<CompanyModel> _company = Rxn<CompanyModel>();
   final Rx<bool> _hasCompletedAddTeamMember = false.obs;
@@ -29,7 +28,7 @@ class UserService extends GetxService {
   Future<void> init() async {
     final userJson = _prefs.getString(_keys.user);
     if (userJson != null) {
-      _user.value = UserModel.fromJson(jsonDecode(userJson)).toEntity();
+      _user.value = UserModel.fromJson(jsonDecode(userJson));
     }
 
     final profileJson = _prefs.getString(_keys.profile);
@@ -49,11 +48,11 @@ class UserService extends GetxService {
   // ------------------ USER ------------------
 
   Future<void> setUser(UserModel user) async {
-    _user.value = user.toEntity();
+    _user.value = user;
     await _prefs.setString(_keys.user, jsonEncode(user.toJson()));
   }
 
-  User? getUser() => _user.value;
+  UserModel? getUser() => _user.value;
 
   UserRole? getUserRole() => _user.value?.role;
 

@@ -221,18 +221,17 @@ Fetch list of all team members.
 
 ### POST `/members`
 
-Add a new team member.
+Add a new team member. Requires `multipart/form-data`.
 
-**Request**
-```json
-{
-  "memberName": "Suraj Kumar",
-  "userPhoneNo": "+919876543210",
-  "designation": "worker",
-  "memberImage": "image.jpg",
-  "gender": "male"
-}
-```
+**Request (Form Data)**
+| Field | Type | Description |
+|-------|------|-------------|
+| memberName | string | Name of the member |
+| userPhoneNo | string | Phone number of the member |
+| designation | string | Role (e.g., worker, supervisor) |
+| gender | string | male, female, or other |
+| companyUid | string | The UID of the company |
+| memberImage | file | (Optional) Profile image file |
 
 **Response — 201**
 ```json
@@ -243,6 +242,7 @@ Add a new team member.
     "uid": "user4567",
     "memberName": "Suraj Kumar",
     "designation": "worker",
+    "image": "uploads/comp_123/user_456/profile_abc.jpg",
     "createdAt": "2026-04-13T08:00:00.000Z"
   }
 }

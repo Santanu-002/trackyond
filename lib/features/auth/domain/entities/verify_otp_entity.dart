@@ -1,5 +1,5 @@
 import 'package:trackyond/core/common/entities/user/user.dart';
-import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 
 class VerifyOtpEntity {
   final User user;

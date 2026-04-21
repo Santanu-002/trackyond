@@ -1,0 +1,68 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_ui_constants.dart';
+
+class AppTag extends StatelessWidget {
+  final String label;
+  final Color? color;
+  final TextStyle? labelStyle;
+  final EdgeInsetsGeometry? padding;
+  final IconData? icon;
+
+  const AppTag({
+    super.key,
+    this.label = '',
+    this.color,
+    this.labelStyle,
+    this.padding,
+    this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveColor = color ?? context.theme.colorScheme.primary;
+
+    return Container(
+      padding:
+          padding ??
+          EdgeInsets.symmetric(
+            horizontal: AppUIConstants.spacing.space$12,
+            vertical: AppUIConstants.spacing.space$4,
+          ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            effectiveColor.withValues(alpha: 0.15),
+            effectiveColor.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$32),
+        border: Border.all(
+          color: effectiveColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: effectiveColor),
+            AppUIConstants.widgets.horizontalBox$8,
+          ],
+          Text(
+            label,
+            style:
+                labelStyle ??
+                context.textTheme.labelSmall?.copyWith(
+                  color: effectiveColor,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}

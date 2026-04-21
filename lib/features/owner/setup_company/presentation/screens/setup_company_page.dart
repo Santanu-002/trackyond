@@ -19,7 +19,7 @@ class SetupCompanyPage extends GetView<SetupCompanyController> {
         headerIcon: Icons.business_rounded,
         headerTitle: AppStrings.setupCompany.title,
         headerSubtitle: AppStrings.setupCompany.subtitle,
-        buttonText: 'Continue',
+        buttonText: AppStrings.setupCompany.continueButton,
         isLoading: controller.isLoading.value,
         onButtonPressed:
             controller.isFormValid.value && !controller.isLoading.value

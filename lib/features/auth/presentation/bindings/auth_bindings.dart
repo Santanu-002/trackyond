@@ -5,6 +5,7 @@ import 'package:trackyond/features/auth/data/repositories/auth_repository_impl.d
 import 'package:trackyond/features/auth/domain/repositories/i_auth_repository.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_auth_status_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_token_validity_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/check_onboarding_status_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_authenticated_user_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_member_profile_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_user_role_usecase.dart';
@@ -32,6 +33,8 @@ class AuthBindings extends Bindings {
     Get.lazyPut(() => GetMemberProfileUseCase(Get.find()));
     Get.lazyPut(() => LogoutUseCase(Get.find()));
     Get.lazyPut(() => CheckTokenValidityUseCase(Get.find()));
+    Get.lazyPut(() => CheckOnboardingStatusUseCase(Get.find()));
+
     // Controllers
     Get.put(
       AuthController(
@@ -41,6 +44,7 @@ class AuthBindings extends Bindings {
         getMemberProfileUseCase: Get.find(),
         logoutUseCase: Get.find(),
         checkTokenValidityUseCase: Get.find(),
+        checkOnboardingStatusUseCase: Get.find(),
       ),
       permanent: true,
     );

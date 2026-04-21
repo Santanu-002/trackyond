@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:synchronized/synchronized.dart';
-import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/network/api/request_extras.dart';

@@ -5,7 +5,7 @@ import 'package:trackyond/features/owner/setup_company/data/repositories/company
 import 'package:trackyond/features/owner/setup_company/domain/repositories/i_company_repository.dart';
 import 'package:trackyond/features/owner/setup_company/domain/usecases/save_company_usecase.dart';
 import 'package:trackyond/features/owner/setup_company/domain/usecases/setup_company_usecase.dart';
-import 'package:trackyond/features/owner/setup_company/domain/usecases/update_session_usecase.dart';
+import 'package:trackyond/features/owner/setup_company/domain/usecases/update_user_details_usecase.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/controllers/setup_company_controller.dart';
 
 class SetupCompanyBinding extends Bindings {
@@ -26,8 +26,8 @@ class SetupCompanyBinding extends Bindings {
     Get.lazyPut<SetupCompanyUseCase>(
       () => SetupCompanyUseCase(Get.find()),
     );
-    Get.lazyPut<UpdateSessionUseCase>(
-      () => UpdateSessionUseCase(Get.find()),
+    Get.lazyPut<UpdateUserDetailsUseCase>(
+      () => UpdateUserDetailsUseCase(Get.find()),
     );
     Get.lazyPut<SaveCompanyUseCase>(
       () => SaveCompanyUseCase(Get.find()),
@@ -37,7 +37,7 @@ class SetupCompanyBinding extends Bindings {
     Get.lazyPut<SetupCompanyController>(
       () => SetupCompanyController(
         setupCompanyUseCase: Get.find<SetupCompanyUseCase>(),
-        updateSessionUseCase: Get.find<UpdateSessionUseCase>(),
+        updateUserDetailsUseCase: Get.find<UpdateUserDetailsUseCase>(),
         saveCompanyUseCase: Get.find<SaveCompanyUseCase>(),
       ),
     );

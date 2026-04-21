@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/auth/domain/usecases/send_otp_use_case.dart';
 
@@ -53,7 +54,7 @@ class SendOtpController extends GetxController {
     );
     isLoading.value = false;
 
-    result.fold((failure) => phoneError.value = failure.message, (response) {
+    result.fold((failure) => AppSnackbar.destructive(failure.message), (response) {
       Get.toNamed(
         AppRoutes.common.auth.verifyOtp,
         arguments: {'phone': phone, 'sendOtpResponse': response, 'role': role},

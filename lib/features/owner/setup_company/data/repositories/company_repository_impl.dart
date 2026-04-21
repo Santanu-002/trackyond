@@ -51,35 +51,35 @@ class CompanyRepositoryImpl implements ICompanyRepository {
   }
 
   @override
-  Future<void> updateSession({
+  Future<Either<AppFailure, Unit>> updateUserDetails({
     required MemberProfile profile,
     required bool isNewUser,
   }) async {
-    final currentUser = _userService.getUser();
-    if (currentUser != null) {
-      final userModelWithUpdatedStatus = UserModel.fromEntity(
-        currentUser,
-      ).copyWith(isNewUser: isNewUser);
+    try {
+      final currentUser = _userService.getUser();
+      if (currentUser != null) {
+        final userModelWithUpdatedStatus = UserModel.fromEntity(
+          currentUser,
+        ).copyWith(isNewUser: isNewUser);
 
-      await _userService.setUser(userModelWithUpdatedStatus);
+        await _userService.setUser(userModelWithUpdatedStatus);
+      }
+      await _userService.setProfile(MemberProfileModel.fromEntity(profile));
+      return right(unit);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
     }
-    await _userService.setProfile(MemberProfileModel.fromEntity(profile));
   }
 
   @override
-  Future<void> saveCompany({
+  Future<Either<AppFailure, Unit>> saveCompany({
     required CompanyEntity company,
-    required String phone,
-    required int teamSize,
   }) async {
-    await _userService.setCompany(
-      CompanyModel(
-        companyId: company.id,
-        companyName: company.name,
-        userPhoneNo: phone,
-        teamSize: teamSize,
-        createdAt: company.createdAt.toIso8601String(),
-      ),
-    );
+    try {
+      await _userService.setCompany(CompanyModel.fromEntity(company));
+      return right(unit);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
   }
 }

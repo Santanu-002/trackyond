@@ -26,6 +26,7 @@ class StatusIcons {
   final dynamic error = HugeIcons.strokeRoundedAlertCircle;
   final dynamic success = HugeIcons.strokeRoundedCheckmarkCircle01;
   final dynamic info = HugeIcons.strokeRoundedInformationCircle;
+  final dynamic warn = HugeIcons.strokeRoundedAlert01;
 }
 
 class CommonIcons {

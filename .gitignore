@@ -66,12 +66,3 @@ app.*.map.json
 /ios/Flutter/Flutter.podspec
 /ios/Flutter/App.framework
 /ios/Flutter/App.podspec
-
-# Backend related
-backend/node_modules/
-backend/.env
-backend/dist/
-backend/*.log
-backend/npm-debug.log*
-backend/yarn-debug.log*
-backend/yarn-error.log*

@@ -27,12 +27,13 @@ class ChooseRolePage extends GetView<ChooseRoleController> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 spacing: AppUIConstants.spacing.space$24,
                 children: [
+                  const Spacer(flex: 1),
                   AppHeader(
                     icon: Icons.account_tree_rounded,
                     title: strings.title,
                     subtitle: strings.subtitle,
                   ),
-                  const Spacer(flex: 3),
+                  const Spacer(flex: 2),
                 ],
               ),
             ),

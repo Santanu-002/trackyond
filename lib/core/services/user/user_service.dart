@@ -22,6 +22,7 @@ class UserService extends GetxService {
   final Rxn<User> _user = Rxn<User>();
   final Rxn<MemberProfileModel> _profile = Rxn<MemberProfileModel>();
   final Rxn<CompanyModel> _company = Rxn<CompanyModel>();
+  final Rx<bool> _hasCompletedAddTeamMember = false.obs;
 
   // ------------------ INIT / RESTORE ------------------
 
@@ -40,6 +41,9 @@ class UserService extends GetxService {
     if (companyJson != null) {
       _company.value = CompanyModel.fromJson(jsonDecode(companyJson));
     }
+
+    _hasCompletedAddTeamMember.value =
+        _prefs.getBool(_keys.hasCompletedAddTeamMember) ?? false;
   }
 
   // ------------------ USER ------------------
@@ -87,18 +91,29 @@ class UserService extends GetxService {
 
   CompanyModel? getCompany() => _company.value;
 
+  // ------------------ ONBOARDING FLAGS ------------------
+
+  Future<void> setHasCompletedAddTeamMember(bool value) async {
+    _hasCompletedAddTeamMember.value = value;
+    await _prefs.setBool(_keys.hasCompletedAddTeamMember, value);
+  }
+
+  bool get hasCompletedAddTeamMember => _hasCompletedAddTeamMember.value;
+
   // ------------------ CLEAR ------------------
 
   Future<void> clear() async {
     _user.value = null;
     _profile.value = null;
     _company.value = null;
+    _hasCompletedAddTeamMember.value = false;
 
     await Future.wait([
       _prefs.remove(_keys.user),
       _prefs.remove(_keys.profile),
       _prefs.remove(_keys.company),
       _prefs.remove(_keys.role),
+      _prefs.remove(_keys.hasCompletedAddTeamMember),
     ]);
   }
 
@@ -118,4 +133,5 @@ class _UserKeys {
   final role = 'user_role';
   final profile = 'member_profile_json';
   final company = 'company_json';
+  final hasCompletedAddTeamMember = 'has_completed_add_team_member';
 }

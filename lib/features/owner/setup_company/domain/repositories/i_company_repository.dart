@@ -12,16 +12,14 @@ abstract class ICompanyRepository {
     required int teamSize,
   });
 
-  /// Updates the user's session state (isNewUser flag and profile).
-  Future<void> updateSession({
+  /// Updates the user's details (isNewUser flag and profile).
+  Future<Either<AppFailure, Unit>> updateUserDetails({
     required MemberProfile profile,
     required bool isNewUser,
   });
 
   /// Persists company details globally.
-  Future<void> saveCompany({
+  Future<Either<AppFailure, Unit>> saveCompany({
     required CompanyEntity company,
-    required String phone,
-    required int teamSize,
-  });
+    });
 }

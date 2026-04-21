@@ -13,6 +13,7 @@ class _OwnerRoutes {
   String get dashboard => '$_base/dashboard';
   String get setupCompany => '$_base/setup-company';
   String get chooseTeamSize => '$_base/choose-team-size';
+  String get addTeamMember => '$_base/add-team-member';
 }
 
 class _WorkerRoutes {

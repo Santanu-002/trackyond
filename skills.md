@@ -91,5 +91,13 @@ All datetime fields returned in JSON responses must be UTC-formatted with the `Z
 - Always include the `Z` suffix (enforced by the helper).
 - **Timezone-Aware Logic**: Prohibit the use of `datetime.utcnow()`. Always use `now_utc()` or `datetime.now(timezone.utc)` for internal logic and comparisons to avoid `TypeError`.
 
+## 11. Functional Programming Return Types (`Unit`)
+When using `fpdart` for functional error handling, use `Unit` instead of `void` to represent the absence of a value in `Either` returns.
+
+- **Use Case**: `Either<AppFailure, Unit>` instead of `Either<AppFailure, void>`.
+- **Return**: `Right(unit)` instead of `Right(null)`.
+
+**Rule**: Never use `void` inside `Either` or `BaseUseCase` returns when functional equivalents (`Unit`) exist.
+
 ---
 *Maintained by Antigravity AI*

@@ -94,9 +94,12 @@ class SendOtpPage extends GetView<SendOtpController> {
                   ),
                 ),
               ),
-              AppButton.filled(
-                text: strings.buttonText,
-                onPressed: controller.sendOtp,
+              Obx(
+                () => AppButton.filled(
+                  text: strings.buttonText,
+                  isLoading: controller.isLoading.value,
+                  onPressed: controller.sendOtp,
+                ),
               ),
             ],
           ),

@@ -1,11 +1,11 @@
 class CompanyEntity {
-  final String id;
+  final String uid;
   final String name;
-  final DateTime createdAt;
+  final int teamSize;
 
   const CompanyEntity({
-    required this.id,
+    required this.uid,
     required this.name,
-    required this.createdAt,
+    required this.teamSize,
   });
 }

@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/user/user_role.dart';
+import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/core/snackbar/app_snackbar.dart';
 import 'package:trackyond/features/auth/domain/entities/send_otp_response_entity.dart';
 import 'package:trackyond/features/auth/domain/usecases/send_otp_use_case.dart';
 import 'package:trackyond/features/auth/domain/usecases/verify_otp_use_case.dart';
+import 'package:trackyond/core/services/user/user_service.dart';
 
 class VerifyOtpController extends GetxController {
   final VerifyOtpUseCase _verifyOtpUseCase;
@@ -113,7 +114,7 @@ class VerifyOtpController extends GetxController {
     result.fold(
       (failure) {
         isLoading.value = false;
-        AppSnackbar.error(failure.message);
+        AppSnackbar.destructive(failure.message);
       },
       (newSession) {
         isLoading.value = false;
@@ -150,7 +151,7 @@ class VerifyOtpController extends GetxController {
             msg.contains('invalid')) {
           otpErrorText.value = AppStrings.verifyOtp.invalidOtp;
         } else {
-          AppSnackbar.error(failure.message);
+          AppSnackbar.destructive(failure.message);
         }
       },
       (entity) async {
@@ -160,7 +161,12 @@ class VerifyOtpController extends GetxController {
           if (entity.isNewUser) {
             Get.offAllNamed(AppRoutes.owner.setupCompany);
           } else {
-            Get.offAllNamed(AppRoutes.owner.dashboard);
+            final userService = Get.find<UserService>();
+            if (!userService.hasCompletedAddTeamMember) {
+              Get.offAllNamed(AppRoutes.owner.addTeamMember);
+            } else {
+              Get.offAllNamed(AppRoutes.owner.dashboard);
+            }
           }
         } else {
           Get.offAllNamed(AppRoutes.worker.dashboard);

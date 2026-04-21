@@ -7,6 +7,7 @@ class AppStrings {
   static const verifyOtp = VerifyOtpStrings();
   static const setupCompany = SetupCompanyStrings();
   static const chooseTeamSize = ChooseTeamSizeStrings();
+  static const addTeamMember = AddTeamMemberStrings();
 }
 
 class CommonStrings {
@@ -161,4 +162,35 @@ class ChooseTeamSizeStrings {
   String get confirmButton => 'Confirm';
 
   String get finishButton => 'Finish Setup';
+}
+
+class AddTeamMemberStrings {
+  const AddTeamMemberStrings();
+
+  String get appBarTitle => 'Add Team Member';
+
+  String get title => 'Build Your Team';
+
+  String get subtitle =>
+      'Add your first team member to start collaborating and tracking together.';
+
+  String get memberNameLabel => 'Member Name';
+
+  String get memberNameHint => "Enter team member's name";
+
+  String get phoneLabel => 'Phone Number';
+
+  String get phoneHint => '00000 00000';
+
+  String get roleLabel => 'Select Role';
+
+  String get roleHint => 'Choose a role';
+
+  String get addButton => 'Add Member';
+
+  String get skipButton => 'Maybe Later';
+
+  String get continueButton => 'Go to Dashboard';
+
+  String get successMessage => 'Member added successfully!';
 }

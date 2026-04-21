@@ -1,20 +1,22 @@
+import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/entities/company/company_entity.dart';
+import 'package:trackyond/core/exception/app_failures.dart';
+import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/owner/setup_company/domain/repositories/i_company_repository.dart';
 
-class SaveCompanyUseCase {
+class SaveCompanyUseCase implements BaseUseCase<Unit, SaveCompanyParams> {
   final ICompanyRepository _repository;
 
   SaveCompanyUseCase(this._repository);
 
-  Future<void> execute({
-    required CompanyEntity company,
-    required String phone,
-    required int teamSize,
-  }) {
-    return _repository.saveCompany(
-      company: company,
-      phone: phone,
-      teamSize: teamSize,
-    );
+  @override
+  Future<Either<AppFailure, Unit>> call(SaveCompanyParams params) {
+    return _repository.saveCompany(company: params.company);
   }
+}
+
+class SaveCompanyParams {
+  final CompanyEntity company;
+
+  SaveCompanyParams({required this.company});
 }

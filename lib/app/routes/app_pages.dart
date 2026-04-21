@@ -12,6 +12,8 @@ import 'package:trackyond/features/owner/dashboard/presentation/screens/owner_da
 import 'package:trackyond/features/owner/setup_company/presentation/bindings/setup_company_binding.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/screens/setup_company_page.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/screens/choose_team_size_page.dart';
+import 'package:trackyond/features/owner/add_team_member/presentation/bindings/add_team_member_binding.dart';
+import 'package:trackyond/features/owner/add_team_member/presentation/screens/add_team_member_page.dart';
 import 'package:trackyond/features/worker/presentation/bindings/worker_dashboard_binding.dart';
 import 'package:trackyond/features/worker/presentation/screens/worker_dashboard_page.dart';
 
@@ -66,6 +68,11 @@ class AppPages {
       name: AppRoutes.owner.chooseTeamSize,
       page: () => const ChooseTeamSizePage(),
       binding: SetupCompanyBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.owner.addTeamMember,
+      page: () => const AddTeamMemberPage(),
+      binding: AddTeamMemberBinding(),
     ),
   ];
 

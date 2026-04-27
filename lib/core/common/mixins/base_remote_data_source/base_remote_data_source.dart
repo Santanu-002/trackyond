@@ -23,7 +23,6 @@ mixin BaseRemoteDataSource {
           success: false,
           message: apiEx.message,
           statusCode: apiEx.statusCode,
-          data: apiEx.data,
         );
       }
 
@@ -31,7 +30,6 @@ mixin BaseRemoteDataSource {
         success: false,
         message: e.message ?? 'Something went wrong. Please try again later.',
         statusCode: e.response?.statusCode,
-        data: e.response?.data,
       );
     } catch (e) {
       return ApiResponse.error(success: false, message: e.toString());

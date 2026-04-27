@@ -11,6 +11,7 @@ _CompanyModel _$CompanyModelFromJson(Map<String, dynamic> json) =>
       companyId: json['companyId'] as String,
       companyName: json['companyName'] as String,
       teamSize: (json['teamSize'] as num).toInt(),
+      ownerUid: json['ownerUid'] as String,
     );
 
 Map<String, dynamic> _$CompanyModelToJson(_CompanyModel instance) =>
@@ -18,4 +19,5 @@ Map<String, dynamic> _$CompanyModelToJson(_CompanyModel instance) =>
       'companyId': instance.companyId,
       'companyName': instance.companyName,
       'teamSize': instance.teamSize,
+      'ownerUid': instance.ownerUid,
     };

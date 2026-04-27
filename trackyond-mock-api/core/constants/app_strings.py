@@ -26,4 +26,7 @@ class AppStrings:
     @property
     def phone_not_registered(self): return "Phone not registered"
 
+    @property
+    def access_denied(self): return "Access Denied"
+
 strings = AppStrings()

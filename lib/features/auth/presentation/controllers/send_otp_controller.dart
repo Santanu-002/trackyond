@@ -4,6 +4,7 @@ import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/auth/domain/usecases/send_otp_use_case.dart';
 
 class SendOtpController extends GetxController {
@@ -17,6 +18,7 @@ class SendOtpController extends GetxController {
   final isLoading = false.obs;
   final phoneError =
       RxnString(); // null = no error, non-null = inline field error
+  final showAccessDeniedBanner = false.obs;
 
   @override
   void onInit() {
@@ -38,6 +40,17 @@ class SendOtpController extends GetxController {
       ? AppStrings.sendOtp.ownerSubtitle
       : AppStrings.sendOtp.workerSubtitle;
 
+  void dismissBanner() => showAccessDeniedBanner.value = false;
+
+  void switchRole() {
+    dismissBanner();
+    Get.offNamed(
+      AppRoutes.common.auth.sendOtp,
+      arguments: role == UserRole.owner ? UserRole.worker : UserRole.owner,
+      preventDuplicates: false,
+    );
+  }
+
   Future<void> sendOtp() async {
     final phoneRaw = phoneController.text.trim();
     if (phoneRaw.isEmpty || phoneRaw.length < 10) {
@@ -45,22 +58,28 @@ class SendOtpController extends GetxController {
       return;
     }
 
-    final phone = '+91$phoneRaw';
+    final phone = '${AppStrings.common.countryCode}$phoneRaw';
 
     isLoading.value = true;
     phoneError.value = null;
+    showAccessDeniedBanner.value = false;
+
     final result = await _sendOtpUseCase(
       SendOtpParams(phone: phone, role: role),
     );
 
     isLoading.value = false;
 
-    result.fold((failure) => AppSnackbar.destructive(failure.message), (
-      response,
-    ) {
+    result.fold((failure) {
+      if (failure is AccessDeniedFailure) {
+        showAccessDeniedBanner.value = true;
+      } else {
+        AppSnackbar.destructive(failure.message);
+      }
+    }, (response) {
       Get.toNamed(
         AppRoutes.common.auth.verifyOtp,
-        arguments: {'phone': phone, 'sendOtpResponse': response, 'role': role},
+        arguments: {'sendOtpResponse': response, 'role': role},
       );
     });
   }

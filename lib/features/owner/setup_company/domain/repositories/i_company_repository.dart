@@ -8,6 +8,7 @@ abstract class ICompanyRepository {
   Future<Either<AppFailure, SetupCompanyResultEntity>> setupCompany({
     required String companyName,
     required String ownerName,
+    required String ownerUid,
     required String phone,
     required int teamSize,
   });

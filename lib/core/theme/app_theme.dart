@@ -15,6 +15,7 @@ class AppTheme {
       surface: AppColors.light.cardSurface,
       onSurface: AppColors.light.textDefault,
       error: AppColors.light.error,
+      tertiary: AppColors.light.completed,
       outlineVariant: AppColors.light.ghostBorder.withValues(alpha: 0.15),
     );
 
@@ -62,6 +63,7 @@ class AppTheme {
       surface: AppColors.dark.cardSurface,
       onSurface: AppColors.dark.textDefault,
       error: AppColors.dark.error,
+      tertiary: AppColors.dark.completed,
       outlineVariant: AppColors.dark.ghostBorder.withValues(alpha: 0.15),
     );
 

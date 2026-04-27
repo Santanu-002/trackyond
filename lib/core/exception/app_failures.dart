@@ -1,6 +1,10 @@
-abstract class AppFailure {
+import 'package:flutter/foundation.dart';
+
+sealed class AppFailure {
   final String message;
-  AppFailure(this.message);
+  AppFailure(this.message) {
+    debugPrint('\n❌ [FAILURE] $runtimeType: $message\n');
+  }
 
   @override
   String toString() => message;
@@ -20,4 +24,8 @@ class NetworkFailure extends AppFailure {
 
 class ValidationFailure extends AppFailure {
   ValidationFailure(super.message);
+}
+
+class AccessDeniedFailure extends AppFailure {
+  AccessDeniedFailure(super.message);
 }

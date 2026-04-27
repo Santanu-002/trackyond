@@ -29,10 +29,18 @@ class AuthRepositoryImpl implements IAuthRepository {
     );
     return response.when(
       success: (_, message, data) {
+        if (message.toLowerCase().contains('access denied')) {
+          return Left(AccessDeniedFailure(message));
+        }
         if (data != null) return Right(data.toEntity());
         return Left(ServerFailure(message));
       },
-      error: (_, message, _, _) => Left(ServerFailure(message)),
+      error: (_, message, _, _) {
+        if (message.toLowerCase().contains('access denied')) {
+          return Left(AccessDeniedFailure(message));
+        }
+        return Left(ServerFailure(message));
+      },
     );
   }
 
@@ -51,6 +59,9 @@ class AuthRepositoryImpl implements IAuthRepository {
     );
     return response.when(
       success: (_, message, data) {
+        if (message.toLowerCase().contains('access denied')) {
+          return Left(AccessDeniedFailure(message));
+        }
         if (data != null) {
           _tokenService.saveTokens(data.tokens);
           final userModel = data.getUser(role);
@@ -67,7 +78,12 @@ class AuthRepositoryImpl implements IAuthRepository {
         }
         return Left(ServerFailure(message));
       },
-      error: (_, message, _, _) => Left(ServerFailure(message)),
+      error: (_, message, _, _) {
+        if (message.toLowerCase().contains('access denied')) {
+          return Left(AccessDeniedFailure(message));
+        }
+        return Left(ServerFailure(message));
+      },
     );
   }
 
@@ -104,8 +120,15 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<Either<AppFailure, Unit>> logout() async {
+    final role = _userService.getUserRole();
+
+    if (role != null) {
+      await _dataSource.logout(role: role);
+    }
+
     await _tokenService.clearTokens();
     await _userService.clear();
+
     return const Right(unit);
   }
 }

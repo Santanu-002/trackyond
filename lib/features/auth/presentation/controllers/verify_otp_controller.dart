@@ -43,9 +43,10 @@ class VerifyOtpController extends GetxController {
       Get.back();
       return;
     }
-    phone = args['phone'] as String;
+
     _session = (args['sendOtpResponse'] as SendOtpResponseEntity).obs;
     role = args['role'] as UserRole;
+    phone = _session.value.phone;
 
     resendRecognizer = TapGestureRecognizer()..onTap = resendOtp;
     _startTimer();
@@ -93,10 +94,11 @@ class VerifyOtpController extends GetxController {
 
   String get maskedPhone {
     final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+    final countryCode = AppStrings.common.countryCode;
 
-    if (cleaned.startsWith('+91') && cleaned.length == 13) {
+    if (cleaned.startsWith(countryCode) && cleaned.length == 13) {
       final last3 = cleaned.substring(10);
-      return '+91 XXXXXXX$last3';
+      return '$countryCode XXXXXXX$last3';
     }
 
     return phone;

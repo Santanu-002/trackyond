@@ -29,8 +29,7 @@ class Company(Base):
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(String, unique=True, index=True)
     name = Column(String)
-    user_phone_no = Column(String)
-    user_full_name = Column(String)
+    owner_uid = Column(String, ForeignKey("users.uid"), unique=True, nullable=False)
     team_size = Column(Integer)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 

@@ -8,6 +8,7 @@ abstract class OwnerRemoteDataSource {
   Future<ApiResponse<CompanyResponseModel>> setupCompany({
     required String companyName,
     required String ownerName,
+    required String ownerUid,
     required String phone,
     required int teamSize,
   });
@@ -24,6 +25,7 @@ class OwnerRemoteDataSourceImpl
   Future<ApiResponse<CompanyResponseModel>> setupCompany({
     required String companyName,
     required String ownerName,
+    required String ownerUid,
     required String phone,
     required int teamSize,
   }) async {
@@ -32,8 +34,9 @@ class OwnerRemoteDataSourceImpl
         ApiEndpoints.admin.company,
         data: {
           'companyName': companyName,
-          'userFullName': ownerName,
-          'userPhoneNo': phone,
+          'ownerName': ownerName,
+          'ownerUid': ownerUid,
+          'ownerPhone': phone,
           'teamSize': teamSize,
         },
       ),

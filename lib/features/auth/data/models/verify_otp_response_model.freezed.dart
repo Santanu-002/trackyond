@@ -11,6 +11,7 @@ part of 'verify_otp_response_model.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$VerifyOtpResponseModel {
 
@@ -21,6 +22,8 @@ mixin _$VerifyOtpResponseModel {
 @pragma('vm:prefer-inline')
 $VerifyOtpResponseModelCopyWith<VerifyOtpResponseModel> get copyWith => _$VerifyOtpResponseModelCopyWithImpl<VerifyOtpResponseModel>(this as VerifyOtpResponseModel, _$identity);
 
+  /// Serializes this VerifyOtpResponseModel to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -28,7 +31,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyOtpResponseModel&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.phoneNo, phoneNo) || other.phoneNo == phoneNo)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken)&&(identical(other.accessExpireAt, accessExpireAt) || other.accessExpireAt == accessExpireAt)&&(identical(other.refreshExpireAt, refreshExpireAt) || other.refreshExpireAt == refreshExpireAt)&&(identical(other.tokenIssuedAt, tokenIssuedAt) || other.tokenIssuedAt == tokenIssuedAt));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,userUid,phoneNo,isNewUser,accessToken,refreshToken,accessExpireAt,refreshExpireAt,tokenIssuedAt);
 
@@ -204,15 +207,15 @@ return $default(_that.userUid,_that.phoneNo,_that.isNewUser,_that.accessToken,_t
 }
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _VerifyOtpResponseModel extends VerifyOtpResponseModel {
-  const _VerifyOtpResponseModel({required this.userUid, required this.phoneNo, required this.isNewUser, required this.accessToken, required this.refreshToken, required this.accessExpireAt, required this.refreshExpireAt, required this.tokenIssuedAt}): super._();
-  
+  const _VerifyOtpResponseModel({required this.userUid, required this.phoneNo, this.isNewUser = false, required this.accessToken, required this.refreshToken, required this.accessExpireAt, required this.refreshExpireAt, required this.tokenIssuedAt}): super._();
+  factory _VerifyOtpResponseModel.fromJson(Map<String, dynamic> json) => _$VerifyOtpResponseModelFromJson(json);
 
 @override final  String userUid;
 @override final  String phoneNo;
-@override final  bool isNewUser;
+@override@JsonKey() final  bool isNewUser;
 @override final  String accessToken;
 @override final  String refreshToken;
 @override final  String accessExpireAt;
@@ -225,14 +228,17 @@ class _VerifyOtpResponseModel extends VerifyOtpResponseModel {
 @pragma('vm:prefer-inline')
 _$VerifyOtpResponseModelCopyWith<_VerifyOtpResponseModel> get copyWith => __$VerifyOtpResponseModelCopyWithImpl<_VerifyOtpResponseModel>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$VerifyOtpResponseModelToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyOtpResponseModel&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.phoneNo, phoneNo) || other.phoneNo == phoneNo)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken)&&(identical(other.accessExpireAt, accessExpireAt) || other.accessExpireAt == accessExpireAt)&&(identical(other.refreshExpireAt, refreshExpireAt) || other.refreshExpireAt == refreshExpireAt)&&(identical(other.tokenIssuedAt, tokenIssuedAt) || other.tokenIssuedAt == tokenIssuedAt));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,userUid,phoneNo,isNewUser,accessToken,refreshToken,accessExpireAt,refreshExpireAt,tokenIssuedAt);
 

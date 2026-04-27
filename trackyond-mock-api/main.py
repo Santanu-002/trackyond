@@ -10,7 +10,24 @@ from core.middleware.device_metadata import DeviceMetadataMiddleware
 from core.database.redis_client import get_redis
 import os
 
-# Create tables
+# Create tables / Apply migrations
+import subprocess
+import logging
+
+def run_migrations():
+    try:
+        logging.info("Running database migrations...")
+        # Run alembic upgrade head
+        result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True)
+        if result.returncode != 0:
+            logging.error(f"Migration failed: {result.stderr}")
+        else:
+            logging.info("Migrations applied successfully.")
+    except Exception as e:
+        logging.error(f"Error running migrations: {str(e)}")
+
+# Apply migrations on startup
+run_migrations()
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Trackyond Mock API")
@@ -24,12 +41,6 @@ app.add_middleware(DeviceMetadataMiddleware)
 
 # Include Routers with /api prefix
 app.include_router(api_router, prefix="/api")
-
-# Serve static files for uploads
-uploads_dir = "uploads"
-if not os.path.exists(uploads_dir):
-    os.makedirs(uploads_dir)
-app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 # Redis client
 r = get_redis()

@@ -2,7 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'api_response.freezed.dart';
 
-@freezed
+@Freezed(genericArgumentFactories: true)
 sealed class ApiResponse<T> with _$ApiResponse<T> {
   const factory ApiResponse.success({
     required bool success,
@@ -35,7 +35,7 @@ sealed class ApiResponse<T> with _$ApiResponse<T> {
       return ApiResponse<T>.error(
         success: false,
         message: message,
-        data: data != null ? fromJsonT(data) : null,
+        // Error payloads are never typed models — skip deserialization.
         statusCode: json['statusCode'] as int?,
       );
     }

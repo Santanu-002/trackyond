@@ -10,6 +10,7 @@ sealed class CompanyModel with _$CompanyModel {
     required String companyId,
     required String companyName,
     required int teamSize,
+    required String ownerUid,
   }) = _CompanyModel;
 
   factory CompanyModel.fromJson(Map<String, dynamic> json) =>
@@ -17,12 +18,16 @@ sealed class CompanyModel with _$CompanyModel {
 
   const CompanyModel._();
 
-  CompanyEntity toEntity() =>
-      CompanyEntity(uid: companyId, name: companyName, teamSize: teamSize);
+  CompanyEntity toEntity() => CompanyEntity(
+      uid: companyId,
+      name: companyName,
+      teamSize: teamSize,
+      ownerUid: ownerUid);
 
   factory CompanyModel.fromEntity(CompanyEntity entity) => CompanyModel(
         companyId: entity.uid,
         companyName: entity.name,
         teamSize: entity.teamSize,
+        ownerUid: entity.ownerUid,
       );
 }

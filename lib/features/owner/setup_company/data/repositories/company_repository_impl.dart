@@ -24,6 +24,7 @@ class CompanyRepositoryImpl implements ICompanyRepository {
   Future<Either<AppFailure, SetupCompanyResultEntity>> setupCompany({
     required String companyName,
     required String ownerName,
+    required String ownerUid,
     required String phone,
     required int teamSize,
   }) async {
@@ -31,6 +32,7 @@ class CompanyRepositoryImpl implements ICompanyRepository {
       final response = await _remoteDataSource.setupCompany(
         companyName: companyName,
         ownerName: ownerName,
+        ownerUid: ownerUid,
         phone: phone,
         teamSize: teamSize,
       );

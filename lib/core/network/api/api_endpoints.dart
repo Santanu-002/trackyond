@@ -5,6 +5,7 @@ class ApiEndpoints {
 
   static const admin = _AdminEndpoints();
   static const employee = _EmployeeEndpoints();
+  static const common = _CommonEndpoints();
 }
 
 // ─────────────────────────────────────────
@@ -25,6 +26,8 @@ class _AuthEndpoints {
   String get verifyOtp => '$prefix$_root/verify-otp';
 
   String get refresh => '$prefix$_root/refresh';
+
+  String get logout => '$prefix$_root/logout';
 }
 
 // ─────────────────────────────────────────
@@ -85,4 +88,15 @@ class _EmployeeEndpoints {
 
   // Notifications
   String get notifications => '$_root/notifications';
+}
+
+// ─────────────────────────────────────────
+// Common endpoints
+// ─────────────────────────────────────────
+class _CommonEndpoints {
+  const _CommonEndpoints();
+
+  static const String _root = '/common';
+
+  String download(String path) => '$_root/download/$path';
 }

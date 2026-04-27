@@ -7,35 +7,32 @@ import 'package:trackyond/features/auth/presentation/screens/auth_gate_page.dart
 import 'package:trackyond/features/auth/presentation/screens/choose_role_page.dart';
 import 'package:trackyond/features/auth/presentation/screens/send_otp_page.dart';
 import 'package:trackyond/features/auth/presentation/screens/verify_otp_page.dart';
+import 'package:trackyond/features/owner/add_team_member/presentation/bindings/add_team_member_binding.dart';
+import 'package:trackyond/features/owner/add_team_member/presentation/screens/add_member_details_page.dart';
+import 'package:trackyond/features/owner/add_team_member/presentation/screens/add_team_member_page.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/bindings/owner_dashboard_binding.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/screens/owner_dashboard_page.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/bindings/setup_company_binding.dart';
-import 'package:trackyond/features/owner/setup_company/presentation/screens/setup_company_page.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/screens/choose_team_size_page.dart';
-import 'package:trackyond/features/owner/add_team_member/presentation/bindings/add_team_member_binding.dart';
-import 'package:trackyond/features/owner/add_team_member/presentation/screens/add_team_member_page.dart';
+import 'package:trackyond/features/owner/setup_company/presentation/screens/setup_company_page.dart';
 import 'package:trackyond/features/worker/presentation/bindings/worker_dashboard_binding.dart';
 import 'package:trackyond/features/worker/presentation/screens/worker_dashboard_page.dart';
 
 class AppPages {
   const AppPages._();
 
-  static final List<GetPage> pages = [
-    ..._commonPages,
+  static List<GetPage> get pages => [
     ..._authPages,
     ..._ownerPages,
     ..._workerPages,
   ];
 
-  static final List<GetPage> _commonPages = [
+  static List<GetPage> get _authPages => [
     GetPage(
       name: AppRoutes.common.auth.splash,
       binding: AuthBindings(),
       page: () => const AuthGatePage(),
     ),
-  ];
-
-  static final List<GetPage> _authPages = [
     GetPage(
       name: AppRoutes.common.auth.chooseRole,
       binding: AuthBindings(),
@@ -53,10 +50,10 @@ class AppPages {
     ),
   ];
 
-  static final List<GetPage> _ownerPages = [
+  static List<GetPage> get _ownerPages => [
     GetPage(
       name: AppRoutes.owner.dashboard,
-      binding: OwnerDashboardBinding(),
+      bindings: [AuthBindings(), OwnerDashboardBinding()],
       page: () => const OwnerDashboardPage(),
     ),
     GetPage(
@@ -74,12 +71,18 @@ class AppPages {
       page: () => const AddTeamMemberPage(),
       binding: AddTeamMemberBinding(),
     ),
+    GetPage(
+      name: AppRoutes.owner.addMemberDetails,
+      page: () => const AddMemberDetailsPage(),
+      binding: AddTeamMemberBinding(),
+      transition: Transition.rightToLeft,
+    ),
   ];
 
-  static final List<GetPage> _workerPages = [
+  static List<GetPage> get _workerPages => [
     GetPage(
       name: AppRoutes.worker.dashboard,
-      binding: WorkerDashboardBinding(),
+      bindings: [AuthBindings(), WorkerDashboardBinding()],
       page: () => const WorkerDashboardPage(),
     ),
   ];

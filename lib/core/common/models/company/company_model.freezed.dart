@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CompanyModel {
 
- String get companyId; String get companyName; int get teamSize;
+ String get companyId; String get companyName; int get teamSize; String get ownerUid;
 /// Create a copy of CompanyModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $CompanyModelCopyWith<CompanyModel> get copyWith => _$CompanyModelCopyWithImpl<C
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompanyModel&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.companyName, companyName) || other.companyName == companyName)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompanyModel&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.companyName, companyName) || other.companyName == companyName)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize)&&(identical(other.ownerUid, ownerUid) || other.ownerUid == ownerUid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,companyId,companyName,teamSize);
+int get hashCode => Object.hash(runtimeType,companyId,companyName,teamSize,ownerUid);
 
 @override
 String toString() {
-  return 'CompanyModel(companyId: $companyId, companyName: $companyName, teamSize: $teamSize)';
+  return 'CompanyModel(companyId: $companyId, companyName: $companyName, teamSize: $teamSize, ownerUid: $ownerUid)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $CompanyModelCopyWith<$Res>  {
   factory $CompanyModelCopyWith(CompanyModel value, $Res Function(CompanyModel) _then) = _$CompanyModelCopyWithImpl;
 @useResult
 $Res call({
- String companyId, String companyName, int teamSize
+ String companyId, String companyName, int teamSize, String ownerUid
 });
 
 
@@ -65,12 +65,13 @@ class _$CompanyModelCopyWithImpl<$Res>
 
 /// Create a copy of CompanyModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? companyId = null,Object? companyName = null,Object? teamSize = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? companyId = null,Object? companyName = null,Object? teamSize = null,Object? ownerUid = null,}) {
   return _then(_self.copyWith(
 companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
 as String,companyName: null == companyName ? _self.companyName : companyName // ignore: cast_nullable_to_non_nullable
 as String,teamSize: null == teamSize ? _self.teamSize : teamSize // ignore: cast_nullable_to_non_nullable
-as int,
+as int,ownerUid: null == ownerUid ? _self.ownerUid : ownerUid // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -152,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String companyId,  String companyName,  int teamSize)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String companyId,  String companyName,  int teamSize,  String ownerUid)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompanyModel() when $default != null:
-return $default(_that.companyId,_that.companyName,_that.teamSize);case _:
+return $default(_that.companyId,_that.companyName,_that.teamSize,_that.ownerUid);case _:
   return orElse();
 
 }
@@ -173,10 +174,10 @@ return $default(_that.companyId,_that.companyName,_that.teamSize);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String companyId,  String companyName,  int teamSize)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String companyId,  String companyName,  int teamSize,  String ownerUid)  $default,) {final _that = this;
 switch (_that) {
 case _CompanyModel():
-return $default(_that.companyId,_that.companyName,_that.teamSize);}
+return $default(_that.companyId,_that.companyName,_that.teamSize,_that.ownerUid);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -190,10 +191,10 @@ return $default(_that.companyId,_that.companyName,_that.teamSize);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String companyId,  String companyName,  int teamSize)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String companyId,  String companyName,  int teamSize,  String ownerUid)?  $default,) {final _that = this;
 switch (_that) {
 case _CompanyModel() when $default != null:
-return $default(_that.companyId,_that.companyName,_that.teamSize);case _:
+return $default(_that.companyId,_that.companyName,_that.teamSize,_that.ownerUid);case _:
   return null;
 
 }
@@ -205,12 +206,13 @@ return $default(_that.companyId,_that.companyName,_that.teamSize);case _:
 @JsonSerializable()
 
 class _CompanyModel extends CompanyModel {
-  const _CompanyModel({required this.companyId, required this.companyName, required this.teamSize}): super._();
+  const _CompanyModel({required this.companyId, required this.companyName, required this.teamSize, required this.ownerUid}): super._();
   factory _CompanyModel.fromJson(Map<String, dynamic> json) => _$CompanyModelFromJson(json);
 
 @override final  String companyId;
 @override final  String companyName;
 @override final  int teamSize;
+@override final  String ownerUid;
 
 /// Create a copy of CompanyModel
 /// with the given fields replaced by the non-null parameter values.
@@ -225,16 +227,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompanyModel&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.companyName, companyName) || other.companyName == companyName)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompanyModel&&(identical(other.companyId, companyId) || other.companyId == companyId)&&(identical(other.companyName, companyName) || other.companyName == companyName)&&(identical(other.teamSize, teamSize) || other.teamSize == teamSize)&&(identical(other.ownerUid, ownerUid) || other.ownerUid == ownerUid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,companyId,companyName,teamSize);
+int get hashCode => Object.hash(runtimeType,companyId,companyName,teamSize,ownerUid);
 
 @override
 String toString() {
-  return 'CompanyModel(companyId: $companyId, companyName: $companyName, teamSize: $teamSize)';
+  return 'CompanyModel(companyId: $companyId, companyName: $companyName, teamSize: $teamSize, ownerUid: $ownerUid)';
 }
 
 
@@ -245,7 +247,7 @@ abstract mixin class _$CompanyModelCopyWith<$Res> implements $CompanyModelCopyWi
   factory _$CompanyModelCopyWith(_CompanyModel value, $Res Function(_CompanyModel) _then) = __$CompanyModelCopyWithImpl;
 @override @useResult
 $Res call({
- String companyId, String companyName, int teamSize
+ String companyId, String companyName, int teamSize, String ownerUid
 });
 
 
@@ -262,12 +264,13 @@ class __$CompanyModelCopyWithImpl<$Res>
 
 /// Create a copy of CompanyModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? companyId = null,Object? companyName = null,Object? teamSize = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? companyId = null,Object? companyName = null,Object? teamSize = null,Object? ownerUid = null,}) {
   return _then(_CompanyModel(
 companyId: null == companyId ? _self.companyId : companyId // ignore: cast_nullable_to_non_nullable
 as String,companyName: null == companyName ? _self.companyName : companyName // ignore: cast_nullable_to_non_nullable
 as String,teamSize: null == teamSize ? _self.teamSize : teamSize // ignore: cast_nullable_to_non_nullable
-as int,
+as int,ownerUid: null == ownerUid ? _self.ownerUid : ownerUid // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

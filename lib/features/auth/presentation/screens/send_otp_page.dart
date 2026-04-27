@@ -7,6 +7,7 @@ import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/auth/presentation/controllers/send_otp_controller.dart';
 
+import 'package:trackyond/core/common/widgets/banner/app_banner.dart';
 import 'package:trackyond/core/common/widgets/scaffold/app_scaffold.dart';
 
 class SendOtpPage extends GetView<SendOtpController> {
@@ -17,6 +18,37 @@ class SendOtpPage extends GetView<SendOtpController> {
     final strings = AppStrings.sendOtp;
 
     return AppScaffold(
+      footer: Obx(() {
+        if (!controller.showAccessDeniedBanner.value) {
+          return const SizedBox.shrink();
+        }
+        return AppBanner(
+          title: strings.accessDenied,
+          subtitleWidget: RichText(
+            text: TextSpan(
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: context.theme.colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
+              children: [
+                TextSpan(text: strings.employeeAlreadyExists),
+                const TextSpan(text: ' '),
+                TextSpan(
+                  text: strings.changeRoleAction,
+                  style: TextStyle(
+                    color: context.theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          type: AppBannerType.destructive,
+          onDismiss: controller.dismissBanner,
+          onTap: controller.switchRole,
+        );
+      }),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: AppUIConstants.spacing.space$32,
@@ -103,7 +135,6 @@ class SendOtpPage extends GetView<SendOtpController> {
               ),
             ],
           ),
-
         ],
       ),
     );

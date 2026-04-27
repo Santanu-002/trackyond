@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
+import 'package:trackyond/core/common/models/company/company_model.dart';
 import 'package:trackyond/core/common/models/member/member_profile_model.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
 abstract class TeamRemoteDataSource {
-  Future<ApiResponse<dynamic>> addTeamMember({
+  Future<ApiResponse<MemberProfileModel>> addTeamMember({
     required String name,
     required String phone,
     required String companyUid,
@@ -15,6 +16,7 @@ abstract class TeamRemoteDataSource {
   });
 
   Future<ApiResponse<List<MemberProfileModel>>> getTeamMembers();
+  Future<ApiResponse<CompanyModel>> getCompany();
 }
 
 class TeamRemoteDataSourceImpl
@@ -25,7 +27,15 @@ class TeamRemoteDataSourceImpl
   TeamRemoteDataSourceImpl({required Dio dio}) : _dio = dio;
 
   @override
-  Future<ApiResponse<dynamic>> addTeamMember({
+  Future<ApiResponse<CompanyModel>> getCompany() async {
+    return performApiRequest(
+      _dio.get(ApiEndpoints.admin.company),
+      (json) => CompanyModel.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<MemberProfileModel>> addTeamMember({
     required String name,
     required String phone,
     required String companyUid,
@@ -49,7 +59,7 @@ class TeamRemoteDataSourceImpl
 
     return performApiRequest(
       _dio.post(ApiEndpoints.admin.members, data: formData),
-      (json) => json,
+      (json) => MemberProfileModel.fromJson(json as Map<String, dynamic>),
     );
   }
 

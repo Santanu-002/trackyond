@@ -32,11 +32,14 @@ class _AppRadius {
   double get radius$16 => 16.0;
   double get radius$24 => 24.0;
   double get radius$32 => 32.0;
+  double get radius$48 => 48.0;
+  double get radius$56 => 56.0;
 }
 
 class _AppSpacing {
   const _AppSpacing();
 
+  double get space$2 => 2.0;
   double get space$4 => 4.0;
   double get space$6 => 6.0;
   double get space$8 => 8.0;
@@ -44,7 +47,10 @@ class _AppSpacing {
   double get space$16 => 16.0;
   double get space$20 => 20.0;
   double get space$24 => 24.0;
+  double get space$28 => 28.0;
   double get space$32 => 32.0;
+  double get space$40 => 40.0;
+  double get space$48 => 48.0;
 }
 
 class _AppWidgets {
@@ -56,6 +62,7 @@ class _AppWidgets {
   SizedBox get verticalBox$16 => const SizedBox(height: 16.0);
   SizedBox get verticalBox$24 => const SizedBox(height: 24.0);
   SizedBox get verticalBox$32 => const SizedBox(height: 32.0);
+  SizedBox get verticalBox$48 => const SizedBox(height: 48.0);
 
   SizedBox get horizontalBox$4 => const SizedBox(width: 4.0);
   SizedBox get horizontalBox$8 => const SizedBox(width: 8.0);

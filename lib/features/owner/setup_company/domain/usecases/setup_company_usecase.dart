@@ -17,6 +17,7 @@ class SetupCompanyUseCase
     return await _repository.setupCompany(
       companyName: params.companyName,
       ownerName: params.ownerName,
+      ownerUid: params.ownerUid,
       phone: params.phone,
       teamSize: params.teamSize,
     );
@@ -26,12 +27,14 @@ class SetupCompanyUseCase
 class SetupCompanyParams {
   final String companyName;
   final String ownerName;
+  final String ownerUid;
   final String phone;
   final int teamSize;
 
   SetupCompanyParams({
     required this.companyName,
     required this.ownerName,
+    required this.ownerUid,
     required this.phone,
     required this.teamSize,
   });

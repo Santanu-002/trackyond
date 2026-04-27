@@ -19,6 +19,8 @@ abstract interface class IAuthDataSource {
     required String otp,
     required UserRole role,
   });
+
+  Future<ApiResponse<void>> logout({required UserRole role});
 }
 
 class AuthDataSourceImpl with BaseRemoteDataSource implements IAuthDataSource {
@@ -62,7 +64,21 @@ class AuthDataSourceImpl with BaseRemoteDataSource implements IAuthDataSource {
         data: {'phone': phone, 'otpId': otpId, 'otp': otp},
         options: Options(extra: {RequestExtras.isPublic: true}),
       ),
-      (json) => VerifyOtpResponseModel.fromJson(json as Map<String, dynamic>),
+      (json) => role == UserRole.owner
+          ? VerifyOtpResponseModel.fromOwnerJson(json as Map<String, dynamic>)
+          : VerifyOtpResponseModel.fromMemberJson(json as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<void>> logout({required UserRole role}) async {
+    final endpoint = role == UserRole.owner
+        ? ApiEndpoints.admin.auth.logout
+        : ApiEndpoints.employee.auth.logout;
+
+    return performApiRequest(
+      _dio.post(endpoint),
+      (_) {},
     );
   }
 }

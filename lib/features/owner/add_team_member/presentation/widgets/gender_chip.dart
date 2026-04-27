@@ -53,8 +53,8 @@ class GenderChip extends StatelessWidget {
                       color: context.theme.colorScheme.primary.withValues(
                         alpha: 0.2,
                       ),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      blurRadius: AppUIConstants.radius.radius$8,
+                      offset: Offset(0, AppUIConstants.spacing.space$4),
                     ),
                   ]
                 : null,

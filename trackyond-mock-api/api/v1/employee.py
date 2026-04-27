@@ -16,8 +16,8 @@ from typing import Optional
 router = APIRouter(prefix="/v1/employee", tags=["Employee"])
 
 @router.post("/auth/send-otp", response_model=GenericResponse)
-async def send_otp(req: OTPRequest, device_id: str = Header(alias="device-id")):
-    data = auth_service.send_otp_logic(req.phone, device_id)
+async def send_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: str = Header(alias="device-id")):
+    data = auth_service.send_otp_logic(db, req.phone, device_id, role="employee")
     return GenericResponse(
         success=True,
         message=strings.otp_sent,
@@ -25,8 +25,8 @@ async def send_otp(req: OTPRequest, device_id: str = Header(alias="device-id")):
     )
 
 @router.post("/auth/resend-otp", response_model=GenericResponse)
-async def resend_otp(req: OTPRequest, device_id: str = Header(alias="device-id")):
-    data = auth_service.send_otp_logic(req.phone, device_id, is_resend=True)
+async def resend_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: str = Header(alias="device-id")):
+    data = auth_service.send_otp_logic(db, req.phone, device_id, is_resend=True, role="employee")
     return GenericResponse(
         success=True,
         message=strings.otp_resent,
@@ -61,15 +61,6 @@ async def verify_otp(
     if not success:
         return GenericResponse(success=False, message=strings.invalid_otp)
     
-    # Check if user exists in company
-    member = db.query(models.Member).filter(models.Member.phone == req.phone).first()
-    if not member:
-         return GenericResponse(
-             success=False, 
-             message="User is not a member of any company",
-             data={"error": "login_failed", "reasons": ["Contact administrator"]}
-         )
-
     return GenericResponse(
         success=True,
         message=strings.login_success,
@@ -136,4 +127,11 @@ async def get_jobs(worker_uid: str, status: Optional[str] = None, db: Session = 
             ],
             "pagination": {"total": len(jobs), "page": 1, "limit": 10}
         }
+    )
+
+@router.post("/auth/logout", response_model=GenericResponse)
+async def logout():
+    return GenericResponse(
+        success=True,
+        message="Logged out successfully"
     )

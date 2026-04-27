@@ -5,8 +5,9 @@ from .common import PHONE_REGEX
 
 class CompanyCreate(BaseSchema):
     company_name: str
-    user_phone_no: str = Field(..., pattern=PHONE_REGEX)
-    user_full_name: str
+    owner_uid: str
+    owner_name: str
+    owner_phone: str = Field(..., pattern=PHONE_REGEX)
     team_size: int
 
 class MemberCreate(BaseSchema):

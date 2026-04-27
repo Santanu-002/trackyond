@@ -4,13 +4,14 @@ import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
 import 'package:trackyond/features/auth/data/models/user/user_model.dart';
 
 part 'verify_otp_response_model.freezed.dart';
+part 'verify_otp_response_model.g.dart';
 
 @freezed
 sealed class VerifyOtpResponseModel with _$VerifyOtpResponseModel {
   const factory VerifyOtpResponseModel({
     required String userUid,
     required String phoneNo,
-    required bool isNewUser,
+    @Default(false) bool isNewUser,
     required String accessToken,
     required String refreshToken,
     required String accessExpireAt,
@@ -20,27 +21,40 @@ sealed class VerifyOtpResponseModel with _$VerifyOtpResponseModel {
 
   const VerifyOtpResponseModel._();
 
-  factory VerifyOtpResponseModel.fromJson(Map<String, dynamic> json) {
-    return VerifyOtpResponseModel(
-      userUid: json['userUid'] as String,
-      phoneNo: json['phoneNo'] as String,
-      isNewUser: json['isNewUser'] as bool,
-      accessToken: json['accessToken'] as String,
-      refreshToken: json['refreshToken'] as String,
-      accessExpireAt: json['accessExpireAt'] as String,
-      refreshExpireAt: json['refreshExpireAt'] as String,
-      tokenIssuedAt: json['tokenIssuedAt'] as String,
-    );
-  }
+  // ---------------------------------------------------------------------------
+  // Named Factories
+  // ---------------------------------------------------------------------------
+
+  /// Generic deserializer — used internally by the named factories below.
+  factory VerifyOtpResponseModel.fromJson(Map<String, dynamic> json) =>
+      _$VerifyOtpResponseModelFromJson(json);
+
+  /// For **owner / admin** responses — reads [isNewUser] from the JSON payload.
+  factory VerifyOtpResponseModel.fromOwnerJson(Map<String, dynamic> json) =>
+      VerifyOtpResponseModel.fromJson(json);
+
+  /// For **employee / member** responses — [isNewUser] is always false because
+  /// members are pre-registered by an admin before they can authenticate.
+  /// Explicitly overrides the key even if the server accidentally includes it.
+  factory VerifyOtpResponseModel.fromMemberJson(Map<String, dynamic> json) =>
+      VerifyOtpResponseModel.fromJson({...json, 'isNewUser': false});
+
+  // ---------------------------------------------------------------------------
+  // Computed Helpers
+  // ---------------------------------------------------------------------------
 
   AuthTokens get tokens => AuthTokens(
-    accessToken: accessToken,
-    refreshToken: refreshToken,
-    accessExpireAt: accessExpireAt,
-    refreshExpireAt: refreshExpireAt,
-    tokenIssuedAt: tokenIssuedAt,
-  );
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        accessExpireAt: accessExpireAt,
+        refreshExpireAt: refreshExpireAt,
+        tokenIssuedAt: tokenIssuedAt,
+      );
 
-  UserModel getUser(UserRole role) =>
-      UserModel(uid: userUid, phone: phoneNo, role: role, isNewUser: isNewUser);
+  UserModel getUser(UserRole role) => UserModel(
+        uid: userUid,
+        phone: phoneNo,
+        role: role,
+        isNewUser: isNewUser,
+      );
 }

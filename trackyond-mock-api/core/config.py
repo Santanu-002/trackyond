@@ -9,3 +9,6 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "trackyond_jwt_secret_change_in_pro
 JWT_ALGORITHM = "HS256"
 JWT_ACCESS_EXPIRE_MINUTES = int(os.getenv("JWT_ACCESS_EXPIRE_MINUTES", "10"))
 JWT_REFRESH_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_EXPIRE_DAYS", "7"))
+
+# Mock Configuration
+MOCK_STATIC_OTP = os.getenv("MOCK_STATIC_OTP", "000000")

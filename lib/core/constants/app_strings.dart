@@ -68,6 +68,15 @@ class SendOtpStrings {
   String get invalidPhone => 'Please enter a valid 10-digit phone number';
 
   String get otpResent => 'OTP resent successfully';
+
+  String get accessDenied => 'Access Denied';
+
+  String get employeeAlreadyExists =>
+      'This number is already registered as an employee.';
+
+  String get tryLoginAsEmployee => 'Try logging in as an employee instead.';
+
+  String get changeRoleAction => 'Login as an employee';
 }
 
 class VerifyOtpStrings {
@@ -191,6 +200,7 @@ class AddTeamMemberStrings {
   String get addButton => 'Add Member';
 
   String get skipButton => 'Skip';
+  String get doneButton => 'Done';
 
   String get continueButton => 'Go to Dashboard';
 
@@ -208,6 +218,8 @@ class AddTeamMemberStrings {
 
   String get genderOther => 'Other';
 
+  String get designationLabel => 'Designation';
+  String get designationHint => 'e.g. Project Manager';
   String get createButton => 'Create Member';
 
   String get discardTitle => 'Discard Changes?';
@@ -218,6 +230,14 @@ class AddTeamMemberStrings {
   String get discardConfirm => 'Discard';
 
   String get discardCancel => 'Cancel';
+
+  String get companyNotLoaded => 'Company information not loaded yet';
+
+  String get takePhoto => 'Take Photo';
+
+  String get chooseFromGallery => 'Choose from Gallery';
+
+  String get removePhoto => 'Remove Photo';
 }
 
 class OwnerDashboardStrings {

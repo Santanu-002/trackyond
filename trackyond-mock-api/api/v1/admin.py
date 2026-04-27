@@ -19,8 +19,8 @@ from datetime import datetime
 router = APIRouter(prefix="/v1/admin", tags=["Admin"])
 
 @router.post("/auth/send-otp", response_model=GenericResponse)
-async def send_otp(req: OTPRequest, device_id: str = Header(alias="device-id")):
-    data = auth_service.send_otp_logic(req.phone, device_id)
+async def send_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: str = Header(alias="device-id")):
+    data = auth_service.send_otp_logic(db, req.phone, device_id, role="admin")
     return GenericResponse(
         success=True,
         message=strings.otp_sent,
@@ -28,8 +28,8 @@ async def send_otp(req: OTPRequest, device_id: str = Header(alias="device-id")):
     )
 
 @router.post("/auth/resend-otp", response_model=GenericResponse)
-async def resend_otp(req: OTPRequest, device_id: str = Header(alias="device-id")):
-    data = auth_service.send_otp_logic(req.phone, device_id, is_resend=True)
+async def resend_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: str = Header(alias="device-id")):
+    data = auth_service.send_otp_logic(db, req.phone, device_id, is_resend=True, role="admin")
     return GenericResponse(
         success=True,
         message=strings.otp_resent,
@@ -86,32 +86,23 @@ async def refresh_token(
 
 @router.post("/company", response_model=GenericResponse)
 async def create_company(req: CompanyCreate, db: Session = Depends(get_db)):
-    # 1. Check if company already exists
-    existing = db.query(models.Company).filter(models.Company.user_phone_no == req.user_phone_no).first()
+    # 1. Check if company already exists for this owner
+    existing = db.query(models.Company).filter(models.Company.owner_uid == req.owner_uid).first()
     if existing:
          return GenericResponse(success=False, message="Company already exists for this user")
 
     # 2. Update User onboarding status
-    user = db.query(models.User).filter(models.User.phone == req.user_phone_no).first()
+    user = db.query(models.User).filter(models.User.uid == req.owner_uid).first()
     if not user:
-        # Fallback if user wasn't created during OTP (shouldn't happen with new logic)
-        user = models.User(
-            uid=uuid.uuid4().hex[:10],
-            phone=req.user_phone_no,
-            role="admin",
-            is_new_user=False
-        )
-        db.add(user)
-        db.flush()
-    else:
-        user.is_new_user = False
+        return GenericResponse(success=False, message="User not found")
+    
+    user.is_new_user = False
 
     # 3. Create Company
     new_company = models.Company(
         company_id="comp_" + str(uuid.uuid4())[:8],
         name=req.company_name,
-        user_phone_no=req.user_phone_no,
-        user_full_name=req.user_full_name,
+        owner_uid=req.owner_uid,
         team_size=req.team_size
     )
     db.add(new_company)
@@ -121,8 +112,8 @@ async def create_company(req: CompanyCreate, db: Session = Depends(get_db)):
     if not member:
         member = models.Member(
             uid=user.uid,
-            name=req.user_full_name,
-            phone=req.user_phone_no,
+            name=req.owner_name,
+            phone=req.owner_phone,
             designation="Owner",
             gender=None,
             image=None,
@@ -131,7 +122,8 @@ async def create_company(req: CompanyCreate, db: Session = Depends(get_db)):
         )
         db.add(member)
     else:
-        member.name = req.user_full_name
+        member.name = req.owner_name
+        member.phone = req.owner_phone
         member.designation = "Owner"
         member.company_uid = new_company.company_id
         member.created_by = None
@@ -155,10 +147,31 @@ async def create_company(req: CompanyCreate, db: Session = Depends(get_db)):
             "company": {
                 "companyId": new_company.company_id,
                 "companyName": new_company.name,
-                "userPhoneNo": new_company.user_phone_no,
                 "teamSize": new_company.team_size,
+                "ownerUid": new_company.owner_uid,
                 "createdAt": to_utc_iso(new_company.created_at)
             }
+        }
+    )
+
+@router.get("/company", response_model=GenericResponse)
+async def get_company(
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_admin_user)
+):
+    company = db.query(models.Company).filter(models.Company.owner_uid == admin.uid).first()
+    if not company:
+        return GenericResponse(success=False, message="Company not found")
+    
+    return GenericResponse(
+        success=True,
+        message="Company fetched successfully",
+        data={
+            "companyId": company.company_id,
+            "companyName": company.name,
+            "teamSize": company.team_size,
+            "ownerUid": company.owner_uid,
+            "createdAt": to_utc_iso(company.created_at)
         }
     )
 
@@ -236,20 +249,28 @@ async def add_member(
     if member_image:
         try:
             # Create directory structure: uploads/<company_uid>/<user_uid>/
-            # Root is trackyond-mock-api/uploads
             upload_dir = os.path.join("uploads", company_uid, target_user_uid)
             os.makedirs(upload_dir, exist_ok=True)
             
-            # Use fixed filename "avatar.jpg" so it's replaced on future updates
-            filename = "avatar.jpg"
+            # 1. Clean up existing avatar files (regardless of extension) to ensure clean replacement
+            for f in os.listdir(upload_dir):
+                if f.startswith("avatar."):
+                    os.remove(os.path.join(upload_dir, f))
+            
+            # 2. Extract extension and save new file
+            _, ext = os.path.splitext(member_image.filename)
+            if not ext:
+                ext = ".jpg" # Default if no extension
+            
+            filename = f"avatar{ext}"
             file_path = os.path.join(upload_dir, filename)
             
             # Save file
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(member_image.file, buffer)
             
-            # This path is the public endpoint for downloading the avatar
-            image_path = f"/api/v1/common/download/avatar/{company_uid}/{target_user_uid}"
+            # Path for the database/frontend (relative to uploads root)
+            image_path = f"uploads/{company_uid}/{target_user_uid}/avatar{ext}"
         except Exception as e:
             # Log error but don't fail the whole request (or fail if image is critical)
             print(f"Error saving image: {str(e)}")
@@ -278,6 +299,8 @@ async def add_member(
             "phone": new_member.phone,
             "designation": new_member.designation,
             "image": new_member.image,
+            "gender": new_member.gender,
+            "companyUid": new_member.company_uid,
             "createdAt": to_utc_iso(new_member.created_at)
         }
     )
@@ -302,4 +325,11 @@ async def get_dashboard(db: Session = Depends(get_db)):
             },
             "recentJobs": []
         }
+    )
+
+@router.post("/auth/logout", response_model=GenericResponse)
+async def logout():
+    return GenericResponse(
+        success=True,
+        message="Logged out successfully"
     )

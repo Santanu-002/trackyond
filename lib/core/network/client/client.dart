@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:trackyond/core/network/interceptors/logging_interceptor.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/network/interceptors/auth_interceptor.dart';
 import 'package:trackyond/core/network/interceptors/network_error_interceptor.dart';
@@ -29,15 +29,6 @@ class NetworkClient {
     dio.interceptors.add(PlatformInfoInterceptor(platformInfoService));
     dio.interceptors.add(NetworkErrorInterceptor());
 
-    dio.interceptors.add(
-      PrettyDioLogger(
-        requestHeader: true,
-        requestBody: true,
-        responseBody: true,
-        responseHeader: true,
-        compact: true,
-        error: true,
-      ),
-    );
+    dio.interceptors.add(LoggingInterceptor());
   }
 }

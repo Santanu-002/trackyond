@@ -37,6 +37,12 @@ class AuthController extends GetxController {
        _checkTokenValidityUseCase = checkTokenValidityUseCase,
        _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase;
 
+  @override
+  void onReady() async {
+    await bootstrap();
+    super.onReady();
+  }
+
   // ------------------ STATE ------------------
   final _isLoading = false.obs;
 

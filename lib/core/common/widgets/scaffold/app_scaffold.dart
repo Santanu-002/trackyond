@@ -9,6 +9,8 @@ class AppScaffold extends StatelessWidget {
   final VoidCallback? onBackPressed;
   final bool automaticallyImplyLeading;
   final List<Widget>? actions;
+  final bool useScrollView;
+  final Widget? footer;
 
   const AppScaffold({
     super.key,
@@ -17,6 +19,8 @@ class AppScaffold extends StatelessWidget {
     this.onBackPressed,
     this.automaticallyImplyLeading = true,
     this.actions,
+    this.useScrollView = true,
+    this.footer,
   });
 
   @override
@@ -52,9 +56,25 @@ class AppScaffold extends StatelessWidget {
               : null,
         ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(AppUIConstants.spacing.space$24),
-            child: child,
+          child: Column(
+            children: [
+              Expanded(
+                child: useScrollView
+                    ? SingleChildScrollView(
+                        padding: EdgeInsets.all(AppUIConstants.spacing.space$24),
+                        child: child,
+                      )
+                    : Padding(
+                        padding: EdgeInsets.all(AppUIConstants.spacing.space$24),
+                        child: child,
+                      ),
+              ),
+              if (footer != null)
+                Padding(
+                  padding: EdgeInsets.all(AppUIConstants.spacing.space$24),
+                  child: footer!,
+                ),
+            ],
           ),
         ),
       ),

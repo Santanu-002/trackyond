@@ -11,16 +11,19 @@ part of 'company_response_model.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$CompanyResponseModel {
 
- MemberProfileModel get memberProfile; CompanyModel get company;
+@JsonKey(name: 'ownerProfile') MemberProfileModel get memberProfile; CompanyModel get company;
 /// Create a copy of CompanyResponseModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
 $CompanyResponseModelCopyWith<CompanyResponseModel> get copyWith => _$CompanyResponseModelCopyWithImpl<CompanyResponseModel>(this as CompanyResponseModel, _$identity);
 
+  /// Serializes this CompanyResponseModel to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -28,7 +31,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is CompanyResponseModel&&(identical(other.memberProfile, memberProfile) || other.memberProfile == memberProfile)&&(identical(other.company, company) || other.company == company));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,memberProfile,company);
 
@@ -45,7 +48,7 @@ abstract mixin class $CompanyResponseModelCopyWith<$Res>  {
   factory $CompanyResponseModelCopyWith(CompanyResponseModel value, $Res Function(CompanyResponseModel) _then) = _$CompanyResponseModelCopyWithImpl;
 @useResult
 $Res call({
- MemberProfileModel memberProfile, CompanyModel company
+@JsonKey(name: 'ownerProfile') MemberProfileModel memberProfile, CompanyModel company
 });
 
 
@@ -166,7 +169,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( MemberProfileModel memberProfile,  CompanyModel company)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'ownerProfile')  MemberProfileModel memberProfile,  CompanyModel company)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompanyResponseModel() when $default != null:
 return $default(_that.memberProfile,_that.company);case _:
@@ -187,7 +190,7 @@ return $default(_that.memberProfile,_that.company);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( MemberProfileModel memberProfile,  CompanyModel company)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'ownerProfile')  MemberProfileModel memberProfile,  CompanyModel company)  $default,) {final _that = this;
 switch (_that) {
 case _CompanyResponseModel():
 return $default(_that.memberProfile,_that.company);}
@@ -204,7 +207,7 @@ return $default(_that.memberProfile,_that.company);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( MemberProfileModel memberProfile,  CompanyModel company)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'ownerProfile')  MemberProfileModel memberProfile,  CompanyModel company)?  $default,) {final _that = this;
 switch (_that) {
 case _CompanyResponseModel() when $default != null:
 return $default(_that.memberProfile,_that.company);case _:
@@ -216,13 +219,13 @@ return $default(_that.memberProfile,_that.company);case _:
 }
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _CompanyResponseModel extends CompanyResponseModel {
-  const _CompanyResponseModel({required this.memberProfile, required this.company}): super._();
-  
+  const _CompanyResponseModel({@JsonKey(name: 'ownerProfile') required this.memberProfile, required this.company}): super._();
+  factory _CompanyResponseModel.fromJson(Map<String, dynamic> json) => _$CompanyResponseModelFromJson(json);
 
-@override final  MemberProfileModel memberProfile;
+@override@JsonKey(name: 'ownerProfile') final  MemberProfileModel memberProfile;
 @override final  CompanyModel company;
 
 /// Create a copy of CompanyResponseModel
@@ -231,14 +234,17 @@ class _CompanyResponseModel extends CompanyResponseModel {
 @pragma('vm:prefer-inline')
 _$CompanyResponseModelCopyWith<_CompanyResponseModel> get copyWith => __$CompanyResponseModelCopyWithImpl<_CompanyResponseModel>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$CompanyResponseModelToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompanyResponseModel&&(identical(other.memberProfile, memberProfile) || other.memberProfile == memberProfile)&&(identical(other.company, company) || other.company == company));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,memberProfile,company);
 
@@ -255,7 +261,7 @@ abstract mixin class _$CompanyResponseModelCopyWith<$Res> implements $CompanyRes
   factory _$CompanyResponseModelCopyWith(_CompanyResponseModel value, $Res Function(_CompanyResponseModel) _then) = __$CompanyResponseModelCopyWithImpl;
 @override @useResult
 $Res call({
- MemberProfileModel memberProfile, CompanyModel company
+@JsonKey(name: 'ownerProfile') MemberProfileModel memberProfile, CompanyModel company
 });
 
 

@@ -7,11 +7,12 @@ from sqlalchemy.orm import Session
 from db import models
 from core.database.redis_client import get_redis
 from core.errors.exceptions import AppException
-from core.config import SECRET_KEY, OTP_EXPIRY_SECONDS
+from core.config import SECRET_KEY, OTP_EXPIRY_SECONDS, MOCK_STATIC_OTP
 import json
 import hmac
 import hashlib
 import base64
+from core.constants.app_strings import strings
 
 class AuthService:
     def __init__(self):
@@ -20,6 +21,10 @@ class AuthService:
         self.MAX_ATTEMPTS = 5
         self.DELAYS = [30, 60, 90, 120] 
         self.COOLDOWN_SECONDS = 7200 # 2 hours cooldown after max attempts
+
+    def get_mock_static_otp(self) -> str:
+        """Returns the static OTP code for mock testing."""
+        return MOCK_STATIC_OTP
 
     def _generate_otp_token(self, phone: str, device_id: str) -> str:
         now = now_utc()
@@ -81,10 +86,37 @@ class AuthService:
         except (ValueError, KeyError, json.JSONDecodeError):
             raise AppException(message="Malformed OTP ID.", error_code="invalid_otp_id")
 
-    def send_otp_logic(self, phone: str, device_id: str, is_resend: bool = False) -> dict:
+    def send_otp_logic(self, db: Session, phone: str, device_id: str, is_resend: bool = False, role: str = "admin") -> dict:
         now = now_utc()
         # Normalize phone number
         phone = phone.strip()
+
+        # 0. Check for role conflicts
+        user = db.query(models.User).filter(models.User.phone == phone).first()
+        
+        if role == "admin":
+            # If user exists as an employee, block owner login
+            if user and user.role == "employee":
+                raise AppException(
+                    message=f"{strings.access_denied}: This phone number is registered as an employee. Please login through the employee portal.",
+                    error_code="access_denied"
+                )
+        elif role == "employee":
+            # Employees must already have a user record
+            if not user:
+                raise AppException(
+                    message="Your phone number is not registered. Please contact your administrator.",
+                    error_code="unauthorized_access"
+                )
+            
+            # Employees must also have a member profile
+            member = db.query(models.Member).filter(models.Member.phone == phone).first()
+            if not member:
+                raise AppException(
+                    message="You have not been assigned to any company. Please contact your administrator.",
+                    error_code="unauthorized_access"
+                )
+
         limit_key = f"otp_limit:{phone}"
         
         # 1. Fetch current limit state
@@ -157,7 +189,7 @@ class AuthService:
 
         # 4. Generate OTP and Stateless ID
         otp_id = self._generate_otp_token(phone, device_id)
-        otp_code = f"{random.randint(100000, 999999):06d}"
+        otp_code = self.get_mock_static_otp()
         
         # 5. Print OTP to console for developer access
         print(f"\n{'='*50}")
@@ -286,9 +318,29 @@ class AuthService:
             "userUid": user.uid,
             "phoneNo": phone,
             "role": user.role,
-            "isNewUser": user.is_new_user,
             **tokens
         }
+
+        # If employee, add member profile and company details
+        if user.role == "employee":
+            member = db.query(models.Member).filter(models.Member.uid == user.uid).first()
+            if member:
+                response_data["profile"] = {
+                    "uid": member.uid,
+                    "name": member.name,
+                    "phone": member.phone,
+                    "designation": member.designation,
+                    "image": member.image,
+                    "gender": member.gender,
+                }
+                
+                company = db.query(models.Company).filter(models.Company.company_id == member.company_uid).first()
+                if company:
+                    response_data["company"] = {
+                        "companyId": company.company_id,
+                        "name": company.name,
+                        "teamSize": company.team_size,
+                    }
         
         return True, user.is_new_user, response_data
 

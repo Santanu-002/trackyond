@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../domain/entities/send_otp_response_entity.dart';
+import 'package:trackyond/features/auth/domain/entities/send_otp_response_entity.dart';
 
 part 'send_otp_response_model.freezed.dart';
 part 'send_otp_response_model.g.dart';

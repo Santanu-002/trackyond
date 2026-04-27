@@ -13,7 +13,7 @@ class SendOtpController extends GetxController {
   SendOtpController({required SendOtpUseCase sendOtpUseCase})
     : _sendOtpUseCase = sendOtpUseCase;
 
-  late final UserRole role;
+  late final Rx<UserRole> role;
   final phoneController = TextEditingController();
   final isLoading = false.obs;
   final phoneError =
@@ -23,7 +23,7 @@ class SendOtpController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    role = (Get.arguments as UserRole?) ?? UserRole.worker;
+    role = ((Get.arguments as UserRole?) ?? UserRole.worker).obs;
   }
 
   @override
@@ -32,11 +32,11 @@ class SendOtpController extends GetxController {
     super.onClose();
   }
 
-  String get title => role == UserRole.owner
+  String get title => role.value == UserRole.owner
       ? AppStrings.sendOtp.ownerTitle
       : AppStrings.sendOtp.workerTitle;
 
-  String get subtitle => role == UserRole.owner
+  String get subtitle => role.value == UserRole.owner
       ? AppStrings.sendOtp.ownerSubtitle
       : AppStrings.sendOtp.workerSubtitle;
 
@@ -44,11 +44,9 @@ class SendOtpController extends GetxController {
 
   void switchRole() {
     dismissBanner();
-    Get.offNamed(
-      AppRoutes.common.auth.sendOtp,
-      arguments: role == UserRole.owner ? UserRole.worker : UserRole.owner,
-      preventDuplicates: false,
-    );
+    role.value = role.value == UserRole.owner ? UserRole.worker : UserRole.owner;
+    phoneController.clear();
+    phoneError.value = null;
   }
 
   Future<void> sendOtp() async {
@@ -65,7 +63,7 @@ class SendOtpController extends GetxController {
     showAccessDeniedBanner.value = false;
 
     final result = await _sendOtpUseCase(
-      SendOtpParams(phone: phone, role: role),
+      SendOtpParams(phone: phone, role: role.value),
     );
 
     isLoading.value = false;
@@ -79,7 +77,7 @@ class SendOtpController extends GetxController {
     }, (response) {
       Get.toNamed(
         AppRoutes.common.auth.verifyOtp,
-        arguments: {'sendOtpResponse': response, 'role': role},
+        arguments: {'sendOtpResponse': response, 'role': role.value},
       );
     });
   }

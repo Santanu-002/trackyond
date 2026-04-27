@@ -10,6 +10,8 @@ class AppStrings {
   static const addTeamMember = AddTeamMemberStrings();
   static const ownerDashboard = OwnerDashboardStrings();
   static const workerDashboard = WorkerDashboardStrings();
+  static const workerProfile = WorkerProfileStrings();
+  static const drawer = DrawerStrings();
 }
 
 class CommonStrings {
@@ -243,13 +245,30 @@ class AddTeamMemberStrings {
 class OwnerDashboardStrings {
   const OwnerDashboardStrings();
 
-  String get title => 'Owner Dashboard';
+  String get title => 'Dashboard';
 
-  String welcome(String name) => 'Welcome, $name!';
+  String get teamStatus => 'Team Status';
+  String get stats => 'Stats';
+  String get pending => 'Pending';
+  String get progress => 'In Progress';
+  String get completed => 'Completed';
+  String get working => 'Working';
+  String get notStarted => 'Not Started';
+  String get statsTitle => 'Task Statistics';
+  String get recentJobs => 'Recent Jobs';
+  String get viewAll => 'View All';
+}
 
-  String message(String company) => 'Managing $company with precision.';
+class DrawerStrings {
+  const DrawerStrings();
 
-  String get goBack => 'Go Back';
+  String get dashboard => 'Dashboard';
+  String get jobs => 'Jobs';
+  String get team => 'Team';
+  String get activity => 'Activity';
+  String get billing => 'Billing';
+  String get settings => 'Settings';
+  String get logout => 'Logout';
 }
 
 class WorkerDashboardStrings {
@@ -262,4 +281,26 @@ class WorkerDashboardStrings {
   String get message => 'Your login was successful.';
 
   String get goBack => 'Go Back';
+
+  String get goodMorning => 'Good Morning';
+  String get goodAfternoon => 'Good Afternoon';
+  String get goodEvening => 'Good Evening';
+
+  String get permissionDenied => 'Permission Denied';
+  String get locationPermissionRequired => 'Location permission is required to start your day.';
+
+  String get workDayStarted => 'Work Day Started';
+  String get startMyDay => 'Start my day';
+  String get endMyDay => 'End my day';
+  String get fetchingLocation => 'Fetching location...';
+
+  String get recentJobs => 'Recent Jobs';
+  String jobHash(int id) => 'Job #$id';
+  String completedTime(String time) => '$time • Completed';
+}
+
+class WorkerProfileStrings {
+  const WorkerProfileStrings();
+
+  String get title => 'My Profile';
 }

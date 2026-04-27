@@ -22,6 +22,7 @@ class LightColors {
   // Semantic
   final Color error = const Color(0xFFB00020);
   final Color pending = const Color(0xFFFEA619);
+  final Color inProgress = const Color(0xFF2563EB);
   final Color completed = const Color(0xFF007D55);
   final Color ghostBorder = const Color(0xFFC3C6D7); // outline-variant
 
@@ -43,6 +44,7 @@ class DarkColors {
   
   final Color error = const Color(0xFFCF6679);
   final Color pending = const Color(0xFFFEA619);
+  final Color inProgress = const Color(0xFF2563EB);
   final Color completed = const Color(0xFF007D55);
   final Color ghostBorder = const Color(0xFFC3C6D7);
 

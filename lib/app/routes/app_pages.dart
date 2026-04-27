@@ -17,6 +17,8 @@ import 'package:trackyond/features/owner/setup_company/presentation/screens/choo
 import 'package:trackyond/features/owner/setup_company/presentation/screens/setup_company_page.dart';
 import 'package:trackyond/features/worker/presentation/bindings/worker_dashboard_binding.dart';
 import 'package:trackyond/features/worker/presentation/screens/worker_dashboard_page.dart';
+import 'package:trackyond/features/worker/profile/presentation/bindings/worker_profile_binding.dart';
+import 'package:trackyond/features/worker/profile/presentation/screens/worker_profile_page.dart';
 
 class AppPages {
   const AppPages._();
@@ -84,6 +86,11 @@ class AppPages {
       name: AppRoutes.worker.dashboard,
       bindings: [AuthBindings(), WorkerDashboardBinding()],
       page: () => const WorkerDashboardPage(),
+    ),
+    GetPage(
+      name: AppRoutes.worker.profile,
+      binding: WorkerProfileBinding(),
+      page: () => const WorkerProfilePage(),
     ),
   ];
 }

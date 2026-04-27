@@ -11,6 +11,12 @@ class AppScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final bool useScrollView;
   final Widget? footer;
+  final Widget? drawer;
+  final Widget? endDrawer;
+  final Widget? leading;
+  final EdgeInsetsGeometry? padding;
+  final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
 
   const AppScaffold({
     super.key,
@@ -21,6 +27,12 @@ class AppScaffold extends StatelessWidget {
     this.actions,
     this.useScrollView = true,
     this.footer,
+    this.drawer,
+    this.endDrawer,
+    this.leading,
+    this.padding,
+    this.floatingActionButton,
+    this.floatingActionButtonLocation,
   });
 
   @override
@@ -30,6 +42,10 @@ class AppScaffold extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
         backgroundColor: context.theme.scaffoldBackgroundColor,
+        drawer: drawer,
+        endDrawer: endDrawer,
+        floatingActionButton: floatingActionButton,
+        floatingActionButtonLocation: floatingActionButtonLocation,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -38,22 +54,21 @@ class AppScaffold extends StatelessWidget {
           systemOverlayStyle: context.theme.brightness == Brightness.light
               ? SystemUiOverlayStyle.dark
               : SystemUiOverlayStyle.light,
-
           actions: actions,
           automaticallyImplyLeading: false,
-          leading:
-              (onBackPressed != null ||
-                  (automaticallyImplyLeading &&
-                      (ModalRoute.of(context)?.canPop ?? false)))
-              ? IconButton(
-                  onPressed: onBackPressed ?? Get.back,
-                  icon: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    color: context.theme.colorScheme.onSurface,
-                    size: 20,
-                  ),
-                )
-              : null,
+          leading: leading ??
+              ((onBackPressed != null ||
+                      (automaticallyImplyLeading &&
+                          (ModalRoute.of(context)?.canPop ?? false)))
+                  ? IconButton(
+                      onPressed: onBackPressed ?? Get.back,
+                      icon: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: context.theme.colorScheme.onSurface,
+                        size: 20,
+                      ),
+                    )
+                  : null),
         ),
         body: SafeArea(
           child: Column(
@@ -61,11 +76,11 @@ class AppScaffold extends StatelessWidget {
               Expanded(
                 child: useScrollView
                     ? SingleChildScrollView(
-                        padding: EdgeInsets.all(AppUIConstants.spacing.space$24),
+                        padding: padding ?? EdgeInsets.all(AppUIConstants.spacing.space$24),
                         child: child,
                       )
                     : Padding(
-                        padding: EdgeInsets.all(AppUIConstants.spacing.space$24),
+                        padding: padding ?? EdgeInsets.all(AppUIConstants.spacing.space$24),
                         child: child,
                       ),
               ),

@@ -15,6 +15,8 @@ class _OwnerRoutes {
   String get chooseTeamSize => '$_base/choose-team-size';
   String get addTeamMember => '$_base/add-team-member';
   String get addMemberDetails => '$_base/add-member-details';
+  String get team => '$_base/team';
+  String get jobs => '$_base/jobs';
 }
 
 class _WorkerRoutes {
@@ -22,6 +24,7 @@ class _WorkerRoutes {
 
   String get _base => '/worker';
   String get dashboard => '$_base/dashboard';
+  String get profile => '$_base/profile';
 }
 
 class _AuthRoutes {

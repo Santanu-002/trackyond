@@ -54,27 +54,29 @@ class SendOtpPage extends GetView<SendOtpController> {
         spacing: AppUIConstants.spacing.space$32,
         children: [
           // Header Section
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: AppUIConstants.spacing.space$12,
-            children: [
-              Text(
-                controller.title,
-                style: context.textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 32,
-                ),
-              ),
-              Text(
-                controller.subtitle,
-                style: context.textTheme.bodyLarge?.copyWith(
-                  color: context.theme.colorScheme.onSurface.withValues(
-                    alpha: 0.6,
+          Obx(
+            () => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: AppUIConstants.spacing.space$12,
+              children: [
+                Text(
+                  controller.title,
+                  style: context.textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
                   ),
-                  height: 1.5,
                 ),
-              ),
-            ],
+                Text(
+                  controller.subtitle,
+                  style: context.textTheme.bodyLarge?.copyWith(
+                    color: context.theme.colorScheme.onSurface.withValues(
+                      alpha: 0.6,
+                    ),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
           ),
 
           // Input Section

@@ -9,6 +9,8 @@ class _GhostAppButton extends StatelessWidget {
   final Color? color;
   final double? borderRadius;
   final bool isLoading;
+  final EdgeInsetsGeometry? padding;
+  final VisualDensity? visualDensity;
 
   const _GhostAppButton({
     super.key,
@@ -20,6 +22,8 @@ class _GhostAppButton extends StatelessWidget {
     this.color,
     this.borderRadius,
     this.isLoading = false,
+    this.padding,
+    this.visualDensity,
   });
 
   @override
@@ -34,6 +38,8 @@ class _GhostAppButton extends StatelessWidget {
         style: TextButton.styleFrom(
           shape: RoundedRectangleBorder(borderRadius: radius),
           foregroundColor: color ?? context.theme.colorScheme.primary,
+          padding: padding,
+          visualDensity: visualDensity,
         ),
         child: _AppButtonContent(
           text: text,

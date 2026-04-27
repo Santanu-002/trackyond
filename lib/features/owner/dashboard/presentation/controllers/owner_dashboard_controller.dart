@@ -1,9 +1,17 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
 import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/logout_usecase.dart';
+
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
+import 'package:trackyond/features/owner/dashboard/domain/entities/dashboard_stats.dart';
+import 'package:trackyond/features/owner/dashboard/domain/entities/drawer_item_config.dart';
+import 'package:trackyond/features/owner/dashboard/domain/entities/recent_job.dart';
+import 'package:trackyond/features/owner/dashboard/domain/entities/task_stat_config.dart';
+import 'package:trackyond/features/owner/dashboard/domain/entities/team_member_status.dart';
 
 class OwnerDashboardController extends GetxController {
   final LogoutUseCase _logoutUseCase;
@@ -16,9 +24,119 @@ class OwnerDashboardController extends GetxController {
         _userService = userService;
 
   final title = AppStrings.ownerDashboard.title.obs;
+  final notificationCount = 3.obs;
 
   String get ownerName => _userService.getProfile()?.name ?? 'Owner';
   String get companyName => _userService.getCompany()?.companyName ?? 'Company';
+  String get ownerPhone => '+91 98765 43210'; // Mocked
+
+  final teamMembers = <TeamMemberStatus>[
+    TeamMemberStatus(
+      name: 'Ravi',
+      status: AppStrings.ownerDashboard.working,
+      time: '9:45 AM',
+      isWorking: true,
+    ),
+    TeamMemberStatus(
+      name: 'Amit',
+      status: AppStrings.ownerDashboard.working,
+      time: '10:15 AM',
+      isWorking: true,
+    ),
+    TeamMemberStatus(
+      name: 'Suresh',
+      status: AppStrings.ownerDashboard.notStarted,
+      time: '-',
+      isWorking: false,
+    ),
+    TeamMemberStatus(
+      name: 'Priya',
+      status: AppStrings.ownerDashboard.working,
+      time: '9:00 AM',
+      isWorking: true,
+    ),
+  ].obs;
+
+  final stats = DashboardStats(
+    pending: 5,
+    inProgress: 3,
+    completed: 8,
+  ).obs;
+
+  final recentJobs = <RecentJob>[
+    const RecentJob(
+      title: 'Apartment Deep Clean',
+      location: 'Skyline Heights, Tower A',
+      budget: 1500.0,
+      status: 'Ongoing',
+      isOngoing: true,
+    ),
+    const RecentJob(
+      title: 'Office Painting',
+      location: 'Tech Park, Block 5',
+      budget: 4200.0,
+      status: 'Starting Soon',
+      isOngoing: true,
+    ),
+    const RecentJob(
+      title: 'Plumbing Repair',
+      location: 'Green Valley, Villa 12',
+      budget: 450.0,
+      status: 'Completed',
+      isOngoing: false,
+    ),
+  ].obs;
+
+  List<TaskStatConfig> get taskStats => [
+        TaskStatConfig(
+          label: AppStrings.ownerDashboard.pending,
+          value: stats.value.pending,
+          icon: Icons.history_toggle_off_rounded,
+          color: Get.theme.colorScheme.pending,
+        ),
+        TaskStatConfig(
+          label: AppStrings.ownerDashboard.progress,
+          value: stats.value.inProgress,
+          icon: Icons.bolt_rounded,
+          color: Get.theme.colorScheme.inProgress,
+        ),
+        TaskStatConfig(
+          label: AppStrings.ownerDashboard.completed,
+          value: stats.value.completed,
+          icon: Icons.task_alt_rounded,
+          color: Get.theme.colorScheme.completed,
+        ),
+      ];
+
+  List<DrawerItemConfig> get drawerItems => [
+        DrawerItemConfig(
+          icon: Icons.dashboard_rounded,
+          label: AppStrings.drawer.dashboard,
+          route: AppRoutes.owner.dashboard,
+        ),
+        DrawerItemConfig(
+          icon: Icons.groups_rounded,
+          label: AppStrings.drawer.team,
+          route: AppRoutes.owner.team,
+        ),
+        DrawerItemConfig(
+          icon: Icons.assignment_rounded,
+          label: AppStrings.drawer.jobs,
+          route: AppRoutes.owner.jobs,
+        ),
+        DrawerItemConfig(
+          icon: Icons.insights_rounded,
+          label: AppStrings.drawer.activity,
+        ),
+        DrawerItemConfig(
+          icon: Icons.account_balance_wallet_rounded,
+          label: AppStrings.drawer.billing,
+        ),
+        DrawerItemConfig(
+          icon: Icons.settings_rounded,
+          label: AppStrings.drawer.settings,
+        ),
+      ];
 
   Future<void> logout() async {
     final result = await _logoutUseCase(NoParams());
@@ -26,5 +144,21 @@ class OwnerDashboardController extends GetxController {
       (failure) => Get.snackbar('Error', failure.message),
       (_) => Get.offAllNamed(AppRoutes.common.auth.chooseRole),
     );
+  }
+
+  void openDrawer() {
+    Scaffold.of(Get.context!).openDrawer();
+  }
+
+  void openNotifications() {
+    // Navigate to notifications or show overlay
+  }
+
+  void goToJobs() {
+    Get.toNamed(AppRoutes.owner.jobs);
+  }
+
+  void goToTeam() {
+    Get.toNamed(AppRoutes.owner.team);
   }
 }

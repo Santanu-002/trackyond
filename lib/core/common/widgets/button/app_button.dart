@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_ui_constants.dart';
 
 part 'filled_button.dart';
 part 'outlined_button.dart';
@@ -91,6 +92,8 @@ class AppButton extends StatelessWidget {
     Color? color,
     double? borderRadius,
     bool isLoading = false,
+    EdgeInsetsGeometry? padding,
+    VisualDensity? visualDensity,
   }) {
     return AppButton._(
       _GhostAppButton(
@@ -107,6 +110,8 @@ class AppButton extends StatelessWidget {
         color: color,
         borderRadius: borderRadius,
         isLoading: isLoading,
+        padding: padding ?? (width != null && height != null ? padding : EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$8, vertical: AppUIConstants.spacing.space$2)),
+        visualDensity: visualDensity ?? (width != null && height != null ? visualDensity : const VisualDensity(horizontal: VisualDensity.minimumDensity, vertical: VisualDensity.minimumDensity)),
         child: child,
       ),
       key: key,

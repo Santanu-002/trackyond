@@ -6,11 +6,12 @@ class AppUIConstants {
   static const radius = _AppRadius();
   static const spacing = _AppSpacing();
   static const widgets = _AppWidgets();
-  static const colors = _AppColors();
+  static const colors = _RandomAvatarBackgroundColors();
+  static const shadows = _AppShadows();
 }
 
-class _AppColors {
-  const _AppColors();
+class _RandomAvatarBackgroundColors {
+  const _RandomAvatarBackgroundColors();
 
   List<Color> get avatarColors => const [
     Color(0xFF6366F1), // Indigo
@@ -70,4 +71,16 @@ class _AppWidgets {
   SizedBox get horizontalBox$16 => const SizedBox(width: 16.0);
   SizedBox get horizontalBox$24 => const SizedBox(width: 24.0);
   SizedBox get horizontalBox$32 => const SizedBox(width: 32.0);
+}
+
+class _AppShadows {
+  const _AppShadows();
+
+  List<BoxShadow> get cardShadow => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ];
 }

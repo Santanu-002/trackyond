@@ -17,6 +17,7 @@ class AppTheme {
       error: AppColors.light.error,
       tertiary: AppColors.light.completed,
       outlineVariant: AppColors.light.ghostBorder.withValues(alpha: 0.15),
+      onSurfaceVariant: AppColors.light.textSubtle,
     );
 
     return ThemeData(
@@ -37,6 +38,8 @@ class AppTheme {
         color: Colors.transparent,
         thickness: 0,
         space: 24,
+        indent: 0,
+        endIndent: 0,
       ),
       inputDecorationTheme: _inputDecorationTheme(colorScheme),
       appBarTheme: AppBarTheme(
@@ -65,6 +68,7 @@ class AppTheme {
       error: AppColors.dark.error,
       tertiary: AppColors.dark.completed,
       outlineVariant: AppColors.dark.ghostBorder.withValues(alpha: 0.15),
+      onSurfaceVariant: AppColors.dark.textSubtle,
     );
 
     return ThemeData(

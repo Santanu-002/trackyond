@@ -71,8 +71,10 @@ class _EmployeeEndpoints {
 
   _AuthEndpoints get auth => _AuthEndpoints(prefix: _root);
 
-  // Profile
-  String get profile => '$_root/profile';
+  // Profiles
+  String get profiles => '$_root/profiles';
+
+  String get profilesSwitch => '$_root/profiles/switch';
 
   // Jobs
   String get jobs => '$_root/jobs';
@@ -86,6 +88,10 @@ class _EmployeeEndpoints {
 
   String get attendanceEnd => '$_root/attendance/end';
 
+  String get attendanceMark => '$_root/attendance/mark';
+
+  String get attendanceStatus => '$_root/attendance/status';
+
   // Notifications
   String get notifications => '$_root/notifications';
 }
@@ -98,5 +104,5 @@ class _CommonEndpoints {
 
   static const String _root = '/common';
 
-  String download(String path) => '$_root/download/$path';
+  String download(String path) => '$_root/files/download/$path';
 }

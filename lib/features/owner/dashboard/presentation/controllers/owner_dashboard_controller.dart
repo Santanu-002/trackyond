@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
 import 'package:trackyond/core/usecase/usecase.dart';
@@ -91,49 +92,49 @@ class OwnerDashboardController extends GetxController {
         TaskStatConfig(
           label: AppStrings.ownerDashboard.pending,
           value: stats.value.pending,
-          icon: Icons.history_toggle_off_rounded,
+          icon: AppIcons.dashboard.recentHistory,
           color: Get.theme.colorScheme.pending,
         ),
         TaskStatConfig(
           label: AppStrings.ownerDashboard.progress,
           value: stats.value.inProgress,
-          icon: Icons.bolt_rounded,
+          icon: AppIcons.dashboard.active,
           color: Get.theme.colorScheme.inProgress,
         ),
         TaskStatConfig(
           label: AppStrings.ownerDashboard.completed,
           value: stats.value.completed,
-          icon: Icons.task_alt_rounded,
+          icon: AppIcons.dashboard.completed,
           color: Get.theme.colorScheme.completed,
         ),
       ];
 
   List<DrawerItemConfig> get drawerItems => [
         DrawerItemConfig(
-          icon: Icons.dashboard_rounded,
+          icon: AppIcons.dashboard.dashboard,
           label: AppStrings.drawer.dashboard,
           route: AppRoutes.owner.dashboard,
         ),
         DrawerItemConfig(
-          icon: Icons.groups_rounded,
+          icon: AppIcons.common.groups,
           label: AppStrings.drawer.team,
           route: AppRoutes.owner.team,
         ),
         DrawerItemConfig(
-          icon: Icons.assignment_rounded,
+          icon: AppIcons.dashboard.assignment,
           label: AppStrings.drawer.jobs,
           route: AppRoutes.owner.jobs,
         ),
         DrawerItemConfig(
-          icon: Icons.insights_rounded,
+          icon: AppIcons.dashboard.insights,
           label: AppStrings.drawer.activity,
         ),
         DrawerItemConfig(
-          icon: Icons.account_balance_wallet_rounded,
+          icon: AppIcons.dashboard.wallet,
           label: AppStrings.drawer.billing,
         ),
         DrawerItemConfig(
-          icon: Icons.settings_rounded,
+          icon: AppIcons.dashboard.settings,
           label: AppStrings.drawer.settings,
         ),
       ];

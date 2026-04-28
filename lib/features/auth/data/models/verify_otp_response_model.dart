@@ -10,8 +10,10 @@ part 'verify_otp_response_model.g.dart';
 sealed class VerifyOtpResponseModel with _$VerifyOtpResponseModel {
   const factory VerifyOtpResponseModel({
     required String userUid,
-    required String phoneNo,
+    @JsonKey(name: 'phone') required String phone,
     @Default(false) bool isNewUser,
+    String? primaryAccountUid,
+    @JsonKey(fromJson: UserRole.fromString) required UserRole role,
     required String accessToken,
     required String refreshToken,
     required String accessExpireAt,
@@ -53,8 +55,9 @@ sealed class VerifyOtpResponseModel with _$VerifyOtpResponseModel {
 
   UserModel getUser(UserRole role) => UserModel(
         uid: userUid,
-        phone: phoneNo,
+        phone: phone,
         role: role,
         isNewUser: isNewUser,
+        primaryAccountUid: primaryAccountUid,
       );
 }

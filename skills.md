@@ -99,5 +99,23 @@ When using `fpdart` for functional error handling, use `Unit` instead of `void` 
 
 **Rule**: Never use `void` inside `Either` or `BaseUseCase` returns when functional equivalents (`Unit`) exist.
 
+## 12. Unified Iconography (`AppIcons`)
+All icons in the application should be centralized in `lib/core/constants/app_icons.dart` using standard Material or Cupertino icons. The `AppIcons` class should be organized into categories using private classes for better discoverability and organization.
+
+- **Pattern**:
+  ```dart
+  class AppIcons {
+    static const auth = _AuthIcons();
+    ...
+  }
+  class _AuthIcons {
+    const _AuthIcons();
+    IconData get login => Icons.login_rounded;
+  }
+  ```
+- **Usage**: `AppIcons.dashboard.home` or `AppIcons.auth.login`.
+
+**Rule**: Avoid calling `Icons` or `CupertinoIcons` directly in UI widgets. Always use `AppIcons` constants.
+
 ---
 *Maintained by Antigravity AI*

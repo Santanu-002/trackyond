@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/app_drawer_header.dart';
@@ -74,7 +75,7 @@ class AppDrawer extends GetView<OwnerDashboardController> {
                 spacing: AppUIConstants.spacing.space$8,
                 children: [
                   Icon(
-                    Icons.logout_rounded,
+                    AppIcons.common.logout,
                     color: theme.colorScheme.error,
                     size: 20,
                   ),

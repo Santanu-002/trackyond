@@ -4,7 +4,7 @@ import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/owner/setup_company/data/models/company_response_model.dart';
 
-abstract class OwnerRemoteDataSource {
+abstract interface class  OwnerRemoteDataSource {
   Future<ApiResponse<CompanyResponseModel>> setupCompany({
     required String companyName,
     required String ownerName,

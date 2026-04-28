@@ -10,8 +10,10 @@ _VerifyOtpResponseModel _$VerifyOtpResponseModelFromJson(
   Map<String, dynamic> json,
 ) => _VerifyOtpResponseModel(
   userUid: json['userUid'] as String,
-  phoneNo: json['phoneNo'] as String,
+  phone: json['phone'] as String,
   isNewUser: json['isNewUser'] as bool? ?? false,
+  primaryAccountUid: json['primaryAccountUid'] as String?,
+  role: UserRole.fromString(json['role']),
   accessToken: json['accessToken'] as String,
   refreshToken: json['refreshToken'] as String,
   accessExpireAt: json['accessExpireAt'] as String,
@@ -23,11 +25,15 @@ Map<String, dynamic> _$VerifyOtpResponseModelToJson(
   _VerifyOtpResponseModel instance,
 ) => <String, dynamic>{
   'userUid': instance.userUid,
-  'phoneNo': instance.phoneNo,
+  'phone': instance.phone,
   'isNewUser': instance.isNewUser,
+  'primaryAccountUid': instance.primaryAccountUid,
+  'role': _$UserRoleEnumMap[instance.role]!,
   'accessToken': instance.accessToken,
   'refreshToken': instance.refreshToken,
   'accessExpireAt': instance.accessExpireAt,
   'refreshExpireAt': instance.refreshExpireAt,
   'tokenIssuedAt': instance.tokenIssuedAt,
 };
+
+const _$UserRoleEnumMap = {UserRole.owner: 'owner', UserRole.worker: 'worker'};

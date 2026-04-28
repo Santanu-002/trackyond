@@ -10,11 +10,11 @@ import 'package:trackyond/features/owner/add_team_member/data/datasources/team_r
 import 'package:trackyond/features/owner/add_team_member/domain/repositories/i_team_repository.dart';
 
 class TeamRepositoryImpl implements ITeamRepository {
-  final TeamRemoteDataSource _remoteDataSource;
+  final ITeamRemoteDataSource _remoteDataSource;
   final UserService _userService;
 
   TeamRepositoryImpl({
-    required TeamRemoteDataSource remoteDataSource,
+    required ITeamRemoteDataSource remoteDataSource,
     required UserService userService,
   }) : _remoteDataSource = remoteDataSource,
        _userService = userService;

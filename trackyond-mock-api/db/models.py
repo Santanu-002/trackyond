@@ -10,6 +10,7 @@ class User(Base):
     phone = Column(String, unique=True, index=True)
     role = Column(String) # admin | employee
     is_new_user = Column(Boolean, default=True)
+    primary_account_uid = Column(String, nullable=True) # UID of the primary Member/Profile record
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
@@ -36,7 +37,8 @@ class Company(Base):
 class Member(Base):
     __tablename__ = "members"
     id = Column(Integer, primary_key=True, index=True)
-    uid = Column(String, ForeignKey("users.uid"), index=True)
+    account_uid = Column(String, unique=True, index=True) # Unique ID for this membership/profile
+    user_uid = Column(String, ForeignKey("users.uid"), index=True) # UID of the user account
     name = Column(String)
     phone = Column(String, index=True)
     designation = Column(String)
@@ -47,9 +49,10 @@ class Member(Base):
     # New fields for multi-tenancy and creator tracking
     created_by = Column(String, ForeignKey("users.uid"), nullable=True)
     company_uid = Column(String, ForeignKey("companies.company_id"), nullable=False)
+    is_active = Column(Boolean, default=True)
 
     __table_args__ = (
-        UniqueConstraint('uid', 'company_uid', name='_user_company_uc'),
+        UniqueConstraint('user_uid', 'company_uid', name='_user_company_uc'),
     )
 
 class Job(Base):
@@ -61,7 +64,7 @@ class Job(Base):
     customer_name = Column(String)
     customer_phone = Column(String)
     customer_address = Column(String)
-    worker_uid = Column(String, ForeignKey("users.uid"))
+    worker_account_uid = Column(String, ForeignKey("members.account_uid"))
     status = Column(String, default="pending") # pending | assigned | in_progress | completed
     require_photo_on_start = Column(Boolean, default=False)
     require_photo_on_complete = Column(Boolean, default=False)
@@ -81,8 +84,23 @@ class Notification(Base):
 class Attendance(Base):
     __tablename__ = "attendance"
     id = Column(Integer, primary_key=True, index=True)
-    member_uid = Column(String, ForeignKey("users.uid"))
-    latitude = Column(Float)
-    longitude = Column(Float)
-    type = Column(String) # start | end
-    marked_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    account_uid = Column(String, ForeignKey("members.account_uid"))
+    user_uid = Column(String, index=True) # Derived/Saved for convenience
+    company_uid = Column(String, index=True) # Derived/Saved for convenience
+    
+    start_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    end_at = Column(DateTime, nullable=True)
+    
+    start_latitude = Column(Float)
+    start_longitude = Column(Float)
+    end_latitude = Column(Float, nullable=True)
+    end_longitude = Column(Float, nullable=True)
+    
+    work_hours = Column(Float, nullable=True) # Derived on end
+    
+    start_address = Column(String, nullable=True)
+    end_address = Column(String, nullable=True)
+    
+    # Status: not started | working | ended
+    status = Column(String, default="not started") 
+

@@ -4,6 +4,7 @@ import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/company/company_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/owner/setup_company/domain/entities/team_size_option.dart';
@@ -50,12 +51,13 @@ class SetupCompanyController extends GetxController {
       title: AppStrings.chooseTeamSize.mediumTeamTitle,
       subtitle: AppStrings.chooseTeamSize.mediumTeamSub,
       value: 20,
+      icon: AppIcons.common.groups,
     ),
     TeamSizeOption(
       title: AppStrings.chooseTeamSize.customTeamTitle,
       subtitle: AppStrings.chooseTeamSize.customTeamSub,
       value: 0, // 0 indicates custom/large
-      icon: Icons.manage_accounts_rounded,
+      icon: AppIcons.setup.manageAccounts,
     ),
   ];
 

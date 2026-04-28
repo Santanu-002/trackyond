@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/common/widgets/chip/app_tag.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:get/get.dart';
 
@@ -18,10 +19,7 @@ class MemberListTile extends StatelessWidget {
       contentPadding: EdgeInsets.symmetric(
         vertical: AppUIConstants.spacing.space$4,
       ),
-      leading: MemberAvatar(
-        name: member.name,
-        image: member.image,
-      ),
+      leading: MemberAvatar(name: member.name, image: member.image),
       title: Text(
         member.name,
         style: context.textTheme.titleMedium?.copyWith(
@@ -36,10 +34,9 @@ class MemberListTile extends StatelessWidget {
       ),
       trailing: AppTag(
         label: member.designation,
-        icon: isOwner ? Icons.verified_user_rounded : null,
+        icon: isOwner ? AppIcons.status.verified : null,
         color: isOwner ? context.theme.colorScheme.primary : null,
       ),
     );
   }
 }
-

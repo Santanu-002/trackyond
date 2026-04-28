@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'package:trackyond/core/theme/app_colors.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 
 class AppSnackbar {
   const AppSnackbar._();
@@ -9,7 +8,7 @@ class AppSnackbar {
   static void custom({
     required String message,
     required Color backgroundColor,
-    dynamic icon,
+    IconData? icon,
     SnackBarAction? action,
   }) {
     final context = Get.context;
@@ -19,9 +18,9 @@ class AppSnackbar {
       content: Row(
         children: [
           if (icon != null) ...[
-            HugeIcon(
-              icon: icon,
-              color: Colors.white,
+            Icon(
+              icon,
+              color: context.theme.colorScheme.onPrimary,
               size: 24.0,
             ),
             const SizedBox(width: 12),
@@ -29,8 +28,8 @@ class AppSnackbar {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: context.theme.colorScheme.onPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -52,7 +51,7 @@ class AppSnackbar {
   static void success(String message, {SnackBarAction? action}) {
     custom(
       message: message,
-      backgroundColor: AppColors.light.completed,
+      backgroundColor: Get.theme.colorScheme.tertiary,
       action: action,
     );
   }
@@ -60,7 +59,7 @@ class AppSnackbar {
   static void destructive(String message, {SnackBarAction? action}) {
     custom(
       message: message,
-      backgroundColor: AppColors.light.error,
+      backgroundColor: Get.theme.colorScheme.error,
       action: action,
     );
   }
@@ -68,7 +67,7 @@ class AppSnackbar {
   static void warn(String message, {SnackBarAction? action}) {
     custom(
       message: message,
-      backgroundColor: AppColors.light.pending,
+      backgroundColor: Get.theme.colorScheme.pending,
       action: action,
     );
   }
@@ -76,7 +75,7 @@ class AppSnackbar {
   static void info(String message, {SnackBarAction? action}) {
     custom(
       message: message,
-      backgroundColor: AppColors.light.brandBlue,
+      backgroundColor: Get.theme.colorScheme.primary,
       action: action,
     );
   }

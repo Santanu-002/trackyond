@@ -15,10 +15,11 @@ dependencies:
   get: ^4.7.3
   google_fonts: ^8.0.2
   image_picker: ^1.2.1
+  geolocator: ^13.0.1
+  geocoding: ^3.0.0
   package_info_plus: ^9.0.1
   shared_preferences: ^2.5.5
   synchronized: ^3.4.0
-  hugeicons: ^1.1.6
   freezed_annotation: ^3.1.0
   json_annotation: ^4.11.0
   pinput: ^6.0.2
@@ -27,6 +28,7 @@ dependencies:
   intl: ^0.20.2
   equatable: ^2.0.8
   cached_network_image: ^3.4.1
+  animations: ^2.2.0
 
 dev_dependencies:
   flutter_test:

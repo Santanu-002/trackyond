@@ -9,7 +9,7 @@ class AppTheme {
   static ThemeData get lightTheme {
     final colorScheme = ColorScheme.light(
       primary: AppColors.light.brandBlue,
-      onPrimary: Colors.white,
+      onPrimary: AppColors.light.onPrimary,
       primaryContainer: AppColors.light.brandAccent,
       secondary: AppColors.light.brandAccent,
       surface: AppColors.light.cardSurface,
@@ -60,7 +60,7 @@ class AppTheme {
   static ThemeData get darkTheme {
     final colorScheme = ColorScheme.dark(
       primary: AppColors.dark.brandBlue,
-      onPrimary: Colors.white,
+      onPrimary: AppColors.dark.onPrimary,
       primaryContainer: AppColors.dark.brandAccent,
       secondary: AppColors.dark.brandAccent,
       surface: AppColors.dark.cardSurface,

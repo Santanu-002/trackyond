@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 
 class AppFloatingActionButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -45,7 +46,7 @@ class AppFloatingActionButton extends StatelessWidget {
             alignment: Alignment.center,
             child: icon ??
                 Icon(
-                  Icons.add_rounded,
+                  AppIcons.common.add,
                   color: context.theme.colorScheme.onPrimary,
                   size: 28,
                 ),

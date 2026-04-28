@@ -5,6 +5,7 @@ import 'package:trackyond/core/common/widgets/text_field/app_text_field.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/features/auth/presentation/controllers/send_otp_controller.dart';
 
 import 'package:trackyond/core/common/widgets/banner/app_banner.dart';
@@ -104,7 +105,7 @@ class SendOtpPage extends GetView<SendOtpController> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.phone_outlined,
+                          AppIcons.auth.phoneOutlined,
                           size: 20,
                           color: context.theme.colorScheme.primary,
                         ),

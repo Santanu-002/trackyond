@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/core/common/widgets/layout/app_card.dart';
+import 'package:trackyond/core/common/widgets/card/app_card.dart';
 
 class StatsCard extends StatelessWidget {
   final String title;

@@ -15,10 +15,11 @@ import 'package:trackyond/features/owner/dashboard/presentation/screens/owner_da
 import 'package:trackyond/features/owner/setup_company/presentation/bindings/setup_company_binding.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/screens/choose_team_size_page.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/screens/setup_company_page.dart';
-import 'package:trackyond/features/worker/presentation/bindings/worker_dashboard_binding.dart';
-import 'package:trackyond/features/worker/presentation/screens/worker_dashboard_page.dart';
+import 'package:trackyond/features/worker/dashboard/presentation/bindings/worker_dashboard_binding.dart';
+import 'package:trackyond/features/worker/dashboard/presentation/screens/worker_dashboard_page.dart';
 import 'package:trackyond/features/worker/profile/presentation/bindings/worker_profile_binding.dart';
 import 'package:trackyond/features/worker/profile/presentation/screens/worker_profile_page.dart';
+import 'package:trackyond/features/attendance/presentation/bindings/attendance_binding.dart';
 
 class AppPages {
   const AppPages._();
@@ -84,7 +85,7 @@ class AppPages {
   static List<GetPage> get _workerPages => [
     GetPage(
       name: AppRoutes.worker.dashboard,
-      bindings: [AuthBindings(), WorkerDashboardBinding()],
+      bindings: [AuthBindings(), AttendanceBinding(), WorkerDashboardBinding()],
       page: () => const WorkerDashboardPage(),
     ),
     GetPage(

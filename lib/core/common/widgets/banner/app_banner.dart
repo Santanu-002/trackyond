@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 
 enum AppBannerType { info, success, destructive }
@@ -43,19 +44,19 @@ class AppBanner extends StatelessWidget {
         bgColor = colorScheme.primaryContainer.withValues(alpha: 0.1);
         borderColor = colorScheme.primaryContainer.withValues(alpha: 0.5);
         contentColor = colorScheme.primary;
-        defaultIcon = Icons.info_outline_rounded;
+        defaultIcon = AppIcons.status.info;
         break;
       case AppBannerType.success:
         bgColor = colorScheme.tertiary.withValues(alpha: 0.1);
         borderColor = colorScheme.tertiary.withValues(alpha: 0.5);
         contentColor = colorScheme.tertiary;
-        defaultIcon = Icons.check_circle_outline_rounded;
+        defaultIcon = AppIcons.status.success;
         break;
       case AppBannerType.destructive:
         bgColor = colorScheme.errorContainer.withValues(alpha: 0.1);
         borderColor = colorScheme.errorContainer.withValues(alpha: 0.5);
         contentColor = colorScheme.error;
-        defaultIcon = Icons.warning_amber_rounded;
+        defaultIcon = AppIcons.status.warn;
         break;
     }
 
@@ -120,7 +121,7 @@ class AppBanner extends StatelessWidget {
                 IconButton(
                   onPressed: onDismiss,
                   icon: Icon(
-                    Icons.close_rounded,
+                    AppIcons.common.close,
                     size: 20,
                     color: contentColor,
                   ),

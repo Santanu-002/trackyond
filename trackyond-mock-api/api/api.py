@@ -1,7 +1,5 @@
 from fastapi import APIRouter
-from .v1 import admin, employee, common
+from .v1 import router as v1_router
 
 api_router = APIRouter()
-api_router.include_router(admin.router)
-api_router.include_router(employee.router)
-api_router.include_router(common.router)
+api_router.include_router(v1_router, prefix="/v1")

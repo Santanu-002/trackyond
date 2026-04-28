@@ -38,7 +38,7 @@ class _AppButtonContent extends StatelessWidget {
   }
 
   Color _getTextColor(BuildContext context) {
-    if (type == AppButtonType.filled) return Colors.white;
+    if (type == AppButtonType.filled) return context.theme.colorScheme.onPrimary;
     return color ?? context.theme.colorScheme.primary;
   }
 }

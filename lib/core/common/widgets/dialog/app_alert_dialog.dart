@@ -67,11 +67,11 @@ class AppAlertDialog extends StatelessWidget {
             color: context.theme.colorScheme.surface,
             shape: BoxShape.rectangle,
             borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black26,
+                color: context.theme.colorScheme.onSurface.withValues(alpha: 0.1),
                 blurRadius: 10.0,
-                offset: Offset(0.0, 10.0),
+                offset: const Offset(0.0, 10.0),
               ),
             ],
           ),

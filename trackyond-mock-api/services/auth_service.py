@@ -316,25 +316,47 @@ class AuthService:
 
         response_data = {
             "userUid": user.uid,
-            "phoneNo": phone,
+            "phone": phone,
             "role": user.role,
+            "isNewUser": user.is_new_user,
+            "primaryAccountUid": user.primary_account_uid,
             **tokens
         }
 
         # If employee, add member profile and company details
         if user.role == "employee":
-            member = db.query(models.Member).filter(models.Member.uid == user.uid).first()
-            if member:
+            # 1. Get all ACTIVE memberships for this user
+            memberships = db.query(models.Member).filter(
+                models.Member.user_uid == user.uid,
+                models.Member.is_active == True
+            ).all()
+            
+            if memberships:
+                # 2. Determine which membership is primary
+                active_member = None
+                if user.primary_account_uid:
+                    # Check if the primary account is among the ACTIVE memberships
+                    active_member = next((m for m in memberships if m.account_uid == user.primary_account_uid), None)
+                
+                # 3. Fallback to first active membership if primary not found (deleted/inactive) or not set
+                if not active_member:
+                    active_member = memberships[0]
+                    user.primary_account_uid = active_member.account_uid
+                    db.commit()
+                    # Update response_data with new primary
+                    response_data["primaryAccountUid"] = user.primary_account_uid
+                
+                # 4. Fill response data
                 response_data["profile"] = {
-                    "uid": member.uid,
-                    "name": member.name,
-                    "phone": member.phone,
-                    "designation": member.designation,
-                    "image": member.image,
-                    "gender": member.gender,
+                    "accountUid": active_member.account_uid,
+                    "name": active_member.name,
+                    "phone": active_member.phone,
+                    "designation": active_member.designation,
+                    "image": active_member.image,
+                    "gender": active_member.gender,
                 }
                 
-                company = db.query(models.Company).filter(models.Company.company_id == member.company_uid).first()
+                company = db.query(models.Company).filter(models.Company.company_id == active_member.company_uid).first()
                 if company:
                     response_data["company"] = {
                         "companyId": company.company_id,

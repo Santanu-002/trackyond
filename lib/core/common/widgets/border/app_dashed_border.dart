@@ -12,7 +12,7 @@ class AppDashedBorder extends StatelessWidget {
   const AppDashedBorder({
     super.key,
     required this.child,
-    this.color = Colors.grey,
+    required this.color,
     this.strokeWidth = 1.0,
     this.dashWidth = 5.0,
     this.dashSpace = 3.0,

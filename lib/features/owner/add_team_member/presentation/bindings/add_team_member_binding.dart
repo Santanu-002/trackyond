@@ -13,14 +13,14 @@ class AddTeamMemberBinding extends Bindings {
   @override
   void dependencies() {
     // Data Source
-    Get.lazyPut<TeamRemoteDataSource>(
+    Get.lazyPut<ITeamRemoteDataSource>(
       () => TeamRemoteDataSourceImpl(dio: Get.find()),
     );
 
     // Repository
     Get.lazyPut<ITeamRepository>(
       () => TeamRepositoryImpl(
-        remoteDataSource: Get.find<TeamRemoteDataSource>(),
+        remoteDataSource: Get.find<ITeamRemoteDataSource>(),
         userService: Get.find<UserService>(),
       ),
     );

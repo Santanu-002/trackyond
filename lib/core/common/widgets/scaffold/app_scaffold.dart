@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 
 class AppScaffold extends StatelessWidget {
@@ -56,14 +57,15 @@ class AppScaffold extends StatelessWidget {
               : SystemUiOverlayStyle.light,
           actions: actions,
           automaticallyImplyLeading: false,
-          leading: leading ??
+          leading:
+              leading ??
               ((onBackPressed != null ||
                       (automaticallyImplyLeading &&
                           (ModalRoute.of(context)?.canPop ?? false)))
                   ? IconButton(
                       onPressed: onBackPressed ?? Get.back,
                       icon: Icon(
-                        Icons.arrow_back_ios_new_rounded,
+                        AppIcons.common.back,
                         color: context.theme.colorScheme.onSurface,
                         size: 20,
                       ),
@@ -76,11 +78,15 @@ class AppScaffold extends StatelessWidget {
               Expanded(
                 child: useScrollView
                     ? SingleChildScrollView(
-                        padding: padding ?? EdgeInsets.all(AppUIConstants.spacing.space$24),
+                        padding:
+                            padding ??
+                            EdgeInsets.all(AppUIConstants.spacing.space$24),
                         child: child,
                       )
                     : Padding(
-                        padding: padding ?? EdgeInsets.all(AppUIConstants.spacing.space$24),
+                        padding:
+                            padding ??
+                            EdgeInsets.all(AppUIConstants.spacing.space$24),
                         child: child,
                       ),
               ),

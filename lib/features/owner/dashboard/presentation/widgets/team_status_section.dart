@@ -29,7 +29,6 @@ class TeamStatusSection extends GetView<OwnerDashboardController> {
               SizedBox(width: AppUIConstants.spacing.space$8),
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(
-            horizontal: AppUIConstants.spacing.space$24,
             vertical: AppUIConstants.spacing.space$8,
           ),
           itemCount: members.length,

@@ -5,7 +5,7 @@ import 'package:trackyond/core/common/models/company/company_model.dart';
 import 'package:trackyond/core/common/models/member/member_profile_model.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
-abstract class TeamRemoteDataSource {
+abstract interface class ITeamRemoteDataSource {
   Future<ApiResponse<MemberProfileModel>> addTeamMember({
     required String name,
     required String phone,
@@ -21,7 +21,7 @@ abstract class TeamRemoteDataSource {
 
 class TeamRemoteDataSourceImpl
     with BaseRemoteDataSource
-    implements TeamRemoteDataSource {
+    implements ITeamRemoteDataSource {
   final Dio _dio;
 
   TeamRemoteDataSourceImpl({required Dio dio}) : _dio = dio;

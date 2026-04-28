@@ -46,10 +46,10 @@ class UserService extends GetxService {
   }
 
   // ------------------ USER ------------------
-
-  Future<void> setUser(UserModel user) async {
-    _user.value = user;
-    await _prefs.setString(_keys.user, jsonEncode(user.toJson()));
+  
+  Future<void> setUser(UserModel model) async {
+    _user.value = model;
+    await _prefs.setString(_keys.user, jsonEncode(model.toJson()));
   }
 
   UserModel? getUser() => _user.value;
@@ -72,20 +72,22 @@ class UserService extends GetxService {
 
   // ------------------ MEMBER PROFILE ------------------
 
-  Future<void> setProfile(MemberProfileModel profile) async {
+  Future<void> setProfile(MemberProfileModel model) async {
     _ensureUser();
-    _profile.value = profile;
-    await _prefs.setString(_keys.profile, jsonEncode(profile.toJson()));
+    _profile.value = model;
+    await _prefs.setString(_keys.profile, jsonEncode(model.toJson()));
   }
 
   MemberProfileModel? getProfile() => _profile.value;
 
+  String? getAccountUid() => _profile.value?.accountUid;
+
   // ------------------ COMPANY ------------------
 
-  Future<void> setCompany(CompanyModel company) async {
+  Future<void> setCompany(CompanyModel model) async {
     _ensureUser();
-    _company.value = company;
-    await _prefs.setString(_keys.company, jsonEncode(company.toJson()));
+    _company.value = model;
+    await _prefs.setString(_keys.company, jsonEncode(model.toJson()));
   }
 
   CompanyModel? getCompany() => _company.value;

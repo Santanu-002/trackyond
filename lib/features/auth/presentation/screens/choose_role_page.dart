@@ -5,6 +5,7 @@ import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/common/widgets/header/app_header.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/features/auth/presentation/controllers/choose_role_controller.dart';
 
 class ChooseRolePage extends GetView<ChooseRoleController> {
@@ -29,7 +30,7 @@ class ChooseRolePage extends GetView<ChooseRoleController> {
                 children: [
                   const Spacer(flex: 1),
                   AppHeader(
-                    icon: Icons.account_tree_rounded,
+                    icon: AppIcons.auth.role,
                     title: strings.title,
                     subtitle: strings.subtitle,
                   ),

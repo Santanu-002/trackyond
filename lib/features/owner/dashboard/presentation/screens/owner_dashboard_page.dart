@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/common/widgets/layout/app_nav_layout.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/app_drawer.dart';
@@ -19,7 +20,6 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
 
     return AppNavLayout(
       title: strings.title,
-      padding: EdgeInsets.zero,
       onFabPressed: () {
         // TODO: Implement FAB action (e.g., navigate to create job)
       },
@@ -28,7 +28,7 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
         Stack(
           children: [
             IconButton(
-              icon: const Icon(Icons.notifications_none_rounded),
+              icon: Icon(AppIcons.common.notifications),
               onPressed: controller.openNotifications,
             ),
             Obx(() => controller.notificationCount.value > 0

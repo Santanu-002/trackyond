@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 
 class AppNotificationBell extends StatelessWidget {
   final VoidCallback onPressed;
@@ -17,7 +18,7 @@ class AppNotificationBell extends StatelessWidget {
     return Stack(
       children: [
         IconButton(
-          icon: const Icon(Icons.notifications_none_rounded),
+          icon: Icon(AppIcons.common.notifications),
           onPressed: onPressed,
         ),
         if (count > 0)

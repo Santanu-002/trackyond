@@ -7,6 +7,7 @@ class AppSection extends StatelessWidget {
   final String title;
   final Widget child;
   final EdgeInsetsGeometry? padding;
+  final EdgeInsetsGeometry? childPadding;
   final VoidCallback? onActionPressed;
   final String? actionLabel;
 
@@ -15,6 +16,7 @@ class AppSection extends StatelessWidget {
     required this.title,
     required this.child,
     this.padding,
+    this.childPadding,
     this.onActionPressed,
     this.actionLabel,
   });
@@ -28,7 +30,9 @@ class AppSection extends StatelessWidget {
         spacing: AppUIConstants.spacing.space$12,
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$24),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppUIConstants.spacing.space$24,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -49,7 +53,10 @@ class AppSection extends StatelessWidget {
               ],
             ),
           ),
-          child,
+          Padding(
+            padding: childPadding ?? EdgeInsets.zero,
+            child: child,
+          ),
         ],
       ),
     );

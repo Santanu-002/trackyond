@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 
 class InfoBanner extends StatelessWidget {
   const InfoBanner({super.key});
@@ -27,7 +28,7 @@ class InfoBanner extends StatelessWidget {
         spacing: AppUIConstants.spacing.space$16,
         children: [
           Icon(
-            Icons.card_giftcard_rounded,
+            AppIcons.setup.gift,
             color: context.theme.colorScheme.primary,
             size: 20,
           ),

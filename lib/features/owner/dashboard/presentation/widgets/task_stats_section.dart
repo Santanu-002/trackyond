@@ -19,20 +19,17 @@ class TaskStatsSection extends StatelessWidget {
 
     return AppSection(
       title: strings.statsTitle,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$24),
-        child: Row(
-          spacing: AppUIConstants.spacing.space$12,
-          children: List.generate(stats.length, (index) {
-            final stat = stats[index];
-            return StatsCard(
-              title: stat.label,
-              value: stat.value.toString(),
-              icon: stat.icon,
-              color: stat.color,
-            );
-          }),
-        ),
+      child: Row(
+        spacing: AppUIConstants.spacing.space$12,
+        children: List.generate(stats.length, (index) {
+          final stat = stats[index];
+          return StatsCard(
+            title: stat.label,
+            value: stat.value.toString(),
+            icon: stat.icon,
+            color: stat.color,
+          );
+        }),
       ),
     );
   }

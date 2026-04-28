@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 
 class TeamSizeOption {
   final String title;
@@ -10,6 +11,6 @@ class TeamSizeOption {
     required this.title,
     required this.subtitle,
     required this.value,
-    this.icon = Icons.groups_rounded,
-  });
+    IconData? icon,
+  }) : icon = icon ?? AppIcons.common.groups;
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/border/app_dashed_border.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 
@@ -45,7 +46,7 @@ class AddMemberTile extends StatelessWidget {
                   color: context.theme.colorScheme.primary,
                 ),
                 child: Icon(
-                  Icons.add_rounded,
+                  AppIcons.common.add,
                   color: context.theme.colorScheme.onPrimary,
                 ),
               ),

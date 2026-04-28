@@ -202,6 +202,7 @@ class AddTeamMemberStrings {
   String get addButton => 'Add Member';
 
   String get skipButton => 'Skip';
+
   String get doneButton => 'Done';
 
   String get continueButton => 'Go to Dashboard';
@@ -221,7 +222,9 @@ class AddTeamMemberStrings {
   String get genderOther => 'Other';
 
   String get designationLabel => 'Designation';
+
   String get designationHint => 'e.g. Project Manager';
+
   String get createButton => 'Create Member';
 
   String get discardTitle => 'Discard Changes?';
@@ -248,14 +251,23 @@ class OwnerDashboardStrings {
   String get title => 'Dashboard';
 
   String get teamStatus => 'Team Status';
+
   String get stats => 'Stats';
+
   String get pending => 'Pending';
+
   String get progress => 'In Progress';
+
   String get completed => 'Completed';
+
   String get working => 'Working';
+
   String get notStarted => 'Not Started';
+
   String get statsTitle => 'Task Statistics';
+
   String get recentJobs => 'Recent Jobs';
+
   String get viewAll => 'View All';
 }
 
@@ -263,40 +275,73 @@ class DrawerStrings {
   const DrawerStrings();
 
   String get dashboard => 'Dashboard';
+
   String get jobs => 'Jobs';
+
   String get team => 'Team';
+
   String get activity => 'Activity';
+
   String get billing => 'Billing';
+
   String get settings => 'Settings';
+
   String get logout => 'Logout';
 }
 
 class WorkerDashboardStrings {
   const WorkerDashboardStrings();
 
-  String get title => 'Worker Dashboard';
+  String get title => 'Dashboard';
 
   String welcome(String name) => 'Welcome, $name!';
+
+  String greetingWithName(String greeting, String name) => '$greeting, $name!';
 
   String get message => 'Your login was successful.';
 
   String get goBack => 'Go Back';
 
   String get goodMorning => 'Good Morning';
+
   String get goodAfternoon => 'Good Afternoon';
+
   String get goodEvening => 'Good Evening';
 
   String get permissionDenied => 'Permission Denied';
-  String get locationPermissionRequired => 'Location permission is required to start your day.';
+
+  String get locationPermissionRequired =>
+      'Location permission is required to start your day.';
+
+  String get locationDisabled => 'Location Disabled';
+
+  String get locationDisabledMessage =>
+      'Please enable location services to proceed.';
+
+  String get openLocationSettings => 'Open Location Settings';
+
+  String get openAppSettings => 'Open Settings';
+
+  String get cancel => 'Cancel';
+
+  String get locationRequired =>
+      'Location access required for attendance tracking.';
 
   String get workDayStarted => 'Work Day Started';
+
   String get startMyDay => 'Start my day';
+
   String get endMyDay => 'End my day';
+
   String get fetchingLocation => 'Fetching location...';
 
   String get recentJobs => 'Recent Jobs';
+
   String jobHash(int id) => 'Job #$id';
+
   String completedTime(String time) => '$time • Completed';
+
+  String get dayEnded => 'Day Ended';
 }
 
 class WorkerProfileStrings {

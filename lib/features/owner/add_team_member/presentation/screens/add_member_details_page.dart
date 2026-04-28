@@ -9,6 +9,7 @@ import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/common/widgets/dialog/app_alert_dialog.dart';
 import 'package:trackyond/core/common/widgets/scaffold/app_scaffold.dart';
 import 'package:trackyond/core/common/widgets/text_field/app_text_field.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/controllers/add_team_member_controller.dart';
@@ -63,7 +64,7 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
                                 : null,
                             child: imagePath == null
                                 ? Icon(
-                                    Icons.person_rounded,
+                                    AppIcons.common.person,
                                     size: AppUIConstants.radius.radius$48,
                                     color: context.theme.colorScheme.primary,
                                   )
@@ -86,14 +87,15 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: context.theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.2),
                               blurRadius: AppUIConstants.spacing.space$4,
                               offset: Offset(0, AppUIConstants.spacing.space$2),
                             ),
                           ],
                         ),
                         child: Icon(
-                          Icons.camera_alt_rounded,
+                          AppIcons.common.camera,
                           size: AppUIConstants.spacing.space$16,
                           color: context.theme.colorScheme.onPrimary,
                         ),
@@ -113,7 +115,7 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
                   label: AppStrings.addTeamMember.memberNameLabel,
                   hintText: AppStrings.addTeamMember.memberNameHint,
                   keyboardType: TextInputType.name,
-                  prefixIcon: Icons.person_outline_rounded,
+                  prefixIcon: AppIcons.auth.user,
                 ),
                 AppTextField(
                   controller: controller.phoneController,
@@ -129,7 +131,7 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.phone_android_rounded,
+                          AppIcons.auth.phone,
                           size: AppUIConstants.spacing.space$20,
                           color: context.theme.colorScheme.primary,
                         ),
@@ -153,7 +155,7 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
                   label: AppStrings.addTeamMember.designationLabel,
                   hintText: AppStrings.addTeamMember.designationHint,
                   keyboardType: TextInputType.text,
-                  prefixIcon: Icons.badge_outlined,
+                  prefixIcon: AppIcons.profile.badge,
                 ),
 
                 // Gender Selection
@@ -209,7 +211,9 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
   void _showImagePickerSheet(BuildContext context) {
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.symmetric(vertical: AppUIConstants.spacing.space$16),
+        padding: EdgeInsets.symmetric(
+          vertical: AppUIConstants.spacing.space$16,
+        ),
         decoration: BoxDecoration(
           color: context.theme.colorScheme.surface,
           borderRadius: BorderRadius.vertical(
@@ -221,7 +225,7 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
           children: [
             ListTile(
               leading: Icon(
-                Icons.camera_alt_rounded,
+                AppIcons.common.camera,
                 color: context.theme.colorScheme.onSurface,
               ),
               title: Text(
@@ -235,7 +239,7 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
             ),
             ListTile(
               leading: Icon(
-                Icons.photo_library_rounded,
+                AppIcons.common.gallery,
                 color: context.theme.colorScheme.onSurface,
               ),
               title: Text(
@@ -251,7 +255,7 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
               if (controller.avatarPath.value != null) {
                 return ListTile(
                   leading: Icon(
-                    Icons.delete_rounded,
+                    AppIcons.common.delete,
                     color: context.theme.colorScheme.error,
                   ),
                   title: Text(

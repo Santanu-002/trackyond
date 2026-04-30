@@ -9,6 +9,7 @@ import 'package:trackyond/features/auth/domain/usecases/check_onboarding_status_
 import 'package:trackyond/features/auth/domain/usecases/get_authenticated_user_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_member_profile_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_user_role_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/get_company_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/auth/presentation/controllers/choose_role_controller.dart';
@@ -31,6 +32,7 @@ class AuthBindings extends Bindings {
     Get.lazyPut(() => GetAuthenticatedUserUseCase(Get.find()));
     Get.lazyPut(() => GetUserRoleUseCase(Get.find()));
     Get.lazyPut(() => GetMemberProfileUseCase(Get.find()));
+    Get.lazyPut(() => GetCompanyUseCase(Get.find()));
     Get.lazyPut(() => LogoutUseCase(Get.find()));
     Get.lazyPut(() => CheckTokenValidityUseCase(Get.find()));
     Get.lazyPut(() => CheckOnboardingStatusUseCase(Get.find()));
@@ -42,6 +44,7 @@ class AuthBindings extends Bindings {
         getAuthenticatedUserUseCase: Get.find(),
         getUserRoleUseCase: Get.find(),
         getMemberProfileUseCase: Get.find(),
+        getCompanyUseCase: Get.find(),
         logoutUseCase: Get.find(),
         checkTokenValidityUseCase: Get.find(),
         checkOnboardingStatusUseCase: Get.find(),

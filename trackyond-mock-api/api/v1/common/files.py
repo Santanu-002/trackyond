@@ -4,22 +4,27 @@ import os
 
 router = APIRouter(prefix="/files", tags=["Common/Files"])
 
+# Absolute path to the app root — all file paths are resolved relative to this.
+# Inside Docker the WORKDIR is /app, so this resolves to /app.
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 @router.get("/download/{file_path:path}")
 async def download_file(file_path: str):
     """
     Generic endpoint to download any file by its path.
     Example: /api/v1/common/files/download/uploads/comp_A/user_3/avatar.jpg
     """
-    # Remove leading slash if present
+    # Strip any leading slash
     clean_path = file_path.lstrip("/")
-    
-    # Normalize path
-    normalized_path = os.path.normpath(clean_path)
-    
-    if not os.path.exists(normalized_path):
-        raise HTTPException(status_code=404, detail=f"File not found: {normalized_path}")
-        
-    if not os.path.isfile(normalized_path):
-        raise HTTPException(status_code=400, detail=f"Path is not a file: {normalized_path}")
-        
-    return FileResponse(normalized_path)
+
+    # Resolve to an absolute path anchored at BASE_DIR
+    abs_path = os.path.realpath(os.path.join(BASE_DIR, clean_path))
+
+    # Path-traversal guard: ensure the resolved path stays within BASE_DIR
+    if not abs_path.startswith(os.path.realpath(BASE_DIR) + os.sep):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if not os.path.exists(abs_path) or not os.path.isfile(abs_path):
+        raise HTTPException(status_code=404, detail=f"File not found: {clean_path}")
+
+    return FileResponse(abs_path)

@@ -5,10 +5,10 @@ import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/common/widgets/card/app_card.dart';
 import 'package:trackyond/core/common/widgets/chip/app_status_chip.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/features/owner/dashboard/domain/entities/team_member_status.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/team_member_status_entity.dart';
 
 class TeamStatusCard extends StatelessWidget {
-  final TeamMemberStatus member;
+  final TeamMemberStatusEntity member;
 
   const TeamStatusCard({super.key, required this.member});
 
@@ -22,9 +22,13 @@ class TeamStatusCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: AppUIConstants.spacing.space$4,
         children: [
-          MemberAvatar(name: member.name, image: member.image, radius: 20),
+          MemberAvatar(
+            name: member.profile.name,
+            image: member.profile.image,
+            radius: 20,
+          ),
           Text(
-            member.name,
+            member.profile.name,
             style: context.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),

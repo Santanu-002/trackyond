@@ -31,10 +31,13 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
         title: AppStrings.addTeamMember.addNewMemberTile,
         onBackPressed: () =>
             controller.handleBackNavigation(() => _showDiscardDialog(context)),
-        child: Form(
-        key: controller.formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Obx(() => Form(
+          key: controller.formKey,
+          autovalidateMode: controller.hasSubmitted.value
+              ? AutovalidateMode.onUserInteraction
+              : AutovalidateMode.disabled,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
           spacing: AppUIConstants.spacing.space$24,
           children: [
             // Avatar Picker
@@ -178,6 +181,12 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
                   hintText: AppStrings.addTeamMember.designationHint,
                   keyboardType: TextInputType.text,
                   prefixIcon: AppIcons.profile.badge,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return AppStrings.addTeamMember.designationRequired;
+                    }
+                    return null;
+                  },
                 ),
 
                 // Gender Selection
@@ -218,15 +227,13 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
             Obx(
               () => AppButton.filled(
                 text: AppStrings.addTeamMember.addButton,
-                onPressed: controller.isFormValid.value
-                    ? controller.addMember
-                    : null,
+                onPressed: controller.addMember,
                 isLoading: controller.isLoading.value,
               ),
             ),
           ],
         ),
-      ),
+      )),
     ),
   );
   }

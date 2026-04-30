@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 
 class AppSnackbar {
@@ -23,7 +24,7 @@ class AppSnackbar {
               color: context.theme.colorScheme.onPrimary,
               size: 24.0,
             ),
-            const SizedBox(width: 12),
+            AppUIConstants.widgets.horizontalBox$12,
           ],
           Expanded(
             child: Text(

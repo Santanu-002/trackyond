@@ -62,9 +62,16 @@ class VerifyOtpController extends GetxController {
 
   void _startTimer() {
     _timer?.cancel();
+
     final now = DateTime.now().toUtc();
-    final resendAt =
-        session.resendableAt ?? now.add(const Duration(seconds: 30));
+    // Ensure resendAt is treated as UTC
+    final resendAt = session.resendableAt?.toUtc();
+
+    if (resendAt == null) {
+      remainingSeconds.value = 0;
+      return;
+    }
+
     final diff = resendAt.difference(now).inSeconds;
 
     if (diff <= 0) {

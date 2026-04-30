@@ -2,435 +2,353 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
-import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/common/widgets/chip/app_status_chip.dart';
-import 'package:trackyond/core/common/widgets/text_field/app_text_field.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/core/common/widgets/card/app_card.dart';
-import 'package:trackyond/core/common/widgets/layout/app_section.dart';
-import 'package:trackyond/core/common/widgets/chip/app_tag.dart';
-import 'package:trackyond/features/owner/team_status/presentation/controllers/team_member_profile_controller.dart';
-import 'package:trackyond/features/owner/team_status/presentation/widgets/member_call_button.dart';
-import 'package:trackyond/core/common/widgets/scaffold/app_scaffold.dart';
-import 'package:flutter/services.dart';
-import 'package:trackyond/core/theme/color_scheme_extension.dart';
-import 'package:trackyond/core/common/enums/attendance_status.dart';
-import 'package:trackyond/features/worker/dashboard/presentation/widgets/attendance_info_tile.dart';
-import 'package:trackyond/app/routes/app_routes.dart';
+import 'package:trackyond/features/owner/team_status/presentation/controllers/team_member_profile_page_controller.dart';
 
-
-class TeamMemberProfilePage extends GetView<TeamMemberProfileController> {
+class TeamMemberProfilePage extends GetView<TeamMemberProfilePageController> {
   const TeamMemberProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final member = controller.member;
+    return Scaffold(
+      backgroundColor: context.theme.colorScheme.surface,
+      body: Obx(() {
+        final member = controller.member.value;
+        if (member == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    return AppScaffold(
-      title: member.name,
-      padding: EdgeInsets.zero,
-      actions: [
-        ...[
-        MemberCallButton(phoneNumber: member.phone),
-        AppUIConstants.widgets.horizontalBox$16,
-      ],
-        _buildExportMenu(context),
-        AppUIConstants.widgets.horizontalBox$16,
-      ],
-      child: Column(
-        children: [
-          _buildHeader(context),
-          AppSection(
-            title: AppStrings.teamMemberProfile.attendanceLogs,
-            padding: EdgeInsets.symmetric(
-              vertical: AppUIConstants.spacing.space$24,
-            ),
-            child: _buildAttendanceSection(context),
-          ),
-          AppSection(
-            title: AppStrings.teamMemberProfile.manageMember,
-            padding: EdgeInsets.only(bottom: AppUIConstants.spacing.space$32),
-            child: _buildActionsSection(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final member = controller.member;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppUIConstants.spacing.space$24),
-      decoration: BoxDecoration(
-        color: context.theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(AppUIConstants.radius.radius$32),
-          bottomRight: Radius.circular(AppUIConstants.radius.radius$32),
-        ),
-      ),
-      child: Column(
-        children: [
-          Hero(
-            tag: 'avatar_${member.accountUid}',
-            child: MemberAvatar(
-              name: member.name,
-              image: member.image,
-              radius: 64,
-            ),
-          ),
-          AppUIConstants.widgets.verticalBox$16,
-          Hero(
-            tag: 'name_${member.accountUid}',
-            child: Material(
-              color: Colors.transparent,
-              child: Text(
-                member.name,
-                style: context.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          if (member.designation != null && member.designation!.isNotEmpty) ...[
-            AppUIConstants.widgets.verticalBox$12,
-            AppTag(
-              label: member.designation!,
-              icon: Icons.work_outline,
-            ),
-          ],
-          if (member.phone.isNotEmpty) ...[
-            AppUIConstants.widgets.verticalBox$8,
-            GestureDetector(
-              onLongPress: () {
-                Clipboard.setData(ClipboardData(text: member.phone));
-                Get.snackbar(
-                  'Copied',
-                  'Phone number copied to clipboard',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: context.theme.colorScheme.surfaceContainerHighest,
-                  colorText: context.theme.colorScheme.onSurface,
-                  margin: EdgeInsets.all(AppUIConstants.spacing.space$16),
-                );
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            _buildSliverAppBar(context, member),
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.phone_outlined,
-                    size: 16,
-                    color: context.theme.colorScheme.onSurfaceVariant,
-                  ),
-                  AppUIConstants.widgets.horizontalBox$8,
-                  Text(
-                    member.phone,
-                    style: context.textTheme.titleMedium?.copyWith(
-                      color: context.theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                  _buildHeaderInfo(context, member),
+                  // _buildAttendanceCard(context, member), // Removed since member is now MemberProfile
+                  _buildActionGrid(context),
+                  const Divider(height: 1),
+                  _buildSettingsSection(context),
+                  const SizedBox(height: 800),
+                  AppUIConstants.widgets.verticalBox$32,
                 ],
               ),
             ),
           ],
-          AppUIConstants.widgets.verticalBox$24,
-          _buildTodayStatusCard(context),
-        ],
-      ),
+        );
+      }),
     );
   }
 
-  Widget _buildTodayStatusCard(BuildContext context) {
-    final member = controller.member;
-    return AppCard(
-      padding: EdgeInsets.all(AppUIConstants.spacing.space$16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppStrings.teamMemberProfile.todayStatus,
-                  style: context.textTheme.labelMedium?.copyWith(
-                    color: context.theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                AppUIConstants.widgets.verticalBox$4,
-                AppStatusChip.attendance(
-                  attendanceStatus: member.status,
-                  context: context,
-                ),
-              ],
-            ),
-          ),
-          if (member.startAt != null) ...[
-            Container(
-              width: 1,
-              height: 40,
-              color: context.theme.colorScheme.outlineVariant,
-              margin: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$16),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  AppStrings.teamMemberProfile.activeSince,
-                  style: context.textTheme.labelMedium?.copyWith(
-                    color: context.theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                AppUIConstants.widgets.verticalBox$4,
-                Text(
-                  DateFormat('hh:mm a').format(member.startAt!.toLocal()),
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttendanceSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              AppStrings.teamMemberProfile.attendanceLogs,
-              style: context.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+  Widget _buildSliverAppBar(BuildContext context, member) {
+    return SliverAppBar(
+      expandedHeight: 200,
+      pinned: true,
+      stretch: true,
+      backgroundColor: context.theme.colorScheme.surface,
+      elevation: 0,
+      leading: IconButton(
+        onPressed: () => Get.back(),
+        icon: CircleAvatar(
+          backgroundColor: Colors.black26,
+          child: Icon(AppIcons.common.back, color: Colors.white, size: 18),
         ),
-        AppUIConstants.widgets.verticalBox$16,
-        Obx(() => AppButton.outlined(
-          onPressed: () => controller.selectDateRange(context),
-          text: '${DateFormat('dd MMM').format(controller.dateRange.value.start)} - ${DateFormat('dd MMM').format(controller.dateRange.value.end)}',
-          leading: const Icon(Icons.date_range),
-        )),
-        AppUIConstants.widgets.verticalBox$16,
-        Obx(() {
-          if (controller.isLoadingLogs.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (controller.logs.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: AppUIConstants.spacing.space$32),
-                child: Text(AppStrings.teamMemberProfile.noLogsFound, style: context.textTheme.bodyMedium),
+      ),
+      flexibleSpace: FlexibleSpaceBar(
+        stretchModes: const [StretchMode.zoomBackground, StretchMode.fadeTitle],
+        centerTitle: false,
+        titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
+        title: LayoutBuilder(
+          builder: (context, constraints) {
+            final double percentage =
+                (constraints.maxHeight - kToolbarHeight) /
+                (300 - kToolbarHeight);
+            return Opacity(
+              opacity: 1.0 - percentage.clamp(0.0, 1.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    member.name,
+                    style: context.textTheme.titleMedium?.copyWith(
+                      color: context.theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (member.designation != null)
+                    Text(
+                      member.designation!,
+                      style: context.textTheme.labelSmall?.copyWith(
+                        color: context.theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
               ),
             );
-          }
-          return Column(
-            children: [
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: controller.logs.length > 10 ? 10 : controller.logs.length,
-                separatorBuilder: (_, _) => AppUIConstants.widgets.verticalBox$12,
-                itemBuilder: (context, index) {
-                  final log = controller.logs[index];
-                  
-                  return AppCard(
-                    padding: EdgeInsets.all(AppUIConstants.spacing.space$16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              DateFormat('EEEE, dd MMM yyyy').format(log.date),
-                              style: context.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            AppStatusChip.attendance(
-                              attendanceStatus: AttendanceStatus.fromString(log.status),
-                              context: context,
-                            ),
-                          ],
-                        ),
-                        AppUIConstants.widgets.verticalBox$16,
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          crossAxisSpacing: AppUIConstants.spacing.space$12,
-                          mainAxisSpacing: AppUIConstants.spacing.space$12,
-                          childAspectRatio: 3,
-                          children: [
-                            AttendanceInfoTile(
-                              icon: Icons.location_on_outlined,
-                              text: log.location ?? '-',
-                              color: context.theme.colorScheme.primary,
-                            ),
-                            AttendanceInfoTile(
-                              icon: Icons.access_time_outlined,
-                              text: DateFormat('hh:mm a').format(log.checkIn),
-                              color: context.theme.colorScheme.pending,
-                            ),
-                            AttendanceInfoTile(
-                              icon: Icons.timer_outlined,
-                              text: log.workHours,
-                              color: context.theme.colorScheme.error,
-                            ),
-                            AttendanceInfoTile(
-                              icon: Icons.calendar_today_outlined,
-                              text: DateFormat('dd MMM yyyy').format(log.date),
-                              color: context.theme.colorScheme.completed,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              AppUIConstants.widgets.verticalBox$16,
-              AppButton.outlined(
-                onPressed: () => Get.toNamed(AppRoutes.owner.teamMemberAttendance, arguments: controller.member),
-                text: AppStrings.teamMemberProfile.viewAllLogs,
-                width: double.infinity,
-              ),
-            ],
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildExportMenu(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.download_outlined),
-      tooltip: AppStrings.teamMemberProfile.exportLogs,
-      onSelected: (value) {
-        final RenderBox? box = context.findRenderObject() as RenderBox?;
-        final Rect? rect = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
-        switch (value) {
-          case 'pdf':
-            controller.exportToPdf(sharePositionOrigin: rect);
-            break;
-          case 'csv':
-            controller.exportToCsv(sharePositionOrigin: rect);
-            break;
-          case 'txt':
-            controller.exportToTxt(sharePositionOrigin: rect);
-            break;
-        }
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'pdf',
-          child: Row(
-            children: [
-              Icon(Icons.picture_as_pdf, color: Colors.red, size: 20),
-              SizedBox(width: 12),
-              Text('Export as PDF'),
-            ],
-          ),
+          },
         ),
-        const PopupMenuItem(
-          value: 'csv',
-          child: Row(
-            children: [
-              Icon(Icons.table_chart, color: Colors.green, size: 20),
-              SizedBox(width: 12),
-              Text('Export as CSV'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'txt',
-          child: Row(
-            children: [
-              Icon(Icons.description, color: Colors.blue, size: 20),
-              SizedBox(width: 12),
-              Text('Export as TXT'),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionsSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          AppStrings.teamMemberProfile.manageMember,
-          style: context.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        AppUIConstants.widgets.verticalBox$16,
-        AppButton.filled(
-          onPressed: () => _showEditDialog(context),
-          text: AppStrings.teamMemberProfile.editProfile,
-          leading: const Icon(Icons.edit_outlined),
-        ),
-        AppUIConstants.widgets.verticalBox$12,
-        AppButton.outlined(
-          onPressed: () => controller.markAsExEmployee(),
-          text: AppStrings.teamMemberProfile.markAsExEmployee,
-          leading: const Icon(Icons.person_remove_outlined),
-          color: Colors.red,
-        ),
-      ],
-    );
-  }
-
-  void _showEditDialog(BuildContext context) {
-    final designationController = TextEditingController(text: controller.member.designation);
-    final phoneController = TextEditingController(text: controller.member.phone);
-
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$24),
-        ),
-        title: Text(AppStrings.teamMemberProfile.editProfile),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppTextField(
-              controller: designationController,
-              label: AppStrings.teamMemberProfile.designationLabel,
-              prefixIcon: Icons.work_outline,
+        background: Center(
+          child: Hero(
+            tag: 'avatar_${member.accountUid}',
+            child: MemberAvatar(
+              name: member.name,
+              image: member.image,
+              radius: AppUIConstants.radius.radius$56,
             ),
-            AppUIConstants.widgets.verticalBox$16,
-            AppTextField(
-              controller: phoneController,
-              label: AppStrings.teamMemberProfile.phoneLabel,
-              prefixIcon: Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(AppStrings.teamMemberProfile.cancel),
           ),
-          Obx(() => AppButton.filled(
-                onPressed: () => controller.editProfile(
-                  designationController.text,
-                  phoneController.text,
-                ),
-                text: AppStrings.teamMemberProfile.save,
-                isLoading: controller.isUpdatingProfile.value,
-              )),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderInfo(BuildContext context, member) {
+    return Padding(
+      padding: EdgeInsets.all(AppUIConstants.spacing.space$16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            member.name,
+            style: context.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          AppUIConstants.widgets.verticalBox$4,
+          Text(
+            '${member.designation ?? ""} • ${member.phone}',
+            style: context.textTheme.bodyMedium?.copyWith(
+              color: context.theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAttendanceCard(BuildContext context, member) {
+    final attendance = member.todayAttendance;
+    final hasStarted = attendance != null;
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$16),
+      padding: EdgeInsets.all(AppUIConstants.spacing.space$16),
+      decoration: BoxDecoration(
+        color: context.theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
+        border: Border.all(
+          color: context.theme.colorScheme.outlineVariant.withValues(
+            alpha: 0.5,
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                AppStrings.teamMemberProfile.todayAttendance,
+                style: context.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              AppStatusChip.attendance(
+                attendanceStatus: member.status,
+                context: context,
+              ),
+            ],
+          ),
+          AppUIConstants.widgets.verticalBox$16,
+          if (hasStarted) ...[
+            _buildAttendanceDetailRow(
+              context,
+              AppIcons.dashboard.clock,
+              AppStrings.teamMemberProfile.clockIn,
+              DateFormat('hh:mm a').format(attendance.startAt.toLocal()),
+            ),
+            AppUIConstants.widgets.verticalBox$16,
+            if (attendance.endAt != null) ...[
+              _buildAttendanceDetailRow(
+                context,
+                AppIcons.dashboard.clock,
+                AppStrings.teamMemberProfile.clockOut,
+                DateFormat('hh:mm a').format(attendance.endAt!.toLocal()),
+              ),
+              AppUIConstants.widgets.verticalBox$16,
+            ],
+            if (attendance.workHours != null) ...[
+              _buildAttendanceDetailRow(
+                context,
+                AppIcons.dashboard.timer,
+                AppStrings.teamMemberProfile.workHours,
+                '${attendance.workHours!.toStringAsFixed(1)} hrs',
+              ),
+              AppUIConstants.widgets.verticalBox$16,
+            ],
+            if (attendance.startAddress != null)
+              _buildAttendanceDetailRow(
+                context,
+                AppIcons.dashboard.location,
+                AppStrings.teamMemberProfile.location,
+                attendance.startAddress!,
+                isMultiline: true,
+              ),
+          ] else
+            Text(
+              AppStrings.teamMemberProfile.noAttendanceRecord,
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: context.theme.colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttendanceDetailRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value, {
+    bool isMultiline = false,
+  }) {
+    return Row(
+      crossAxisAlignment: isMultiline
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.center,
+      children: [
+        Icon(icon, size: 20, color: context.theme.colorScheme.primary),
+        AppUIConstants.widgets.horizontalBox$12,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: context.textTheme.labelSmall?.copyWith(
+                  color: context.theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                value,
+                style: context.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: isMultiline ? 2 : 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionGrid(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: AppUIConstants.spacing.space$24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildActionButton(
+            context,
+            AppIcons.auth.phoneOutlined,
+            AppStrings.teamMemberProfile.call,
+          ),
+          _buildActionButton(
+            context,
+            Icons.chat_bubble_outline,
+            AppStrings.teamMemberProfile.message,
+          ),
+          _buildActionButton(
+            context,
+            Icons.history_rounded,
+            AppStrings.teamMemberProfile.logs,
+          ),
+          _buildActionButton(
+            context,
+            Icons.edit_outlined,
+            AppStrings.teamMemberProfile.edit,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(BuildContext context, IconData icon, String label) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: EdgeInsets.all(AppUIConstants.spacing.space$12),
+          decoration: BoxDecoration(
+            color: context.theme.colorScheme.primaryContainer.withValues(
+              alpha: 0.3,
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: context.theme.colorScheme.primary, size: 24),
+        ),
+        AppUIConstants.widgets.verticalBox$8,
+        Text(
+          label,
+          style: context.textTheme.labelMedium?.copyWith(
+            color: context.theme.colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingsSection(BuildContext context) {
+    return Column(
+      children: [
+        _buildListTile(
+          context,
+          Icons.notifications_none_rounded,
+          AppStrings.teamMemberProfile.customNotifications,
+        ),
+        _buildListTile(
+          context,
+          Icons.security_outlined,
+          AppStrings.teamMemberProfile.accessPermissions,
+        ),
+        _buildListTile(
+          context,
+          Icons.block_flipped,
+          AppStrings.teamMemberProfile.deactivateMember,
+          isDestructive: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildListTile(
+    BuildContext context,
+    IconData icon,
+    String title, {
+    bool isDestructive = false,
+  }) {
+    final color = isDestructive
+        ? context.theme.colorScheme.error
+        : context.theme.colorScheme.onSurface;
+
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(
+        title,
+        style: context.textTheme.bodyLarge?.copyWith(color: color),
+      ),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () {},
     );
   }
 }

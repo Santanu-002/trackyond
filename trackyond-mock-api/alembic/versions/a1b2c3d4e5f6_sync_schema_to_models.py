@@ -52,6 +52,33 @@ def column_exists(table: str, column: str) -> bool:
     return result.scalar() is not None
 
 
+def constraint_exists(table: str, constraint: str) -> bool:
+    """Check if a constraint exists on a table."""
+    from sqlalchemy import text
+    bind = op.get_bind()
+    result = bind.execute(
+        text(
+            "SELECT 1 FROM information_schema.table_constraints "
+            "WHERE table_name=:t AND constraint_name=:c"
+        ),
+        {"t": table, "c": constraint},
+    )
+    return result.scalar() is not None
+
+
+def index_exists(index: str) -> bool:
+    """Check if an index exists in the database (PostgreSQL)."""
+    from sqlalchemy import text
+    bind = op.get_bind()
+    result = bind.execute(
+        text(
+            "SELECT 1 FROM pg_indexes WHERE indexname=:idx"
+        ),
+        {"idx": index},
+    )
+    return result.scalar() is not None
+
+
 def upgrade() -> None:
     # ------------------------------------------------------------------ #
     # 1. USERS – add primary_account_uid                                  #
@@ -67,27 +94,40 @@ def upgrade() -> None:
     # ------------------------------------------------------------------ #
     # Drop old FK from attendance (member_uid -> users.uid) before we
     # rename; we recreate it at the end.
-    # Drop old FK on members.uid -> users.uid
-    op.drop_constraint("members_uid_fkey", "members", type_="foreignkey")
+    # Drop old FK on members.uid -> users.uid (only if it exists)
+    if constraint_exists("members", "members_uid_fkey"):
+        op.drop_constraint("members_uid_fkey", "members", type_="foreignkey")
 
     # Drop old unique constraint that used uid column
-    op.drop_constraint("_user_company_uc", "members", type_="unique")
+    if constraint_exists("members", "_user_company_uc"):
+        op.drop_constraint("_user_company_uc", "members", type_="unique")
 
     # Drop old index on uid
-    op.drop_index("ix_members_uid", table_name="members")
+    if constraint_exists("members", "ix_members_uid"):
+        op.drop_index("ix_members_uid", table_name="members")
 
-    # Rename uid -> account_uid
-    op.alter_column("members", "uid", new_column_name="account_uid")
+    # Rename uid -> account_uid (only if uid column exists)
+    if column_exists("members", "uid"):
+        op.alter_column("members", "uid", new_column_name="account_uid")
+
+    # Ensure account_uid column exists (create if it doesn't from uid rename or initial state)
+    if not column_exists("members", "account_uid"):
+        op.add_column(
+            "members",
+            sa.Column("account_uid", sa.String(), nullable=True),
+        )
 
     # Recreate index for account_uid (unique – required for FK references)
-    op.create_index(
-        op.f("ix_members_account_uid"), "members", ["account_uid"], unique=False
-    )
+    if not index_exists("ix_members_account_uid"):
+        op.create_index(
+            op.f("ix_members_account_uid"), "members", ["account_uid"], unique=False
+        )
 
     # Add UNIQUE constraint on account_uid (needed by jobs + attendance FKs)
-    op.create_unique_constraint(
-        "uq_members_account_uid", "members", ["account_uid"]
-    )
+    if not constraint_exists("members", "uq_members_account_uid"):
+        op.create_unique_constraint(
+            "uq_members_account_uid", "members", ["account_uid"]
+        )
 
     # ------------------------------------------------------------------ #
     # 3. MEMBERS – add user_uid column                                    #
@@ -105,19 +145,22 @@ def upgrade() -> None:
     )
 
     # Create FK: members.user_uid -> users.uid
-    op.create_foreign_key(
-        "members_user_uid_fkey", "members", "users", ["user_uid"], ["uid"]
-    )
+    if not constraint_exists("members", "members_user_uid_fkey"):
+        op.create_foreign_key(
+            "members_user_uid_fkey", "members", "users", ["user_uid"], ["uid"]
+        )
 
     # Create index on user_uid
-    op.create_index(
-        op.f("ix_members_user_uid"), "members", ["user_uid"], unique=False
-    )
+    if not index_exists("ix_members_user_uid"):
+        op.create_index(
+            op.f("ix_members_user_uid"), "members", ["user_uid"], unique=False
+        )
 
     # Recreate unique constraint with the correct columns
-    op.create_unique_constraint(
-        "_user_company_uc", "members", ["user_uid", "company_uid"]
-    )
+    if not constraint_exists("members", "_user_company_uc"):
+        op.create_unique_constraint(
+            "_user_company_uc", "members", ["user_uid", "company_uid"]
+        )
 
     # ------------------------------------------------------------------ #
     # 4. MEMBERS – add is_active                                          #
@@ -131,43 +174,65 @@ def upgrade() -> None:
     # ------------------------------------------------------------------ #
     # 5. JOBS – rename worker_uid -> worker_account_uid                   #
     # ------------------------------------------------------------------ #
-    # Drop old FK
-    op.drop_constraint("jobs_worker_uid_fkey", "jobs", type_="foreignkey")
+    # Drop old FK (only if it exists)
+    if constraint_exists("jobs", "jobs_worker_uid_fkey"):
+        op.drop_constraint("jobs_worker_uid_fkey", "jobs", type_="foreignkey")
 
-    # Rename column
-    op.alter_column("jobs", "worker_uid", new_column_name="worker_account_uid")
+    # Rename column (only if worker_uid exists)
+    if column_exists("jobs", "worker_uid"):
+        op.alter_column("jobs", "worker_uid", new_column_name="worker_account_uid")
+
+    # Ensure worker_account_uid column exists
+    if not column_exists("jobs", "worker_account_uid"):
+        op.add_column(
+            "jobs",
+            sa.Column("worker_account_uid", sa.String(), nullable=True),
+        )
 
     # Recreate FK pointing to members.account_uid
-    op.create_foreign_key(
-        "jobs_worker_account_uid_fkey",
-        "jobs",
-        "members",
-        ["worker_account_uid"],
-        ["account_uid"],
-    )
+    if not constraint_exists("jobs", "jobs_worker_account_uid_fkey"):
+        op.create_foreign_key(
+            "jobs_worker_account_uid_fkey",
+            "jobs",
+            "members",
+            ["worker_account_uid"],
+            ["account_uid"],
+        )
 
     # ------------------------------------------------------------------ #
     # 6. ATTENDANCE – rename member_uid -> account_uid + fix FK           #
     # ------------------------------------------------------------------ #
     # Drop old FK (member_uid -> users.uid – was wrong target table)
-    op.drop_constraint("attendance_member_uid_fkey", "attendance", type_="foreignkey")
+    # Only if it exists
+    if constraint_exists("attendance", "attendance_member_uid_fkey"):
+        op.drop_constraint("attendance_member_uid_fkey", "attendance", type_="foreignkey")
 
-    # Rename column
-    op.alter_column("attendance", "member_uid", new_column_name="account_uid")
+    # Rename column (only if member_uid exists)
+    if column_exists("attendance", "member_uid"):
+        op.alter_column("attendance", "member_uid", new_column_name="account_uid")
+
+    # Ensure account_uid column exists
+    if not column_exists("attendance", "account_uid"):
+        op.add_column(
+            "attendance",
+            sa.Column("account_uid", sa.String(), nullable=True),
+        )
 
     # Create index on account_uid
-    op.create_index(
-        op.f("ix_attendance_account_uid"), "attendance", ["account_uid"], unique=False
-    )
+    if not index_exists("ix_attendance_account_uid"):
+        op.create_index(
+            op.f("ix_attendance_account_uid"), "attendance", ["account_uid"], unique=False
+        )
 
     # Recreate FK -> members.account_uid
-    op.create_foreign_key(
-        "attendance_account_uid_fkey",
-        "attendance",
-        "members",
-        ["account_uid"],
-        ["account_uid"],
-    )
+    if not constraint_exists("attendance", "attendance_account_uid_fkey"):
+        op.create_foreign_key(
+            "attendance_account_uid_fkey",
+            "attendance",
+            "members",
+            ["account_uid"],
+            ["account_uid"],
+        )
 
 
 def downgrade() -> None:

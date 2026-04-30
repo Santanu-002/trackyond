@@ -9,11 +9,11 @@ import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/features/attendance/domain/entities/attendance_entity.dart';
-import 'package:trackyond/features/attendance/domain/usecases/end_attendance_usecase.dart';
-import 'package:trackyond/features/attendance/domain/usecases/get_attendance_status_usecase.dart';
-import 'package:trackyond/features/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:trackyond/core/common/entities/attendance/attendance_entity.dart';
+import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
+import 'package:trackyond/features/worker/attendance/domain/usecases/get_attendance_status_usecase.dart';
+import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/attendance_info_item.dart';
 
 class WorkerDashboardController extends GetxController {
@@ -97,7 +97,7 @@ class WorkerDashboardController extends GetxController {
   Future<void> _requestLocationPermission() async {
     final permission = await Geolocator.requestPermission();
     locationPermission.value = permission;
-    
+
     // Sync hardware status after request as well
     final isEnabled = await Geolocator.isLocationServiceEnabled();
     isLocationEnabled.value = isEnabled;
@@ -163,12 +163,19 @@ class WorkerDashboardController extends GetxController {
       }
 
       await _setPhase(AppStrings.workerDashboard.acquiringGps);
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(accuracy: LocationAccuracy.high),
-      ).timeout(const Duration(seconds: 10), onTimeout: () {
-        throw TimeoutException("Location request timed out. Please check your GPS.");
-      });
+      final position =
+          await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+            ),
+          ).timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException(
+                "Location request timed out. Please check your GPS.",
+              );
+            },
+          );
 
       await _setPhase(AppStrings.workerDashboard.resolvingAddress);
       final address = await _getAddressFromLatLng(
@@ -186,16 +193,15 @@ class WorkerDashboardController extends GetxController {
         ),
       );
 
-      result.fold(
-        (failure) => AppSnackbar.destructive(failure.message),
-        (attendance) {
-          attendanceStatus.value = AttendanceStatus.working;
-          attendanceInfo.value = attendance;
-          currentLocation.value = attendance.startAddress;
-          startTimer(DateTime.now());
-          AppSnackbar.success(AppStrings.workerDashboard.workDayStarted);
-        },
-      );
+      result.fold((failure) => AppSnackbar.destructive(failure.message), (
+        attendance,
+      ) {
+        attendanceStatus.value = AttendanceStatus.working;
+        attendanceInfo.value = attendance;
+        currentLocation.value = attendance.startAddress;
+        startTimer(DateTime.now());
+        AppSnackbar.success(AppStrings.workerDashboard.workDayStarted);
+      });
     } catch (e) {
       AppSnackbar.destructive(e.toString());
     } finally {
@@ -225,8 +231,9 @@ class WorkerDashboardController extends GetxController {
       }
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       await _setPhase(AppStrings.workerDashboard.resolvingAddress);
@@ -276,7 +283,7 @@ class WorkerDashboardController extends GetxController {
 
   void startTimer(DateTime startTime) {
     _timer?.cancel();
-    
+
     // Set initial value
     punchInTime.value = startTime;
 
@@ -284,12 +291,15 @@ class WorkerDashboardController extends GetxController {
       final now = DateTime.now().toUtc();
       final start = startTime.toUtc();
       final duration = now.difference(start);
-      
+
       final totalSeconds = (duration.inMilliseconds / 1000).round();
       final displaySeconds = totalSeconds < 0 ? 0 : totalSeconds;
 
       final hours = (displaySeconds ~/ 3600).toString().padLeft(2, '0');
-      final minutes = ((displaySeconds % 3600) ~/ 60).toString().padLeft(2, '0');
+      final minutes = ((displaySeconds % 3600) ~/ 60).toString().padLeft(
+        2,
+        '0',
+      );
       final seconds = (displaySeconds % 60).toString().padLeft(2, '0');
       elapsedTime.value = '$hours:$minutes:$seconds';
     }

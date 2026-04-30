@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/widgets/button/app_button.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/core/constants/app_icons.dart';
-import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/app_drawer_header.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/drawer_item.dart';
@@ -20,9 +20,11 @@ class AppDrawer extends GetView<OwnerDashboardController> {
       backgroundColor: theme.scaffoldBackgroundColor,
       child: Column(
         children: [
-          AppDrawerHeader(
-            name: controller.ownerName,
-            phone: controller.ownerPhone,
+          Obx(
+            () => AppDrawerHeader(
+              name: controller.ownerName.value,
+              phone: controller.ownerPhone.value,
+            ),
           ),
 
           Divider(

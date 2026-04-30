@@ -9,20 +9,20 @@ import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/usecases/add_team_member_usecase.dart';
-import 'package:trackyond/features/owner/add_team_member/domain/usecases/get_company_use_case.dart';
+import 'package:trackyond/features/owner/add_team_member/domain/usecases/get_team_company_usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/usecases/get_team_members_usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/usecases/save_onboarding_progress_use_case.dart';
 
 class AddTeamMemberController extends GetxController {
   final AddTeamMemberUseCase _addTeamMemberUseCase;
   final GetTeamMembersUseCase _getTeamMembersUseCase;
-  final GetCompanyUseCase _getCompanyUseCase;
+  final GetTeamCompanyUseCase _getCompanyUseCase;
   final SaveOnboardingProgressUseCase _saveOnboardingProgressUseCase;
 
   AddTeamMemberController({
     required AddTeamMemberUseCase addTeamMemberUseCase,
     required GetTeamMembersUseCase getTeamMembersUseCase,
-    required GetCompanyUseCase getCompanyUseCase,
+    required GetTeamCompanyUseCase getCompanyUseCase,
     required SaveOnboardingProgressUseCase saveOnboardingProgressUseCase,
   }) : _addTeamMemberUseCase = addTeamMemberUseCase,
        _getTeamMembersUseCase = getTeamMembersUseCase,
@@ -39,6 +39,7 @@ class AddTeamMemberController extends GetxController {
   final isLoading = false.obs;
   final isFetching = false.obs;
   final isFormValid = false.obs;
+  final hasSubmitted = false.obs;
   final members = <MemberProfile>[].obs;
   final company = Rxn<CompanyEntity>();
   final initialMembersCount = 0.obs;
@@ -148,7 +149,8 @@ class AddTeamMemberController extends GetxController {
   }
 
   Future<void> addMember() async {
-    if (!isFormValid.value) return;
+    hasSubmitted.value = true;
+    if (!formKey.currentState!.validate()) return;
 
     final companyUid = company.value?.uid;
     if (companyUid == null) {
@@ -196,6 +198,7 @@ class AddTeamMemberController extends GetxController {
     selectedGender.value = null;
     avatarPath.value = null;
     isDirty.value = false;
+    hasSubmitted.value = false;
   }
 
   void handleClosePage(VoidCallback onDiscard) {

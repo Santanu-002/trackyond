@@ -104,4 +104,7 @@ class Attendance(Base):
     
     # Status: not started | working | ended
     status = Column(String, default="not started") 
+    
+    created_at = Column(DateTime, default=now_utc)
+    updated_at = Column(DateTime, default=now_utc, onupdate=now_utc)
 

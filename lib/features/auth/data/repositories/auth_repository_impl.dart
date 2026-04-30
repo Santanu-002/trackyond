@@ -1,4 +1,5 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/common/entities/company/company_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
@@ -109,6 +110,11 @@ class AuthRepositoryImpl implements IAuthRepository {
   @override
   Future<Either<AppFailure, MemberProfile?>> getMemberProfile() async {
     return Right(_userService.getProfile()?.toEntity());
+  }
+
+  @override
+  Future<Either<AppFailure, CompanyEntity?>> getCompany() async {
+    return Right(_userService.getCompany()?.toEntity());
   }
 
   @override

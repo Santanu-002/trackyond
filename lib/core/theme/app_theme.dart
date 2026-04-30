@@ -191,22 +191,13 @@ class AppTheme {
       border: border,
       enabledBorder: border,
       focusedBorder: border.copyWith(
-        borderSide: BorderSide(
-          color: colors.primary,
-          width: 1.5,
-        ),
+        borderSide: BorderSide(color: colors.primary, width: 1.5),
       ),
       errorBorder: border.copyWith(
-        borderSide: BorderSide(
-          color: colors.error,
-          width: 1,
-        ),
+        borderSide: BorderSide(color: colors.error, width: 1),
       ),
       focusedErrorBorder: border.copyWith(
-        borderSide: BorderSide(
-          color: colors.error,
-          width: 1.5,
-        ),
+        borderSide: BorderSide(color: colors.error, width: 1.5),
       ),
     );
   }
@@ -216,13 +207,17 @@ class AppTheme {
       style: MenuStyle(
         backgroundColor: WidgetStateProperty.all(colors.surface),
         elevation: WidgetStateProperty.all(8),
-        shadowColor: WidgetStateProperty.all(colors.primary.withValues(alpha: 0.2)),
+        shadowColor: WidgetStateProperty.all(
+          colors.primary.withValues(alpha: 0.2),
+        ),
         padding: WidgetStateProperty.all(
           EdgeInsets.all(AppUIConstants.spacing.space$6),
         ),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
+            borderRadius: BorderRadius.circular(
+              AppUIConstants.radius.radius$12,
+            ),
           ),
         ),
         surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
@@ -263,7 +258,9 @@ class AppTheme {
         ),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
+            borderRadius: BorderRadius.circular(
+              AppUIConstants.radius.radius$12,
+            ),
           ),
         ),
       ),
@@ -356,10 +353,7 @@ class AppTheme {
     return SnackBarThemeData(
       backgroundColor: colors.onSurface,
       contentTextStyle: TextStyle(color: colors.surface),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
-      ),
-      behavior: SnackBarBehavior.floating,
+      behavior: SnackBarBehavior.fixed,
     );
   }
 
@@ -374,7 +368,10 @@ class AppTheme {
     );
   }
 
-  static TabBarThemeData _tabBarTheme(ColorScheme colors, TextStyle labelStyle) {
+  static TabBarThemeData _tabBarTheme(
+    ColorScheme colors,
+    TextStyle labelStyle,
+  ) {
     return TabBarThemeData(
       labelColor: colors.primary,
       unselectedLabelColor: colors.onSurfaceVariant,
@@ -396,16 +393,16 @@ class AppTheme {
         horizontal: AppUIConstants.spacing.space$12,
         vertical: AppUIConstants.spacing.space$4,
       ),
-      labelStyle: TextStyle(
-        color: colors.onSurface,
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-      ),
-      secondaryLabelStyle: const TextStyle(
-        color: Colors.white,
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-      ),
+      labelStyle:
+          (colors.brightness == Brightness.light
+                  ? AppTextStyles.light.labelSmall
+                  : AppTextStyles.dark.labelSmall)
+              .copyWith(color: colors.onSurface),
+      secondaryLabelStyle:
+          (colors.brightness == Brightness.light
+                  ? AppTextStyles.light.labelSmall
+                  : AppTextStyles.dark.labelSmall)
+              .copyWith(color: colors.onPrimary, fontWeight: FontWeight.w600),
       brightness: Brightness.light,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$8),
@@ -416,7 +413,9 @@ class AppTheme {
     );
   }
 
-  static ProgressIndicatorThemeData _progressIndicatorTheme(ColorScheme colors) {
+  static ProgressIndicatorThemeData _progressIndicatorTheme(
+    ColorScheme colors,
+  ) {
     return ProgressIndicatorThemeData(
       color: colors.primary,
       circularTrackColor: colors.primary.withValues(alpha: 0.1),
@@ -456,7 +455,9 @@ class AppTheme {
         ),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
+            borderRadius: BorderRadius.circular(
+              AppUIConstants.radius.radius$12,
+            ),
           ),
         ),
       ),
@@ -468,10 +469,14 @@ class AppTheme {
       menuStyle: MenuStyle(
         backgroundColor: WidgetStateProperty.all(colors.surface),
         elevation: WidgetStateProperty.all(8),
-        shadowColor: WidgetStateProperty.all(colors.primary.withValues(alpha: 0.2)),
+        shadowColor: WidgetStateProperty.all(
+          colors.primary.withValues(alpha: 0.2),
+        ),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
+            borderRadius: BorderRadius.circular(
+              AppUIConstants.radius.radius$16,
+            ),
           ),
         ),
         surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
@@ -488,17 +493,15 @@ class AppTheme {
       elevation: WidgetStateProperty.all(0),
       backgroundColor: WidgetStateProperty.all(colors.surface),
       shape: WidgetStateProperty.all(const StadiumBorder()),
-      side: WidgetStateProperty.resolveWith<BorderSide?>(
-        (states) {
-          if (states.contains(WidgetState.focused)) {
-            return BorderSide(color: colors.primary, width: 1.5);
-          }
-          return BorderSide(
-            color: colors.outline.withValues(alpha: 0.2),
-            width: 1,
-          );
-        },
-      ),
+      side: WidgetStateProperty.resolveWith<BorderSide?>((states) {
+        if (states.contains(WidgetState.focused)) {
+          return BorderSide(color: colors.primary, width: 1.5);
+        }
+        return BorderSide(
+          color: colors.outline.withValues(alpha: 0.2),
+          width: 1,
+        );
+      }),
       padding: WidgetStateProperty.all(
         const EdgeInsets.symmetric(horizontal: 16),
       ),

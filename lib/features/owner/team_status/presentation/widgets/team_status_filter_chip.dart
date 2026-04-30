@@ -19,7 +19,14 @@ class TeamStatusFilterChip extends GetView<TeamStatusController> {
     return Obx(() {
       final isSelected = controller.selectedStatus.value == status;
       return ChoiceChip(
-        label: Text(label),
+        label: Text(
+          label,
+          style: context.textTheme.labelMedium?.copyWith(
+            color: isSelected
+                ? context.theme.colorScheme.onPrimary
+                : context.theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
         selected: isSelected,
         onSelected: (selected) {
           if (selected) {

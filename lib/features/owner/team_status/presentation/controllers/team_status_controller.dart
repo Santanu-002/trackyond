@@ -3,18 +3,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/features/owner/dashboard/domain/entities/team_member_status.dart';
-import 'package:trackyond/features/owner/dashboard/domain/entities/team_status_query_options.dart';
-import 'package:trackyond/features/owner/dashboard/domain/entities/team_status_stats.dart';
-import 'package:trackyond/features/owner/dashboard/domain/usecases/get_team_status_usecase.dart';
+import 'package:trackyond/app/routes/app_routes.dart';
+import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/team_filter.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/team_member_status_entity.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/team_status_stats_entity.dart';
+import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 
 class TeamStatusController extends GetxController {
   final GetTeamStatusUseCase _getTeamStatusUseCase;
   final SharedPreferences _prefs = Get.find<SharedPreferences>();
   static const String _searchByPrefKey = 'team_status_search_by';
 
-  static const filters = [
+  List<TeamFilterEntity> get filters => [
     TeamFilterEntity(label: 'All', status: null),
     TeamFilterEntity(label: 'Working', status: AttendanceStatus.working),
     TeamFilterEntity(label: 'Not Started', status: AttendanceStatus.notStarted),
@@ -26,10 +27,14 @@ class TeamStatusController extends GetxController {
   final isLoading = false.obs;
 
   /// Raw list from the API — always contains all statuses.
-  final _allMembers = <TeamMemberStatus>[].obs;
+  final _allMembers = <TeamMemberStatusEntity>[].obs;
 
   // Stats (always reflect the full dataset from API)
-  final stats = const TeamStatusStats(total: 0, working: 0, notStarted: 0).obs;
+  final stats = const TeamStatusStatsEntity(
+    total: 0,
+    working: 0,
+    notStarted: 0,
+  ).obs;
 
   // Filters & Search
   final selectedStatus = Rxn<AttendanceStatus>();
@@ -43,13 +48,11 @@ class TeamStatusController extends GetxController {
   // Derived list: status-filtered → sorted → search-filtered
   // ---------------------------------------------------------------------------
 
-  List<TeamMemberStatus> get filteredMembers {
+  List<TeamMemberStatusEntity> get filteredMembers {
     // 1. Status filter (local — no re-fetch needed)
     final statusFiltered = selectedStatus.value == null
         ? _allMembers.toList()
-        : _allMembers
-            .where((m) => m.status == selectedStatus.value)
-            .toList();
+        : _allMembers.where((m) => m.status == selectedStatus.value).toList();
 
     // 2. Sort: working always first; within each group order by startAt.
     _sortInPlace(statusFiltered);
@@ -64,17 +67,17 @@ class TeamStatusController extends GetxController {
       String searchableString;
       switch (searchBy.value) {
         case 'Name':
-          searchableString = m.name;
+          searchableString = m.profile.name;
           break;
         case 'Designation':
-          searchableString = m.designation ?? '';
+          searchableString = m.profile.designation;
           break;
         case 'Phone':
-          searchableString = m.phone;
+          searchableString = m.profile.phone;
           break;
         default:
           searchableString =
-              '${m.name} ${m.designation ?? ''} ${m.phone}';
+              '${m.profile.name} ${m.profile.designation} ${m.profile.phone}';
       }
       searchableString = searchableString.toLowerCase();
       return keywords.every((keyword) => searchableString.contains(keyword));
@@ -84,8 +87,11 @@ class TeamStatusController extends GetxController {
     searched.sort((a, b) {
       final statusCmp = _statusPriority(a).compareTo(_statusPriority(b));
       if (statusCmp != 0) return statusCmp;
-      return _searchScore(a, query, keywords)
-          .compareTo(_searchScore(b, query, keywords));
+      return _searchScore(
+        a,
+        query,
+        keywords,
+      ).compareTo(_searchScore(b, query, keywords));
     });
 
     return searched;
@@ -96,10 +102,10 @@ class TeamStatusController extends GetxController {
   // ---------------------------------------------------------------------------
 
   /// Working = 0, NotStarted = 1 — so working members sort before not-started.
-  int _statusPriority(TeamMemberStatus m) => m.isWorking ? 0 : 1;
+  int _statusPriority(TeamMemberStatusEntity m) => m.isWorking ? 0 : 1;
 
   /// Sorts [list] in-place: working first, then by startAt per selectedOrder.
-  void _sortInPlace(List<TeamMemberStatus> list) {
+  void _sortInPlace(List<TeamMemberStatusEntity> list) {
     final isDesc = selectedOrder.value == 'desc';
     list.sort((a, b) {
       // Tier 1: working before not-started (always).
@@ -121,13 +127,13 @@ class TeamStatusController extends GetxController {
   }
 
   int _searchScore(
-    TeamMemberStatus m,
+    TeamMemberStatusEntity m,
     String query,
     List<String> keywords,
   ) {
-    final nameLower = m.name.toLowerCase();
-    final designationLower = (m.designation ?? '').toLowerCase();
-    final phoneLower = m.phone.toLowerCase();
+    final nameLower = m.profile.name.toLowerCase();
+    final designationLower = (m.profile.designation).toLowerCase();
+    final phoneLower = m.profile.phone.toLowerCase();
 
     if (nameLower.contains(query)) return 1;
     if (designationLower.contains(query)) return 2;
@@ -143,6 +149,7 @@ class TeamStatusController extends GetxController {
   // ---------------------------------------------------------------------------
 
   void setSearchQuery(String query) => searchQuery.value = query;
+
   void clearSearch() => searchQuery.value = '';
 
   // ---------------------------------------------------------------------------
@@ -165,19 +172,14 @@ class TeamStatusController extends GetxController {
 
   Future<void> fetchTeamStatus() async {
     isLoading.value = true;
-    final result = await _getTeamStatusUseCase(
-      GetTeamStatusParams(
-        options: const TeamStatusQueryOptions(),
-      ),
-    );
+    final result = await _getTeamStatusUseCase(GetTeamStatusParams());
 
-    result.fold(
-      (failure) => AppSnackbar.destructive(failure.message),
-      (teamStatus) {
-        _allMembers.assignAll(teamStatus.members);
-        stats.value = teamStatus.stats;
-      },
-    );
+    result.fold((failure) => AppSnackbar.destructive(failure.message), (
+      teamStatus,
+    ) {
+      _allMembers.assignAll(teamStatus.members);
+      stats.value = teamStatus.stats;
+    });
     isLoading.value = false;
   }
 
@@ -214,5 +216,16 @@ class TeamStatusController extends GetxController {
       default:
         return value;
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
+
+  void goToMemberProfile(MemberProfile profile) {
+    Get.toNamed(
+      AppRoutes.owner.teamMemberProfile,
+      arguments: profile,
+    );
   }
 }

@@ -11,8 +11,9 @@ class WorkingStatusContent extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (status) {
       case AttendanceStatus.working:
+      case AttendanceStatus.ended:
         return AppStatusChip.attendance(
-          key: const ValueKey('working_chip'),
+          key: const ValueKey('attendance_chip'),
           attendanceStatus: status,
           context: context,
         );

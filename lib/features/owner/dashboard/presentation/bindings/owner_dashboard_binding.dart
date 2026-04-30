@@ -1,18 +1,16 @@
 import 'package:get/get.dart';
-import 'package:trackyond/features/owner/add_team_member/data/datasources/team_remote_data_source.dart';
-import 'package:trackyond/features/owner/add_team_member/data/repositories/team_repository_impl.dart';
-import 'package:trackyond/features/owner/add_team_member/domain/repositories/i_team_repository.dart';
-import 'package:trackyond/features/owner/dashboard/domain/usecases/get_team_status_usecase.dart';
+import 'package:trackyond/features/owner/team_status/data/datasources/team_status_datasource.dart';
+import 'package:trackyond/features/owner/team_status/data/repositories/team_status_repository_impl.dart';
+import 'package:trackyond/features/owner/team_status/domain/repositories/i_team_status_repository.dart';
+import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
 
 class OwnerDashboardBinding extends Bindings {
   @override
   void dependencies() {
-    // Repositories
-    Get.lazyPut<ITeamRepository>(
-      () => TeamRepositoryImpl(
-        remoteDataSource: TeamRemoteDataSourceImpl(dio: Get.find()),
-        userService: Get.find(),
+    Get.lazyPut<ITeamStatusRepository>(
+      () => TeamStatusRepositoryImpl(
+         TeamStatusDataSourceImpl(Get.find()),
       ),
     );
 
@@ -21,9 +19,7 @@ class OwnerDashboardBinding extends Bindings {
 
     Get.lazyPut(
       () => OwnerDashboardController(
-        logoutUseCase: Get.find(),
         getTeamStatusUseCase: Get.find(),
-        userService: Get.find(),
       ),
     );
   }

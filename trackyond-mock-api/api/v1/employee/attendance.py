@@ -14,6 +14,7 @@ router = APIRouter(prefix="/attendance", tags=["Employee/Attendance"])
 def serialize_attendance(attendance: models.Attendance):
     if not attendance:
         return None
+    status = AttendanceStatus.WORKING if attendance.end_at is None else AttendanceStatus.ENDED
     return {
         "id": attendance.id,
         "accountUid": attendance.account_uid,
@@ -28,7 +29,7 @@ def serialize_attendance(attendance: models.Attendance):
         "workHours": attendance.work_hours,
         "startAddress": attendance.start_address,
         "endAddress": attendance.end_address,
-        "status": attendance.status
+        "status": status
     }
 
 @router.post("/start", response_model=GenericResponse)
@@ -100,23 +101,26 @@ async def end_attendance(req: MarkAttendanceRequest, db: Session = Depends(get_d
 
 @router.get("/status", response_model=GenericResponse)
 async def get_attendance_status(account_uid: str, db: Session = Depends(get_db)):
-    # 1. Check for active session
-    active_attendance = db.query(models.Attendance).filter(
-        models.Attendance.account_uid == account_uid,
-        models.Attendance.status == AttendanceStatus.WORKING
-    ).first()
+    today_start = now_utc().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    if active_attendance:
+    # 1. Get latest attendance for today
+    latest_attendance = db.query(models.Attendance).filter(
+        models.Attendance.account_uid == account_uid,
+        models.Attendance.created_at >= today_start
+    ).order_by(models.Attendance.created_at.desc()).first()
+    
+    if latest_attendance:
+        status = AttendanceStatus.WORKING if latest_attendance.end_at is None else AttendanceStatus.ENDED
         return GenericResponse(
             success=True,
-            message="Active session found",
+            message="Current status fetched",
             data={
-                "status": AttendanceStatus.WORKING,
-                "attendance": serialize_attendance(active_attendance)
+                "status": status,
+                "attendance": serialize_attendance(latest_attendance)
             }
         )
     
-    # 2. Not started (or already ended previous session)
+    # 2. Not started
     return GenericResponse(
         success=True,
         message="Not started",

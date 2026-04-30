@@ -15,18 +15,15 @@ import 'package:trackyond/features/owner/dashboard/presentation/screens/owner_da
 import 'package:trackyond/features/owner/setup_company/presentation/bindings/setup_company_binding.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/screens/choose_team_size_page.dart';
 import 'package:trackyond/features/owner/setup_company/presentation/screens/setup_company_page.dart';
+import 'package:trackyond/features/owner/team_status/presentation/bindings/team_member_profile_binding.dart';
+import 'package:trackyond/features/owner/team_status/presentation/bindings/team_status_binding.dart';
+import 'package:trackyond/features/owner/team_status/presentation/screens/team_member_profile_page.dart';
+import 'package:trackyond/features/owner/team_status/presentation/screens/team_status_page.dart';
+import 'package:trackyond/features/worker/attendance/presentation/bindings/attendance_binding.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/bindings/worker_dashboard_binding.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/screens/worker_dashboard_page.dart';
 import 'package:trackyond/features/worker/profile/presentation/bindings/worker_profile_binding.dart';
 import 'package:trackyond/features/worker/profile/presentation/screens/worker_profile_page.dart';
-import 'package:trackyond/features/attendance/presentation/bindings/attendance_binding.dart';
-import 'package:trackyond/features/owner/team_status/presentation/bindings/team_status_binding.dart';
-import 'package:trackyond/features/owner/team_status/presentation/bindings/team_member_profile_binding.dart';
-import 'package:trackyond/features/owner/team_status/presentation/screens/team_status_page.dart';
-import 'package:trackyond/features/owner/team_status/presentation/screens/team_member_profile_page.dart';
-import 'package:trackyond/features/owner/team_status/presentation/bindings/team_member_attendance_binding.dart';
-import 'package:trackyond/features/owner/team_status/presentation/screens/team_member_attendance_page.dart';
-
 
 class AppPages {
   const AppPages._();
@@ -50,12 +47,12 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.common.auth.sendOtp,
-      bindings: [AuthBindings(), SendOtpBinding()],
+      binding: SendOtpBinding(),
       page: () => const SendOtpPage(),
     ),
     GetPage(
       name: AppRoutes.common.auth.verifyOtp,
-      bindings: [AuthBindings(), VerifyOtpBinding()],
+      binding: VerifyOtpBinding(),
       page: () => const VerifyOtpPage(),
     ),
   ];
@@ -63,7 +60,7 @@ class AppPages {
   static List<GetPage> get _ownerPages => [
     GetPage(
       name: AppRoutes.owner.dashboard,
-      bindings: [AuthBindings(), OwnerDashboardBinding()],
+      binding: OwnerDashboardBinding(),
       page: () => const OwnerDashboardPage(),
     ),
     GetPage(
@@ -94,16 +91,10 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.owner.teamMemberProfile,
-      page: () => TeamMemberProfilePage(),
+      page: () => const TeamMemberProfilePage(),
       binding: TeamMemberProfileBinding(),
     ),
-    GetPage(
-      name: AppRoutes.owner.teamMemberAttendance,
-      page: () => const TeamMemberAttendancePage(),
-      binding: TeamMemberAttendanceBinding(),
-    ),
   ];
-
 
   static List<GetPage> get _workerPages => [
     GetPage(

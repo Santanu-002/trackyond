@@ -254,6 +254,8 @@ class AddTeamMemberStrings {
   String get phoneRequired => 'Phone number is required';
 
   String get phoneInvalid => 'Please enter a valid 10-digit phone number';
+
+  String get designationRequired => 'Designation is required';
 }
 
 class OwnerDashboardStrings {
@@ -420,6 +422,19 @@ class TeamMemberProfileStrings {
   String get contactInfo => 'Contact Information';
   String get viewAllLogs => 'View All Logs';
   String get searchLocation => 'Search by location...';
+  String get todayAttendance => "Today's Attendance";
+  String get clockIn => 'Clock In';
+  String get clockOut => 'Clock Out';
+  String get workHours => 'Work Hours';
+  String get location => 'Location';
+  String get noAttendanceRecord => 'No attendance session recorded for today.';
+  String get call => 'Call';
+  String get message => 'Message';
+  String get logs => 'Logs';
+  String get edit => 'Edit';
+  String get customNotifications => 'Custom Notifications';
+  String get accessPermissions => 'Access Permissions';
+  String get deactivateMember => 'Deactivate Member';
   String get save => 'Save';
 }
 

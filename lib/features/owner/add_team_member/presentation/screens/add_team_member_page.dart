@@ -17,17 +17,24 @@ class AddTeamMemberPage extends GetView<AddTeamMemberController> {
       useScrollView: false,
       title: AppStrings.addTeamMember.appBarTitle,
       actions: [
-        Obx(
-          () => AppButton.ghost(
-            text: controller.hasAddedNewMember
-                ? AppStrings.addTeamMember.doneButton
-                : AppStrings.addTeamMember.skipButton,
-            onPressed: controller.completeOnboarding,
-            width: null,
-            height: null,
+        Padding(
+          padding: EdgeInsetsGeometry.only(
+            right: AppUIConstants.spacing.space$24,
+          ),
+
+          child: Obx(
+            () => AppButton.ghost(
+              text: controller.hasAddedNewMember
+                  ? AppStrings.addTeamMember.doneButton
+                  : AppStrings.addTeamMember.skipButton,
+              onPressed: controller.completeOnboarding,
+              width: null,
+              height: null,
+            ),
           ),
         ),
       ],
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: AppUIConstants.spacing.space$24,

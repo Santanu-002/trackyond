@@ -1,7 +1,7 @@
 class ApiEndpoints {
-  // static const String baseUrl = 'http://192.168.1.28:8000/api/v1';
+  static const String baseUrl = 'http://192.168.1.28:8000/api/v1';
 
-  static const String baseUrl = 'http://10.185.93.67:8000/api/v1';
+  // static const String baseUrl = 'http://10.185.93.67:8000/api/v1';
 
   static const admin = _AdminEndpoints();
   static const employee = _EmployeeEndpoints();
@@ -43,6 +43,8 @@ class _AdminEndpoints {
   // Company
   String get company => '$_root/company';
 
+  String get teamStatus => '$company/team-status';
+
   // Members
   String get members => '$_root/members';
 
@@ -62,10 +64,11 @@ class _AdminEndpoints {
 
   // Attendance
   String get attendance => '$_root/attendance';
+
   String get attendanceExportCsv => '$_root/attendance/export/csv';
+
   String get attendanceExportPdf => '$_root/attendance/export/pdf';
 }
-
 
 // ─────────────────────────────────────────
 // Employee endpoints

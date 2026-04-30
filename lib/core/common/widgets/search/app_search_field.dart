@@ -46,8 +46,7 @@ class AppSearchField extends StatelessWidget {
             leading ??
             Icon(
               CupertinoIcons.search,
-              size: 20,
-              color: context.theme.colorScheme.onSurfaceVariant,
+              color: context.theme.colorScheme.primary,
             ),
         trailing: [
           if (query.isNotEmpty)

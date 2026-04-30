@@ -8,7 +8,7 @@ class DeviceMetadataMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Exclude documentation, health check, and public file download endpoints
         path = request.url.path
-        if path in ["/docs", "/openapi.json", "/redoc", "/health", "/"] or path.startswith("/api/v1/common/download/"):
+        if path in ["/docs", "/openapi.json", "/redoc", "/health", "/"] or path.startswith("/api/v1/common/files/download/"):
             return await call_next(request)
 
         # Required headers

@@ -1,121 +1,106 @@
-# Luminous Curator - Workspace Skills
+# Trackyond - Architectural Standards & Skills
 
-This document outlines the architectural standards and best practices for the Trackyond workspace.
+This document defines the strict architectural standards and development patterns for the Trackyond workspace. All contributions must adhere to these rules without exception.
 
-## 1. Unified Button System (`AppButton`)
-All buttons in the application should use the `AppButton` factory to ensure design consistency and flexible styling.
+---
 
-- **Filled**: `AppButton.filled(...)` - For primary actions (uses theme gradient).
-- **Outlined**: `AppButton.outlined(...)` - For secondary actions.
-- **Ghost**: `AppButton.ghost(...)` - For tertiary actions or text-only buttons.
-- **Custom**: `AppButton.custom(...)` - For specialized layouts where only the container behavior is needed.
+## 1. Clean Architecture (Layered)
+The project follows a strict three-layer architecture to ensure testability, scalability, and maintainability.
 
-**Rule**: Avoid using standard `ElevatedButton`, `OutlinedButton`, or `TextButton` directly.
+### A. Domain Layer (The Core)
+- **Entities**: Plain Dart objects that represent the business data.
+- **Use Cases**: Individual units of business logic (e.g., `GetTeamStatusUseCase`). Must inherit from `BaseUseCase`.
+- **Repository Interfaces**: `abstract interface class I[Feature]Repository` defining the contract for data operations.
+- **Rule**: This layer must have **zero** dependencies on other layers or external packages (except for `fpdart` and `equatable`/`freezed` if necessary).
 
-## 2. Externalized Strings (`AppStrings`)
-All user-facing strings must be externalized to `lib/core/constants/app_strings.dart` using **getters**.
+### B. Data Layer (Implementation)
+- **Models (DTOs)**: Data Transfer Objects used for API serialization.
+- **Rule**: Always use `sealed class` with `@freezed`.
+- **Rule**: Models must include a `toEntity()` method to map data to Domain Entities.
+- **Subfolders**: Organize complex models into subfolders (e.g., `models/user/`, `models/attendance/`).
+- **Data Sources**: Handle raw API calls. Inherit from `BaseRemoteDataSource` and use `performApiRequest`.
+- **Repositories**: Implementation of Domain interfaces. Map `ApiResponse` to `Either<AppFailure, T>`.
 
-- **Pattern**: `String get login => 'Login';`
-- **Reasoning**: Getters provide flexibility for localization or dynamic string generation in the future without breaking the API.
+### C. Presentation Layer (UI & Logic)
+- **Screens**: UI widgets inheriting from `GetView<T>`.
+- **Controllers**: Manage state using GetX. Use constructor injection for Use Cases.
+- **Bindings**: Setup dependency injection using `Get.lazyPut`.
+- **Widgets**: Feature-specific UI components.
 
-**Rule**: No hardcoded strings in UI widgets.
+---
 
-## 3. Context Extensions (Theme)
-Use shorthand extensions on `BuildContext` (provided by GetX) to access theme tokens and colors.
+## 2. Feature & Folder Structure
+Features are organized by user role to prevent logic leakage and ensure clear separation.
 
-- **Primary Color**: `context.theme.colorScheme.primary`
-- **Surface**: `context.theme.colorScheme.surface`
-- **Text Theme**: `context.textTheme`
-
-**Rule**: Prefer `context.theme.colorScheme.primary` over `Theme.of(context).colorScheme.primary`.
-
-## 4. Unified UI Constants (`AppUIConstants`)
-Maintain visual consistency by using predefined constants for spacing, radius, and common layout widgets. All properties must use **getters**.
-
-- **Pattern**: `double get radius$16 => 16.0;`
-- **usage**: `AppUIConstants.spacing.space$16` or `AppUIConstants.widgets.verticalBox$24`.
-
-**Rule**: No hardcoded double values for spacing, margins, or border radii.
-
-## 5. Gap-Based Spacing
-When uniform spacing is needed between children in a `Column` or `Row`, prefer using the `spacing` property instead of manual `SizedBox` widgets.
-
-- **usage**:
-  ```dart
-  Column(
-    spacing: AppUIConstants.spacing.space$16,
-    children: [...],
-  )
+- **Path**: `lib/features/{role}/{feature_name}/`
+- **Roles**: `owner/`, `worker/`, `auth/` (shared).
+- **Internal Structure**:
+  ```text
+  feature/
+  ├── data/
+  │   ├── datasources/
+  │   ├── models/ (with subfolders if needed)
+  │   └── repositories/
+  ├── domain/
+  │   ├── entities/
+  │   ├── repositories/ (interfaces)
+  │   └── usecases/
+  └── presentation/
+      ├── bindings/
+      ├── controllers/
+      ├── screens/
+      └── widgets/
   ```
 
-**Rule**: Use the `spacing` property for equal distribution of gaps between flex items.
+---
 
-## 6. Clean Architecture
-Maintain a strict separation between layers to ensure the codebase remains testable and scalable.
+## 3. UI as a "Slave" (Logic-Free UI)
+The UI layer is strictly for rendering and user interaction delegation.
 
-- **Data**: Repositories, Data Sources, Models (DTOs).
-- **Domain**: Entities, Use Cases, Repository Interfaces.
-- **Presentation**: UI (Screens/Pages), Controllers (GetX), Bindings.
+- **No Business Logic**: No calculations or complex conditions in widgets.
+- **No Validation Logic**: Handled by the controller.
+- **No Direct Routing**: Navigation (e.g., `Get.toNamed`) must be triggered from the Controller.
+- **Pattern**: UI consumes data from the controller and calls controller methods for actions.
+- **GetView**: Always use `GetView<Controller>` for screens.
 
-**Rule**: The Domain layer must be independent of all other layers. Presentation should only interact with Domain (via Use Cases).
+---
 
-## 7. SOLID Principles
-Adhere to SOLID principles for all new code:
-- **S**: Single Responsibility Principle.
-- **O**: Open/Closed Principle.
-- **L**: Liskov Substitution Principle.
-- **I**: Interface Segregation Principle.
-- **D**: Dependency Inversion Principle.
+## 4. Indirect Service Access & Facades
+To maintain architectural boundaries, feature controllers must not interact with global services directly.
 
-## 8. Logic-Free UI (UI as Slave)
-The UI layer is purely responsible for rendering and must not contain any business logic, validation, or routing code.
+- **AuthController Facade**: Acts as the bridge for global state.
+- **Rule**: Features use `Get.find<AuthController>()` to access:
+  - Global state (e.g., `ownerName`, `companyName`).
+  - Auth actions (e.g., `logout()`).
+  - Common user data fetched via Use Cases.
+- **Reactivity**: `AuthController` provides reactive getters (linking to underlying `UserService` observables) so the UI stays responsive via `Obx`.
 
-- **Routing**: Navigation (e.g., `Get.toNamed`) must be triggered from the Controller.
-- **GetView**: Use `GetView<T>` for screens to ensure a direct link to the controller without manual `find` calls.
+---
 
-**Rule**: UI is a "slave" to the controller; it only consumes data and delegates actions.
+## 5. Centralized Constants & Tokens
+Avoid hardcoding any values. Use the centralized constant files.
 
-## 9. Unified API Response Casing (`camelCase`)
-All API responses and request bodies must maintain consistent naming conventions.
+- **AppStrings**: Use `lib/core/constants/app_strings.dart`. All strings must be **getters**.
+- **AppUIConstants**: Use `lib/core/constants/app_ui_constants.dart` for spacing, radius, and common layout boxes (getters).
+- **ApiEndpoints**: Centralize all URLs in `lib/core/network/api/api_endpoints.dart`.
+- **AppIcons**: Centralize all icons in `lib/core/constants/app_icons.dart`.
+- **Theme Extensions**: Access theme tokens via `context.theme.colorScheme.[customToken]` or `context.textTheme`.
 
-- **Convention**: Use `camelCase` for all JSON keys.
-- **Reasoning**: Ensures consistency for frontend consumption (Dart/Flutter) and avoids mixed casing within the same response.
+---
 
-**Rule**: All JSON keys in responses and request bodies must be `camelCase`. Avoid `snake_case`.
+## 6. Development Patterns
+- **Unified Button System**: Use `AppButton.filled()`, `.outlined()`, etc. Never use standard Flutter buttons directly.
+- **Gap-Based Spacing**: Use the `spacing` property in `Column` and `Row` instead of `SizedBox` between items.
+- **Sealed Classes**: Always use `sealed class` for `@freezed` models to leverage exhaustive pattern matching.
+- **ApiResponse Pattern**: Use `ApiResponse<T>` in controllers to handle `loading`, `success`, and `error` states uniformly.
+- **Multiple Bindings**: Routes can have multiple bindings in `AppPages` to share state across features.
+- **Initialization**: Controllers should handle initial data fetching in `onInit` or `onReady` depending on whether they need route arguments.
 
-## 10. UTC Datetimes (ISO 8601)
-All datetime fields returned in JSON responses must be UTC-formatted with the `Z` suffix (e.g., `2026-04-18T05:34:57Z`).
+---
 
-**Rules**:
-- Use `to_utc_iso()` from `core.utils.datetime_utils` for all ISO string conversions.
-- Always include the `Z` suffix (enforced by the helper).
-- **Timezone-Aware Logic**: Prohibit the use of `datetime.utcnow()`. Always use `now_utc()` or `datetime.now(timezone.utc)` for internal logic and comparisons to avoid `TypeError`.
-
-## 11. Functional Programming Return Types (`Unit`)
-When using `fpdart` for functional error handling, use `Unit` instead of `void` to represent the absence of a value in `Either` returns.
-
-- **Use Case**: `Either<AppFailure, Unit>` instead of `Either<AppFailure, void>`.
-- **Return**: `Right(unit)` instead of `Right(null)`.
-
-**Rule**: Never use `void` inside `Either` or `BaseUseCase` returns when functional equivalents (`Unit`) exist.
-
-## 12. Unified Iconography (`AppIcons`)
-All icons in the application should be centralized in `lib/core/constants/app_icons.dart` using standard Material or Cupertino icons. The `AppIcons` class should be organized into categories using private classes for better discoverability and organization.
-
-- **Pattern**:
-  ```dart
-  class AppIcons {
-    static const auth = _AuthIcons();
-    ...
-  }
-  class _AuthIcons {
-    const _AuthIcons();
-    IconData get login => Icons.login_rounded;
-  }
-  ```
-- **Usage**: `AppIcons.dashboard.home` or `AppIcons.auth.login`.
-
-**Rule**: Avoid calling `Icons` or `CupertinoIcons` directly in UI widgets. Always use `AppIcons` constants.
+## 7. Quality Assurance
+- **Dart Analyze**: Always run `dart analyze` after generating or modifying code. Fix all issues before completion.
+- **No Todos**: Ensure the codebase is clean of temporary comments and unused imports.
 
 ---
 *Maintained by Antigravity AI*

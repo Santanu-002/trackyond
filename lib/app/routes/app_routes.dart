@@ -17,7 +17,6 @@ class _OwnerRoutes {
   String get addMemberDetails => '$_base/add-member-details';
   String get team => '$_base/team';
   String get teamMemberProfile => '$_base/team-member-profile';
-  String get teamMemberAttendance => '$_base/team/member/attendance';
   String get jobs => '$_base/jobs';
 }
 

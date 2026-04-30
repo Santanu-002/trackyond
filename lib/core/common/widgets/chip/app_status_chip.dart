@@ -20,18 +20,25 @@ class AppStatusChip extends StatelessWidget {
     required BuildContext context,
   }) {
     final theme = context.theme;
-    if (attendanceStatus == AttendanceStatus.working) {
-      return AppStatusChip(
-        key: key,
-        label: 'Working',
-        color: theme.colorScheme.completed,
-      );
-    } else {
-      return AppStatusChip(
-        key: key,
-        label: 'Not Started',
-        color: theme.colorScheme.pending,
-      );
+    switch (attendanceStatus) {
+      case AttendanceStatus.working:
+        return AppStatusChip(
+          key: key,
+          label: 'Working',
+          color: theme.colorScheme.completed,
+        );
+      case AttendanceStatus.ended:
+        return AppStatusChip(
+          key: key,
+          label: 'Ended',
+          color: theme.colorScheme.onSurfaceVariant,
+        );
+      case AttendanceStatus.notStarted:
+        return AppStatusChip(
+          key: key,
+          label: 'Not Started',
+          color: theme.colorScheme.pending,
+        );
     }
   }
 

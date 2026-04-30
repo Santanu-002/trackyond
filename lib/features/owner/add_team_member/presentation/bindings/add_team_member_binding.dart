@@ -4,7 +4,7 @@ import 'package:trackyond/features/owner/add_team_member/data/datasources/team_r
 import 'package:trackyond/features/owner/add_team_member/data/repositories/team_repository_impl.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/repositories/i_team_repository.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/usecases/add_team_member_usecase.dart';
-import 'package:trackyond/features/owner/add_team_member/domain/usecases/get_company_use_case.dart';
+import 'package:trackyond/features/owner/add_team_member/domain/usecases/get_team_company_usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/usecases/get_team_members_usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/usecases/save_onboarding_progress_use_case.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/controllers/add_team_member_controller.dart';
@@ -25,7 +25,7 @@ class AddTeamMemberBinding extends Bindings {
       ),
     );
 
-    // Use Case
+    // Use Cases
     Get.lazyPut<AddTeamMemberUseCase>(
       () => AddTeamMemberUseCase(Get.find<ITeamRepository>()),
     );
@@ -38,8 +38,8 @@ class AddTeamMemberBinding extends Bindings {
       () => SaveOnboardingProgressUseCase(Get.find<ITeamRepository>()),
     );
 
-    Get.lazyPut<GetCompanyUseCase>(
-      () => GetCompanyUseCase(Get.find<ITeamRepository>()),
+    Get.lazyPut<GetTeamCompanyUseCase>(
+      () => GetTeamCompanyUseCase(Get.find<ITeamRepository>()),
     );
 
     // Controller
@@ -47,7 +47,7 @@ class AddTeamMemberBinding extends Bindings {
       () => AddTeamMemberController(
         addTeamMemberUseCase: Get.find<AddTeamMemberUseCase>(),
         getTeamMembersUseCase: Get.find<GetTeamMembersUseCase>(),
-        getCompanyUseCase: Get.find<GetCompanyUseCase>(),
+        getCompanyUseCase: Get.find<GetTeamCompanyUseCase>(),
         saveOnboardingProgressUseCase:
             Get.find<SaveOnboardingProgressUseCase>(),
       ),

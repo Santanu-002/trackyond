@@ -1,4 +1,5 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/common/entities/company/company_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
@@ -23,6 +24,7 @@ abstract interface class IAuthRepository {
   Future<Either<AppFailure, User?>> getAuthenticatedUser();
   Future<Either<AppFailure, UserRole?>> getUserRole();
   Future<Either<AppFailure, MemberProfile?>> getMemberProfile();
+  Future<Either<AppFailure, CompanyEntity?>> getCompany();
   Future<Either<AppFailure, bool>> checkAuthStatus();
 
   Future<Either<AppFailure, bool>> checkOnboardingStatus();

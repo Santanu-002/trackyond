@@ -8,6 +8,7 @@ import 'package:trackyond/features/auth/domain/usecases/check_auth_status_usecas
 import 'package:trackyond/features/auth/domain/usecases/check_onboarding_status_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_token_validity_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_authenticated_user_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/get_company_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_member_profile_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_user_role_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/logout_usecase.dart';
@@ -17,6 +18,7 @@ class AuthController extends GetxController {
   final GetAuthenticatedUserUseCase _getAuthenticatedUserUseCase;
   final GetUserRoleUseCase _getUserRoleUseCase;
   final GetMemberProfileUseCase _getMemberProfileUseCase;
+  final GetCompanyUseCase _getCompanyUseCase;
   final LogoutUseCase _logoutUseCase;
   final CheckTokenValidityUseCase _checkTokenValidityUseCase;
   final CheckOnboardingStatusUseCase _checkOnboardingStatusUseCase;
@@ -26,16 +28,19 @@ class AuthController extends GetxController {
     required GetAuthenticatedUserUseCase getAuthenticatedUserUseCase,
     required GetUserRoleUseCase getUserRoleUseCase,
     required GetMemberProfileUseCase getMemberProfileUseCase,
+    required GetCompanyUseCase getCompanyUseCase,
     required LogoutUseCase logoutUseCase,
     required CheckTokenValidityUseCase checkTokenValidityUseCase,
     required CheckOnboardingStatusUseCase checkOnboardingStatusUseCase,
-  }) : _checkAuthStatusUseCase = checkAuthStatusUseCase,
-       _getAuthenticatedUserUseCase = getAuthenticatedUserUseCase,
-       _getUserRoleUseCase = getUserRoleUseCase,
-       _getMemberProfileUseCase = getMemberProfileUseCase,
-       _logoutUseCase = logoutUseCase,
-       _checkTokenValidityUseCase = checkTokenValidityUseCase,
-       _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase;
+  })
+      : _checkAuthStatusUseCase = checkAuthStatusUseCase,
+        _getAuthenticatedUserUseCase = getAuthenticatedUserUseCase,
+        _getUserRoleUseCase = getUserRoleUseCase,
+        _getMemberProfileUseCase = getMemberProfileUseCase,
+        _getCompanyUseCase = getCompanyUseCase,
+        _logoutUseCase = logoutUseCase,
+        _checkTokenValidityUseCase = checkTokenValidityUseCase,
+        _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase;
 
   @override
   void onReady() async {
@@ -48,7 +53,7 @@ class AuthController extends GetxController {
 
   bool get isLoading => _isLoading.value;
 
-  // ------------------ GETTERS ------------------
+  // ------------------ GETTERS (via UseCases) ------------------
 
   Future<User?> get user async {
     final userResult = await _getAuthenticatedUserUseCase(const NoParams());
@@ -63,9 +68,27 @@ class AuthController extends GetxController {
   Future<MemberProfile?> get profile async {
     final profileResult = await _getMemberProfileUseCase(const NoParams());
     return profileResult.fold<MemberProfile?>(
-      (_) => null,
-      (profile) => profile,
+          (_) => null,
+          (profile) => profile,
     );
+  }
+
+  Future<String> get ownerName async {
+    final profileResult = await profile;
+    return profileResult?.name ?? 'Owner';
+  }
+
+  Future<String> get companyName async {
+    final companyResult = await _getCompanyUseCase(const NoParams());
+    return companyResult.fold(
+          (_) => 'Company',
+          (company) => company?.name ?? 'Company',
+    );
+  }
+
+  Future<String> get ownerPhone async {
+    final userRes = await user;
+    return userRes?.phone ?? '';
   }
 
   Future<bool> get isLoggedIn async {
@@ -91,7 +114,7 @@ class AuthController extends GetxController {
     try {
       final isRefreshValid = await isAuthenticated;
       final loggedIn = await isLoggedIn;
-      
+
       if (!isRefreshValid || !loggedIn) {
         _handleUnauthenticated();
         return;
@@ -99,6 +122,7 @@ class AuthController extends GetxController {
 
       // 3. User exists, check status and navigate
       final role = await userRole;
+
       await _navigateBasedOnRole(role);
     } catch (e) {
       _handleUnauthenticated();

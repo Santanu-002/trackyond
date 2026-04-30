@@ -5,13 +5,11 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/team_status/presentation/controllers/team_status_controller.dart';
 import 'package:trackyond/features/owner/team_status/presentation/widgets/team_status_filter_chip.dart';
 
-class TeamFilterRow extends StatelessWidget {
+class TeamFilterRow extends GetView<TeamStatusController> {
   const TeamFilterRow({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<TeamStatusController>();
-
     return Row(
       children: [
         Expanded(
@@ -20,11 +18,11 @@ class TeamFilterRow extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
-              itemCount: TeamStatusController.filters.length,
+              itemCount: controller.filters.length,
               separatorBuilder: (context, index) =>
                   AppUIConstants.widgets.horizontalBox$8,
               itemBuilder: (context, index) {
-                final filter = TeamStatusController.filters[index];
+                final filter = controller.filters[index];
                 return TeamStatusFilterChip(
                   label: filter.label,
                   status: filter.status,
@@ -39,7 +37,7 @@ class TeamFilterRow extends StatelessWidget {
           return ActionChip(
             label: Text(
               isSelected ? 'Newest' : 'Oldest',
-              style: TextStyle(
+              style: context.textTheme.labelMedium?.copyWith(
                 color: context.theme.colorScheme.primary,
                 fontWeight: FontWeight.w600,
               ),
@@ -57,7 +55,9 @@ class TeamFilterRow extends StatelessWidget {
               size: 16,
               color: context.theme.colorScheme.primary,
             ),
-            side: BorderSide(color: context.theme.colorScheme.primary.withValues(alpha: 0.2)),
+            side: BorderSide(
+              color: context.theme.colorScheme.primary.withValues(alpha: 0.2),
+            ),
           );
         }),
       ],

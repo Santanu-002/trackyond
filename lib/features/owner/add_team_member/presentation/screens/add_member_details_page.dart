@@ -20,11 +20,18 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      title: AppStrings.addTeamMember.addNewMemberTile,
-      onBackPressed: () =>
-          controller.handleBackNavigation(() => _showDiscardDialog(context)),
-      child: Form(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          controller.handleBackNavigation(() => _showDiscardDialog(context));
+        }
+      },
+      child: AppScaffold(
+        title: AppStrings.addTeamMember.addNewMemberTile,
+        onBackPressed: () =>
+            controller.handleBackNavigation(() => _showDiscardDialog(context)),
+        child: Form(
         key: controller.formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,6 +123,12 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
                   hintText: AppStrings.addTeamMember.memberNameHint,
                   keyboardType: TextInputType.name,
                   prefixIcon: AppIcons.auth.user,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return AppStrings.addTeamMember.nameRequired;
+                    }
+                    return null;
+                  },
                 ),
                 AppTextField(
                   controller: controller.phoneController,
@@ -149,6 +162,15 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
                     FilteringTextInputFormatter.digitsOnly,
                     LengthLimitingTextInputFormatter(10),
                   ],
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return AppStrings.addTeamMember.phoneRequired;
+                    }
+                    if (value.trim().length < 10) {
+                      return AppStrings.addTeamMember.phoneInvalid;
+                    }
+                    return null;
+                  },
                 ),
                 AppTextField(
                   controller: controller.designationController,
@@ -205,7 +227,8 @@ class AddMemberDetailsPage extends GetView<AddTeamMemberController> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   void _showImagePickerSheet(BuildContext context) {

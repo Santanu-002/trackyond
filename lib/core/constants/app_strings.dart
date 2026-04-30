@@ -12,6 +12,9 @@ class AppStrings {
   static const workerDashboard = WorkerDashboardStrings();
   static const workerProfile = WorkerProfileStrings();
   static const drawer = DrawerStrings();
+  static const teamStatus = TeamStatusStrings();
+  static const teamMemberProfile = TeamMemberProfileStrings();
+  static const teamMemberAttendance = TeamMemberAttendanceStrings();
 }
 
 class CommonStrings {
@@ -20,6 +23,8 @@ class CommonStrings {
   String get appName => 'Trackyond';
 
   String get version => 'Trackyond v1.0.0';
+  
+  String get loading => 'Loading...';
 
   String get countryCode => '+91';
 
@@ -243,6 +248,12 @@ class AddTeamMemberStrings {
   String get chooseFromGallery => 'Choose from Gallery';
 
   String get removePhoto => 'Remove Photo';
+
+  String get nameRequired => 'Member name is required';
+
+  String get phoneRequired => 'Phone number is required';
+
+  String get phoneInvalid => 'Please enter a valid 10-digit phone number';
 }
 
 class OwnerDashboardStrings {
@@ -335,6 +346,16 @@ class WorkerDashboardStrings {
 
   String get fetchingLocation => 'Fetching location...';
 
+  String get checkingPermissions => 'Checking permissions...';
+
+  String get acquiringGps => 'Acquiring GPS signal...';
+
+  String get resolvingAddress => 'Resolving your address...';
+
+  String get syncingWithServer => 'Syncing with server...';
+
+  String get endingSession => 'Ending session...';
+
   String get recentJobs => 'Recent Jobs';
 
   String jobHash(int id) => 'Job #$id';
@@ -348,4 +369,66 @@ class WorkerProfileStrings {
   const WorkerProfileStrings();
 
   String get title => 'My Profile';
+}
+
+class TeamStatusStrings {
+  const TeamStatusStrings();
+
+  String get title => 'Team Status';
+  String get searchHint => 'Search members...';
+  String get searchByAll => 'All';
+  String get searchByName => 'Name';
+  String get searchByDesignation => 'Designation';
+  String get searchByPhone => 'Phone';
+  String get noMembersFound => 'No members found';
+  String get noMatchingMembers => 'No matching members found';
+  String get newest => 'Newest';
+  String get oldest => 'Oldest';
+  String get working => 'Working';
+  String get inactive => 'Inactive';
+  String get total => 'Total';
+}
+
+class TeamMemberProfileStrings {
+  const TeamMemberProfileStrings();
+
+  String get todayStatus => "Today's Status";
+  String get activeSince => 'Active Since';
+  String get attendanceLogs => 'Attendance Logs';
+  String get noLogsFound => 'No logs found for this period';
+  String get manageMember => 'Manage Member';
+  String get editProfile => 'Edit Profile';
+  String get markAsExEmployee => 'Mark as Ex-Employee';
+  String get exportLogs => 'Export Logs';
+  String get exportAsPdf => 'Export as PDF';
+  String get exportAsCsv => 'Export as CSV';
+  String get exportAsTxt => 'Export as TXT';
+  String get confirmExEmployeeTitle => 'Confirm';
+  String get confirmExEmployeeMessage =>
+      'Are you sure you want to mark this member as an ex-employee? This action cannot be undone.';
+  String get cancel => 'Cancel';
+  String get confirm => 'Confirm';
+  String get profileUpdated => 'Profile updated successfully';
+  String get memberMarkedExEmployee => 'Member marked as ex-employee';
+  String get failToExportPdf => 'Failed to export PDF';
+  String get failToExportCsv => 'Failed to export CSV';
+  String get failToExportTxt => 'Failed to export TXT';
+  String get designationLabel => 'Designation';
+  String get phoneLabel => 'Phone';
+  String get profileDetails => 'Profile Details';
+  String get memberInfo => 'Member Information';
+  String get contactInfo => 'Contact Information';
+  String get viewAllLogs => 'View All Logs';
+  String get searchLocation => 'Search by location...';
+  String get save => 'Save';
+}
+
+class TeamMemberAttendanceStrings {
+  const TeamMemberAttendanceStrings();
+
+  String get title => 'Attendance History';
+  String get searchHint => 'Search by location...';
+  String get selectDateRange => 'Select Date Range';
+  String get filterStatus => 'Filter Status';
+  String get export => 'Export';
 }

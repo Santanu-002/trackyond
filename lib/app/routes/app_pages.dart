@@ -20,6 +20,13 @@ import 'package:trackyond/features/worker/dashboard/presentation/screens/worker_
 import 'package:trackyond/features/worker/profile/presentation/bindings/worker_profile_binding.dart';
 import 'package:trackyond/features/worker/profile/presentation/screens/worker_profile_page.dart';
 import 'package:trackyond/features/attendance/presentation/bindings/attendance_binding.dart';
+import 'package:trackyond/features/owner/team_status/presentation/bindings/team_status_binding.dart';
+import 'package:trackyond/features/owner/team_status/presentation/bindings/team_member_profile_binding.dart';
+import 'package:trackyond/features/owner/team_status/presentation/screens/team_status_page.dart';
+import 'package:trackyond/features/owner/team_status/presentation/screens/team_member_profile_page.dart';
+import 'package:trackyond/features/owner/team_status/presentation/bindings/team_member_attendance_binding.dart';
+import 'package:trackyond/features/owner/team_status/presentation/screens/team_member_attendance_page.dart';
+
 
 class AppPages {
   const AppPages._();
@@ -80,7 +87,23 @@ class AppPages {
       binding: AddTeamMemberBinding(),
       transition: Transition.rightToLeft,
     ),
+    GetPage(
+      name: AppRoutes.owner.team,
+      page: () => const TeamStatusPage(),
+      binding: TeamStatusBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.owner.teamMemberProfile,
+      page: () => TeamMemberProfilePage(),
+      binding: TeamMemberProfileBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.owner.teamMemberAttendance,
+      page: () => const TeamMemberAttendancePage(),
+      binding: TeamMemberAttendanceBinding(),
+    ),
   ];
+
 
   static List<GetPage> get _workerPages => [
     GetPage(

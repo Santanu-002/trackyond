@@ -108,7 +108,7 @@ class AuthInterceptor extends Interceptor {
           ),
         );
       }
-    } catch (_) {
+    } catch (e) {
       await tokenService.clearTokens();
     }
   }

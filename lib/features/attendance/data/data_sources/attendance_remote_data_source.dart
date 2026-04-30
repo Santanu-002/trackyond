@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
-import 'package:trackyond/features/attendance/data/models/attendance_model.dart';
-import 'package:trackyond/features/attendance/data/models/attendance_request_model.dart';
-import 'package:trackyond/features/attendance/data/models/attendance_status_model.dart';
+import 'package:trackyond/features/attendance/data/models/attendace/attendance_model.dart';
+import 'package:trackyond/features/attendance/data/models/attendance_request/attendance_request_model.dart';
+import 'package:trackyond/features/attendance/data/models/attendance_status/attendance_status_model.dart';
 
 abstract interface class IAttendanceRemoteDataSource {
   Future<ApiResponse<AttendanceModel>> startAttendance(

@@ -62,6 +62,7 @@ class AppDrawer extends GetView<OwnerDashboardController> {
             ),
             child: AppButton.filled(
               borderRadius: AppUIConstants.radius.radius$12,
+              splashColor: theme.colorScheme.error.withValues(alpha: 0.1),
               gradientColors: [
                 theme.colorScheme.error.withValues(alpha: 0.1),
                 theme.colorScheme.error.withValues(alpha: 0.1),

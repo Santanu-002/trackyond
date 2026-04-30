@@ -95,7 +95,7 @@ class AuthService:
         user = db.query(models.User).filter(models.User.phone == phone).first()
         
         if role == "admin":
-            # If user exists as an employee, block owner login
+            # If user exists as an employee, block admin login for this number
             if user and user.role == "employee":
                 raise AppException(
                     message=f"{strings.access_denied}: This phone number is registered as an employee. Please login through the employee portal.",
@@ -109,8 +109,8 @@ class AuthService:
                     error_code="unauthorized_access"
                 )
             
-            # Employees must also have a member profile
-            member = db.query(models.Member).filter(models.Member.phone == phone).first()
+            # Employees must also have at least one member profile
+            member = db.query(models.Member).filter(models.Member.user_uid == user.uid).first()
             if not member:
                 raise AppException(
                     message="You have not been assigned to any company. Please contact your administrator.",
@@ -240,7 +240,7 @@ class AuthService:
             "remainingAttempts": self.MAX_ATTEMPTS - new_attempts
         }
 
-    def verify_otp_logic(self, db: Session, phone: str, otp_id: str, otp: str, current_device_id: str, device_metadata: dict = None) -> Tuple[bool, bool, dict]:
+    def verify_otp_logic(self, db: Session, phone: str, otp_id: str, otp: str, current_device_id: str, device_metadata: dict = None, role: str = "admin") -> Tuple[bool, bool, dict]:
         # 1. Verify Stateless Token
         payload = self._verify_otp_token(otp_id, phone, current_device_id)
         
@@ -276,7 +276,13 @@ class AuthService:
         user = db.query(models.User).filter(models.User.phone == phone).first()
         
         if not user:
-            # Create new user (default to admin for now, as employees are usually created by admins)
+            if role == "employee":
+                raise AppException(
+                    message="Your phone number is not registered. Please contact your administrator.",
+                    error_code="unauthorized_access"
+                )
+            
+            # Create new user for admin portal
             user = models.User(
                 uid=uuid.uuid4().hex[:10],
                 phone=phone,
@@ -285,6 +291,18 @@ class AuthService:
             )
             db.add(user)
             db.flush() # Get user.uid
+        elif user.role != role:
+            # Role mismatch check
+            if role == "admin":
+                 raise AppException(
+                    message=f"{strings.access_denied}: This phone number is registered as an employee. Please login through the employee portal.",
+                    error_code="access_denied"
+                )
+            else:
+                raise AppException(
+                    message=f"{strings.access_denied}: This phone number is registered as an administrator. Please login through the admin portal.",
+                    error_code="access_denied"
+                )
         
         # 7. Session management (Overwrite per device_id)
         existing_session = db.query(models.Session).filter(
@@ -349,6 +367,7 @@ class AuthService:
                 # 4. Fill response data
                 response_data["profile"] = {
                     "accountUid": active_member.account_uid,
+                    "userUid": user.uid,
                     "name": active_member.name,
                     "phone": active_member.phone,
                     "designation": active_member.designation,
@@ -360,8 +379,9 @@ class AuthService:
                 if company:
                     response_data["company"] = {
                         "companyId": company.company_id,
-                        "name": company.name,
+                        "companyName": company.name,
                         "teamSize": company.team_size,
+                        "ownerUid": company.owner_uid,
                     }
         
         return True, user.is_new_user, response_data

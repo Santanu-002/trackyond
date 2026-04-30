@@ -3,11 +3,13 @@ part of 'app_button.dart';
 class _GhostAppButton extends StatelessWidget {
   final String? text;
   final Widget? child;
+  final Widget? leading;
   final VoidCallback? onPressed;
   final double? width;
   final double? height;
   final Color? color;
   final double? borderRadius;
+  final AppButtonShape shape;
   final bool isLoading;
   final EdgeInsetsGeometry? padding;
   final VisualDensity? visualDensity;
@@ -16,11 +18,13 @@ class _GhostAppButton extends StatelessWidget {
     super.key,
     this.text,
     this.child,
+    this.leading,
     this.onPressed,
     this.width,
     this.height,
     this.color,
     this.borderRadius,
+    required this.shape,
     this.isLoading = false,
     this.padding,
     this.visualDensity,
@@ -28,7 +32,7 @@ class _GhostAppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(borderRadius ?? 9999);
+    final radius = _getBorderRadius(shape, borderRadius);
 
     return SizedBox(
       width: width,
@@ -45,6 +49,7 @@ class _GhostAppButton extends StatelessWidget {
           text: text,
           type: AppButtonType.ghost,
           color: color,
+          leading: leading,
           isLoading: isLoading,
           child: child,
         ),

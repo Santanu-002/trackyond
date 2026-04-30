@@ -17,6 +17,9 @@ class RecentJobsSection extends GetView<OwnerDashboardController> {
       title: AppStrings.ownerDashboard.recentJobs,
       onActionPressed: controller.goToJobs,
       actionLabel: AppStrings.ownerDashboard.viewAll,
+      childPadding: EdgeInsets.symmetric(
+        horizontal: AppUIConstants.spacing.space$24,
+      ),
       child: Obx(
         () => ListView.separated(
           shrinkWrap: true,

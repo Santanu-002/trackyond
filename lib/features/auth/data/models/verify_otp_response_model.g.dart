@@ -19,6 +19,12 @@ _VerifyOtpResponseModel _$VerifyOtpResponseModelFromJson(
   accessExpireAt: json['accessExpireAt'] as String,
   refreshExpireAt: json['refreshExpireAt'] as String,
   tokenIssuedAt: json['tokenIssuedAt'] as String,
+  profile: json['profile'] == null
+      ? null
+      : MemberProfileModel.fromJson(json['profile'] as Map<String, dynamic>),
+  company: json['company'] == null
+      ? null
+      : CompanyModel.fromJson(json['company'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$VerifyOtpResponseModelToJson(
@@ -34,6 +40,8 @@ Map<String, dynamic> _$VerifyOtpResponseModelToJson(
   'accessExpireAt': instance.accessExpireAt,
   'refreshExpireAt': instance.refreshExpireAt,
   'tokenIssuedAt': instance.tokenIssuedAt,
+  'profile': instance.profile,
+  'company': instance.company,
 };
 
 const _$UserRoleEnumMap = {UserRole.owner: 'owner', UserRole.worker: 'worker'};

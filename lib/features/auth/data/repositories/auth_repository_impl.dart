@@ -68,11 +68,20 @@ class AuthRepositoryImpl implements IAuthRepository {
           _userService.setUser(userModel);
           _userService.saveUserRole(role);
 
+          if (data.profile != null) {
+            _userService.setProfile(data.profile!);
+          }
+          if (data.company != null) {
+            _userService.setCompany(data.company!);
+          }
+
           return Right(
             VerifyOtpEntity(
               user: userModel.toEntity(),
               isNewUser: data.isNewUser,
               role: role,
+              profile: data.profile?.toEntity(),
+              company: data.company?.toEntity(),
             ),
           );
         }

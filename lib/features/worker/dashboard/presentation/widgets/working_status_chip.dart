@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:trackyond/core/common/widgets/chip/app_status_chip.dart';
-import 'package:trackyond/core/constants/app_strings.dart';
-
 import 'package:trackyond/core/common/enums/attendance_status.dart';
+import 'package:trackyond/features/worker/dashboard/presentation/widgets/working_status_content.dart';
 
 class WorkingStatusChip extends StatelessWidget {
   final AttendanceStatus status;
@@ -25,25 +23,7 @@ class WorkingStatusChip extends StatelessWidget {
           ),
         );
       },
-      child: _buildChip(context),
+      child: WorkingStatusContent(status: status),
     );
-  }
-
-  Widget _buildChip(BuildContext context) {
-    switch (status) {
-      case AttendanceStatus.working:
-        return AppStatusChip(
-          key: const ValueKey('working_chip'),
-          label: AppStrings.ownerDashboard.working,
-        );
-      case AttendanceStatus.ended:
-        return AppStatusChip(
-          key: const ValueKey('ended_chip'),
-          label: 'Ended',
-          color: Colors.green, // Or use a theme color if available
-        );
-      case AttendanceStatus.notStarted:
-        return const SizedBox.shrink(key: ValueKey('empty'));
-    }
   }
 }

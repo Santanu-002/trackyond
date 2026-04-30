@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:trackyond/features/attendance/data/models/attendance_model.dart';
+import 'package:trackyond/features/attendance/data/models/attendace/attendance_model.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/features/attendance/domain/entities/attendance_status_entity.dart';
 

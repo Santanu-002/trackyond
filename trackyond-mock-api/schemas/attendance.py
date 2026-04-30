@@ -20,6 +20,8 @@ class AttendanceResponse(BaseModel):
     endLatitude: Optional[float] = None
     endLongitude: Optional[float] = None
     workHours: Optional[float] = None
+    startAddress: Optional[str] = None
+    endAddress: Optional[str] = None
     status: str
 
     class Config:

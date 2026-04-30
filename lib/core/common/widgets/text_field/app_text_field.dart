@@ -13,6 +13,7 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final Widget? prefix;
   final IconData? prefixIcon;
+  final double? prefixIconSize;
   final Widget? suffix;
   final int? maxLength;
   final String? errorText;
@@ -23,6 +24,7 @@ class AppTextField extends StatelessWidget {
   final Iterable<String>? autofillHints;
   final void Function(String)? onChanged;
   final bool autofocus;
+  final BorderRadius? borderRadius;
 
   const AppTextField({
     super.key,
@@ -35,6 +37,7 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.prefix,
     this.prefixIcon,
+    this.prefixIconSize,
     this.suffix,
     this.maxLength,
     this.errorText,
@@ -45,14 +48,16 @@ class AppTextField extends StatelessWidget {
     this.autofillHints,
     this.onChanged,
     this.autofocus = false,
+    this.borderRadius,
   });
   @override
   Widget build(BuildContext context) {
-    final Widget? effectivePrefix = prefix ??
+    final Widget? effectivePrefix =
+        prefix ??
         (prefixIcon != null
             ? Icon(
                 prefixIcon,
-                size: 20,
+                size: prefixIconSize ?? 20,
                 color: context.theme.colorScheme.primary,
               )
             : null);
@@ -99,8 +104,27 @@ class AppTextField extends StatelessWidget {
                     alpha: 0.3,
                   )
                 : null,
-            focusedBorder: readOnly
-                ? context.theme.inputDecorationTheme.enabledBorder
+            focusedBorder: borderRadius != null
+                ? OutlineInputBorder(
+                    borderRadius: borderRadius!,
+                    borderSide: BorderSide(
+                      color: context.theme.colorScheme.primary,
+                      width: 2,
+                    ),
+                  )
+                : (readOnly
+                      ? context.theme.inputDecorationTheme.enabledBorder
+                      : null),
+            enabledBorder: borderRadius != null
+                ? OutlineInputBorder(
+                    borderRadius: borderRadius!,
+                    borderSide: BorderSide(
+                      color: context.theme.colorScheme.outlineVariant,
+                    ),
+                  )
+                : null,
+            border: borderRadius != null
+                ? OutlineInputBorder(borderRadius: borderRadius!)
                 : null,
           ),
         ),

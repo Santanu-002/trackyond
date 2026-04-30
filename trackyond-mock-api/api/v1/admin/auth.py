@@ -48,7 +48,7 @@ async def verify_otp(
     }
     
     success, is_new_user, data = auth_service.verify_otp_logic(
-        db, req.phone, req.otp_id, req.otp, device_id, metadata
+        db, req.phone, req.otp_id, req.otp, device_id, metadata, role="admin"
     )
     
     if not success:

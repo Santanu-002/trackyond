@@ -20,6 +20,7 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
 
     return AppNavLayout(
       title: strings.title,
+      padding: EdgeInsets.zero,
       onFabPressed: () {
         // TODO: Implement FAB action (e.g., navigate to create job)
       },

@@ -20,12 +20,12 @@ class AttendanceInfoItem {
     switch (type) {
       case AttendanceInfoType.clock:
         if (value is DateTime) {
-          return DateFormat('hh:mm a').format(value);
+          return DateFormat('hh:mm a').format(value.toLocal());
         }
         return value.toString();
       case AttendanceInfoType.calendar:
         if (value is DateTime) {
-          return DateFormat('EEE, MMM d, yyyy').format(value);
+          return DateFormat('EEE, MMM d, yyyy').format(value.toLocal());
         }
         return value.toString();
       default:

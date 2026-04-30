@@ -1,5 +1,9 @@
 import 'package:get/get.dart';
 
+import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
+
 class WorkerProfileController extends GetxController {
-  // TODO: Add worker profile logic
+  Future<void> logout() async {
+    await Get.find<AuthController>().logout();
+  }
 }

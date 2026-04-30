@@ -90,14 +90,16 @@ class AuthController extends GetxController {
     _isLoading.value = true;
     try {
       final isRefreshValid = await isAuthenticated;
-
-      if (!isRefreshValid || !await isLoggedIn) {
+      final loggedIn = await isLoggedIn;
+      
+      if (!isRefreshValid || !loggedIn) {
         _handleUnauthenticated();
         return;
       }
 
       // 3. User exists, check status and navigate
-      await _navigateBasedOnRole(await userRole);
+      final role = await userRole;
+      await _navigateBasedOnRole(role);
     } catch (e) {
       _handleUnauthenticated();
     } finally {

@@ -5,6 +5,7 @@ class _AppButtonContent extends StatelessWidget {
   final Widget? child;
   final AppButtonType type;
   final Color? color;
+  final Widget? leading;
   final bool isLoading;
 
   const _AppButtonContent({
@@ -12,6 +13,7 @@ class _AppButtonContent extends StatelessWidget {
     required this.type,
     this.color,
     this.child,
+    this.leading,
     this.isLoading = false,
   });
 
@@ -27,14 +29,42 @@ class _AppButtonContent extends StatelessWidget {
         ),
       );
     }
-    return child ??
-        Text(
-          text ?? '',
-          style: context.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: _getTextColor(context),
-          ),
-        );
+    if (child != null || leading != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (leading != null) ...[
+            IconTheme.merge(
+              data: IconThemeData(
+                size: 20,
+                color: _getTextColor(context),
+              ),
+              child: leading!,
+            ),
+            AppUIConstants.widgets.horizontalBox$8,
+          ],
+          if (child != null)
+            child!
+          else
+            Text(
+              text ?? '',
+              style: context.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: _getTextColor(context),
+              ),
+            ),
+        ],
+      );
+    }
+
+    return Text(
+      text ?? '',
+      style: context.textTheme.labelLarge?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: _getTextColor(context),
+      ),
+    );
   }
 
   Color _getTextColor(BuildContext context) {

@@ -2,7 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/attendance/data/data_sources/attendance_remote_data_source.dart';
-import 'package:trackyond/features/attendance/data/models/attendance_request_model.dart';
+import 'package:trackyond/features/attendance/data/models/attendance_request/attendance_request_model.dart';
 import 'package:trackyond/features/attendance/domain/entities/attendance_entity.dart';
 import 'package:trackyond/features/attendance/domain/entities/attendance_status_entity.dart';
 import 'package:trackyond/features/attendance/domain/repositories/attendance_repository.dart';

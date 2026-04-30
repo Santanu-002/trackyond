@@ -3,6 +3,9 @@ import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
 import 'package:trackyond/features/auth/data/models/user/user_model.dart';
 
+import 'package:trackyond/core/common/models/company/company_model.dart';
+import 'package:trackyond/core/common/models/member/member_profile_model.dart';
+
 part 'verify_otp_response_model.freezed.dart';
 part 'verify_otp_response_model.g.dart';
 
@@ -19,6 +22,8 @@ sealed class VerifyOtpResponseModel with _$VerifyOtpResponseModel {
     required String accessExpireAt,
     required String refreshExpireAt,
     required String tokenIssuedAt,
+    MemberProfileModel? profile,
+    CompanyModel? company,
   }) = _VerifyOtpResponseModel;
 
   const VerifyOtpResponseModel._();

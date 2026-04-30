@@ -1,36 +1,39 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from datetime import datetime
 from core.utils.datetime_utils import to_utc_iso
-from db import models, database
+from db import database
 from fastapi.exceptions import RequestValidationError
-from fastapi.staticfiles import StaticFiles
 from api.api import api_router
 from core.errors.exceptions import AppException, app_exception_handler, validation_exception_handler
 from core.middleware.device_metadata import DeviceMetadataMiddleware
 from core.database.redis_client import get_redis
 import os
-
-# Create tables / Apply migrations
+import sys
 import subprocess
 import logging
 
-def run_migrations():
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager for startup and shutdown events."""
     try:
-        logging.info("Running database migrations...")
-        # Run alembic upgrade head
-        result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True)
-        if result.returncode != 0:
-            logging.error(f"Migration failed: {result.stderr}")
-        else:
-            logging.info("Migrations applied successfully.")
+        print("[STARTUP] Applying database migrations...")
+        # Use sys.executable so we always invoke the same Python env as the running process.
+        result = subprocess.run(
+            [sys.executable, "-m", "alembic", "upgrade", "head"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        print(f"[STARTUP] Migrations applied successfully:\n{result.stdout}")
+    except subprocess.CalledProcessError as e:
+        print(f"[STARTUP] Migration failed:\n{e.stderr}")
     except Exception as e:
-        logging.error(f"Error running migrations: {str(e)}")
+        print(f"[STARTUP] Unexpected error during migration: {e}")
+    yield
 
-# Apply migrations on startup
-run_migrations()
-models.Base.metadata.create_all(bind=database.engine)
 
-app = FastAPI(title="Trackyond Mock API")
+app = FastAPI(title="Trackyond Mock API", lifespan=lifespan)
 
 # Register Exception Handlers
 app.add_exception_handler(AppException, app_exception_handler)

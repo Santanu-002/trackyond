@@ -10,7 +10,7 @@ router = APIRouter(prefix="/auth", tags=["Employee/Auth"])
 
 @router.post("/send-otp", response_model=GenericResponse)
 async def send_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: str = Header(alias="device-id")):
-    data = auth_service.send_otp_logic(db, req.phone, device_id, role="worker")
+    data = auth_service.send_otp_logic(db, req.phone, device_id, role="employee")
     return GenericResponse(
         success=True,
         message=strings.otp_sent,
@@ -19,7 +19,7 @@ async def send_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: st
 
 @router.post("/resend-otp", response_model=GenericResponse)
 async def resend_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: str = Header(alias="device-id")):
-    data = auth_service.send_otp_logic(db, req.phone, device_id, is_resend=True, role="worker")
+    data = auth_service.send_otp_logic(db, req.phone, device_id, is_resend=True, role="employee")
     return GenericResponse(
         success=True,
         message=strings.otp_resent,
@@ -48,7 +48,7 @@ async def verify_otp(
     }
     
     success, is_new_user, data = auth_service.verify_otp_logic(
-        db, req.phone, req.otp_id, req.otp, device_id, metadata
+        db, req.phone, req.otp_id, req.otp, device_id, metadata, role="employee"
     )
     
     if not success:
@@ -58,6 +58,20 @@ async def verify_otp(
         success=True,
         message=strings.login_success,
         data=data
+    )
+
+@router.post("/refresh", response_model=GenericResponse)
+async def refresh_token(
+    db: Session = Depends(get_db),
+    authorization: str = Header(...),
+    x_refresh_token: str = Header(alias="x-refresh-token"),
+    device_id: str = Header(alias="device-id")
+):
+    tokens = auth_service.refresh_token_logic(db, authorization, x_refresh_token, device_id)
+    return GenericResponse(
+        success=True,
+        message="Token refreshed successfully",
+        data=tokens
     )
 
 @router.post("/logout", response_model=GenericResponse)

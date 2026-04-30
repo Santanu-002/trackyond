@@ -19,6 +19,9 @@ class TaskStatsSection extends StatelessWidget {
 
     return AppSection(
       title: strings.statsTitle,
+      childPadding: EdgeInsets.symmetric(
+        horizontal: AppUIConstants.spacing.space$24,
+      ),
       child: Row(
         spacing: AppUIConstants.spacing.space$12,
         children: List.generate(stats.length, (index) {

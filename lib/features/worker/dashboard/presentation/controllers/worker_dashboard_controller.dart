@@ -48,6 +48,7 @@ class WorkerDashboardController extends GetxController {
   final currentLocation = RxnString();
   final elapsedTime = '00:00:00'.obs;
   final isActionLoading = false.obs;
+  final actionLoadingMessage = RxnString();
 
   // Location Status
   final isLocationEnabled = false.obs;
@@ -121,11 +122,15 @@ class WorkerDashboardController extends GetxController {
 
       if (statusEntity.status == AttendanceStatus.working &&
           statusEntity.attendance != null) {
-        punchInTime.value = statusEntity.attendance!.startAt;
-        currentLocation.value = statusEntity.attendance!.address;
-        _startTimer();
+        currentLocation.value = statusEntity.attendance!.startAddress;
+        startTimer(statusEntity.attendance!.startAt);
       }
     });
+  }
+
+  Future<void> _setPhase(String message) async {
+    actionLoadingMessage.value = message;
+    await Future.delayed(const Duration(milliseconds: 800));
   }
 
   void startMyDay() async {
@@ -134,6 +139,7 @@ class WorkerDashboardController extends GetxController {
     if (accountUid == null) return;
 
     isActionLoading.value = true;
+    await _setPhase(AppStrings.workerDashboard.checkingPermissions);
 
     try {
       final permission = await Geolocator.checkPermission();
@@ -143,6 +149,7 @@ class WorkerDashboardController extends GetxController {
           permission == LocationPermission.deniedForever) {
         _requestLocationPermission();
         isActionLoading.value = false;
+        actionLoadingMessage.value = null;
         return;
       }
 
@@ -151,19 +158,25 @@ class WorkerDashboardController extends GetxController {
       if (!isEnabled) {
         AppSnackbar.warn(AppStrings.workerDashboard.locationDisabledMessage);
         isActionLoading.value = false;
+        actionLoadingMessage.value = null;
         return;
       }
 
+      await _setPhase(AppStrings.workerDashboard.acquiringGps);
       final position = await Geolocator.getCurrentPosition(
         locationSettings:
             const LocationSettings(accuracy: LocationAccuracy.high),
-      );
+      ).timeout(const Duration(seconds: 10), onTimeout: () {
+        throw TimeoutException("Location request timed out. Please check your GPS.");
+      });
 
+      await _setPhase(AppStrings.workerDashboard.resolvingAddress);
       final address = await _getAddressFromLatLng(
         position.latitude,
         position.longitude,
       );
 
+      await _setPhase(AppStrings.workerDashboard.syncingWithServer);
       final result = await _startAttendanceUseCase(
         StartAttendanceParams(
           accountUid: accountUid,
@@ -173,21 +186,21 @@ class WorkerDashboardController extends GetxController {
         ),
       );
 
-      result.fold((failure) => AppSnackbar.destructive(failure.message), (
-        attendance,
-      ) {
-        attendanceStatus.value = AttendanceStatus.working;
-        attendanceInfo.value = attendance;
-        punchInTime.value = attendance.startAt;
-        currentLocation.value =
-            address ?? '${position.latitude}, ${position.longitude}';
-        _startTimer();
-        AppSnackbar.success(AppStrings.workerDashboard.workDayStarted);
-      });
+      result.fold(
+        (failure) => AppSnackbar.destructive(failure.message),
+        (attendance) {
+          attendanceStatus.value = AttendanceStatus.working;
+          attendanceInfo.value = attendance;
+          currentLocation.value = attendance.startAddress;
+          startTimer(DateTime.now());
+          AppSnackbar.success(AppStrings.workerDashboard.workDayStarted);
+        },
+      );
     } catch (e) {
       AppSnackbar.destructive(e.toString());
     } finally {
       isActionLoading.value = false;
+      actionLoadingMessage.value = null;
     }
   }
 
@@ -197,6 +210,7 @@ class WorkerDashboardController extends GetxController {
     if (accountUid == null) return;
 
     isActionLoading.value = true;
+    await _setPhase(AppStrings.workerDashboard.acquiringGps);
 
     try {
       final permission = await Geolocator.checkPermission();
@@ -206,6 +220,7 @@ class WorkerDashboardController extends GetxController {
           permission == LocationPermission.deniedForever) {
         _requestLocationPermission();
         isActionLoading.value = false;
+        actionLoadingMessage.value = null;
         return;
       }
 
@@ -214,11 +229,13 @@ class WorkerDashboardController extends GetxController {
             const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
+      await _setPhase(AppStrings.workerDashboard.resolvingAddress);
       final address = await _getAddressFromLatLng(
         position.latitude,
         position.longitude,
       );
 
+      await _setPhase(AppStrings.workerDashboard.endingSession);
       final result = await _endAttendanceUseCase(
         EndAttendanceParams(
           accountUid: accountUid,
@@ -231,14 +248,16 @@ class WorkerDashboardController extends GetxController {
       result.fold((failure) => AppSnackbar.destructive(failure.message), (
         attendance,
       ) {
-        attendanceStatus.value = AttendanceStatus.ended;
+        attendanceStatus.value = AttendanceStatus.notStarted;
         attendanceInfo.value = attendance;
-        _timer?.cancel();
+        stopTimer();
+        currentLocation.value = null;
       });
     } catch (e) {
       AppSnackbar.destructive(e.toString());
     } finally {
       isActionLoading.value = false;
+      actionLoadingMessage.value = null;
     }
   }
 
@@ -255,17 +274,35 @@ class WorkerDashboardController extends GetxController {
     return null;
   }
 
-  void _startTimer() {
+  void startTimer(DateTime startTime) {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (punchInTime.value != null) {
-        final duration = DateTime.now().difference(punchInTime.value!);
-        final hours = duration.inHours.toString().padLeft(2, '0');
-        final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
-        final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-        elapsedTime.value = '$hours:$minutes:$seconds';
-      }
-    });
+    
+    // Set initial value
+    punchInTime.value = startTime;
+
+    void tick() {
+      final now = DateTime.now().toUtc();
+      final start = startTime.toUtc();
+      final duration = now.difference(start);
+      
+      final totalSeconds = (duration.inMilliseconds / 1000).round();
+      final displaySeconds = totalSeconds < 0 ? 0 : totalSeconds;
+
+      final hours = (displaySeconds ~/ 3600).toString().padLeft(2, '0');
+      final minutes = ((displaySeconds % 3600) ~/ 60).toString().padLeft(2, '0');
+      final seconds = (displaySeconds % 60).toString().padLeft(2, '0');
+      elapsedTime.value = '$hours:$minutes:$seconds';
+    }
+
+    tick();
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (_) => tick());
+  }
+
+  void stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+    punchInTime.value = null;
+    elapsedTime.value = '00:00:00';
   }
 
   // Getters

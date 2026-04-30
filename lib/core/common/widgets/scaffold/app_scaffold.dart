@@ -48,7 +48,7 @@ class AppScaffold extends StatelessWidget {
         floatingActionButton: floatingActionButton,
         floatingActionButtonLocation: floatingActionButtonLocation,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: context.theme.scaffoldBackgroundColor,
           elevation: 0,
           centerTitle: true,
           title: title != null ? Text(title!) : null,

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+from core.utils.datetime_utils import now_utc
 from .database import Base
 
 class User(Base):
@@ -11,8 +12,8 @@ class User(Base):
     role = Column(String) # admin | employee
     is_new_user = Column(Boolean, default=True)
     primary_account_uid = Column(String, nullable=True) # UID of the primary Member/Profile record
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=now_utc)
+    updated_at = Column(DateTime, default=now_utc, onupdate=now_utc)
 
 class Session(Base):
     __tablename__ = "sessions"
@@ -20,9 +21,9 @@ class Session(Base):
     user_uid = Column(String, ForeignKey("users.uid"))
     device_id = Column(String)
     refresh_token = Column(String, nullable=True)
-    login_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    login_at = Column(DateTime, default=now_utc)
     logout_at = Column(DateTime, nullable=True)
-    session_updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    session_updated_at = Column(DateTime, default=now_utc)
     device_metadata = Column(Text) # JSON string
 
 class Company(Base):

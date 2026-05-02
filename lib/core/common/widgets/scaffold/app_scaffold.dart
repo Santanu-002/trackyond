@@ -42,7 +42,6 @@ class AppScaffold extends StatelessWidget {
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.opaque,
       child: Scaffold(
-        backgroundColor: context.theme.scaffoldBackgroundColor,
         drawer: drawer,
         endDrawer: endDrawer,
         floatingActionButton: floatingActionButton,

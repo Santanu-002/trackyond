@@ -106,11 +106,61 @@ class _AppWidgets {
 class _AppShadows {
   const _AppShadows();
 
-  List<BoxShadow> get cardShadow => [
+  List<BoxShadow> get xs => [
     BoxShadow(
       color: Get.theme.colorScheme.onSurface.withValues(alpha: 0.05),
-      blurRadius: 10,
+      blurRadius: 2,
+      offset: const Offset(0, 1),
+    ),
+  ];
+
+  List<BoxShadow> get sm => [
+    BoxShadow(
+      color: Get.theme.colorScheme.onSurface.withValues(alpha: 0.08),
+      blurRadius: 4,
+      offset: const Offset(0, 2),
+    ),
+  ];
+
+  List<BoxShadow> get normal => [
+    BoxShadow(
+      color: Get.theme.colorScheme.onSurface.withValues(alpha: 0.1),
+      blurRadius: 8,
       offset: const Offset(0, 4),
     ),
   ];
+
+  List<BoxShadow> get md => [
+    BoxShadow(
+      color: Get.theme.colorScheme.onSurface.withValues(alpha: 0.12),
+      blurRadius: 12,
+      offset: const Offset(0, 6),
+    ),
+  ];
+
+  List<BoxShadow> get lg => [
+    BoxShadow(
+      color: Get.theme.colorScheme.onSurface.withValues(alpha: 0.15),
+      blurRadius: 20,
+      offset: const Offset(0, 10),
+    ),
+  ];
+
+  List<BoxShadow> get xl => [
+    BoxShadow(
+      color: Get.theme.colorScheme.onSurface.withValues(alpha: 0.2),
+      blurRadius: 30,
+      offset: const Offset(0, 15),
+    ),
+  ];
+
+  List<BoxShadow> get xxl => [
+    BoxShadow(
+      color: Get.theme.colorScheme.onSurface.withValues(alpha: 0.25),
+      blurRadius: 50,
+      offset: const Offset(0, 25),
+    ),
+  ];
+
+  List<BoxShadow> get cardShadow => normal;
 }

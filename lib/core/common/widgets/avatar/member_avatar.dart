@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
+import 'package:trackyond/core/utils/avatar_utils.dart';
 
 class MemberAvatar extends StatelessWidget {
   final String name;
@@ -23,9 +24,7 @@ class MemberAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final avatarRadius = radius ?? AppUIConstants.radius.radius$24;
-    final colorIndex =
-        name.hashCode.abs() % AppUIConstants.colors.avatarColors.length;
-    final avatarColor = AppUIConstants.colors.avatarColors[colorIndex];
+    final avatarColor = avatarColorFromName(name);
 
     String? imageUrl;
     File? localFile;

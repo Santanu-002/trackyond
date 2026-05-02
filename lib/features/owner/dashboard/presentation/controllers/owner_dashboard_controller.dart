@@ -10,7 +10,7 @@ import 'package:trackyond/features/owner/dashboard/domain/entities/dashboard_sta
 import 'package:trackyond/features/owner/dashboard/domain/entities/drawer_item_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/recent_job.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/task_stat_config.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/team_member_status_entity.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 
 class OwnerDashboardController extends GetxController {
@@ -155,5 +155,9 @@ class OwnerDashboardController extends GetxController {
 
   void goToTeam() {
     Get.toNamed(AppRoutes.owner.team);
+  }
+
+  void goToMemberProfile(TeamMemberStatusEntity member) {
+    Get.toNamed(AppRoutes.owner.teamMemberProfile, arguments: member);
   }
 }

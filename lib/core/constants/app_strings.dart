@@ -38,6 +38,8 @@ class CommonStrings {
   String get and => ' and ';
 
   String get privacyPolicy => 'Privacy Policy';
+
+  String get copied => 'Copied!';
 }
 
 class ChooseRoleStrings {

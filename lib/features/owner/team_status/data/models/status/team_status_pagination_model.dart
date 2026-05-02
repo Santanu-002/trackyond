@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/team_status_pagination_entity.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_pagination_entity.dart';
 
 part 'team_status_pagination_model.freezed.dart';
 part 'team_status_pagination_model.g.dart';
@@ -21,3 +21,4 @@ sealed class TeamStatusPaginationModel with _$TeamStatusPaginationModel {
         totalItems: totalItems,
       );
 }
+

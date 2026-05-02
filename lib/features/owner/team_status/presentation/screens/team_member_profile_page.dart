@@ -13,17 +13,15 @@ class TeamMemberProfilePage extends GetView<TeamMemberProfilePageController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(() {
-        final member = controller.member.value;
-        if (member == null) {
+        final memberStatus = controller.memberStatus.value;
+        if (memberStatus == null) {
           return const Center(child: CircularProgressIndicator());
         }
 
         return CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
+          physics: const ClampingScrollPhysics(),
           slivers: [
-            MemberProfileHeader(member: member),
+            MemberProfileHeader(memberStatus: memberStatus),
             SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,6 +29,57 @@ class TeamMemberProfilePage extends GetView<TeamMemberProfilePageController> {
                   const MemberProfileActions(),
                   const Divider(height: 1),
                   const MemberProfileSettings(),
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
+                  AppUIConstants.widgets.verticalBox$32,
                   AppUIConstants.widgets.verticalBox$32,
                 ],
               ),

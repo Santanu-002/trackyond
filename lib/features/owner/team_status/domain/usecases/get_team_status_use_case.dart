@@ -1,7 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/core/usecase/usecase.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/team_status_entity.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/repositories/i_team_status_repository.dart';
 
 class GetTeamStatusUseCase implements BaseUseCase<TeamStatusEntity, GetTeamStatusParams> {
@@ -26,3 +26,4 @@ class GetTeamStatusParams {
 
   GetTeamStatusParams({this.statusFilter, this.order, this.limit = 50});
 }
+

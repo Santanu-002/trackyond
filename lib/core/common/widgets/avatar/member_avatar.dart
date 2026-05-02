@@ -51,13 +51,13 @@ class MemberAvatar extends StatelessWidget {
                 width: avatarRadius * 2,
                 height: avatarRadius * 2,
                 placeholder: (context, url) =>
-                    _buildPlaceholder(context, avatarColor),
+                    _buildPlaceholder(context, avatarColor, avatarRadius),
                 errorWidget: (context, url, error) =>
-                    _buildPlaceholder(context, avatarColor),
+                    _buildPlaceholder(context, avatarColor, avatarRadius),
               ),
             )
           : (localFile == null
-                ? _buildPlaceholder(context, avatarColor)
+                ? _buildPlaceholder(context, avatarColor, avatarRadius)
                 : null),
     );
 
@@ -72,13 +72,18 @@ class MemberAvatar extends StatelessWidget {
     return avatar;
   }
 
-  Widget _buildPlaceholder(BuildContext context, Color avatarColor) {
+  Widget _buildPlaceholder(
+    BuildContext context,
+    Color avatarColor,
+    double radius,
+  ) {
     return Center(
       child: Text(
         name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
         style: context.textTheme.titleMedium?.copyWith(
           color: context.theme.colorScheme.onPrimary,
           fontWeight: FontWeight.bold,
+          fontSize: radius * .75,
         ),
       ),
     );

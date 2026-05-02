@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/team_status_stats_entity.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_stats_entity.dart';
 
 part 'team_status_stats_model.freezed.dart';
 part 'team_status_stats_model.g.dart';
@@ -23,3 +23,4 @@ sealed class TeamStatusStatsModel with _$TeamStatusStatsModel {
         notStarted: notStarted,
       );
 }
+

@@ -7,12 +7,14 @@ class MemberInfoRow extends StatelessWidget {
   final String? designation;
   final String? phone;
   final String? highlight;
+  final String? accountUid;
 
   const MemberInfoRow({
     super.key,
     this.designation,
     this.phone,
     this.highlight,
+    this.accountUid,
   });
 
   @override

@@ -38,13 +38,32 @@ async def start_attendance(req: MarkAttendanceRequest, db: Session = Depends(get
     if not member:
         return GenericResponse(success=False, message=strings.member_not_found)
     
+    today_start = now_utc().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # 1. End any stale sessions from previous days
+    stale_sessions = db.query(models.Attendance).filter(
+        models.Attendance.account_uid == req.accountUid,
+        models.Attendance.status == AttendanceStatus.WORKING,
+        models.Attendance.created_at < today_start
+    ).all()
+    
+    for session in stale_sessions:
+        session.status = AttendanceStatus.ENDED
+        session.end_at = session.start_at # Fallback end time
+        session.end_address = "Auto-closed (stale)"
+    
+    if stale_sessions:
+        db.commit()
+
+    # 2. Check for active session today
     active_session = db.query(models.Attendance).filter(
         models.Attendance.account_uid == req.accountUid,
-        models.Attendance.status == AttendanceStatus.WORKING
+        models.Attendance.status == AttendanceStatus.WORKING,
+        models.Attendance.created_at >= today_start
     ).first()
     
     if active_session:
-        return GenericResponse(success=False, message="Attendance already marked for start")
+        return GenericResponse(success=False, message="Attendance already marked for start today")
 
     attendance = models.Attendance(
         account_uid=req.accountUid,

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/team_status/presentation/controllers/team_status_controller.dart';
-import 'package:trackyond/features/owner/team_status/presentation/widgets/team_status_filter_chip.dart';
+import 'package:trackyond/features/owner/team_status/presentation/widgets/filter/team_status_filter_chip.dart';
 
 class TeamFilterRow extends GetView<TeamStatusController> {
   const TeamFilterRow({super.key});
@@ -64,3 +64,4 @@ class TeamFilterRow extends GetView<TeamStatusController> {
     );
   }
 }
+

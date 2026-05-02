@@ -324,7 +324,7 @@ class AppTheme {
     return SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return Colors.white;
+          return colors.surface;
         }
         return null;
       }),

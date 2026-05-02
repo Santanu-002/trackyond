@@ -3,29 +3,34 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
+import 'package:trackyond/core/common/widgets/chip/app_status_chip.dart';
+import 'package:trackyond/core/common/widgets/chip/app_tag.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/theme/app_colors.dart';
 import 'package:trackyond/core/utils/avatar_utils.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/features/owner/team_status/presentation/controllers/team_member_profile_page_controller.dart';
+import 'package:trackyond/features/owner/team_status/presentation/widgets/member/attendance_status_time.dart';
 
-class MemberProfileHeader extends StatelessWidget {
-  final MemberProfile member;
+class MemberProfileHeader extends GetView<TeamMemberProfilePageController> {
+  final TeamMemberStatusEntity memberStatus;
 
-  const MemberProfileHeader({super.key, required this.member});
+  const MemberProfileHeader({super.key, required this.memberStatus});
 
   @override
   Widget build(BuildContext context) {
     // Fixed constants
-    const double expandedHeight = 240.0;
+    final double expandedHeight = context.height * 0.32;
     final double avatarRadius = AppUIConstants.radius.radius$56;
     final double collapsedAvatarRadius = AppUIConstants.radius.radius$24;
 
+    final member = memberStatus.profile;
+
     // Use the "consecutive" color for the cover card to ensure contrast with the avatar background
-    final Color avatarColor = getComplementaryColor(
-      avatarColorFromName(member.name),
-    );
+    final Color avatarColor = consecutiveColorFromName(member.name);
     final bool isDarkHeader = avatarColor.computeLuminance() < 0.5;
 
     return SliverAppBar(
@@ -62,11 +67,13 @@ class MemberProfileHeader extends StatelessWidget {
           final double expandedAvatarCenterY =
               statusBarHeight +
               kToolbarHeight * 0.5 +
-              (expandedHeight - collapsedHeight) * 0.5;
+              (expandedHeight - collapsedHeight) * 0.32;
 
           // Collapsed center: beside the back button in the toolbar
           final double collapsedAvatarCenterX =
-              statusBarHeight + kToolbarHeight * 0.5 + 4;
+              statusBarHeight +
+              kToolbarHeight * 0.5 +
+              AppUIConstants.spacing.space$4;
           final double collapsedAvatarCenterY =
               statusBarHeight + kToolbarHeight / 2;
 
@@ -81,17 +88,14 @@ class MemberProfileHeader extends StatelessWidget {
             progress,
           )!;
 
-          // --- Header info (below avatar, fades out by 60% progress) ---
-          // Only visible when progress > 0.0; fully gone at progress == 0.6
-          final double headerInfoOpacity = (progress / 0.6).clamp(0.0, 1.0);
+          // --- Header info (below avatar) ---
+          // Starts fading and sliding immediately as scroll begins.
+          // Fully gone by the time 30% of the collapse is done (progress == 0.7).
+          final double infoProgress = ((progress - 0.7) / 0.3).clamp(0.0, 1.0);
+          final double headerInfoOpacity = infoProgress;
 
-          // Slides up as it fades: at progress=1 it's at natural position,
-          // at progress=0.6 it has moved up by ~20px and is invisible.
-          final double headerInfoSlide = lerpDouble(
-            20.0,
-            0.0,
-            (progress / 0.6).clamp(0.0, 1.0),
-          )!;
+          // Slides up as it fades
+          final double headerInfoSlide = lerpDouble(20.0, 0.0, infoProgress)!;
 
           // More breathing room between avatar and text
           final double textBlockTop =
@@ -106,17 +110,21 @@ class MemberProfileHeader extends StatelessWidget {
             1.0,
           );
           final double collapsedTitleLeft =
-              collapsedAvatarCenterX + collapsedAvatarRadius + 10;
+              collapsedAvatarCenterX +
+              collapsedAvatarRadius +
+              AppUIConstants.spacing.space$12;
 
           final Color expandedIconColor = isDarkHeader
-              ? Colors.white
-              : Colors.black;
+              ? AppColors.light.onPrimary
+              : AppColors.light.textDefault;
           final Color collapsedIconColor = context.theme.colorScheme.onSurface;
           final Color currentIconColor = Color.lerp(
             collapsedIconColor,
             expandedIconColor,
             progress,
           )!;
+
+          final isOwner = member.designation.toLowerCase() == 'owner';
 
           final SystemUiOverlayStyle overlayStyle = progress > 0.5
               ? (isDarkHeader
@@ -150,7 +158,7 @@ class MemberProfileHeader extends StatelessWidget {
                 // 1. Back button (always visible, fixed position)
                 Positioned(
                   top: statusBarHeight,
-                  left: 4,
+                  left: AppUIConstants.spacing.space$4,
                   width: kToolbarHeight,
                   height: kToolbarHeight,
                   child: Center(
@@ -162,7 +170,7 @@ class MemberProfileHeader extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       child: Icon(
                         AppIcons.common.back,
-                        size: 18,
+                        size: AppUIConstants.spacing.space$20,
                         color: currentIconColor,
                       ),
                     ),
@@ -205,25 +213,56 @@ class MemberProfileHeader extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          member.name,
-                          textAlign: TextAlign.center,
-                          style: context.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
-                            color: context.theme.colorScheme.onSurface,
+                        Hero(
+                          tag: 'name_${member.accountUid}',
+                          child: Material(
+                            color: context.theme.colorScheme.surface.withValues(
+                              alpha: 0,
+                            ),
+                            child: Text(
+                              member.name,
+                              textAlign: TextAlign.center,
+                              style: context.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                                color: context.theme.colorScheme.onSurface,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${member.designation} • ${member.phone}',
-                          textAlign: TextAlign.center,
-                          style: context.textTheme.bodyMedium?.copyWith(
-                            color: context.theme.colorScheme.onSurface
-                                .withValues(alpha: 0.5),
-                            fontWeight: FontWeight.w500,
+                        AppUIConstants.widgets.verticalBox$4,
+                        GestureDetector(
+                          onLongPress: controller.onCopyPhone,
+                          child: Text(
+                            member.phone,
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.bodyLarge?.copyWith(
+                              color: context.theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.6),
+                              fontWeight: FontWeight.normal,
+                            ),
                           ),
                         ),
+                        AppUIConstants.widgets.verticalBox$8,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: AppUIConstants.spacing.space$8,
+                          children: [
+                            AppTag(
+                              label: member.designation,
+                              icon: isOwner ? AppIcons.status.verified : null,
+                              color: isOwner
+                                  ? context.theme.colorScheme.primary
+                                  : null,
+                            ),
+                            AppStatusChip.attendance(
+                              attendanceStatus: memberStatus.status,
+                              context: context,
+                            ),
+                          ],
+                        ),
+                        AppUIConstants.widgets.verticalBox$4,
+                        AttendanceStatusTime(time: memberStatus.startAt),
                       ],
                     ),
                   ),
@@ -252,7 +291,7 @@ class MemberProfileHeader extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            member.designation,
+                            member.phone,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: context.textTheme.labelSmall?.copyWith(
@@ -272,3 +311,4 @@ class MemberProfileHeader extends StatelessWidget {
     );
   }
 }
+

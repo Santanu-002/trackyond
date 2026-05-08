@@ -4,7 +4,6 @@ class AppIcons {
   AppIcons._();
 
   static const auth = _AuthIcons();
-  static const admin = _AdminIcons();
   static const status = _StatusIcons();
   static const common = _CommonIcons();
   static const dashboard = _DashboardIcons();
@@ -26,14 +25,9 @@ class _AuthIcons {
 
   IconData get phoneOutlined => Icons.phone_outlined;
 
-  IconData get role => Icons.account_tree_rounded;
+  IconData get role => Icons.admin_panel_settings_rounded;
 }
 
-class _AdminIcons {
-  const _AdminIcons();
-
-  IconData get info => Icons.info_outline_rounded;
-}
 
 class _StatusIcons {
   const _StatusIcons();
@@ -66,8 +60,6 @@ class _CommonIcons {
 
   IconData get close => Icons.close_rounded;
 
-  IconData get menu => Icons.menu_rounded;
-
   IconData get notifications => Icons.notifications_none_rounded;
 
   IconData get camera => Icons.camera_alt_rounded;
@@ -78,11 +70,11 @@ class _CommonIcons {
 
   IconData get business => Icons.business_rounded;
 
-  IconData get groups => Icons.groups_rounded;
+  IconData get team => Icons.groups_rounded;
 
   IconData get person => Icons.person_rounded;
 
-  IconData get account => Icons.account_circle_outlined;
+  IconData get menu => Icons.menu_rounded;
 }
 
 class _DashboardIcons {
@@ -108,9 +100,9 @@ class _DashboardIcons {
 
   IconData get settings => Icons.settings_rounded;
 
-  IconData get assignment => Icons.assignment_rounded;
-
   IconData get dashboard => Icons.dashboard_rounded;
+
+  IconData get assignment => Icons.assignment_rounded;
 }
 
 class _JobsIcons {
@@ -119,14 +111,10 @@ class _JobsIcons {
   IconData get work => Icons.work_outline_rounded;
 
   IconData get chevronRight => Icons.chevron_right_rounded;
-
-  IconData get history => Icons.history_rounded;
 }
 
 class _ProfileIcons {
   const _ProfileIcons();
-
-  IconData get account => Icons.account_circle_outlined;
 
   IconData get badge => Icons.badge_outlined;
 }
@@ -135,8 +123,6 @@ class _SetupIcons {
   const _SetupIcons();
 
   IconData get gift => Icons.card_giftcard_rounded;
-
-  IconData get apartment => Icons.apartment_rounded;
 
   IconData get manageAccounts => Icons.manage_accounts_rounded;
 }

@@ -181,18 +181,15 @@ class MemberProfileHeader extends GetView<TeamMemberProfilePageController> {
                 Positioned(
                   left: avatarCenterX - currentAvatarRadius,
                   top: avatarCenterY - currentAvatarRadius,
-                  child: Hero(
-                    tag: 'avatar_${member.accountUid}',
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: AppUIConstants.shadows.md,
-                      ),
-                      child: MemberAvatar(
-                        name: member.name,
-                        image: member.image,
-                        radius: currentAvatarRadius,
-                      ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: AppUIConstants.shadows.md,
+                    ),
+                    child: MemberAvatar(
+                      name: member.name,
+                      image: member.image,
+                      radius: currentAvatarRadius,
                     ),
                   ),
                 ),
@@ -213,20 +210,17 @@ class MemberProfileHeader extends GetView<TeamMemberProfilePageController> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Hero(
-                          tag: 'name_${member.accountUid}',
-                          child: Material(
-                            color: context.theme.colorScheme.surface.withValues(
-                              alpha: 0,
-                            ),
-                            child: Text(
-                              member.name,
-                              textAlign: TextAlign.center,
-                              style: context.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.5,
-                                color: context.theme.colorScheme.onSurface,
-                              ),
+                        Material(
+                          color: context.theme.colorScheme.surface.withValues(
+                            alpha: 0,
+                          ),
+                          child: Text(
+                            member.name,
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                              color: context.theme.colorScheme.onSurface,
                             ),
                           ),
                         ),

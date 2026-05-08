@@ -51,7 +51,7 @@ class SetupCompanyController extends GetxController {
       title: AppStrings.chooseTeamSize.mediumTeamTitle,
       subtitle: AppStrings.chooseTeamSize.mediumTeamSub,
       value: 20,
-      icon: AppIcons.common.groups,
+      icon: AppIcons.common.team,
     ),
     TeamSizeOption(
       title: AppStrings.chooseTeamSize.customTeamTitle,

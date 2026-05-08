@@ -29,7 +29,7 @@ class TeamMemberProfilePageController extends GetxController {
     ),
     TeamMemberProfileAction(
       icon: Icons.edit_outlined,
-      label: AppStrings.teamMemberProfile.edit,
+      label: AppStrings.common.edit,
       onTap: onEdit,
     ),
   ];

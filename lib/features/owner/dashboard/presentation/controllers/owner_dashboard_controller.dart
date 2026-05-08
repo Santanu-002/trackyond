@@ -114,7 +114,7 @@ class OwnerDashboardController extends GetxController {
       route: AppRoutes.owner.dashboard,
     ),
     DrawerItemConfig(
-      icon: AppIcons.common.groups,
+      icon: AppIcons.common.team,
       label: AppStrings.drawer.team,
       route: AppRoutes.owner.team,
     ),

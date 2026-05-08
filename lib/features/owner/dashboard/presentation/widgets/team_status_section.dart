@@ -38,7 +38,6 @@ class TeamStatusSection extends GetView<OwnerDashboardController> {
             final member = members[index];
             return TeamStatusCard(
               member: member,
-              onTap: () => controller.goToMemberProfile(member),
             );
           },
         ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/features/owner/team_status/presentation/widgets/profile/settings_tile.dart';
 
 class MemberProfileSettings extends StatelessWidget {
   const MemberProfileSettings({super.key});
@@ -9,44 +9,20 @@ class MemberProfileSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildListTile(
-          context,
-          Icons.notifications_none_rounded,
-          AppStrings.teamMemberProfile.customNotifications,
+        SettingsTile(
+          icon: Icons.notifications_none_rounded,
+          title: AppStrings.teamMemberProfile.customNotifications,
         ),
-        _buildListTile(
-          context,
-          Icons.security_outlined,
-          AppStrings.teamMemberProfile.accessPermissions,
+        SettingsTile(
+          icon: Icons.security_outlined,
+          title: AppStrings.teamMemberProfile.accessPermissions,
         ),
-        _buildListTile(
-          context,
-          Icons.block_flipped,
-          AppStrings.teamMemberProfile.deactivateMember,
+        SettingsTile(
+          icon: Icons.block_flipped,
+          title: AppStrings.teamMemberProfile.deactivateMember,
           isDestructive: true,
         ),
       ],
-    );
-  }
-
-  Widget _buildListTile(
-    BuildContext context,
-    IconData icon,
-    String title, {
-    bool isDestructive = false,
-  }) {
-    final color = isDestructive
-        ? context.theme.colorScheme.error
-        : context.theme.colorScheme.onSurface;
-
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(
-        title,
-        style: context.textTheme.bodyLarge?.copyWith(color: color),
-      ),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: () {},
     );
   }
 }

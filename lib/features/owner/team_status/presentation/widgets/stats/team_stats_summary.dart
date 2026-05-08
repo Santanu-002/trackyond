@@ -32,7 +32,7 @@ class TeamStatsSummary extends GetView<TeamStatusController> {
         Obx(() => StatsCard(
               title: strings.total,
               value: controller.stats.value.total.toString(),
-              icon: AppIcons.common.groups,
+              icon: AppIcons.common.team,
               color: context.theme.colorScheme.primary,
             )),
       ],

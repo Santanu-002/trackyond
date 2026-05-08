@@ -61,16 +61,17 @@ class Job(Base):
     id = Column(Integer, primary_key=True, index=True)
     job_id = Column(String, unique=True, index=True)
     title = Column(String)
-    description = Column(String)
     customer_name = Column(String)
     customer_phone = Column(String)
-    customer_address = Column(String)
-    worker_account_uid = Column(String, ForeignKey("members.account_uid"))
+    customer_address = Column(String, nullable=True)
+    worker_account_uid = Column(String, ForeignKey("members.account_uid"), nullable=True)
+    company_uid = Column(String, ForeignKey("companies.company_id"), index=True)
+    created_by = Column(String, ForeignKey("users.uid"))
     status = Column(String, default="pending") # pending | assigned | in_progress | completed
     require_photo_on_start = Column(Boolean, default=False)
     require_photo_on_complete = Column(Boolean, default=False)
     capture_location = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=now_utc)
     assigned_at = Column(DateTime, nullable=True)
 
 class Notification(Base):

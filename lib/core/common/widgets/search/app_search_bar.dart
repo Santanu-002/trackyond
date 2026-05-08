@@ -56,7 +56,7 @@ class AppSearchBar<T> extends StatelessWidget {
             color: context.theme.colorScheme.outline.withValues(alpha: 0.1),
           ),
           AppMenu<T>(
-            alignmentOffset: const Offset(-124, 8),
+            alignmentOffset: const Offset(-116, 8),
             items: searchByItems!,
             selectedValueGetter: selectedSearchByGetter!,
             labelBuilder: searchByLabelBuilder!,

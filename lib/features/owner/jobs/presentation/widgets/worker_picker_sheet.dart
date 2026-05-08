@@ -83,7 +83,6 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
               Expanded(
                 child: Obx(() {
                   final members = controller.filteredMembers;
-                  final isSearching = controller.workerSearchQuery.isNotEmpty;
 
                   if (controller.isWorkersLoading.value) {
                     return const Center(child: CircularProgressIndicator());

@@ -68,11 +68,25 @@ class AppTextField extends StatelessWidget {
       spacing: AppUIConstants.spacing.space$8,
       children: [
         if (label != null)
-          Text(
-            label!,
-            style: context.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: context.theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          RichText(
+            text: TextSpan(
+              style: context.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                color:
+                    context.theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+              children: [
+                TextSpan(
+                  text: label!.replaceAll('*', ''),
+                ),
+                if (label!.contains('*'))
+                  TextSpan(
+                    text: '*',
+                    style: TextStyle(
+                      color: context.theme.colorScheme.error,
+                    ),
+                  ),
+              ],
             ),
           ),
         TextFormField(

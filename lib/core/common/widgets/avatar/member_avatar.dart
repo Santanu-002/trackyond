@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
+import 'package:trackyond/core/utils/avatar_utils.dart';
 
 class MemberAvatar extends StatelessWidget {
   final String name;
@@ -23,9 +24,7 @@ class MemberAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final avatarRadius = radius ?? AppUIConstants.radius.radius$24;
-    final colorIndex =
-        name.hashCode.abs() % AppUIConstants.colors.avatarColors.length;
-    final avatarColor = AppUIConstants.colors.avatarColors[colorIndex];
+    final avatarColor = avatarColorFromName(name);
 
     String? imageUrl;
     File? localFile;
@@ -52,13 +51,13 @@ class MemberAvatar extends StatelessWidget {
                 width: avatarRadius * 2,
                 height: avatarRadius * 2,
                 placeholder: (context, url) =>
-                    _buildPlaceholder(context, avatarColor),
+                    _buildPlaceholder(context, avatarColor, avatarRadius),
                 errorWidget: (context, url, error) =>
-                    _buildPlaceholder(context, avatarColor),
+                    _buildPlaceholder(context, avatarColor, avatarRadius),
               ),
             )
           : (localFile == null
-                ? _buildPlaceholder(context, avatarColor)
+                ? _buildPlaceholder(context, avatarColor, avatarRadius)
                 : null),
     );
 
@@ -73,13 +72,18 @@ class MemberAvatar extends StatelessWidget {
     return avatar;
   }
 
-  Widget _buildPlaceholder(BuildContext context, Color avatarColor) {
+  Widget _buildPlaceholder(
+    BuildContext context,
+    Color avatarColor,
+    double radius,
+  ) {
     return Center(
       child: Text(
         name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
         style: context.textTheme.titleMedium?.copyWith(
           color: context.theme.colorScheme.onPrimary,
           fontWeight: FontWeight.bold,
+          fontSize: radius * .75,
         ),
       ),
     );

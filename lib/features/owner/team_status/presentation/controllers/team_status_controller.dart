@@ -4,10 +4,9 @@ import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
-import 'package:trackyond/core/common/entities/member/member_profile.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/team_filter.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/team_member_status_entity.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/team_status_stats_entity.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/filter/team_filter.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_stats_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 
 class TeamStatusController extends GetxController {
@@ -222,10 +221,11 @@ class TeamStatusController extends GetxController {
   // Navigation
   // ---------------------------------------------------------------------------
 
-  void goToMemberProfile(MemberProfile profile) {
+  void goToMemberProfile(TeamMemberStatusEntity member) {
     Get.toNamed(
       AppRoutes.owner.teamMemberProfile,
-      arguments: profile,
+      arguments: member,
     );
   }
 }
+

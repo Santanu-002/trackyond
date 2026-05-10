@@ -18,6 +18,7 @@ class _OwnerRoutes {
   String get team => '$_base/team';
   String get teamMemberProfile => '$_base/team-member-profile';
   String get jobs => '$_base/jobs';
+  String get createJob => '$_base/create-job';
 }
 
 class _WorkerRoutes {

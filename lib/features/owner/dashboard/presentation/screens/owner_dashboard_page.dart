@@ -9,6 +9,8 @@ import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/a
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/team_status_section.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/task_stats_section.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/recent_jobs_section.dart';
+import 'package:trackyond/features/owner/jobs/presentation/bindings/create_job_binding.dart';
+import 'package:trackyond/features/owner/jobs/presentation/screens/create_job_page.dart';
 
 class OwnerDashboardPage extends GetView<OwnerDashboardController> {
   const OwnerDashboardPage({super.key});
@@ -21,8 +23,9 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
     return AppNavLayout(
       title: strings.title,
       padding: EdgeInsets.zero,
-      onFabPressed: () {
-        // TODO: Implement FAB action (e.g., navigate to create job)
+      openBuilder: (context, _) {
+        CreateJobBinding().dependencies();
+        return const CreateJobPage();
       },
       drawer: const AppDrawer(),
       actions: [

@@ -17,7 +17,7 @@ class ChooseTeamSizePage extends GetView<SetupCompanyController> {
     return Obx(
       () => SetupPageLayout(
         scaffoldTitle: AppStrings.chooseTeamSize.appBarTitle,
-        headerIcon: AppIcons.common.groups,
+        headerIcon: AppIcons.common.team,
         headerTitle: AppStrings.chooseTeamSize.title,
         headerSubtitle: AppStrings.chooseTeamSize.subtitle,
         isLoading: controller.isLoading.value,

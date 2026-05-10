@@ -66,3 +66,5 @@ app.*.map.json
 /ios/Flutter/Flutter.podspec
 /ios/Flutter/App.framework
 /ios/Flutter/App.podspec
+
+flutter_sdk

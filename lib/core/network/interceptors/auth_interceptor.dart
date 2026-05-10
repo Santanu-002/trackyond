@@ -48,10 +48,21 @@ class AuthInterceptor extends Interceptor {
         );
       }
 
-      await _refreshLock.synchronized(() async {
-        final isExpired = await tokenService.isAccessTokenAboutToExpired();
-        if (isExpired) await _refreshToken(role: role);
-      });
+      try {
+        await _refreshLock.synchronized(() async {
+          final isExpired = await tokenService.isAccessTokenAboutToExpired();
+          if (isExpired) await _refreshToken(role: role);
+        });
+      } on DioException catch (e) {
+        if (e.response != null) {
+          return handler.resolve(e.response!);
+        }
+        return handler.reject(e);
+      } catch (e) {
+        return handler.reject(
+          DioException(requestOptions: options, error: e),
+        );
+      }
 
       final accessToken = await tokenService.getAccessToken();
 
@@ -108,8 +119,13 @@ class AuthInterceptor extends Interceptor {
           ),
         );
       }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await tokenService.clearTokens();
+      }
+      rethrow;
     } catch (e) {
-      await tokenService.clearTokens();
+      rethrow;
     }
   }
 }

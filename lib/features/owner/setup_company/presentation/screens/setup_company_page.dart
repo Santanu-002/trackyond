@@ -17,7 +17,7 @@ class SetupCompanyPage extends GetView<SetupCompanyController> {
     return Obx(
       () => SetupPageLayout(
         scaffoldTitle: AppStrings.setupCompany.appBarTitle,
-        headerIcon: AppIcons.common.business,
+        headerIcon: AppIcons.common.team,
         headerTitle: AppStrings.setupCompany.title,
         headerSubtitle: AppStrings.setupCompany.subtitle,
         buttonText: AppStrings.setupCompany.continueButton,
@@ -35,7 +35,7 @@ class SetupCompanyPage extends GetView<SetupCompanyController> {
                 controller: controller.companyNameController,
                 label: AppStrings.setupCompany.companyNameLabel,
                 hintText: AppStrings.setupCompany.companyNameHint,
-                prefixIcon: AppIcons.setup.apartment,
+                prefixIcon: AppIcons.common.business,
                 textCapitalization: TextCapitalization.words,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s\.]')),

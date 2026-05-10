@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/layout/app_section.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/team_member_status_entity.dart';
+import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/team_status_card.dart';
 
@@ -35,7 +35,10 @@ class TeamStatusSection extends GetView<OwnerDashboardController> {
           ),
           itemCount: members.length,
           itemBuilder: (context, index) {
-            return TeamStatusCard(member: members[index]);
+            final member = members[index];
+            return TeamStatusCard(
+              member: member,
+            );
           },
         ),
       ),

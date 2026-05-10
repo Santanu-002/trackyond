@@ -12,5 +12,5 @@ class TeamSizeOption {
     required this.subtitle,
     required this.value,
     IconData? icon,
-  }) : icon = icon ?? AppIcons.common.groups;
+  }) : icon = icon ?? AppIcons.common.team;
 }

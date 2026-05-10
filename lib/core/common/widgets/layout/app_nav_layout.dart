@@ -1,4 +1,6 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/common/widgets/button/app_floating_action_button.dart';
@@ -9,9 +11,9 @@ class AppNavLayout extends StatelessWidget {
   final Widget child;
   final Widget? drawer;
   final VoidCallback? onFabPressed;
+  final Widget Function(BuildContext, void Function({Object? returnValue}))? openBuilder;
   final List<Widget>? actions;
   final EdgeInsetsGeometry? padding;
-
   final Widget? leading;
 
   const AppNavLayout({
@@ -21,6 +23,7 @@ class AppNavLayout extends StatelessWidget {
     this.drawer,
     this.leading,
     this.onFabPressed,
+    this.openBuilder,
     this.actions,
     this.padding,
   });
@@ -30,11 +33,23 @@ class AppNavLayout extends StatelessWidget {
     return AppScaffold(
       title: title,
       padding: padding,
-      floatingActionButton: onFabPressed != null
-          ? AppFloatingActionButton(
-              onPressed: onFabPressed!,
+      floatingActionButton: openBuilder != null
+          ? OpenContainer(
+              transitionDuration: const Duration(milliseconds: 250),
+              openBuilder: openBuilder!,
+              closedElevation: 6,
+              closedShape: const CircleBorder(),
+              closedColor: context.theme.colorScheme.primary,
+              openColor: context.theme.scaffoldBackgroundColor,
+              closedBuilder: (context, openContainer) => AppFloatingActionButton(
+                onPressed: openContainer,
+              ),
             )
-          : null,
+          : (onFabPressed != null
+              ? AppFloatingActionButton(
+                  onPressed: onFabPressed!,
+                )
+              : null),
       drawer: drawer,
       leading: leading ??
           (drawer != null

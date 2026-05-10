@@ -91,7 +91,7 @@ class _CustomTeamSizeBottomSheetState extends State<CustomTeamSizeBottomSheet> {
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return AppStrings.setupCompany.requiredField;
+                    return AppStrings.common.requiredField;
                   }
                   final n = int.tryParse(value);
                   if (n == null || n < 1 || n > 999999) {
@@ -105,13 +105,13 @@ class _CustomTeamSizeBottomSheetState extends State<CustomTeamSizeBottomSheet> {
                 children: [
                   Expanded(
                     child: AppButton.outlined(
-                      text: AppStrings.chooseTeamSize.cancelButton,
+                      text: AppStrings.common.cancel,
                       onPressed: () => Get.back(),
                     ),
                   ),
                   Expanded(
                     child: AppButton.filled(
-                      text: AppStrings.chooseTeamSize.confirmButton,
+                      text: AppStrings.common.confirm,
                       onPressed: () {
                         if (_formKey.currentState?.validate() ?? false) {
                           final size = int.parse(_controller.text);

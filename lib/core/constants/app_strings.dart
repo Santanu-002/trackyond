@@ -15,6 +15,7 @@ class AppStrings {
   static const teamStatus = TeamStatusStrings();
   static const teamMemberProfile = TeamMemberProfileStrings();
   static const teamMemberAttendance = TeamMemberAttendanceStrings();
+  static const createJob = CreateJobStrings();
 }
 
 class CommonStrings {
@@ -23,13 +24,10 @@ class CommonStrings {
   String get appName => 'Trackyond';
 
   String get version => 'Trackyond v1.0.0';
-  
+
   String get loading => 'Loading...';
 
   String get countryCode => '+91';
-
-  String get termsAndPrivacy =>
-      'By continuing, you agree to our Terms of Service and Privacy Policy';
 
   String get agreementPrefix => 'By continuing, you agree to our ';
 
@@ -38,6 +36,24 @@ class CommonStrings {
   String get and => ' and ';
 
   String get privacyPolicy => 'Privacy Policy';
+
+  String get requiredField => 'This field is required';
+
+  String get cancel => 'Cancel';
+
+  String get confirm => 'Confirm';
+
+  String get done => 'Done';
+
+  String get save => 'Save';
+
+  String get edit => 'Edit';
+
+  String get searchPlaceholder => 'Search...';
+
+  String get noResultsFound => 'No results found';
+
+  String get copied => 'Copied to clipboard';
 }
 
 class ChooseRoleStrings {
@@ -131,8 +147,6 @@ class SetupCompanyStrings {
 
   String get continueButton => 'Complete Setup';
 
-  String get requiredField => 'This field is required';
-
   String get setupSuccess => 'Company set up successfully!';
 }
 
@@ -175,10 +189,6 @@ class ChooseTeamSizeStrings {
 
   String get invalidTeamSize => 'Please enter a valid number (1 - 999,999)';
 
-  String get cancelButton => 'Cancel';
-
-  String get confirmButton => 'Confirm';
-
   String get finishButton => 'Finish Setup';
 }
 
@@ -208,8 +218,6 @@ class AddTeamMemberStrings {
 
   String get skipButton => 'Skip';
 
-  String get doneButton => 'Done';
-
   String get continueButton => 'Go to Dashboard';
 
   String get successMessage => 'Member added successfully!';
@@ -237,10 +245,6 @@ class AddTeamMemberStrings {
   String get discardMessage =>
       'You have unsaved changes in the form. Are you sure you want to discard them?';
 
-  String get discardConfirm => 'Discard';
-
-  String get discardCancel => 'Cancel';
-
   String get companyNotLoaded => 'Company information not loaded yet';
 
   String get takePhoto => 'Take Photo';
@@ -256,6 +260,12 @@ class AddTeamMemberStrings {
   String get phoneInvalid => 'Please enter a valid 10-digit phone number';
 
   String get designationRequired => 'Designation is required';
+
+  String get discardConfirm => 'Discard';
+
+  String get discardCancel => 'Cancel';
+
+  String get doneButton => 'Done';
 }
 
 class OwnerDashboardStrings {
@@ -335,8 +345,6 @@ class WorkerDashboardStrings {
 
   String get openAppSettings => 'Open Settings';
 
-  String get cancel => 'Cancel';
-
   String get locationRequired =>
       'Location access required for attendance tracking.';
 
@@ -408,8 +416,6 @@ class TeamMemberProfileStrings {
   String get confirmExEmployeeTitle => 'Confirm';
   String get confirmExEmployeeMessage =>
       'Are you sure you want to mark this member as an ex-employee? This action cannot be undone.';
-  String get cancel => 'Cancel';
-  String get confirm => 'Confirm';
   String get profileUpdated => 'Profile updated successfully';
   String get memberMarkedExEmployee => 'Member marked as ex-employee';
   String get failToExportPdf => 'Failed to export PDF';
@@ -431,11 +437,9 @@ class TeamMemberProfileStrings {
   String get call => 'Call';
   String get message => 'Message';
   String get logs => 'Logs';
-  String get edit => 'Edit';
   String get customNotifications => 'Custom Notifications';
   String get accessPermissions => 'Access Permissions';
   String get deactivateMember => 'Deactivate Member';
-  String get save => 'Save';
 }
 
 class TeamMemberAttendanceStrings {
@@ -446,4 +450,28 @@ class TeamMemberAttendanceStrings {
   String get selectDateRange => 'Select Date Range';
   String get filterStatus => 'Filter Status';
   String get export => 'Export';
+}
+
+class CreateJobStrings {
+  const CreateJobStrings();
+
+  String get appBarTitle => 'Create Job';
+  String get workLabel => 'Work / Job*';
+  String get workHint => 'e.g. AC not cooling';
+  String get customerNameLabel => 'Customer Name*';
+  String get customerNameHint => 'Enter customer name';
+  String get phoneLabel => 'Phone Number*';
+  String get phoneHint => '0000 0000';
+  String get addressLabel => 'Address';
+  String get addressHint => 'Enter address (optional)';
+  String get assignWorkerLabel => 'Assign Worker';
+  String get assignWorkerHint => 'Select worker';
+  String get jobRequirementsTitle => 'Job Requirements';
+  String get photoOnCompletionTitle => 'Require photo on completion';
+  String get photoOnCompletionSubtitle => 'Worker must take photo before completing job';
+  String get captureLocationTitle => 'Capture location';
+  String get captureLocationSubtitle => 'Location will be recorded on actions';
+  String get photoOnStartTitle => 'Require photo when starting work';
+  String get photoOnStartSubtitle => 'Worker must take photo before starting';
+  String get createJobButton => 'Create Job';
 }

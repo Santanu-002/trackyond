@@ -52,8 +52,8 @@ class AppSearchField extends StatelessWidget {
           if (query.isNotEmpty)
             IconButton(
               icon: const Icon(CupertinoIcons.multiply_circle_fill, size: 20),
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
+              splashColor: context.theme.colorScheme.surface.withValues(alpha: 0),
+              highlightColor: context.theme.colorScheme.surface.withValues(alpha: 0),
               onPressed: () {
                 query.value = '';
                 onClear?.call();

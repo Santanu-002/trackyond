@@ -185,8 +185,8 @@ class AddTeamMemberController extends GetxController {
         // Reset form
         resetForm();
 
-        // Close details page
-        Get.back();
+        // Close details page and return the new member
+        Get.back(result: newMember);
       },
     );
   }

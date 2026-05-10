@@ -15,19 +15,24 @@ import 'package:trackyond/features/worker/attendance/domain/usecases/end_attenda
 import 'package:trackyond/features/worker/attendance/domain/usecases/get_attendance_status_usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/attendance_info_item.dart';
+import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:trackyond/features/worker/dashboard/domain/usecases/get_assigned_jobs_usecase.dart';
 
 class WorkerDashboardController extends GetxController {
   final StartAttendanceUseCase _startAttendanceUseCase;
   final EndAttendanceUseCase _endAttendanceUseCase;
   final GetAttendanceStatusUseCase _getAttendanceStatusUseCase;
+  final GetAssignedJobsUseCase _getAssignedJobsUseCase;
 
   WorkerDashboardController({
     required StartAttendanceUseCase startAttendanceUseCase,
     required EndAttendanceUseCase endAttendanceUseCase,
     required GetAttendanceStatusUseCase getAttendanceStatusUseCase,
+    required GetAssignedJobsUseCase getAssignedJobsUseCase,
   }) : _startAttendanceUseCase = startAttendanceUseCase,
        _endAttendanceUseCase = endAttendanceUseCase,
-       _getAttendanceStatusUseCase = getAttendanceStatusUseCase;
+       _getAttendanceStatusUseCase = getAttendanceStatusUseCase,
+       _getAssignedJobsUseCase = getAssignedJobsUseCase;
 
   AppLifecycleListener? _lifecycleListener;
   Timer? _timer;
@@ -50,6 +55,10 @@ class WorkerDashboardController extends GetxController {
   final isActionLoading = false.obs;
   final actionLoadingMessage = RxnString();
 
+  // Jobs State
+  final assignedJobs = <JobEntity>[].obs;
+  final isJobsLoading = false.obs;
+
   // Location Status
   final isLocationEnabled = false.obs;
   final locationPermission = LocationPermission.denied.obs;
@@ -61,6 +70,7 @@ class WorkerDashboardController extends GetxController {
     _checkAndRequestLocationPermission();
 
     _checkInitialStatus();
+    _fetchAssignedJobs();
   }
 
   @override
@@ -126,6 +136,17 @@ class WorkerDashboardController extends GetxController {
         startTimer(statusEntity.attendance!.startAt);
       }
     });
+  }
+
+  Future<void> _fetchAssignedJobs() async {
+    isJobsLoading.value = true;
+    final result = await _getAssignedJobsUseCase(GetAssignedJobsParams());
+
+    result.fold(
+      (failure) => AppSnackbar.destructive(failure.message),
+      (jobs) => assignedJobs.assignAll(jobs),
+    );
+    isJobsLoading.value = false;
   }
 
   Future<void> _setPhase(String message) async {
@@ -345,6 +366,13 @@ class WorkerDashboardController extends GetxController {
       type: AttendanceInfoType.calendar,
     ),
   ];
+
+  Future<void> refreshDashboard() async {
+    await Future.wait([
+      _checkInitialStatus(),
+      _fetchAssignedJobs(),
+    ]);
+  }
 
   void navigateToProfile() => Get.toNamed(AppRoutes.worker.profile);
 

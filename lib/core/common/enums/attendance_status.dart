@@ -7,8 +7,10 @@ enum AttendanceStatus {
   const AttendanceStatus(this.value);
 
   static AttendanceStatus fromString(String? status) {
+    if (status == null) return AttendanceStatus.notStarted;
+    final lowerStatus = status.toLowerCase().replaceFirst('_', ' ');
     return AttendanceStatus.values.firstWhere(
-      (e) => e.value == status,
+      (e) => e.value == lowerStatus,
       orElse: () => AttendanceStatus.notStarted,
     );
   }

@@ -7,10 +7,12 @@ import 'package:trackyond/features/owner/dashboard/presentation/widgets/stats_ca
 
 class TaskStatsSection extends StatelessWidget {
   final List<TaskStatConfig> stats;
+  final bool isLoading;
 
   const TaskStatsSection({
     super.key,
     required this.stats,
+    this.isLoading = false,
   });
 
   @override
@@ -31,6 +33,7 @@ class TaskStatsSection extends StatelessWidget {
             value: stat.value.toString(),
             icon: stat.icon,
             color: stat.color,
+            isLoading: isLoading,
           );
         }),
       ),

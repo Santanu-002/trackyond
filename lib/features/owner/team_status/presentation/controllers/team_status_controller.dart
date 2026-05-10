@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -8,10 +7,12 @@ import 'package:trackyond/features/owner/team_status/domain/entities/filter/team
 import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_stats_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
+import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 
 class TeamStatusController extends GetxController {
   final GetTeamStatusUseCase _getTeamStatusUseCase;
-  final SharedPreferences _prefs = Get.find<SharedPreferences>();
+  final AuthController _authController;
+  
   static const String _searchByPrefKey = 'team_status_search_by';
 
   List<TeamFilterEntity> get filters => [
@@ -20,8 +21,11 @@ class TeamStatusController extends GetxController {
     TeamFilterEntity(label: 'Not Started', status: AttendanceStatus.notStarted),
   ];
 
-  TeamStatusController({required GetTeamStatusUseCase getTeamStatusUseCase})
-    : _getTeamStatusUseCase = getTeamStatusUseCase;
+  TeamStatusController({
+    required GetTeamStatusUseCase getTeamStatusUseCase,
+    required AuthController authController,
+  })  : _getTeamStatusUseCase = getTeamStatusUseCase,
+        _authController = authController;
 
   final isLoading = false.obs;
 
@@ -158,11 +162,18 @@ class TeamStatusController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    searchBy.value = _prefs.getString(_searchByPrefKey) ?? 'All';
+    _loadSearchPreference();
     ever(searchBy, (String value) {
-      _prefs.setString(_searchByPrefKey, value);
+      _authController.saveSetting(_searchByPrefKey, value);
     });
     fetchTeamStatus();
+  }
+
+  Future<void> _loadSearchPreference() async {
+    final result = await _authController.getStringSetting(_searchByPrefKey);
+    if (result != null) {
+      searchBy.value = result;
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -228,4 +239,3 @@ class TeamStatusController extends GetxController {
     );
   }
 }
-

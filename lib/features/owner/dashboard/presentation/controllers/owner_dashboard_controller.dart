@@ -5,19 +5,21 @@ import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
+import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/dashboard_stats.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/drawer_item_config.dart';
-import 'package:trackyond/features/owner/dashboard/domain/entities/recent_job.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/task_stat_config.dart';
+import 'package:trackyond/features/owner/dashboard/domain/usecases/get_owner_dashboard_use_case.dart';
+import 'package:trackyond/core/common/entities/job_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
-import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 
 class OwnerDashboardController extends GetxController {
-  final GetTeamStatusUseCase _getTeamStatusUseCase;
+  final GetOwnerDashboardUseCase _getOwnerDashboardUseCase;
 
-  OwnerDashboardController({required GetTeamStatusUseCase getTeamStatusUseCase})
-    : _getTeamStatusUseCase = getTeamStatusUseCase;
+  OwnerDashboardController({
+    required GetOwnerDashboardUseCase getOwnerDashboardUseCase,
+  })  : _getOwnerDashboardUseCase = getOwnerDashboardUseCase;
 
   @override
   void onInit() {
@@ -28,20 +30,20 @@ class OwnerDashboardController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    _fetchTeamStatus();
+    fetchDashboardData();
   }
 
   final title = AppStrings.ownerDashboard.title.obs;
   final notificationCount = 3.obs;
-  final isTeamLoading = false.obs;
+  final isLoading = false.obs;
 
   final ownerName = 'Owner'.obs;
   final ownerPhone = ''.obs;
   final companyName = 'Company'.obs;
 
   final teamMembers = <TeamMemberStatusEntity>[].obs;
-
-  final stats = DashboardStats(pending: 5, inProgress: 3, completed: 8).obs;
+  final recentJobs = <JobEntity>[].obs;
+  final stats = DashboardStats(pending: 0, inProgress: 0, completed: 0).obs;
 
   Future<void> _loadUserInfo() async {
     final authController = Get.find<AuthController>();
@@ -50,41 +52,20 @@ class OwnerDashboardController extends GetxController {
     companyName.value = await authController.companyName;
   }
 
-  Future<void> _fetchTeamStatus() async {
-    isTeamLoading.value = true;
-    final result = await _getTeamStatusUseCase(GetTeamStatusParams(limit: 5));
+  Future<void> fetchDashboardData() async {
+    isLoading.value = true;
+    final result = await _getOwnerDashboardUseCase(NoParams());
 
-    result.fold((failure) => AppSnackbar.destructive(failure.message), (
-      teamStatus,
-    ) {
-      teamMembers.assignAll(teamStatus.members);
-    });
-    isTeamLoading.value = false;
+    result.fold(
+      (failure) => AppSnackbar.destructive(failure.message),
+      (data) {
+        teamMembers.assignAll(data.teamMembersStatus);
+        stats.value = data.jobCounts;
+        recentJobs.assignAll(data.recentJobs);
+      },
+    );
+    isLoading.value = false;
   }
-
-  final recentJobs = <RecentJob>[
-    const RecentJob(
-      title: 'Apartment Deep Clean',
-      location: 'Skyline Heights, Tower A',
-      budget: 1500.0,
-      status: 'Ongoing',
-      isOngoing: true,
-    ),
-    const RecentJob(
-      title: 'Office Painting',
-      location: 'Tech Park, Block 5',
-      budget: 4200.0,
-      status: 'Starting Soon',
-      isOngoing: true,
-    ),
-    const RecentJob(
-      title: 'Plumbing Repair',
-      location: 'Green Valley, Villa 12',
-      budget: 450.0,
-      status: 'Completed',
-      isOngoing: false,
-    ),
-  ].obs;
 
   List<TaskStatConfig> get taskStats => [
     TaskStatConfig(
@@ -155,6 +136,24 @@ class OwnerDashboardController extends GetxController {
 
   void goToTeam() {
     Get.toNamed(AppRoutes.owner.team);
+  }
+
+  Future<void> goToCreateJob() async {
+    final result = await Get.toNamed(AppRoutes.owner.createJob);
+    if (result is JobEntity) {
+      // Add to recent jobs list immediately
+      recentJobs.insert(0, result);
+      
+      // Update stats
+      stats.value = stats.value.copyWith(
+        pending: stats.value.pending + 1,
+      );
+      
+      // Optional: limit the list size
+      if (recentJobs.length > 10) {
+        recentJobs.removeLast();
+      }
+    }
   }
 
   void goToMemberProfile(TeamMemberStatusEntity member) {

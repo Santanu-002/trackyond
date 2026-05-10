@@ -7,9 +7,10 @@ part 'filled_button.dart';
 part 'outlined_button.dart';
 part 'ghost_button.dart';
 part 'custom_button.dart';
+part 'icon_button.dart';
 part 'button_content.dart';
 
-enum AppButtonType { filled, outlined, ghost, custom }
+enum AppButtonType { filled, outlined, ghost, custom, icon }
 
 enum AppButtonShape { capsule, sharpEdge, roundEdge }
 
@@ -17,6 +18,37 @@ class AppButton extends StatelessWidget {
   final Widget _delegate;
 
   const AppButton._(this._delegate, {super.key});
+
+  factory AppButton.icon({
+    Key? key,
+    required Widget icon,
+    VoidCallback? onPressed,
+    double size = 40,
+    Color? color,
+    Color? iconColor,
+    double? borderRadius,
+    String? tooltip,
+    bool enableHaptic = true,
+  }) {
+    return AppButton._(
+      _IconAppButton(
+        key: key,
+        icon: icon,
+        onPressed: onPressed != null
+            ? () {
+                if (enableHaptic) HapticFeedback.lightImpact();
+                onPressed();
+              }
+            : null,
+        size: size,
+        color: color,
+        iconColor: iconColor,
+        borderRadius: borderRadius,
+        tooltip: tooltip,
+      ),
+      key: key,
+    );
+  }
 
   factory AppButton.filled({
     Key? key,

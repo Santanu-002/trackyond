@@ -29,7 +29,7 @@ The project follows a modified Clean Architecture:
 **Rule: Categorization & Subfolders**: Use subfolders within `models/`, `entities/`, `widgets/`, or other folders to categorize files by sub-feature or domain logic when the number of files grows or for better structural clarity (e.g., separating `request` and `response` models).
 
 ### 3. Constants & Resources
-- **Strings**: Centralized in `lib/core/constants/app_strings.dart`. Use getters for all strings.
+- **Strings**: Centralized in `lib/core/constants/app_strings.dart`. Use getters for all strings. **Strict Rule**: NEVER use hardcoded strings in the UI; always use `AppStrings`.
 - **Icons**: Centralized in `lib/core/constants/app_icons.dart`.
 - **UI Constants**: `lib/core/constants/app_ui_constants.dart` for spacing, radius, and shadow tokens.
 - **Endpoints**: `lib/core/network/api/api_endpoints.dart`. Always add new endpoints here.
@@ -42,6 +42,7 @@ Common utilities are located in `lib/core/utils/`.
 ### 5. Service & Data Layer
 - **Services**: Located in `lib/core/services/`. They handle low-level logic (e.g., `TokenService`, `UserService`).
 - **Data Layer Rule**: Controllers must **never** contact Services directly. Controllers interact with UseCases, which interact with Repositories, which may use Services or DataSources.
+- **Navigation Rule**: Favor calling a navigation function inside the `Controller` (e.g., `controller.navigateToAddMemberDetails()`) rather than using `Get.toNamed` directly in the UI. This keeps the UI clean and makes navigation logic testable.
 
 ### 6. Auth Management
 - `AuthController` (in `lib/features/auth`) is a permanent controller (`permanent: true`).
@@ -71,6 +72,12 @@ Common utilities are located in `lib/core/utils/`.
 - **Mappers**: Models should include `toEntity()` mappers to keep the Domain layer clean.
 - **Analyze**: Run `flutter analyze` regularly to ensure code quality.
 - **Entities**: Domain entities should be simple Dart classes and are NOT allowed to use `@freezed`. Use `Equatable` for value equality if needed.
+
+### 11. API Response Styling
+- **Casing**: All API responses and model fields MUST use **camelCase**. Do NOT use snake_case in API responses. This ensures consistency with Dart naming conventions and reduces the need for `@JsonKey` mappings.
+
+### 12. Import Rules
+- **Package Imports**: ALWAYS use package-based imports (e.g., `import 'package:trackyond/core/...'`) instead of relative imports (e.g., `import '../../core/...'`). This ensures consistency and prevents issues with nested folder structures.
 
 ---
 

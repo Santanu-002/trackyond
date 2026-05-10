@@ -111,6 +111,8 @@ class _JobsIcons {
   IconData get work => Icons.work_outline_rounded;
 
   IconData get chevronRight => Icons.chevron_right_rounded;
+
+  IconData get customer => Icons.person_outline_rounded;
 }
 
 class _ProfileIcons {

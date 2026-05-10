@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from core.utils.datetime_utils import to_utc_iso, now_utc
 import uuid
 import random
+from enum import Enum
 from typing import Tuple, Optional
 from sqlalchemy.orm import Session
 from db import models
@@ -12,6 +13,7 @@ import json
 import hmac
 import hashlib
 import base64
+from core.constants.enums import UserRole
 from core.constants.app_strings import strings
 
 class AuthService:
@@ -86,7 +88,7 @@ class AuthService:
         except (ValueError, KeyError, json.JSONDecodeError):
             raise AppException(message="Malformed OTP ID.", error_code="invalid_otp_id")
 
-    def send_otp_logic(self, db: Session, phone: str, device_id: str, is_resend: bool = False, role: str = "admin") -> dict:
+    def send_otp_logic(self, db: Session, phone: str, device_id: str, is_resend: bool = False, role: str = "owner") -> dict:
         now = now_utc()
         # Normalize phone number
         phone = phone.strip()
@@ -94,14 +96,17 @@ class AuthService:
         # 0. Check for role conflicts
         user = db.query(models.User).filter(models.User.phone == phone).first()
         
-        if role == "admin":
+        # Normalize requested role
+        target_role = UserRole.owner if role.lower() in ["admin", "owner"] else UserRole.worker
+
+        if target_role == UserRole.owner:
             # If user exists as an employee, block admin login for this number
-            if user and user.role == "employee":
+            if user and user.role == UserRole.worker:
                 raise AppException(
                     message=f"{strings.access_denied}: This phone number is registered as an employee. Please login through the employee portal.",
                     error_code="access_denied"
                 )
-        elif role == "employee":
+        else:
             # Employees must already have a user record
             if not user:
                 raise AppException(
@@ -275,8 +280,11 @@ class AuthService:
         # 6. Persistent Identity Logic
         user = db.query(models.User).filter(models.User.phone == phone).first()
         
+        # Normalize requested role
+        requested_role = UserRole.owner if role.lower() in ["admin", "owner"] else UserRole.worker
+
         if not user:
-            if role == "employee":
+            if requested_role == UserRole.worker:
                 raise AppException(
                     message="Your phone number is not registered. Please contact your administrator.",
                     error_code="unauthorized_access"
@@ -286,23 +294,20 @@ class AuthService:
             user = models.User(
                 uid=uuid.uuid4().hex[:10],
                 phone=phone,
-                role="admin",
+                role=UserRole.owner,
                 is_new_user=True
             )
             db.add(user)
             db.flush() # Get user.uid
-        elif user.role != role:
-            # Role mismatch check
-            if role == "admin":
+        else:
+            # Check Role Permissions
+            # Admin can login as both. Worker only as worker.
+            if requested_role == UserRole.owner and user.role == UserRole.worker:
                  raise AppException(
                     message=f"{strings.access_denied}: This phone number is registered as an employee. Please login through the employee portal.",
                     error_code="access_denied"
                 )
-            else:
-                raise AppException(
-                    message=f"{strings.access_denied}: This phone number is registered as an administrator. Please login through the admin portal.",
-                    error_code="access_denied"
-                )
+            # owner logging in as employee is ALLOWED.
         
         # 7. Session management (Overwrite per device_id)
         existing_session = db.query(models.Session).filter(
@@ -335,14 +340,14 @@ class AuthService:
         response_data = {
             "userUid": user.uid,
             "phone": phone,
-            "role": user.role,
+            "role": user.role.value if isinstance(user.role, Enum) else user.role,
             "isNewUser": user.is_new_user,
             "primaryAccountUid": user.primary_account_uid,
             **tokens
         }
 
-        # If employee, add member profile and company details
-        if user.role == "employee":
+        # If logging in as employee, add member profile and company details
+        if requested_role == UserRole.worker:
             # 1. Get all ACTIVE memberships for this user
             memberships = db.query(models.Member).filter(
                 models.Member.user_uid == user.uid,

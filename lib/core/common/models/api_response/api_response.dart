@@ -17,6 +17,8 @@ sealed class ApiResponse<T> with _$ApiResponse<T> {
     int? statusCode,
   }) = ApiResponseError<T>;
 
+  const ApiResponse._();
+
   factory ApiResponse.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
@@ -35,9 +37,18 @@ sealed class ApiResponse<T> with _$ApiResponse<T> {
       return ApiResponse<T>.error(
         success: false,
         message: message,
-        // Error payloads are never typed models — skip deserialization.
         statusCode: json['statusCode'] as int?,
       );
     }
+  }
+
+  R fold<R>(
+    R Function(ApiResponseError<T> error) onError,
+    R Function(T? data) onSuccess,
+  ) {
+    return when(
+      success: (success, message, data) => onSuccess(data),
+      error: (success, message, data, statusCode) => onError(this as ApiResponseError<T>),
+    );
   }
 }

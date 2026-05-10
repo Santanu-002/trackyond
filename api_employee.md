@@ -28,8 +28,8 @@ Authorization: Bearer <access_token>
   "data": {
     "phone": "+919876543210",
     "otpId": "xjhs34cv",
-    "otp_expires_in": 120,
-    "remaining_attempts": 3,
+    "otpExpiresIn": 120,
+    "remainingAttempts": 3
   } 
 }
 ```
@@ -40,8 +40,8 @@ Authorization: Bearer <access_token>
   "success": false,
   "message": "Too many requests. Please try again after 24 hours or contact administrative.",
   "data": {
-    "error_code": "rate_limit_exceeded",
-    "retry_after": 86400 // 24 hours
+    "errorCode": "rate_limit_exceeded",
+    "retryAfter": 86400 // 24 hours
   }
 }
 ```
@@ -72,8 +72,8 @@ Authorization: Bearer <access_token>
   "data": {
     "phone": "+919876543210",
     "otpId": "xjhs34cv",
-    "otp_expires_in": 120,
-    "remaining_attempts": 2
+    "otpExpiresIn": 120,
+    "remainingAttempts": 2
   } 
 }
 ```
@@ -84,8 +84,8 @@ Authorization: Bearer <access_token>
   "success": false,
   "message": "Too many requests. Please try again after 24 hours or contact administrative.",
   "data": {
-    "error_code": "rate_limit_exceeded",
-    "retry_after": 86400 // 24 hours
+    "errorCode": "rate_limit_exceeded",
+    "retryAfter": 86400 // 24 hours
   }
 }
 ```
@@ -115,17 +115,17 @@ Authorization: Bearer <access_token>
   "success": true,
   "message": "Login successful",
   "data": {
-    "member_uid": "user4567",
-    "member_name": "Suraj Kumar",
-    "phone_no": "+919787878878",
+    "memberUid": "user4567",
+    "memberName": "Suraj Kumar",
+    "phoneNo": "+919787878878",
     "designation": "worker",
     "gender": "male",
     "image": "image.jpg",
-    "access_token": "xyz123",
-    "refresh_token": "refresh123",
-    "access_token_expire_at": "2026-04-13T06:27:08.925Z",
-    "refresh_token_expire_at": "2026-04-13T06:28:08.925Z",
-    "token_issued_at": "2026-04-13T06:27:08.925Z"
+    "accessToken": "xyz123",
+    "refreshToken": "refresh123",
+    "accessTokenExpireAt": "2026-04-13T06:27:08.925Z",
+    "refreshTokenExpireAt": "2026-04-13T06:28:08.925Z",
+    "tokenIssuedAt": "2026-04-13T06:27:08.925Z"
   }
 }
 ```
@@ -165,9 +165,9 @@ Authorization: Bearer <access_token>
   "success": true,
   "message": "Profile fetched successfully",
   "data": {
-    "member_uid": "user4567",
-    "member_name": "Suraj Kumar",
-    "phone_no": "+919787878878",
+    "memberUid": "user4567",
+    "memberName": "Suraj Kumar",
+    "phoneNo": "+919787878878",
     "designation": "worker",
     "gender": "male",
     "image": "image.jpg"
@@ -210,16 +210,16 @@ Fetch jobs assigned to the member with optional filtering and pagination.
   "data": {
     "jobs": [
       {
-        "job_id": "job001",
-        "job_title": "AC not cooling",
+        "jobId": "job001",
+        "jobTitle": "AC not cooling",
         "status": "assigned",
-        "customer_name": "Robert William",
-        "customer_phone": "+917878787878",
-        "customer_address": "Room no 204, 2nd Floor, Swasti Apartment, 23/7, Near HSBC Bank, Kolkata, 700001",
-        "require_photo_on_start": true,
-        "require_photo_on_complete": true,
-        "capture_location": true,
-        "assigned_at": "2026-04-10T08:00:00.000Z"
+        "customerName": "Robert William",
+        "customerPhone": "+917878787878",
+        "customerAddress": "Room no 204, 2nd Floor, Swasti Apartment, 23/7, Near HSBC Bank, Kolkata, 700001",
+        "requirePhotoOnStart": true,
+        "requirePhotoOnComplete": true,
+        "captureLocation": true,
+        "assignedAt": "2026-04-10T08:00:00.000Z"
       }
     ],
     "pagination": {
@@ -260,9 +260,9 @@ Update job status.
   "success": true,
   "message": "Status updated successfully",
   "data": {
-    "job_id": "job001",
+    "jobId": "job001",
     "status": "reached",
-    "updated_at": "2026-04-13T09:00:00.000Z"
+    "updatedAt": "2026-04-13T09:00:00.000Z"
   }
 }
 ```
@@ -296,7 +296,7 @@ Send custom message and photos as progress update.
   "success": true,
   "message": "Progress saved successfully",
   "data": {
-    "saved_at": "2026-04-13T10:00:00.000Z"
+    "savedAt": "2026-04-13T10:00:00.000Z"
   }
 }
 ```
@@ -331,7 +331,7 @@ Mark start of day with location.
   "success": true,
   "message": "Attendance marked successfully",
   "data": {
-    "marked_at": "2026-04-13T08:00:00.000Z"
+    "markedAt": "2026-04-13T08:00:00.000Z"
   }
 }
 ```
@@ -362,7 +362,7 @@ Punch out with location.
   "success": true,
   "message": "Punched out successfully",
   "data": {
-    "punched_out_at": "2026-04-13T17:00:00.000Z"
+    "punchedOutAt": "2026-04-13T17:00:00.000Z"
   }
 }
 ```
@@ -389,9 +389,9 @@ Punch out with location.
   "data": {
     "notifications": [
       {
-        "notification_id": "notif001",
+        "notificationId": "notif001",
         "message": "New job assigned to you",
-        "created_at": "2026-04-13T07:00:00.000Z",
+        "createdAt": "2026-04-13T07:00:00.000Z",
         "read": false
       }
     ]

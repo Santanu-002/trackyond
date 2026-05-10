@@ -10,8 +10,10 @@ import 'package:trackyond/features/auth/domain/usecases/check_token_validity_use
 import 'package:trackyond/features/auth/domain/usecases/get_authenticated_user_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_company_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_member_profile_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/get_setting_use_case.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_user_role_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/save_setting_use_case.dart';
 
 class AuthController extends GetxController {
   final CheckAuthStatusUseCase _checkAuthStatusUseCase;
@@ -23,6 +25,12 @@ class AuthController extends GetxController {
   final CheckTokenValidityUseCase _checkTokenValidityUseCase;
   final CheckOnboardingStatusUseCase _checkOnboardingStatusUseCase;
 
+  // Role-based settings use cases
+  final GetSettingUseCase _getOwnerSettingUseCase;
+  final SaveSettingUseCase _saveOwnerSettingUseCase;
+  final GetSettingUseCase _getWorkerSettingUseCase;
+  final SaveSettingUseCase _saveWorkerSettingUseCase;
+
   AuthController({
     required CheckAuthStatusUseCase checkAuthStatusUseCase,
     required GetAuthenticatedUserUseCase getAuthenticatedUserUseCase,
@@ -32,15 +40,22 @@ class AuthController extends GetxController {
     required LogoutUseCase logoutUseCase,
     required CheckTokenValidityUseCase checkTokenValidityUseCase,
     required CheckOnboardingStatusUseCase checkOnboardingStatusUseCase,
-  })
-      : _checkAuthStatusUseCase = checkAuthStatusUseCase,
+    required GetSettingUseCase getOwnerSettingUseCase,
+    required SaveSettingUseCase saveOwnerSettingUseCase,
+    required GetSettingUseCase getWorkerSettingUseCase,
+    required SaveSettingUseCase saveWorkerSettingUseCase,
+  })  : _checkAuthStatusUseCase = checkAuthStatusUseCase,
         _getAuthenticatedUserUseCase = getAuthenticatedUserUseCase,
         _getUserRoleUseCase = getUserRoleUseCase,
         _getMemberProfileUseCase = getMemberProfileUseCase,
         _getCompanyUseCase = getCompanyUseCase,
         _logoutUseCase = logoutUseCase,
         _checkTokenValidityUseCase = checkTokenValidityUseCase,
-        _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase;
+        _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase,
+        _getOwnerSettingUseCase = getOwnerSettingUseCase,
+        _saveOwnerSettingUseCase = saveOwnerSettingUseCase,
+        _getWorkerSettingUseCase = getWorkerSettingUseCase,
+        _saveWorkerSettingUseCase = saveWorkerSettingUseCase;
 
   @override
   void onReady() async {
@@ -68,8 +83,8 @@ class AuthController extends GetxController {
   Future<MemberProfile?> get profile async {
     final profileResult = await _getMemberProfileUseCase(const NoParams());
     return profileResult.fold<MemberProfile?>(
-          (_) => null,
-          (profile) => profile,
+      (_) => null,
+      (profile) => profile,
     );
   }
 
@@ -81,8 +96,8 @@ class AuthController extends GetxController {
   Future<String> get companyName async {
     final companyResult = await _getCompanyUseCase(const NoParams());
     return companyResult.fold(
-          (_) => 'Company',
-          (company) => company?.name ?? 'Company',
+      (_) => 'Company',
+      (company) => company?.name ?? 'Company',
     );
   }
 
@@ -104,6 +119,38 @@ class AuthController extends GetxController {
   Future<bool> get _hasCompletedOnboarding async {
     final result = await _checkOnboardingStatusUseCase(const NoParams());
     return result.fold<bool>((_) => false, (completed) => completed);
+  }
+
+  // ------------------ SETTINGS ------------------
+
+  Future<dynamic> getSetting(String key, Type type) async {
+    final role = await userRole;
+    if (role == UserRole.owner) {
+      final res = await _getOwnerSettingUseCase(GetSettingParams(key: key, type: type));
+      return res.fold((_) => null, (v) => v);
+    } else if (role == UserRole.worker) {
+      final res = await _getWorkerSettingUseCase(GetSettingParams(key: key, type: type));
+      return res.fold((_) => null, (v) => v);
+    }
+    return null;
+  }
+
+  Future<void> saveSetting(String key, dynamic value) async {
+    final role = await userRole;
+    if (role == UserRole.owner) {
+      await _saveOwnerSettingUseCase(SaveSettingParams(key: key, value: value));
+    } else if (role == UserRole.worker) {
+      await _saveWorkerSettingUseCase(SaveSettingParams(key: key, value: value));
+    }
+  }
+
+  // Convenience getters for common settings
+  Future<bool> getBoolSetting(String key, {bool defaultValue = false}) async {
+    return (await getSetting(key, bool)) as bool? ?? defaultValue;
+  }
+
+  Future<String?> getStringSetting(String key) async {
+    return (await getSetting(key, String)) as String?;
   }
 
   // ------------------ ACTIONS ------------------

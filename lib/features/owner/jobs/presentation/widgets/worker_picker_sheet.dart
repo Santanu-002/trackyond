@@ -53,15 +53,12 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
                     ),
                   ),
                   const Spacer(),
-                  AppButton.filled(
+                  AppButton.icon(
                     onPressed: () => Get.back(),
-                    width: 36,
-                    height: 36,
-                    color: context.theme.colorScheme.surfaceContainerHighest,
-                    child: Icon(
+                    size: 36,
+                    icon: Icon(
                       Icons.close_rounded,
                       size: 20,
-                      color: context.theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -81,36 +78,42 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
 
               // Picker List
               Expanded(
-                child: Obx(() {
-                  final members = controller.filteredMembers;
+                child: ListView(
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    // Add Member Tile at the top (matches AddTeamMemberPage layout)
+                    AddMemberTile(
+                      onTap: controller.navigateToAddMemberDetails,
+                    ),
+                    AppUIConstants.widgets.verticalBox$16,
 
-                  if (controller.isWorkersLoading.value) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  return ListView(
-                    controller: scrollController,
-                    children: [
-                      // Add Member Tile at the top (matches AddTeamMemberPage layout)
-                      AddMemberTile(
-                        onTap: () => Get.toNamed('/add-member-details'),
+                    // Constant Members Label
+                    Text(
+                      AppStrings.createJob.membersLabel,
+                      style: context.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: context.theme.colorScheme.primary,
                       ),
-                      AppUIConstants.widgets.verticalBox$16,
+                    ),
+                    AppUIConstants.widgets.verticalBox$12,
 
-                      // Members Label
-                      if (members.isNotEmpty) ...[
-                        Text(
-                          "Members",
-                          style: context.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: context.theme.colorScheme.primary,
+                    Obx(() {
+                      final members = controller.filteredMembers;
+
+                      if (controller.isWorkersLoading.value && members.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: AppUIConstants.spacing.space$32,
+                            ),
+                            child: const CircularProgressIndicator(),
                           ),
-                        ),
-                        AppUIConstants.widgets.verticalBox$12,
-                      ],
-                      
-                      if (members.isEmpty)
-                        Center(
+                        );
+                      }
+
+                      if (members.isEmpty) {
+                        return Center(
                           child: Padding(
                             padding: EdgeInsets.symmetric(
                               vertical: AppUIConstants.spacing.space$32,
@@ -120,32 +123,76 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
                               style: context.textTheme.bodyMedium,
                             ),
                           ),
-                        )
-                      else
-                        ...members.map((memberStatus) {
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: AppUIConstants.spacing.space$4),
-                            child: InkWell(
-                              onTap: () {
-                                controller.setWorker(memberStatus.profile);
-                                Get.back();
+                        );
+                      }
+
+                      return Column(
+                        children: [
+                          ...members.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final memberStatus = entry.value;
+                            return TweenAnimationBuilder<double>(
+                              duration:
+                                  Duration(milliseconds: 400 + (index * 50)),
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              builder: (context, value, child) {
+                                return Opacity(
+                                  opacity: value,
+                                  child: Transform.translate(
+                                    offset: Offset(
+                                      0,
+                                      AppUIConstants.spacing.space$20 *
+                                          (1 - value),
+                                    ),
+                                    child: child,
+                                  ),
+                                );
                               },
-                              borderRadius: BorderRadius.circular(
-                                AppUIConstants.radius.radius$12,
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                    bottom: AppUIConstants.spacing.space$4),
+                                child: InkWell(
+                                  onTap: () {
+                                    controller.setWorker(memberStatus.profile);
+                                    Get.back();
+                                  },
+                                  borderRadius: BorderRadius.circular(
+                                    AppUIConstants.radius.radius$12,
+                                  ),
+                                  child: MemberListTile(
+                                    member: memberStatus.profile,
+                                    status: memberStatus.status,
+                                    highlight:
+                                        controller.workerSearchQuery.value,
+                                  ),
+                                ),
                               ),
-                              child: MemberListTile(
-                                member: memberStatus.profile,
-                                status: memberStatus.status,
-                                highlight: controller.workerSearchQuery.value,
+                            );
+                          }),
+                        ],
+                      );
+                    }),
+
+                    // Show loader at bottom when searching and list is not empty
+                    Obx(
+                      () => controller.isWorkersLoading.value &&
+                              controller.filteredMembers.isNotEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: AppUIConstants.spacing.space$16,
+                                ),
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
-                            ),
-                          );
-                        }),
-                      
-                      AppUIConstants.widgets.verticalBox$32,
-                    ],
-                  );
-                }),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+
+                    AppUIConstants.widgets.verticalBox$32,
+                  ],
+                ),
               ),
             ],
           ),

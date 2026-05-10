@@ -1,15 +1,17 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text, UniqueConstraint, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from core.utils.datetime_utils import now_utc
 from .database import Base
+from core.constants.enums import UserRole, JobStatus, AttendanceStatus
 
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     uid = Column(String, unique=True, index=True)
     phone = Column(String, unique=True, index=True)
-    role = Column(String) # admin | employee
+    role = Column(SQLEnum(UserRole), default=UserRole.worker)
+
     is_new_user = Column(Boolean, default=True)
     primary_account_uid = Column(String, nullable=True) # UID of the primary Member/Profile record
     created_at = Column(DateTime, default=now_utc)
@@ -67,12 +69,16 @@ class Job(Base):
     worker_account_uid = Column(String, ForeignKey("members.account_uid"), nullable=True)
     company_uid = Column(String, ForeignKey("companies.company_id"), index=True)
     created_by = Column(String, ForeignKey("users.uid"))
-    status = Column(String, default="pending") # pending | assigned | in_progress | completed
+    status = Column(SQLEnum(JobStatus), default=JobStatus.pending)
+
     require_photo_on_start = Column(Boolean, default=False)
     require_photo_on_complete = Column(Boolean, default=False)
     capture_location = Column(Boolean, default=False)
     created_at = Column(DateTime, default=now_utc)
     assigned_at = Column(DateTime, nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, default=now_utc, onupdate=now_utc)
+    completed_at = Column(DateTime, nullable=True)
 
 class Notification(Base):
     __tablename__ = "notifications"
@@ -104,8 +110,7 @@ class Attendance(Base):
     end_address = Column(String, nullable=True)
     
     # Status: not started | working | ended
-    status = Column(String, default="not started") 
+    status = Column(SQLEnum(AttendanceStatus), default=AttendanceStatus.not_started)
     
     created_at = Column(DateTime, default=now_utc)
     updated_at = Column(DateTime, default=now_utc, onupdate=now_utc)
-

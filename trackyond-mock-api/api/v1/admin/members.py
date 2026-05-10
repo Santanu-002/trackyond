@@ -77,7 +77,7 @@ async def add_member(
         new_user = models.User(
             uid=target_user_uid,
             phone=user_phone_no,
-            role="employee",
+            role="worker",
             is_new_user=False
         )
         db.add(new_user)

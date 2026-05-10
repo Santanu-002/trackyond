@@ -326,14 +326,21 @@ class AppTheme {
         if (states.contains(WidgetState.selected)) {
           return colors.surface;
         }
-        return null;
+        return colors.outline.withValues(alpha: 0.4);
       }),
       trackColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return colors.primary;
         }
-        return null;
+        return colors.surfaceContainerHighest;
       }),
+      trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return Colors.transparent;
+        }
+        return colors.outline.withValues(alpha: 0.2);
+      }),
+      trackOutlineWidth: WidgetStateProperty.all(1.0),
     );
   }
 

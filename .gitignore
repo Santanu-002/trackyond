@@ -68,3 +68,5 @@ app.*.map.json
 /ios/Flutter/App.podspec
 
 flutter_sdk
+
+gha-creds-*.json

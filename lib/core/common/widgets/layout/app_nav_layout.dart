@@ -15,6 +15,7 @@ class AppNavLayout extends StatelessWidget {
   final List<Widget>? actions;
   final EdgeInsetsGeometry? padding;
   final Widget? leading;
+  final bool useScrollView;
 
   const AppNavLayout({
     super.key,
@@ -26,6 +27,7 @@ class AppNavLayout extends StatelessWidget {
     this.openBuilder,
     this.actions,
     this.padding,
+    this.useScrollView = true,
   });
 
   @override
@@ -61,7 +63,7 @@ class AppNavLayout extends StatelessWidget {
                 )
               : null),
       actions: actions ?? [AppUIConstants.widgets.horizontalBox$8],
-      useScrollView: true,
+      useScrollView: useScrollView,
       child: child,
     );
   }

@@ -14,7 +14,7 @@ router = APIRouter(prefix="/attendance", tags=["Employee/Attendance"])
 def serialize_attendance(attendance: models.Attendance):
     if not attendance:
         return None
-    status = AttendanceStatus.WORKING if attendance.end_at is None else AttendanceStatus.ENDED
+    status = AttendanceStatus.working if attendance.end_at is None else AttendanceStatus.ended
     return {
         "id": attendance.id,
         "accountUid": attendance.account_uid,
@@ -43,12 +43,12 @@ async def start_attendance(req: MarkAttendanceRequest, db: Session = Depends(get
     # 1. End any stale sessions from previous days
     stale_sessions = db.query(models.Attendance).filter(
         models.Attendance.account_uid == req.accountUid,
-        models.Attendance.status == AttendanceStatus.WORKING,
+        models.Attendance.status == AttendanceStatus.working,
         models.Attendance.created_at < today_start
     ).all()
     
     for session in stale_sessions:
-        session.status = AttendanceStatus.ENDED
+        session.status = AttendanceStatus.ended
         session.end_at = session.start_at # Fallback end time
         session.end_address = "Auto-closed (stale)"
     
@@ -58,7 +58,7 @@ async def start_attendance(req: MarkAttendanceRequest, db: Session = Depends(get
     # 2. Check for active session today
     active_session = db.query(models.Attendance).filter(
         models.Attendance.account_uid == req.accountUid,
-        models.Attendance.status == AttendanceStatus.WORKING,
+        models.Attendance.status == AttendanceStatus.working,
         models.Attendance.created_at >= today_start
     ).first()
     
@@ -72,7 +72,7 @@ async def start_attendance(req: MarkAttendanceRequest, db: Session = Depends(get
         start_latitude=req.latitude,
         start_longitude=req.longitude,
         start_address=req.address,
-        status=AttendanceStatus.WORKING,
+        status=AttendanceStatus.working,
         start_at=now_utc()
     )
     db.add(attendance)
@@ -88,7 +88,7 @@ async def start_attendance(req: MarkAttendanceRequest, db: Session = Depends(get
 @router.post("/end", response_model=GenericResponse)
 async def end_attendance(req: MarkAttendanceRequest, db: Session = Depends(get_db)):
     attendance = db.query(models.Attendance).filter(
-        models.Attendance.status == AttendanceStatus.WORKING,
+        models.Attendance.status == AttendanceStatus.working,
         models.Attendance.account_uid == req.accountUid
     ).order_by(models.Attendance.start_at.desc()).first()
 
@@ -99,7 +99,7 @@ async def end_attendance(req: MarkAttendanceRequest, db: Session = Depends(get_d
     attendance.end_latitude = req.latitude
     attendance.end_longitude = req.longitude
     attendance.end_address = req.address
-    attendance.status = AttendanceStatus.ENDED
+    attendance.status = AttendanceStatus.ended
     
     # Ensure start_at is timezone-aware for subtraction
     start_at = attendance.start_at
@@ -129,7 +129,7 @@ async def get_attendance_status(account_uid: str, db: Session = Depends(get_db))
     ).order_by(models.Attendance.created_at.desc()).first()
     
     if latest_attendance:
-        status = AttendanceStatus.WORKING if latest_attendance.end_at is None else AttendanceStatus.ENDED
+        status = AttendanceStatus.working if latest_attendance.end_at is None else AttendanceStatus.ended
         return GenericResponse(
             success=True,
             message="Current status fetched",
@@ -144,7 +144,7 @@ async def get_attendance_status(account_uid: str, db: Session = Depends(get_db))
         success=True,
         message="Not started",
         data={
-            "status": AttendanceStatus.NOT_STARTED,
+            "status": AttendanceStatus.not_started,
             "attendance": None
         }
     )

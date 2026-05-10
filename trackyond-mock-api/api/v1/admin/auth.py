@@ -10,7 +10,7 @@ router = APIRouter(prefix="/auth", tags=["Admin/Auth"])
 
 @router.post("/send-otp", response_model=GenericResponse)
 async def send_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: str = Header(alias="device-id")):
-    data = auth_service.send_otp_logic(db, req.phone, device_id, role="admin")
+    data = auth_service.send_otp_logic(db, req.phone, device_id, role="owner")
     return GenericResponse(
         success=True,
         message=strings.otp_sent,
@@ -19,7 +19,7 @@ async def send_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: st
 
 @router.post("/resend-otp", response_model=GenericResponse)
 async def resend_otp(req: OTPRequest, db: Session = Depends(get_db), device_id: str = Header(alias="device-id")):
-    data = auth_service.send_otp_logic(db, req.phone, device_id, is_resend=True, role="admin")
+    data = auth_service.send_otp_logic(db, req.phone, device_id, is_resend=True, role="owner")
     return GenericResponse(
         success=True,
         message=strings.otp_resent,
@@ -47,9 +47,10 @@ async def verify_otp(
         "appVersion": app_version
     }
     
-    success, is_new_user, data = auth_service.verify_otp_logic(
-        db, req.phone, req.otp_id, req.otp, device_id, metadata, role="admin"
+    success, is_new_user, response_data = auth_service.verify_otp_logic(
+        db, req.phone, req.otp_id, req.otp, device_id, metadata, role="owner"
     )
+
     
     if not success:
         return GenericResponse(success=False, message=strings.invalid_otp)
@@ -57,7 +58,7 @@ async def verify_otp(
     return GenericResponse(
         success=True,
         message=strings.login_success,
-        data=data
+        data=response_data
     )
 
 @router.post("/refresh", response_model=GenericResponse)

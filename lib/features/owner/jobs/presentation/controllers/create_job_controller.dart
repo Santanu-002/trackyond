@@ -1,3 +1,4 @@
+import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
@@ -6,10 +7,14 @@ import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/owner/jobs/domain/usecases/create_job_use_case.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
+import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/worker_picker_sheet.dart';
+import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 
 class CreateJobController extends GetxController {
   final CreateJobUseCase _createJobUseCase;
   final GetTeamStatusUseCase _getTeamStatusUseCase;
+  final AuthController _authController;
   
   final formKey = GlobalKey<FormState>();
   
@@ -32,45 +37,72 @@ class CreateJobController extends GetxController {
   final isLoading = false.obs;
   final isWorkersLoading = false.obs;
 
+  // Pref Keys
+  static const String _prefKeyPhotoOnCompletion = 'job_pref_photo_on_completion';
+  static const String _prefKeyCaptureLocation = 'job_pref_capture_location';
+  static const String _prefKeyPhotoOnStart = 'job_pref_photo_on_start';
+
   CreateJobController({
     required CreateJobUseCase createJobUseCase,
     required GetTeamStatusUseCase getTeamStatusUseCase,
+    required AuthController authController,
   })  : _createJobUseCase = createJobUseCase,
-        _getTeamStatusUseCase = getTeamStatusUseCase;
+        _getTeamStatusUseCase = getTeamStatusUseCase,
+        _authController = authController;
 
   @override
   void onInit() {
     super.onInit();
+    _loadPreferences();
     // Initial fetch with limit 5
     fetchWorkers(limit: 5);
     
-    // Listen to search query changes with debounce
+    // Listen to search query changes with debounce for API calls
     debounce(workerSearchQuery, (_) => fetchWorkers(), time: const Duration(milliseconds: 500));
     // Also re-fetch when search criteria changes
     ever(searchBy, (_) => fetchWorkers());
   }
 
-  // All workers fetched from backend with status
-  final _allMembers = <TeamMemberStatusEntity>[].obs;
+  Future<void> _loadPreferences() async {
+    requirePhotoOnCompletion.value = await _authController.getBoolSetting(_prefKeyPhotoOnCompletion);
+    captureLocation.value = await _authController.getBoolSetting(_prefKeyCaptureLocation, defaultValue: true);
+    requirePhotoOnStart.value = await _authController.getBoolSetting(_prefKeyPhotoOnStart);
+  }
+
+  Future<void> _savePreferences() async {
+    await _authController.saveSetting(_prefKeyPhotoOnCompletion, requirePhotoOnCompletion.value);
+    await _authController.saveSetting(_prefKeyCaptureLocation, captureLocation.value);
+    await _authController.saveSetting(_prefKeyPhotoOnStart, requirePhotoOnStart.value);
+  }
+
+  // All workers fetched from backend
+  final _allFetchedMembers = <TeamMemberStatusEntity>[].obs;
 
   List<TeamMemberStatusEntity> get filteredMembers {
-    // Controller logic for sorting if needed, but if API returns sorted/limited results, we just return them.
-    // However, the user wants "initial fetch 5 top member according to working status priority first and then others".
-    // We should ensure the API or our fetch logic handles this.
-    return _allMembers;
+    if (workerSearchQuery.isEmpty) {
+      return _allFetchedMembers;
+    }
+
+    final query = workerSearchQuery.value.toLowerCase();
+    return _allFetchedMembers.where((m) {
+      final searchableString = switch (searchBy.value) {
+        'Name' => m.profile.name,
+        'Designation' => m.profile.designation,
+        'Phone' => m.profile.phone,
+        _ => '${m.profile.name} ${m.profile.designation} ${m.profile.phone}',
+      };
+      return searchableString.toLowerCase().contains(query);
+    }).toList();
   }
 
   Future<void> fetchWorkers({int? limit}) async {
     isWorkersLoading.value = true;
     
-    // If we are searching, we don't use the initial limit 5 unless specified.
-    // Usually search should show all matches.
-    final effectiveLimit = workerSearchQuery.isEmpty ? (limit ?? 5) : null;
+    // If we are searching, we fetch a larger batch (e.g. 50) to allow local filtering
+    final effectiveLimit = workerSearchQuery.isEmpty ? (limit ?? 5) : 50;
     
     final result = await _getTeamStatusUseCase.call(GetTeamStatusParams(
       limit: effectiveLimit,
-      // We might need to add search params to GetTeamStatusParams if not already there
-      // For now, let's assume we can filter or we'll add it.
     ));
     
     isWorkersLoading.value = false;
@@ -78,25 +110,7 @@ class CreateJobController extends GetxController {
     result.fold(
       (failure) => AppSnackbar.destructive(failure.message),
       (teamStatus) {
-        final members = teamStatus.members;
-        
-        // Client-side filtering if API doesn't support the specific 'searchBy' logic yet
-        if (workerSearchQuery.isNotEmpty) {
-          final query = workerSearchQuery.value.toLowerCase();
-          final filtered = members.where((m) {
-            String searchableString;
-            switch (searchBy.value) {
-              case 'Name': searchableString = m.profile.name; break;
-              case 'Designation': searchableString = m.profile.designation; break;
-              case 'Phone': searchableString = m.profile.phone; break;
-              default: searchableString = '${m.profile.name} ${m.profile.designation} ${m.profile.phone}';
-            }
-            return searchableString.toLowerCase().contains(query);
-          }).toList();
-          _allMembers.assignAll(filtered);
-        } else {
-          _allMembers.assignAll(members);
-        }
+        _allFetchedMembers.assignAll(teamStatus.members);
       },
     );
   }
@@ -106,23 +120,46 @@ class CreateJobController extends GetxController {
     selectedWorker.value = worker;
   }
 
-  String getSearchByLabel(String value) {
-    switch (value) {
-      case 'All':
-        return AppStrings.teamStatus.searchByAll;
-      case 'Name':
-        return AppStrings.teamStatus.searchByName;
-      case 'Designation':
-        return AppStrings.teamStatus.searchByDesignation;
-      case 'Phone':
-        return AppStrings.teamStatus.searchByPhone;
-      default:
-        return value;
+  Future<void> navigateToAddMemberDetails() async {
+    final result = await Get.toNamed(AppRoutes.owner.addMemberDetails);
+    if (result is MemberProfile) {
+      // Create a status entity for the new member
+      final entity = TeamMemberStatusEntity(profile: result);
+      
+      // Add to the list if not already there
+      if (!_allFetchedMembers.any((m) => m.profile.accountUid == result.accountUid)) {
+        _allFetchedMembers.insert(0, entity);
+      }
+      
+      // Select the worker
+      setWorker(result);
     }
   }
 
+  String getSearchByLabel(String value) => switch (value) {
+        'All' => AppStrings.teamStatus.searchByAll,
+        'Name' => AppStrings.teamStatus.searchByName,
+        'Designation' => AppStrings.teamStatus.searchByDesignation,
+        'Phone' => AppStrings.teamStatus.searchByPhone,
+        _ => value,
+      };
+
+  Future<void> showWorkerPicker(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.theme.scaffoldBackgroundColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppUIConstants.radius.radius$24),
+        ),
+      ),
+      builder: (_) => const WorkerPickerSheet(),
+    );
+  }
+
   Future<void> createJob() async {
-    if (!formKey.currentState!.validate()) return;
+    if (formKey.currentState?.validate() != true) return;
     
     if (selectedWorker.value == null) {
       AppSnackbar.warn('Please assign a worker to this job.');
@@ -150,10 +187,25 @@ class CreateJobController extends GetxController {
     result.fold(
       (failure) => AppSnackbar.destructive(failure.message),
       (job) {
+        _savePreferences();
         AppSnackbar.success('Job created successfully.');
-        Get.back();
+        
+        // Reset form
+        _clearForm();
+        
+        // Return the fresh job to the previous screen (Dashboard)
+        Get.back(result: job);
       },
     );
+  }
+
+  void _clearForm() {
+    workController.clear();
+    customerNameController.clear();
+    phoneController.clear();
+    addressController.clear();
+    selectedWorker.value = null;
+    workerSearchQuery.value = '';
   }
 
   @override

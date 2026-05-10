@@ -207,8 +207,8 @@ return error(_that.success,_that.message,_that.data,_that.statusCode);case _:
 /// @nodoc
 
 
-class ApiResponseSuccess<T> implements ApiResponse<T> {
-  const ApiResponseSuccess({required this.success, required this.message, this.data});
+class ApiResponseSuccess<T> extends ApiResponse<T> {
+  const ApiResponseSuccess({required this.success, required this.message, this.data}): super._();
   
 
 @override final  bool success;
@@ -277,8 +277,8 @@ as T?,
 /// @nodoc
 
 
-class ApiResponseError<T> implements ApiResponse<T> {
-  const ApiResponseError({required this.success, required this.message, this.data, this.statusCode});
+class ApiResponseError<T> extends ApiResponse<T> {
+  const ApiResponseError({required this.success, required this.message, this.data, this.statusCode}): super._();
   
 
 @override final  bool success;

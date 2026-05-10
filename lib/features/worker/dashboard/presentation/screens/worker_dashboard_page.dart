@@ -14,6 +14,7 @@ class WorkerDashboardPage extends GetView<WorkerDashboardController> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: controller.title.value,
+      useScrollView: false,
       leading: Padding(
         padding: EdgeInsets.only(left: AppUIConstants.spacing.space$12),
         child: Center(
@@ -29,12 +30,18 @@ class WorkerDashboardPage extends GetView<WorkerDashboardController> {
         AppNotificationBell(count: 0, onPressed: () {}),
         AppUIConstants.widgets.horizontalBox$8,
       ],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: AppUIConstants.spacing.space$24,
-        children: [
-          const WorkerAttendanceCard(),
-        ],
+      child: RefreshIndicator(
+        onRefresh: controller.refreshDashboard,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: AppUIConstants.spacing.space$24,
+            children: [
+              const WorkerAttendanceCard(),
+            ],
+          ),
+        ),
       ),
     );
   }

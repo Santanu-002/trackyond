@@ -9,6 +9,7 @@ import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/a
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/team_status_section.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/task_stats_section.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/recent_jobs_section.dart';
+import 'package:trackyond/core/common/entities/job_entity.dart';
 import 'package:trackyond/features/owner/jobs/presentation/bindings/create_job_binding.dart';
 import 'package:trackyond/features/owner/jobs/presentation/screens/create_job_page.dart';
 
@@ -23,9 +24,23 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
     return AppNavLayout(
       title: strings.title,
       padding: EdgeInsets.zero,
-      openBuilder: (context, _) {
+      useScrollView: false,
+      openBuilder: (context, action) {
         CreateJobBinding().dependencies();
-        return const CreateJobPage();
+        return CreateJobPage(
+          onSuccess: (job) {
+            if (job is JobEntity) {
+              controller.recentJobs.insert(0, job);
+              controller.stats.value = controller.stats.value.copyWith(
+                pending: controller.stats.value.pending + 1,
+              );
+              if (controller.recentJobs.length > 10) {
+                controller.recentJobs.removeLast();
+              }
+            }
+            action(returnValue: job);
+          },
+        );
       },
       drawer: const AppDrawer(),
       actions: [
@@ -57,21 +72,35 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
         ),
         AppUIConstants.widgets.horizontalBox$8,
       ],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: AppUIConstants.spacing.space$32,
-        children: [
-          // Team Status Section
-          Obx(() => TeamStatusSection(members: controller.teamMembers.toList())),
+      child: RefreshIndicator(
+        onRefresh: controller.fetchDashboardData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: AppUIConstants.spacing.space$32,
+            children: [
+              // Team Status Section
+              Obx(() => TeamStatusSection(
+                    members: controller.teamMembers.toList(),
+                    isLoading: controller.isLoading.value,
+                  )),
 
-          // Stats Section
-          Obx(() => TaskStatsSection(
-            stats: controller.taskStats,
-          )),
+              // Stats Section
+              Obx(() => TaskStatsSection(
+                    stats: controller.taskStats,
+                    isLoading: controller.isLoading.value,
+                  )),
 
-          // Recent Jobs Section
-          const RecentJobsSection(),
-        ],
+              // Recent Jobs Section
+              Obx(() => RecentJobsSection(
+                    isLoading: controller.isLoading.value,
+                  )),
+
+              AppUIConstants.widgets.verticalBox$32,
+            ],
+          ),
+        ),
       ),
     );
   }

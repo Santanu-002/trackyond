@@ -45,7 +45,7 @@ class TeamMemberProfilePageController extends GetxController {
   void onCopyPhone() {
     final phone = memberStatus.value?.profile.phone;
     if (phone != null) {
-      copyToClipboard(phone);
+      AppUtils.copyToClipboard(phone);
     }
   }
 

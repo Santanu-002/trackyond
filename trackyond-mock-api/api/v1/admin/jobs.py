@@ -8,6 +8,8 @@ from core.utils.datetime_utils import to_utc_iso
 from api.dependencies import get_admin_user
 import uuid
 from typing import Optional
+from core.constants.enums import JobStatus
+
 
 router = APIRouter(prefix="/jobs", tags=["Admin/Jobs"])
 
@@ -17,11 +19,12 @@ async def get_jobs(
     offset: int = Query(0, ge=0),
     order_by: str = Query("createdAt", alias="orderBy"),
     order: str = Query("desc"),
-    status: Optional[str] = None,
+    status: Optional[list[str]] = Query(None, alias="statuses"),
     worker_id: Optional[str] = Query(None, alias="workerId"),
-    search: Optional[str] = Query(None, description="Search by title or customer name"),
-    title: Optional[str] = None,
-    customer_name: Optional[str] = Query(None, alias="customerName"),
+    search: Optional[str] = Query(None, description="Search across multiple fields"),
+    search_by: str = Query("all", alias="searchBy"),
+    from_date: Optional[str] = Query(None, alias="fromDate"),
+    to_date: Optional[str] = Query(None, alias="toDate"),
     db: Session = Depends(get_db),
     admin: models.User = Depends(get_admin_user)
 ):
@@ -30,31 +33,61 @@ async def get_jobs(
     if not admin_member:
         return GenericResponse(success=False, message="Admin profile not found")
 
-    query = db.query(models.Job).filter(models.Job.company_uid == admin_member.company_uid)
+    company_uid = admin_member.company_uid
 
-    # Filtering
+    # Base query with Join to get worker details
+    # We use outerjoin because some jobs might not be assigned yet
+    query = db.query(
+        models.Job, 
+        models.Member.name.label("worker_name"),
+        models.Member.image.label("worker_image")
+    ).outerjoin(
+        models.Member, models.Job.worker_account_uid == models.Member.account_uid
+    ).filter(models.Job.company_uid == company_uid)
+
+    # 1. Multi-Status Filtering
     if status:
-        query = query.filter(models.Job.status == status)
+        query = query.filter(models.Job.status.in_(status))
+
+    # 2. Worker Filtering
     if worker_id:
         query = query.filter(models.Job.worker_account_uid == worker_id)
-    if title:
-        query = query.filter(models.Job.title.ilike(f"%{title}%"))
-    if customer_name:
-        query = query.filter(models.Job.customer_name.ilike(f"%{customer_name}%"))
     
-    # General Search
+    # 3. Date Range Filtering
+    if from_date:
+        query = query.filter(models.Job.created_at >= from_date)
+    if to_date:
+        query = query.filter(models.Job.created_at <= to_date)
+    
+    # 4. Advanced Search
     if search:
-        query = query.filter(
-            (models.Job.title.ilike(f"%{search}%")) | 
-            (models.Job.customer_name.ilike(f"%{search}%"))
-        )
+        search_term = f"%{search}%"
+        if search_by == "title":
+            query = query.filter(models.Job.title.ilike(search_term))
+        elif search_by == "customer":
+            query = query.filter(
+                (models.Job.customer_name.ilike(search_term)) |
+                (models.Job.customer_phone.ilike(search_term))
+            )
+        elif search_by == "address":
+            query = query.filter(models.Job.customer_address.ilike(search_term))
+        elif search_by == "worker":
+            query = query.filter(models.Member.name.ilike(search_term))
+        else: # "all"
+            query = query.filter(
+                (models.Job.title.ilike(search_term)) | 
+                (models.Job.customer_name.ilike(search_term)) |
+                (models.Job.customer_address.ilike(search_term)) |
+                (models.Member.name.ilike(search_term))
+            )
     
-    # Sorting
+    # 5. Sorting
     order_map = {
         "createdAt": models.Job.created_at,
-        "title": models.Job.title,
+        "jobTitle": models.Job.title,
         "status": models.Job.status,
         "customerName": models.Job.customer_name,
+        "workerName": models.Member.name,
     }
     
     sort_column = order_map.get(order_by, models.Job.created_at)
@@ -64,33 +97,43 @@ async def get_jobs(
     else:
         query = query.order_by(desc(sort_column))
 
-    # Pagination
+    # 6. Pagination & Metadata
     total_count = query.count()
-    jobs = query.limit(limit).offset(offset).all()
+    results = query.limit(limit).offset(offset).all()
+    
+    total_pages = (total_count + limit - 1) // limit
+
+    jobs_data = []
+    for job, worker_name, worker_image in results:
+        jobs_data.append({
+            "jobId": job.job_id,
+            "jobTitle": job.title,
+            "customerName": job.customer_name,
+            "customerPhone": job.customer_phone,
+            "customerAddress": job.customer_address,
+            "workerAccountUid": job.worker_account_uid,
+            "workerName": worker_name,
+            "workerImage": worker_image,
+            "status": job.status,
+            "requirePhotoOnStart": job.require_photo_on_start,
+            "requirePhotoOnComplete": job.require_photo_on_complete,
+            "captureLocation": job.capture_location,
+            "createdAt": to_utc_iso(job.created_at),
+            "assignedAt": to_utc_iso(job.assigned_at) if job.assigned_at else None,
+            "updatedAt": to_utc_iso(job.updated_at) if job.updated_at else None,
+            "completedAt": to_utc_iso(job.completed_at) if job.completed_at else None
+        })
 
     return GenericResponse(
         success=True,
         message="Jobs fetched successfully",
         data={
             "totalCount": total_count,
+            "totalPages": total_pages,
+            "itemCount": len(jobs_data),
             "limit": limit,
             "offset": offset,
-            "jobs": [
-                {
-                    "jobId": j.job_id,
-                    "title": j.title,
-                    "customerName": j.customer_name,
-                    "customerPhone": j.customer_phone,
-                    "customerAddress": j.customer_address,
-                    "workerAccountUid": j.worker_account_uid,
-                    "status": j.status,
-                    "requirePhotoOnStart": j.require_photo_on_start,
-                    "requirePhotoOnComplete": j.require_photo_on_complete,
-                    "captureLocation": j.capture_location,
-                    "createdAt": to_utc_iso(j.created_at),
-                    "assignedAt": to_utc_iso(j.assigned_at) if j.assigned_at else None
-                } for j in jobs
-            ]
+            "jobs": jobs_data
         }
     )
 
@@ -114,7 +157,8 @@ async def create_job(
         worker_account_uid=job_data.get("workerAccountUid"),
         company_uid=admin_member.company_uid,
         created_by=admin.uid,
-        status="assigned" if job_data.get("workerAccountUid") else "pending",
+        status=JobStatus.assigned if job_data.get("workerAccountUid") else JobStatus.pending,
+
         require_photo_on_start=job_data.get("requirePhotoOnStart", False),
         require_photo_on_complete=job_data.get("requirePhotoOnComplete", False),
         capture_location=job_data.get("captureLocation", True)
@@ -133,8 +177,19 @@ async def create_job(
         message="Job created successfully",
         data={
             "jobId": new_job.job_id,
+            "jobTitle": new_job.title,
+            "customerName": new_job.customer_name,
+            "customerPhone": new_job.customer_phone,
+            "customerAddress": new_job.customer_address,
+            "workerAccountUid": new_job.worker_account_uid,
             "status": new_job.status,
-            "createdAt": to_utc_iso(new_job.created_at)
+            "requirePhotoOnStart": new_job.require_photo_on_start,
+            "requirePhotoOnComplete": new_job.require_photo_on_complete,
+            "captureLocation": new_job.capture_location,
+            "createdAt": to_utc_iso(new_job.created_at),
+            "assignedAt": to_utc_iso(new_job.assigned_at) if new_job.assigned_at else None,
+            "updatedAt": to_utc_iso(new_job.updated_at) if new_job.updated_at else None,
+            "completedAt": to_utc_iso(new_job.completed_at) if new_job.completed_at else None
         }
     )
 

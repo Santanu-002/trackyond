@@ -14,6 +14,7 @@ import 'package:trackyond/features/owner/team_status/data/repositories/team_stat
 import 'package:trackyond/features/owner/team_status/domain/repositories/i_team_status_repository.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
+import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 
 class CreateJobBinding extends Bindings {
   @override
@@ -51,6 +52,7 @@ class CreateJobBinding extends Bindings {
       () => CreateJobController(
         createJobUseCase: Get.find(),
         getTeamStatusUseCase: Get.find(),
+        authController: Get.find<AuthController>(),
       ),
     );
   }

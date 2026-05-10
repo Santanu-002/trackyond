@@ -69,16 +69,16 @@ class OwnerMockData {
     "success": true,
     "message": "Dashboard data fetched successfully",
     "data": {
-      "team_members_status": [
-        {"uid": "user4567", "name": "Suraj Kumar", "status": "on_job"}
+      "teamMembersStatus": [
+        {"uid": "user4567", "name": "Suraj Kumar", "status": "onJob"}
       ],
-      "job_counts": {"pending": 3, "in_progress": 2, "completed": 10},
-      "recent_jobs": [
+      "jobCounts": {"pending": 3, "inProgress": 2, "completed": 10},
+      "recentJobs": [
         {
-          "job_id": "job001",
-          "job_title": "AC not cooling",
-          "status": "in_progress",
-          "assigned_to": "Suraj Kumar"
+          "jobId": "job001",
+          "jobTitle": "AC not cooling",
+          "status": "inProgress",
+          "assignedTo": "Suraj Kumar"
         }
       ]
     }
@@ -90,14 +90,14 @@ class OwnerMockData {
     "data": {
       "jobs": [
         {
-          "job_id": "job001",
-          "job_title": "AC not cooling",
+          "jobId": "job001",
+          "jobTitle": "AC not cooling",
           "status": "assigned",
-          "worker_name": "Suraj Kumar",
-          "worker_uid": "user4567",
-          "customer_name": "Robert William",
-          "customer_phone": "+917878787878",
-          "created_at": "2026-04-13T08:00:00.000Z"
+          "workerName": "Suraj Kumar",
+          "workerUid": "user4567",
+          "customerName": "Robert William",
+          "customerPhone": "+917878787878",
+          "createdAt": "2026-04-13T08:00:00.000Z"
         }
       ],
       "pagination": {"total": 120, "page": 1, "limit": 10}

@@ -16,6 +16,7 @@ class AppStrings {
   static const teamMemberProfile = TeamMemberProfileStrings();
   static const teamMemberAttendance = TeamMemberAttendanceStrings();
   static const createJob = CreateJobStrings();
+  static const jobs = JobsStrings();
 }
 
 class CommonStrings {
@@ -455,7 +456,7 @@ class TeamMemberAttendanceStrings {
 class CreateJobStrings {
   const CreateJobStrings();
 
-  String get appBarTitle => 'Create Job';
+  String get appBarTitle => 'Create New Job';
   String get workLabel => 'Work / Job*';
   String get workHint => 'e.g. AC not cooling';
   String get customerNameLabel => 'Customer Name*';
@@ -473,5 +474,15 @@ class CreateJobStrings {
   String get captureLocationSubtitle => 'Location will be recorded on actions';
   String get photoOnStartTitle => 'Require photo when starting work';
   String get photoOnStartSubtitle => 'Worker must take photo before starting';
-  String get createJobButton => 'Create Job';
+  String get createJobButton => 'Create New Job';
+  String get membersLabel => 'Members';
+}
+
+class JobsStrings {
+  const JobsStrings();
+
+  String get appBarTitle => 'Jobs';
+  String get noJobsFound => 'No jobs found';
+  String get allJobs => 'All Jobs';
+  String get searchHint => 'Search jobs...';
 }

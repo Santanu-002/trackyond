@@ -4,6 +4,7 @@ from db.database import get_db
 from db import models
 from services.token_service import token_service
 from core.errors.exceptions import AppException
+from core.constants.enums import UserRole
 
 async def get_current_user(
     authorization: str = Header(...),
@@ -44,9 +45,9 @@ async def get_current_user(
 
 async def get_admin_user(current_user: models.User = Depends(get_current_user)) -> models.User:
     """
-    Ensures the current user is an admin.
+    Ensures the current user is an admin (OWNER).
     """
-    if current_user.role != "admin":
+    if current_user.role != UserRole.owner:
         raise AppException(
             message="Access denied. Admin role required.",
             error_code="forbidden",

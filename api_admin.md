@@ -314,11 +314,11 @@ Fetch all jobs with advanced filtering and pagination.
 | Param | Type | Description |
 |-------|------|-------------|
 | status | string | Filter by: `pending`, `assigned`, `in_progress`, `completed` |
-| worker_uid | string | Filter jobs assigned to a specific worker |
-| customer_phone | string | Filter jobs by customer phone number |
+| workerUid | string | Filter jobs assigned to a specific worker |
+| customerPhone | string | Filter jobs by customer phone number |
 | limit | integer | Number of records per page (default: 10) |
 | page | integer | Page number for pagination |
-| sort_by | string | Field to sort by: `created_at`, `status`, `worker_uid` (default: `created_at`) |
+| sortBy | string | Field to sort by: `createdAt`, `status`, `workerUid` (default: `createdAt`) |
 | order | string | Sort order: `asc`, `desc` (default: `desc`) |
 
 **Response — 200**
@@ -404,7 +404,7 @@ Notify assigned member about job.
 
 **Request**
 ```json
-{ "worker_uid": "user4567" }
+{ "workerUid": "user4567" }
 ```
 
 **Response — 200**
@@ -413,7 +413,7 @@ Notify assigned member about job.
   "success": true,
   "message": "Member notified successfully",
   "data": {
-    "notified_at": "2026-04-13T08:01:00.000Z"
+    "notifiedAt": "2026-04-13T08:01:00.000Z"
   }
 }
 ```

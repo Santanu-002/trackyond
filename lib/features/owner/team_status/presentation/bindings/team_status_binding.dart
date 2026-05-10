@@ -4,6 +4,7 @@ import 'package:trackyond/features/owner/team_status/data/repositories/team_stat
 import 'package:trackyond/features/owner/team_status/domain/repositories/i_team_status_repository.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 import 'package:trackyond/features/owner/team_status/presentation/controllers/team_status_controller.dart';
+import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 
 class TeamStatusBinding extends Bindings {
   @override
@@ -22,6 +23,7 @@ class TeamStatusBinding extends Bindings {
     // Controllers
     Get.lazyPut(() => TeamStatusController(
           getTeamStatusUseCase: Get.find<GetTeamStatusUseCase>(),
+          authController: Get.find<AuthController>(),
         ));
   }
 }

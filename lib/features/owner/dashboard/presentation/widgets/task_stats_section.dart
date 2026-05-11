@@ -28,12 +28,14 @@ class TaskStatsSection extends StatelessWidget {
         spacing: AppUIConstants.spacing.space$12,
         children: List.generate(stats.length, (index) {
           final stat = stats[index];
-          return StatsCard(
-            title: stat.label,
-            value: stat.value.toString(),
-            icon: stat.icon,
-            color: stat.color,
-            isLoading: isLoading,
+          return Expanded(
+            child: StatsCard(
+              title: stat.label,
+              value: stat.value.toString(),
+              icon: stat.icon,
+              color: stat.color,
+              isLoading: isLoading,
+            ),
           );
         }),
       ),

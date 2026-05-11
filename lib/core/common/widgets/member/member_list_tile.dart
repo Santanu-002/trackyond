@@ -14,12 +14,14 @@ class MemberListTile extends StatelessWidget {
   final MemberProfile member;
   final AttendanceStatus? status;
   final String? highlight;
+  final bool isCompact;
 
   const MemberListTile({
     super.key,
     required this.member,
     this.status,
     this.highlight,
+    this.isCompact = false,
   });
 
   @override
@@ -28,24 +30,31 @@ class MemberListTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: EdgeInsets.symmetric(
-        vertical: AppUIConstants.spacing.space$4,
+        vertical: isCompact ? 0 : AppUIConstants.spacing.space$4,
       ),
-      leading: MemberAvatar(name: member.name, image: member.image),
+      dense: isCompact,
+      leading: MemberAvatar(
+        name: member.name,
+        image: member.image,
+        radius: isCompact ? 16 : 20,
+      ),
       title: MemberNameText(
         name: member.name,
         highlight: highlight,
+        style: isCompact ? context.textTheme.titleSmall : null,
       ),
       subtitle: Text(
         member.phone,
         style: context.textTheme.bodySmall?.copyWith(
           color: context.theme.colorScheme.onSurfaceVariant,
+          fontSize: isCompact ? 11 : null,
         ),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         spacing: AppUIConstants.spacing.space$8,
         children: [
-          if (status != null)
+          if (status != null && !isCompact)
             AppStatusChip.attendance(
               attendanceStatus: status!,
               context: context,
@@ -54,6 +63,7 @@ class MemberListTile extends StatelessWidget {
             label: member.designation,
             icon: isOwner ? AppIcons.status.verified : null,
             color: isOwner ? context.theme.colorScheme.primary : null,
+            isCompact: isCompact,
           ),
         ],
       ),

@@ -51,17 +51,23 @@ void main() {
   });
 
   group('JobsController', () {
-    test('should init controller and paging listener', () async {
+    test('should init controller and fetch initial data', () async {
       // act
       controller.onInit();
 
       // assert
-      expect(controller.pagingController, isNotNull);
+      expect(controller.jobs, isEmpty);
+      // It starts loading immediately
+      verify(() => mockGetJobsUseCase(any())).called(1);
     });
 
-    test('should refresh paging controller when filter changes', () async {
+    test('should update status and trigger refetch', () async {
       // arrange
       controller.onInit();
+      reset(mockGetJobsUseCase);
+      when(() => mockGetJobsUseCase(any())).thenAnswer(
+        (_) async => const Right([]),
+      );
       
       // act
       controller.setStatus(JobStatus.completed);
@@ -69,6 +75,7 @@ void main() {
       // assert
       expect(controller.isStatusSelected(JobStatus.completed), isTrue);
       expect(controller.isStatusSelected(JobStatus.pending), isFalse);
+      verify(() => mockGetJobsUseCase(any())).called(1);
     });
   });
 }

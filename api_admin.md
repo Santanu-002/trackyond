@@ -313,12 +313,16 @@ Fetch all jobs with advanced filtering and pagination.
 **Query Params**
 | Param | Type | Description |
 |-------|------|-------------|
-| status | string | Filter by: `pending`, `assigned`, `in_progress`, `completed` |
-| workerUid | string | Filter jobs assigned to a specific worker |
-| customerPhone | string | Filter jobs by customer phone number |
-| limit | integer | Number of records per page (default: 10) |
-| page | integer | Page number for pagination |
-| sortBy | string | Field to sort by: `createdAt`, `status`, `workerUid` (default: `createdAt`) |
+| statuses | list[string] | Filter by one or more: `pending`, `assigned`, `inProgress`, `completed`, `cancelled` |
+| workerIds | list[string] | Filter jobs assigned to one or more workers |
+| search | string | Search term (Title, Customer Name, Phone, Address, Worker Name) |
+| searchBy | string | Field to search: `all`, `title`, `customer`, `address`, `worker` (default: `all`) |
+| fromDate | string (ISO) | Start date for creation filter |
+| toDate | string (ISO) | End date for creation filter |
+| logicalOperator | string | How to combine different filter groups: `and`, `or` (default: `and`) |
+| limit | integer | Number of records per page (default: 20) |
+| offset | integer | Record offset for pagination (default: 0) |
+| orderBy | string | Sort field: `createdAt`, `assignedAt`, `jobTitle`, `status`, `customerName`, `workerName` (default: `assignedAt`) |
 | order | string | Sort order: `asc`, `desc` (default: `desc`) |
 
 **Response — 200**
@@ -327,23 +331,31 @@ Fetch all jobs with advanced filtering and pagination.
   "success": true,
   "message": "Jobs fetched successfully",
   "data": {
+    "totalCount": 120,
+    "totalPages": 6,
+    "itemCount": 20,
+    "limit": 20,
+    "offset": 0,
     "jobs": [
       {
-        "jobId": "job001",
+        "jobId": "JOB001",
         "jobTitle": "AC not cooling",
-        "status": "assigned",
-        "workerName": "Suraj Kumar",
-        "workerUid": "user4567",
         "customerName": "Robert William",
         "customerPhone": "+917878787878",
-        "createdAt": "2026-04-13T08:00:00.000Z"
+        "customerAddress": "Kolkata, 700001",
+        "workerAccountUid": "user_4567",
+        "workerName": "Suraj Kumar",
+        "workerImage": "suraj.jpg",
+        "status": "assigned",
+        "requirePhotoOnStart": true,
+        "requirePhotoOnComplete": true,
+        "captureLocation": true,
+        "createdAt": "2026-04-13T08:00:00.000Z",
+        "assignedAt": "2026-04-13T08:05:00.000Z",
+        "updatedAt": "2026-04-13T08:05:00.000Z",
+        "completedAt": null
       }
-    ],
-    "pagination": {
-      "total": 120,
-      "page": 1,
-      "limit": 10
-    }
+    ]
   }
 }
 ```

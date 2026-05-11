@@ -8,11 +8,7 @@ class AppStatusChip extends StatelessWidget {
   final String label;
   final Color color;
 
-  const AppStatusChip({
-    super.key,
-    required this.label,
-    required this.color,
-  });
+  const AppStatusChip({super.key, required this.label, required this.color});
 
   factory AppStatusChip.attendance({
     Key? key,
@@ -52,7 +48,7 @@ class AppStatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: context.textTheme.labelSmall?.copyWith(
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: color,
           fontWeight: FontWeight.bold,
           letterSpacing: 0.2,

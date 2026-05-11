@@ -68,16 +68,24 @@ class AppHighlightedText extends StatelessWidget {
 
         while ((indexOfMatch = lowerSpanText.indexOf(query, start)) != -1) {
           if (indexOfMatch > start) {
-            nextSpans.add(TextSpan(text: spanText.substring(start, indexOfMatch)));
+            nextSpans.add(
+              TextSpan(text: spanText.substring(start, indexOfMatch)),
+            );
           }
-          nextSpans.add(TextSpan(
-            text: spanText.substring(indexOfMatch, indexOfMatch + query.length),
-            style: TextStyle(
-              color: context.theme.colorScheme.pending,
-              backgroundColor:
-                  context.theme.colorScheme.pending.withValues(alpha: 0.1),
+          nextSpans.add(
+            TextSpan(
+              text: spanText.substring(
+                indexOfMatch,
+                indexOfMatch + query.length,
+              ),
+              style: TextStyle(
+                color: context.theme.colorScheme.pending,
+                backgroundColor: context.theme.colorScheme.pending.withValues(
+                  alpha: 0.1,
+                ),
+              ),
             ),
-          ));
+          );
           start = indexOfMatch + query.length;
         }
 
@@ -90,7 +98,7 @@ class AppHighlightedText extends StatelessWidget {
 
     return Text.rich(
       TextSpan(
-        style: style ?? context.textTheme.bodyMedium,
+        style: style ?? Theme.of(context).textTheme.bodyMedium,
         children: spans,
       ),
       maxLines: maxLines,

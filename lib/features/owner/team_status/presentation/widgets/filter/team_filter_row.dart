@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
+import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/common/widgets/chip/app_filter_chip_row.dart';
 import 'package:trackyond/features/owner/team_status/presentation/controllers/team_status_controller.dart';
-import 'package:trackyond/features/owner/team_status/presentation/widgets/filter/team_status_filter_chip.dart';
 
 class TeamFilterRow extends GetView<TeamStatusController> {
   const TeamFilterRow({super.key});
@@ -13,30 +15,25 @@ class TeamFilterRow extends GetView<TeamStatusController> {
     return Row(
       children: [
         Expanded(
-          child: SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              itemCount: controller.filters.length,
-              separatorBuilder: (context, index) =>
-                  AppUIConstants.widgets.horizontalBox$8,
-              itemBuilder: (context, index) {
-                final filter = controller.filters[index];
-                return TeamStatusFilterChip(
-                  label: filter.label,
-                  status: filter.status,
-                );
-              },
-            ),
-          ),
+          child: Obx(() {
+            // Read the reactive value here so GetX tracks it within this Obx scope.
+            // The ScrollablePositionedList calls itemBuilder lazily (outside Obx scope),
+            // so we must capture the value upfront and pass a plain closure down.
+            final currentStatus = controller.selectedStatus.value;
+            return AppFilterChipRow.fromEntityList(
+              items: controller.filterEntities,
+              isSelected: (index) =>
+                  currentStatus == controller.filterEntities[index].value,
+            );
+          }),
         ),
         AppUIConstants.widgets.horizontalBox$12,
         Obx(() {
-          final isSelected = controller.selectedOrder.value == 'desc';
+          // Capture reactive value in the Obx scope.
+          final isDesc = controller.selectedOrder.value == 'desc';
           return ActionChip(
             label: Text(
-              isSelected ? 'Newest' : 'Oldest',
+              isDesc ? AppStrings.teamStatus.newest : AppStrings.teamStatus.oldest,
               style: context.textTheme.labelMedium?.copyWith(
                 color: context.theme.colorScheme.primary,
                 fontWeight: FontWeight.w600,
@@ -44,14 +41,10 @@ class TeamFilterRow extends GetView<TeamStatusController> {
             ),
             onPressed: () {
               HapticFeedback.lightImpact();
-              controller.setOrder(
-                controller.selectedOrder.value == 'desc' ? 'asc' : 'desc',
-              );
+              controller.setOrder(isDesc ? 'asc' : 'desc');
             },
             avatar: Icon(
-              controller.selectedOrder.value == 'desc'
-                  ? Icons.arrow_downward
-                  : Icons.arrow_upward,
+              isDesc ? AppIcons.common.arrowDown : AppIcons.common.arrowUp,
               size: 16,
               color: context.theme.colorScheme.primary,
             ),

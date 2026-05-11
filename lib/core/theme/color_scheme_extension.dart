@@ -14,3 +14,7 @@ extension ColorSchemeExtension on ColorScheme {
       ? AppColors.light.completed
       : AppColors.dark.completed;
 }
+extension BuildContextThemeExtension on BuildContext {
+  ColorScheme get colorScheme => Theme.of(this).colorScheme;
+  TextTheme get textTheme => Theme.of(this).textTheme;
+}

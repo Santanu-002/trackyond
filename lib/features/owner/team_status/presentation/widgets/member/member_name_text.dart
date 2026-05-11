@@ -5,11 +5,13 @@ import 'package:trackyond/core/common/widgets/text/app_highlighted_text.dart';
 class MemberNameText extends StatelessWidget {
   final String name;
   final String? highlight;
+  final TextStyle? style;
 
   const MemberNameText({
     super.key,
     required this.name,
     this.highlight,
+    this.style,
   });
 
   @override
@@ -18,9 +20,10 @@ class MemberNameText extends StatelessWidget {
       text: name,
       highlight: highlight,
       overflow: TextOverflow.ellipsis,
-      style: context.textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-      ),
+      style: style ??
+          context.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
     );
   }
 }

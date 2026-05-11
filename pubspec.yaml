@@ -37,8 +37,7 @@ dependencies:
   path_provider: ^2.1.5
   share_plus: ^12.0.2
   shimmer: ^3.0.0
-  infinite_scroll_pagination: 5.1.1
-
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

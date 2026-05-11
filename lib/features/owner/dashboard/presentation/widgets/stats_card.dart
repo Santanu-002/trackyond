@@ -24,10 +24,9 @@ class StatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
 
-    return Expanded(
-      child: AppCard(
-        padding: EdgeInsets.all(AppUIConstants.spacing.space$12),
-        child: Column(
+    return AppCard(
+      padding: EdgeInsets.all(AppUIConstants.spacing.space$12),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: AppUIConstants.spacing.space$8,
           children: [
@@ -91,7 +90,6 @@ class StatsCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

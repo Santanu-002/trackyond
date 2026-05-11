@@ -17,6 +17,7 @@ class AppStrings {
   static const teamMemberAttendance = TeamMemberAttendanceStrings();
   static const createJob = CreateJobStrings();
   static const jobs = JobsStrings();
+  static const jobDetails = JobDetailsStrings();
 }
 
 class CommonStrings {
@@ -55,6 +56,8 @@ class CommonStrings {
   String get noResultsFound => 'No results found';
 
   String get copied => 'Copied to clipboard';
+
+  String get underDevelopment => 'Feature under development';
 }
 
 class ChooseRoleStrings {
@@ -485,4 +488,47 @@ class JobsStrings {
   String get noJobsFound => 'No jobs found';
   String get allJobs => 'All Jobs';
   String get searchHint => 'Search jobs...';
+  String get sortBy => 'Sort By';
+  String get filter => 'Filter';
+  String get today => 'Today';
+  String get thisWeek => 'This Week';
+  String get thisMonth => 'This Month';
+  String get last3Months => 'Last 3 Months';
+  String get pending => 'Pending';
+  String get assigned => 'Assigned';
+  String get inProgress => 'In Progress';
+  String get completed => 'Completed';
+  String get cancelled => 'Cancelled';
+  String get date => 'Date';
+  String get status => 'Status';
+  String get members => 'Members';
+  String get noJobsMatchingFilters => 'No jobs match your current filters';
+  String get clearAllFilters => 'Clear All Filters';
+  String get clear => 'Clear';
+  String get searchInAllDates => 'Search in all dates';
+  String noSearchFound(String query) => 'No results found for "$query"';
+  String get tryMatchAny => 'Try switching to "Match ANY" to see more results';
+}
+
+class JobDetailsStrings {
+  const JobDetailsStrings();
+
+  String get appBarTitle => 'Job Details';
+  String get customerInfo => 'Customer Information';
+  String get jobInfo => 'Job Information';
+  String get assignmentInfo => 'Assignment';
+  String get status => 'Status';
+  String get customerName => 'Customer Name';
+  String get phone => 'Phone';
+  String get address => 'Address';
+  String get work => 'Work';
+  String get assignedTo => 'Assigned To';
+  String get unassigned => 'Unassigned';
+  String get scheduledAt => 'Scheduled At';
+  String get createdAt => 'Created At';
+  String get requirements => 'Requirements';
+  String get photoRequiredOnStart => 'Photo required on start';
+  String get photoRequiredOnCompletion => 'Photo required on completion';
+  String get locationTrackingEnabled => 'Location tracking enabled';
+  String get jobId => 'Job ID';
 }

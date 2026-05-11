@@ -20,8 +20,10 @@ import 'package:trackyond/features/owner/team_status/presentation/bindings/team_
 import 'package:trackyond/features/owner/team_status/presentation/screens/team_member_profile_page.dart';
 import 'package:trackyond/features/owner/team_status/presentation/screens/team_status_page.dart';
 import 'package:trackyond/features/owner/jobs/presentation/bindings/create_job_binding.dart';
+import 'package:trackyond/features/owner/jobs/presentation/bindings/job_details_binding.dart';
 import 'package:trackyond/features/owner/jobs/presentation/bindings/jobs_binding.dart';
 import 'package:trackyond/features/owner/jobs/presentation/screens/create_job_page.dart';
+import 'package:trackyond/features/owner/jobs/presentation/screens/job_details_page.dart';
 import 'package:trackyond/features/owner/jobs/presentation/screens/jobs_page.dart';
 import 'package:trackyond/features/worker/attendance/presentation/bindings/attendance_binding.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/bindings/worker_dashboard_binding.dart';
@@ -107,6 +109,11 @@ class AppPages {
       name: AppRoutes.owner.createJob,
       page: () => const CreateJobPage(),
       binding: CreateJobBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.owner.jobDetails,
+      page: () => const JobDetailsPage(),
+      binding: JobDetailsBinding(),
     ),
   ];
 

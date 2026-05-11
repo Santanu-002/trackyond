@@ -30,7 +30,7 @@ class MemberProfileHeader extends GetView<TeamMemberProfilePageController> {
     final member = memberStatus.profile;
 
     // Use the "consecutive" color for the cover card to ensure contrast with the avatar background
-    final Color avatarColor = consecutiveColorFromName(member.name);
+    final Color avatarColor = AvatarUtils.consecutiveColorFromName(member.name);
     final bool isDarkHeader = avatarColor.computeLuminance() < 0.5;
 
     return SliverAppBar(

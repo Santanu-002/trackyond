@@ -13,28 +13,34 @@ class TeamStatsSummary extends GetView<TeamStatusController> {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.teamStatus;
-    
+
     return Row(
       spacing: AppUIConstants.spacing.space$12,
       children: [
-        Obx(() => StatsCard(
-              title: strings.working,
-              value: controller.stats.value.working.toString(),
-              icon: AppIcons.dashboard.active,
-              color: context.theme.colorScheme.completed,
-            )),
-        Obx(() => StatsCard(
-              title: strings.inactive,
-              value: controller.stats.value.notStarted.toString(),
-              icon: AppIcons.dashboard.timer,
-              color: context.theme.colorScheme.pending,
-            )),
-        Obx(() => StatsCard(
-              title: strings.total,
-              value: controller.stats.value.total.toString(),
-              icon: AppIcons.common.team,
-              color: context.theme.colorScheme.primary,
-            )),
+        Expanded(
+          child: Obx(() => StatsCard(
+                title: strings.working,
+                value: controller.stats.value.working.toString(),
+                icon: AppIcons.dashboard.active,
+                color: context.theme.colorScheme.completed,
+              )),
+        ),
+        Expanded(
+          child: Obx(() => StatsCard(
+                title: strings.inactive,
+                value: controller.stats.value.notStarted.toString(),
+                icon: AppIcons.dashboard.timer,
+                color: context.theme.colorScheme.pending,
+              )),
+        ),
+        Expanded(
+          child: Obx(() => StatsCard(
+                title: strings.total,
+                value: controller.stats.value.total.toString(),
+                icon: AppIcons.common.team,
+                color: context.theme.colorScheme.primary,
+              )),
+        ),
       ],
     );
   }

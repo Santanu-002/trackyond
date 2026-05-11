@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/entities/app_chip_entity.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/filter/team_filter.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_stats_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
@@ -15,10 +15,22 @@ class TeamStatusController extends GetxController {
   
   static const String _searchByPrefKey = 'team_status_search_by';
 
-  List<TeamFilterEntity> get filters => [
-    TeamFilterEntity(label: 'All', status: null),
-    TeamFilterEntity(label: 'Working', status: AttendanceStatus.working),
-    TeamFilterEntity(label: 'Not Started', status: AttendanceStatus.notStarted),
+  List<AppChipEntity<AttendanceStatus?>> get filterEntities => [
+    AppChipEntity(
+      label: 'All',
+      value: null,
+      onTap: () => setStatusFilter(null),
+    ),
+    AppChipEntity(
+      label: 'Working',
+      value: AttendanceStatus.working,
+      onTap: () => setStatusFilter(AttendanceStatus.working),
+    ),
+    AppChipEntity(
+      label: 'Not Started',
+      value: AttendanceStatus.notStarted,
+      onTap: () => setStatusFilter(AttendanceStatus.notStarted),
+    ),
   ];
 
   TeamStatusController({

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/search/app_search_bar.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/features/owner/add_team_member/presentation/widgets/member_list_tile.dart';
+import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/common/widgets/member/member_list_tile.dart';
 import 'package:trackyond/features/owner/jobs/presentation/controllers/jobs_controller.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/job_worker_capsule.dart';
 
@@ -17,7 +18,7 @@ class FilterWorkerTab extends StatelessWidget {
         // 1. Search Bar for workers
         AppSearchBar<String>(
           query: controller.workerSearchQuery,
-          hintText: 'Search members...',
+          hintText: AppStrings.teamStatus.searchHint,
           searchByItems: const ['All', 'Name', 'Designation', 'Phone'],
           selectedSearchByGetter: () => controller.workerSearchBy.value,
           searchByLabelBuilder: (value) =>
@@ -59,7 +60,7 @@ class FilterWorkerTab extends StatelessWidget {
             if (members.isEmpty) {
               return Center(
                 child: Text(
-                  'No matching members',
+                  AppStrings.teamStatus.noMatchingMembers,
                   style: context.textTheme.bodyMedium?.copyWith(
                     color: context.theme.colorScheme.onSurfaceVariant,
                   ),
@@ -78,7 +79,7 @@ class FilterWorkerTab extends StatelessWidget {
                       BorderRadius.circular(AppUIConstants.radius.radius$12),
                   child: MemberListTile(
                     member: memberStatus.profile,
-                    status: memberStatus.status,
+                    isCompact: true,
                     highlight: controller.workerSearchQuery.value,
                   ),
                 );

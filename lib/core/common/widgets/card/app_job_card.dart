@@ -6,16 +6,18 @@ import 'package:trackyond/core/common/widgets/card/app_card.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/utils/app_utils.dart';
-import 'package:trackyond/features/owner/jobs/presentation/widgets/job_status_badge.dart';
+import 'package:trackyond/core/common/widgets/chip/job_status_badge.dart';
 
-class JobCard extends StatelessWidget {
+class AppJobCard extends StatelessWidget {
   final JobEntity job;
   final VoidCallback? onTap;
+  final bool showStatus;
 
-  const JobCard({
+  const AppJobCard({
     super.key,
     required this.job,
     this.onTap,
+    this.showStatus = true,
   });
 
   @override
@@ -71,6 +73,7 @@ class JobCard extends StatelessWidget {
           AppUIConstants.widgets.horizontalBox$8,
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 AppUtils.formatRelativeTime(job.createdAt),
@@ -78,8 +81,10 @@ class JobCard extends StatelessWidget {
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              AppUIConstants.widgets.verticalBox$4,
-              JobStatusBadge(status: job.status),
+              if (showStatus) ...[
+                AppUIConstants.widgets.verticalBox$4,
+                JobStatusBadge(status: job.status),
+              ],
             ],
           ),
         ],

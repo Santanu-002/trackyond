@@ -1,7 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
+
 enum JobStatus {
   pending('pending'),
   assigned('assigned'),
-  inProgress('inProgress'),
+  inProgress('in_progress'),
   completed('completed'),
   cancelled('cancelled');
 
@@ -22,4 +26,25 @@ enum JobStatus {
   }
 
   String toJson() => value;
+
+  String label(BuildContext context) {
+    return switch (this) {
+      JobStatus.pending => AppStrings.jobs.pending,
+      JobStatus.assigned => AppStrings.jobs.assigned,
+      JobStatus.inProgress => AppStrings.jobs.inProgress,
+      JobStatus.completed => AppStrings.jobs.completed,
+      JobStatus.cancelled => AppStrings.jobs.cancelled,
+    };
+  }
+
+  Color color(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return switch (this) {
+      JobStatus.pending => colorScheme.pending,
+      JobStatus.assigned => colorScheme.pending, // Using pending color for assigned
+      JobStatus.inProgress => colorScheme.inProgress,
+      JobStatus.completed => colorScheme.completed,
+      JobStatus.cancelled => colorScheme.error,
+    };
+  }
 }

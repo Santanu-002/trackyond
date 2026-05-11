@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/widgets/search/app_search_bar.dart';
-import 'package:trackyond/features/owner/add_team_member/presentation/widgets/member_list_tile.dart';
-import 'package:trackyond/features/owner/add_team_member/presentation/widgets/add_member_tile.dart';
+
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
+import 'package:trackyond/core/common/widgets/member/member_list_tile.dart';
+import 'package:trackyond/core/common/widgets/search/app_search_bar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+
+import 'package:trackyond/features/owner/add_team_member/presentation/widgets/add_member_tile.dart';
 import 'package:trackyond/features/owner/jobs/presentation/controllers/create_job_controller.dart';
 
 class WorkerPickerSheet extends GetView<CreateJobController> {
@@ -56,10 +58,7 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
                   AppButton.icon(
                     onPressed: () => Get.back(),
                     size: 36,
-                    icon: Icon(
-                      Icons.close_rounded,
-                      size: 20,
-                    ),
+                    icon: Icon(Icons.close_rounded, size: 20),
                   ),
                 ],
               ),
@@ -71,8 +70,10 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
                 hintText: AppStrings.teamStatus.searchHint,
                 searchByItems: const ['All', 'Name', 'Designation', 'Phone'],
                 selectedSearchByGetter: () => controller.searchBy.value,
-                searchByLabelBuilder: (value) => controller.getSearchByLabel(value),
-                onSearchBySelected: (value) => controller.searchBy.value = value,
+                searchByLabelBuilder: (value) =>
+                    controller.getSearchByLabel(value),
+                onSearchBySelected: (value) =>
+                    controller.searchBy.value = value,
               ),
               AppUIConstants.widgets.verticalBox$16,
 
@@ -83,9 +84,7 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     // Add Member Tile at the top (matches AddTeamMemberPage layout)
-                    AddMemberTile(
-                      onTap: controller.navigateToAddMemberDetails,
-                    ),
+                    AddMemberTile(onTap: controller.navigateToAddMemberDetails),
                     AppUIConstants.widgets.verticalBox$16,
 
                     // Constant Members Label
@@ -101,7 +100,8 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
                     Obx(() {
                       final members = controller.filteredMembers;
 
-                      if (controller.isWorkersLoading.value && members.isEmpty) {
+                      if (controller.isWorkersLoading.value &&
+                          members.isEmpty) {
                         return Center(
                           child: Padding(
                             padding: EdgeInsets.symmetric(
@@ -132,8 +132,9 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
                             final index = entry.key;
                             final memberStatus = entry.value;
                             return TweenAnimationBuilder<double>(
-                              duration:
-                                  Duration(milliseconds: 400 + (index * 50)),
+                              duration: Duration(
+                                milliseconds: 400 + (index * 50),
+                              ),
                               tween: Tween(begin: 0.0, end: 1.0),
                               builder: (context, value, child) {
                                 return Opacity(
@@ -150,7 +151,8 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
                               },
                               child: Padding(
                                 padding: EdgeInsets.only(
-                                    bottom: AppUIConstants.spacing.space$4),
+                                  bottom: AppUIConstants.spacing.space$4,
+                                ),
                                 child: InkWell(
                                   onTap: () {
                                     controller.setWorker(memberStatus.profile);
@@ -175,7 +177,8 @@ class WorkerPickerSheet extends GetView<CreateJobController> {
 
                     // Show loader at bottom when searching and list is not empty
                     Obx(
-                      () => controller.isWorkersLoading.value &&
+                      () =>
+                          controller.isWorkersLoading.value &&
                               controller.filteredMembers.isNotEmpty
                           ? Center(
                               child: Padding(

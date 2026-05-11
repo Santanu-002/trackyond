@@ -1,8 +1,8 @@
-"""Initial migration
+"""initial_migration
 
-Revision ID: 81db1f879808
+Revision ID: 6645a1b105ef
 Revises: 
-Create Date: 2026-05-10 05:30:40.991171
+Create Date: 2026-05-11 11:00:05.269656
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '81db1f879808'
+revision: str = '6645a1b105ef'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,7 +24,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('uid', sa.String(), nullable=True),
     sa.Column('phone', sa.String(), nullable=True),
-    sa.Column('role', sa.String(), nullable=True),
+    sa.Column('role', sa.Enum('owner', 'worker', name='userrole'), nullable=True),
     sa.Column('is_new_user', sa.Boolean(), nullable=True),
     sa.Column('primary_account_uid', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
@@ -109,7 +109,7 @@ def upgrade() -> None:
     sa.Column('work_hours', sa.Float(), nullable=True),
     sa.Column('start_address', sa.String(), nullable=True),
     sa.Column('end_address', sa.String(), nullable=True),
-    sa.Column('status', sa.String(), nullable=True),
+    sa.Column('status', sa.Enum('not_started', 'working', 'ended', name='attendancestatus'), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['account_uid'], ['members.account_uid'], ),
@@ -128,12 +128,15 @@ def upgrade() -> None:
     sa.Column('worker_account_uid', sa.String(), nullable=True),
     sa.Column('company_uid', sa.String(), nullable=True),
     sa.Column('created_by', sa.String(), nullable=True),
-    sa.Column('status', sa.String(), nullable=True),
+    sa.Column('status', sa.Enum('pending', 'assigned', 'in_progress', 'completed', 'cancelled', name='jobstatus'), nullable=True),
     sa.Column('require_photo_on_start', sa.Boolean(), nullable=True),
     sa.Column('require_photo_on_complete', sa.Boolean(), nullable=True),
     sa.Column('capture_location', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('assigned_at', sa.DateTime(), nullable=True),
+    sa.Column('started_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('completed_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['company_uid'], ['companies.company_id'], ),
     sa.ForeignKeyConstraint(['created_by'], ['users.uid'], ),
     sa.ForeignKeyConstraint(['worker_account_uid'], ['members.account_uid'], ),

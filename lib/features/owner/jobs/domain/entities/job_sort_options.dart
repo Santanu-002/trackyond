@@ -28,7 +28,7 @@ class JobSortOptions extends Equatable {
   final SortOrder order;
 
   const JobSortOptions({
-    this.field = JobSortField.createdAt,
+    this.field = JobSortField.assignedAt,
     this.order = SortOrder.desc,
   });
 

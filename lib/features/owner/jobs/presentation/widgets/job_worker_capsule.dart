@@ -18,17 +18,16 @@ class JobWorkerCapsule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
+    final primaryColor = colorScheme.primary;
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
-        color: isCompact 
-            ? colorScheme.secondaryContainer.withValues(alpha: 0.7)
-            : colorScheme.primaryContainer.withValues(alpha: 0.5),
+        color: primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: (isCompact ? colorScheme.secondary : colorScheme.primary)
-              .withValues(alpha: 0.2),
+          color: primaryColor.withValues(alpha: 0.4),
+          width: 1,
         ),
       ),
       child: Row(
@@ -44,9 +43,7 @@ class JobWorkerCapsule extends StatelessWidget {
             worker.name,
             style: context.textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: isCompact 
-                  ? colorScheme.onSecondaryContainer 
-                  : colorScheme.onPrimaryContainer,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(width: 4),
@@ -56,9 +53,7 @@ class JobWorkerCapsule extends StatelessWidget {
             child: Icon(
               Icons.close_rounded,
               size: isCompact ? 14 : 16,
-              color: isCompact 
-                  ? colorScheme.onSecondaryContainer 
-                  : colorScheme.onPrimaryContainer,
+              color: primaryColor,
             ),
           ),
           const SizedBox(width: 2),

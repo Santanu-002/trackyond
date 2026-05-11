@@ -6,7 +6,7 @@ import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/controllers/add_team_member_controller.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/widgets/add_member_tile.dart';
-import 'package:trackyond/features/owner/add_team_member/presentation/widgets/member_list_tile.dart';
+import 'package:trackyond/core/common/widgets/member/member_list_tile.dart';
 
 class AddTeamMemberPage extends GetView<AddTeamMemberController> {
   const AddTeamMemberPage({super.key});

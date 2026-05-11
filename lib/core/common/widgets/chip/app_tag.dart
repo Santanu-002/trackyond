@@ -8,6 +8,7 @@ class AppTag extends StatelessWidget {
   final TextStyle? labelStyle;
   final EdgeInsetsGeometry? padding;
   final IconData? icon;
+  final bool isCompact;
 
   const AppTag({
     super.key,
@@ -16,6 +17,7 @@ class AppTag extends StatelessWidget {
     this.labelStyle,
     this.padding,
     this.icon,
+    this.isCompact = false,
   });
 
   @override
@@ -26,8 +28,12 @@ class AppTag extends StatelessWidget {
       padding:
           padding ??
           EdgeInsets.symmetric(
-            horizontal: AppUIConstants.spacing.space$12,
-            vertical: AppUIConstants.spacing.space$4,
+            horizontal: isCompact 
+                ? AppUIConstants.spacing.space$8 
+                : AppUIConstants.spacing.space$12,
+            vertical: isCompact 
+                ? AppUIConstants.spacing.space$2 
+                : AppUIConstants.spacing.space$4,
           ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -48,8 +54,12 @@ class AppTag extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 12, color: effectiveColor),
-            AppUIConstants.widgets.horizontalBox$8,
+            Icon(icon, size: isCompact ? 10 : 12, color: effectiveColor),
+            SizedBox(
+              width: isCompact 
+                  ? AppUIConstants.spacing.space$4 
+                  : AppUIConstants.spacing.space$8,
+            ),
           ],
           Text(
             label,
@@ -59,6 +69,7 @@ class AppTag extends StatelessWidget {
                   color: effectiveColor,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
+                  fontSize: isCompact ? 10 : null,
                 ),
           ),
         ],

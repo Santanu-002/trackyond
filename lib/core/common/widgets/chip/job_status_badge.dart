@@ -7,10 +7,7 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 class JobStatusBadge extends StatelessWidget {
   final JobStatus status;
 
-  const JobStatusBadge({
-    super.key,
-    required this.status,
-  });
+  const JobStatusBadge({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -25,19 +22,14 @@ class JobStatusBadge extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withAlpha(30),
-        borderRadius: BorderRadius.circular(
-          AppUIConstants.radius.radius$8,
-        ),
+        borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$8),
       ),
       child: Text(
         status.name.toUpperCase(),
-        style: context.textTheme.labelSmall?.copyWith(
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: color,
           fontWeight: FontWeight.bold,
         ),

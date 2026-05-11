@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/text_field/app_text_field.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 
 /// A specialized search field that works with Obx and GetX controllers.
 /// It utilizes the standardized [AppTextField] for consistent styling across the app.
@@ -45,15 +45,19 @@ class AppSearchField extends StatelessWidget {
         leading:
             leading ??
             Icon(
-              CupertinoIcons.search,
+              AppIcons.common.search,
               color: context.theme.colorScheme.primary,
             ),
         trailing: [
           if (query.isNotEmpty)
             IconButton(
-              icon: const Icon(CupertinoIcons.multiply_circle_fill, size: 20),
-              splashColor: context.theme.colorScheme.surface.withValues(alpha: 0),
-              highlightColor: context.theme.colorScheme.surface.withValues(alpha: 0),
+              icon: Icon(AppIcons.common.close, size: 20),
+              splashColor: context.theme.colorScheme.surface.withValues(
+                alpha: 0,
+              ),
+              highlightColor: context.theme.colorScheme.surface.withValues(
+                alpha: 0,
+              ),
               onPressed: () {
                 query.value = '';
                 onClear?.call();

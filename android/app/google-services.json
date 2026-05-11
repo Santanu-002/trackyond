@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "462059861709",
+    "project_id": "trackyond",
+    "storage_bucket": "trackyond.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:462059861709:android:3a6b73720765a7627c1b84",
+        "android_client_info": {
+          "package_name": "com.example.trackyond"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkPE3dSeI_4CrYbq1sRrmdsOsvt4QOh0w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

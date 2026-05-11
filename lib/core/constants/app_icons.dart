@@ -75,6 +75,12 @@ class _CommonIcons {
   IconData get person => Icons.person_rounded;
 
   IconData get menu => Icons.menu_rounded;
+  IconData get chevronDown => Icons.keyboard_arrow_down_rounded;
+  IconData get arrowDown => Icons.south_rounded;
+  IconData get arrowUp => Icons.north_rounded;
+  IconData get calendarRange => Icons.date_range_rounded;
+  IconData get checkCircle => Icons.check_circle_rounded;
+  IconData get refresh => Icons.refresh_rounded;
 }
 
 class _DashboardIcons {
@@ -113,6 +119,9 @@ class _JobsIcons {
   IconData get chevronRight => Icons.chevron_right_rounded;
 
   IconData get customer => Icons.person_outline_rounded;
+  IconData get filter => Icons.filter_list_rounded;
+  IconData get sort => Icons.swap_vert_rounded;
+  IconData get filterOff => Icons.filter_list_off_rounded;
 }
 
 class _ProfileIcons {

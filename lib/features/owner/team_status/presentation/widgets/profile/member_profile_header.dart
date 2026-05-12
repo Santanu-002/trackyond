@@ -9,9 +9,8 @@ import 'package:trackyond/core/common/widgets/chip/app_status_chip.dart';
 import 'package:trackyond/core/common/widgets/chip/app_tag.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/core/theme/app_colors.dart';
 import 'package:trackyond/core/utils/avatar_utils.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/presentation/controllers/team_member_profile_page_controller.dart';
 import 'package:trackyond/features/owner/team_status/presentation/widgets/member/attendance_status_time.dart';
 
@@ -115,8 +114,8 @@ class MemberProfileHeader extends GetView<TeamMemberProfilePageController> {
               AppUIConstants.spacing.space$12;
 
           final Color expandedIconColor = isDarkHeader
-              ? AppColors.light.onPrimary
-              : AppColors.light.textDefault;
+              ? Colors.white
+              : context.theme.colorScheme.onSurface;
           final Color collapsedIconColor = context.theme.colorScheme.onSurface;
           final Color currentIconColor = Color.lerp(
             collapsedIconColor,

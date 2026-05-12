@@ -8,8 +8,7 @@ import 'package:trackyond/features/owner/team_status/presentation/widgets/stats/
 import 'package:trackyond/features/owner/team_status/presentation/widgets/filter/team_filter_row.dart';
 import 'package:trackyond/features/owner/team_status/presentation/widgets/member/team_member_tile.dart';
 import 'package:trackyond/features/owner/team_status/presentation/widgets/search/team_search_bar.dart';
-import 'package:trackyond/core/common/widgets/skeleton/app_skeleton.dart';
-import 'package:trackyond/core/common/widgets/card/app_card.dart';
+import 'package:trackyond/features/owner/team_status/presentation/widgets/skeleton/team_member_tile_skeleton.dart';
 
 class TeamStatusPage extends GetView<TeamStatusController> {
   const TeamStatusPage({super.key});
@@ -70,50 +69,6 @@ class TeamStatusPage extends GetView<TeamStatusController> {
             }),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class TeamMemberTileSkeleton extends StatelessWidget {
-  const TeamMemberTileSkeleton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: EdgeInsets.all(AppUIConstants.spacing.space$12),
-      child: AppShimmer(
-        child: Row(
-          children: [
-            const AppSkeletonAvatar(size: 48),
-            AppUIConstants.widgets.horizontalBox$12,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: AppUIConstants.spacing.space$4,
-                children: [
-                  const AppSkeletonText(width: 120, variant: AppSkeletonTextVariant.body),
-                  const AppSkeletonText(width: 150, variant: AppSkeletonTextVariant.caption),
-                ],
-              ),
-            ),
-            AppUIConstants.widgets.horizontalBox$8,
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              spacing: AppUIConstants.spacing.space$4,
-              children: [
-                const AppSkeletonContainer(
-                  width: 60,
-                  height: 20,
-                  borderRadius: 10,
-                ),
-                const AppSkeletonText(width: 40, variant: AppSkeletonTextVariant.caption),
-              ],
-            ),
-            AppUIConstants.widgets.horizontalBox$12,
-            const AppSkeletonAvatar(size: 36, shape: BoxShape.circle),
-          ],
-        ),
       ),
     );
   }

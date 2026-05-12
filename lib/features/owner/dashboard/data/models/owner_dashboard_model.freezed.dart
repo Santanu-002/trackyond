@@ -308,7 +308,7 @@ $JobCountsModelCopyWith<$Res> get jobCounts {
 /// @nodoc
 mixin _$JobCountsModel {
 
- int get pending; int get inProgress; int get completed;
+ int get pending; int get inProgress; int get completed; int get cancelled;
 /// Create a copy of JobCountsModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -321,16 +321,16 @@ $JobCountsModelCopyWith<JobCountsModel> get copyWith => _$JobCountsModelCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobCountsModel&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.inProgress, inProgress) || other.inProgress == inProgress)&&(identical(other.completed, completed) || other.completed == completed));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobCountsModel&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.inProgress, inProgress) || other.inProgress == inProgress)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.cancelled, cancelled) || other.cancelled == cancelled));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,pending,inProgress,completed);
+int get hashCode => Object.hash(runtimeType,pending,inProgress,completed,cancelled);
 
 @override
 String toString() {
-  return 'JobCountsModel(pending: $pending, inProgress: $inProgress, completed: $completed)';
+  return 'JobCountsModel(pending: $pending, inProgress: $inProgress, completed: $completed, cancelled: $cancelled)';
 }
 
 
@@ -341,7 +341,7 @@ abstract mixin class $JobCountsModelCopyWith<$Res>  {
   factory $JobCountsModelCopyWith(JobCountsModel value, $Res Function(JobCountsModel) _then) = _$JobCountsModelCopyWithImpl;
 @useResult
 $Res call({
- int pending, int inProgress, int completed
+ int pending, int inProgress, int completed, int cancelled
 });
 
 
@@ -358,11 +358,12 @@ class _$JobCountsModelCopyWithImpl<$Res>
 
 /// Create a copy of JobCountsModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? pending = null,Object? inProgress = null,Object? completed = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? pending = null,Object? inProgress = null,Object? completed = null,Object? cancelled = null,}) {
   return _then(_self.copyWith(
 pending: null == pending ? _self.pending : pending // ignore: cast_nullable_to_non_nullable
 as int,inProgress: null == inProgress ? _self.inProgress : inProgress // ignore: cast_nullable_to_non_nullable
 as int,completed: null == completed ? _self.completed : completed // ignore: cast_nullable_to_non_nullable
+as int,cancelled: null == cancelled ? _self.cancelled : cancelled // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -445,10 +446,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int pending,  int inProgress,  int completed)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int pending,  int inProgress,  int completed,  int cancelled)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JobCountsModel() when $default != null:
-return $default(_that.pending,_that.inProgress,_that.completed);case _:
+return $default(_that.pending,_that.inProgress,_that.completed,_that.cancelled);case _:
   return orElse();
 
 }
@@ -466,10 +467,10 @@ return $default(_that.pending,_that.inProgress,_that.completed);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int pending,  int inProgress,  int completed)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int pending,  int inProgress,  int completed,  int cancelled)  $default,) {final _that = this;
 switch (_that) {
 case _JobCountsModel():
-return $default(_that.pending,_that.inProgress,_that.completed);}
+return $default(_that.pending,_that.inProgress,_that.completed,_that.cancelled);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -483,10 +484,10 @@ return $default(_that.pending,_that.inProgress,_that.completed);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int pending,  int inProgress,  int completed)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int pending,  int inProgress,  int completed,  int cancelled)?  $default,) {final _that = this;
 switch (_that) {
 case _JobCountsModel() when $default != null:
-return $default(_that.pending,_that.inProgress,_that.completed);case _:
+return $default(_that.pending,_that.inProgress,_that.completed,_that.cancelled);case _:
   return null;
 
 }
@@ -498,12 +499,13 @@ return $default(_that.pending,_that.inProgress,_that.completed);case _:
 @JsonSerializable()
 
 class _JobCountsModel extends JobCountsModel {
-  const _JobCountsModel({required this.pending, required this.inProgress, required this.completed}): super._();
+  const _JobCountsModel({this.pending = 0, this.inProgress = 0, this.completed = 0, this.cancelled = 0}): super._();
   factory _JobCountsModel.fromJson(Map<String, dynamic> json) => _$JobCountsModelFromJson(json);
 
-@override final  int pending;
-@override final  int inProgress;
-@override final  int completed;
+@override@JsonKey() final  int pending;
+@override@JsonKey() final  int inProgress;
+@override@JsonKey() final  int completed;
+@override@JsonKey() final  int cancelled;
 
 /// Create a copy of JobCountsModel
 /// with the given fields replaced by the non-null parameter values.
@@ -518,16 +520,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobCountsModel&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.inProgress, inProgress) || other.inProgress == inProgress)&&(identical(other.completed, completed) || other.completed == completed));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobCountsModel&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.inProgress, inProgress) || other.inProgress == inProgress)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.cancelled, cancelled) || other.cancelled == cancelled));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,pending,inProgress,completed);
+int get hashCode => Object.hash(runtimeType,pending,inProgress,completed,cancelled);
 
 @override
 String toString() {
-  return 'JobCountsModel(pending: $pending, inProgress: $inProgress, completed: $completed)';
+  return 'JobCountsModel(pending: $pending, inProgress: $inProgress, completed: $completed, cancelled: $cancelled)';
 }
 
 
@@ -538,7 +540,7 @@ abstract mixin class _$JobCountsModelCopyWith<$Res> implements $JobCountsModelCo
   factory _$JobCountsModelCopyWith(_JobCountsModel value, $Res Function(_JobCountsModel) _then) = __$JobCountsModelCopyWithImpl;
 @override @useResult
 $Res call({
- int pending, int inProgress, int completed
+ int pending, int inProgress, int completed, int cancelled
 });
 
 
@@ -555,11 +557,12 @@ class __$JobCountsModelCopyWithImpl<$Res>
 
 /// Create a copy of JobCountsModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? pending = null,Object? inProgress = null,Object? completed = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? pending = null,Object? inProgress = null,Object? completed = null,Object? cancelled = null,}) {
   return _then(_JobCountsModel(
 pending: null == pending ? _self.pending : pending // ignore: cast_nullable_to_non_nullable
 as int,inProgress: null == inProgress ? _self.inProgress : inProgress // ignore: cast_nullable_to_non_nullable
 as int,completed: null == completed ? _self.completed : completed // ignore: cast_nullable_to_non_nullable
+as int,cancelled: null == cancelled ? _self.cancelled : cancelled // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

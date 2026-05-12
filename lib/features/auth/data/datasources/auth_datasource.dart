@@ -4,6 +4,7 @@ import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/network/api/request_extras.dart';
+import 'package:trackyond/features/auth/data/models/profile_response_model.dart';
 import 'package:trackyond/features/auth/data/models/send_otp/send_otp_response_model.dart';
 import 'package:trackyond/features/auth/data/models/verify_otp_response_model.dart';
 
@@ -21,6 +22,8 @@ abstract interface class IAuthDataSource {
   });
 
   Future<ApiResponse<void>> logout({required UserRole role});
+
+  Future<ApiResponse<ProfileResponseModel>> getProfile({required UserRole role});
 }
 
 class AuthDataSourceImpl with BaseRemoteDataSource implements IAuthDataSource {
@@ -79,6 +82,18 @@ class AuthDataSourceImpl with BaseRemoteDataSource implements IAuthDataSource {
     return performApiRequest(
       _dio.post(endpoint),
       (_) {},
+    );
+  }
+
+  @override
+  Future<ApiResponse<ProfileResponseModel>> getProfile({required UserRole role}) async {
+    final endpoint = role == UserRole.owner
+        ? ApiEndpoints.admin.profile
+        : ApiEndpoints.employee.profile;
+
+    return performApiRequest(
+      _dio.get(endpoint),
+      (json) => ProfileResponseModel.fromJson(json as Map<String, dynamic>),
     );
   }
 }

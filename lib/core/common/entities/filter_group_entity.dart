@@ -9,7 +9,7 @@ class FilterGroupEntity extends Equatable {
   final List<FilterGroupEntity> groups;
 
   const FilterGroupEntity({
-    this.logicalOperator = LogicalOperator.and,
+    this.logicalOperator = LogicalOperator.or,
     this.rules = const [],
     this.operators = const [],
     this.groups = const [],

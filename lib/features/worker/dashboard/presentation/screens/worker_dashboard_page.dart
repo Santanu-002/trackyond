@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
+import 'package:trackyond/core/common/widgets/skeleton/app_skeleton_avatar.dart';
 import 'package:trackyond/core/common/widgets/icons/app_notification_bell.dart';
 import 'package:trackyond/core/common/widgets/scaffold/app_scaffold.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/controllers/worker_dashboard_controller.dart';
-import 'package:trackyond/features/worker/dashboard/presentation/widgets/work_attendance_card.dart';
+import 'package:trackyond/features/worker/dashboard/presentation/widgets/attendance/work_attendance_card.dart';
 
 class WorkerDashboardPage extends GetView<WorkerDashboardController> {
   const WorkerDashboardPage({super.key});
@@ -18,12 +19,17 @@ class WorkerDashboardPage extends GetView<WorkerDashboardController> {
       leading: Padding(
         padding: EdgeInsets.only(left: AppUIConstants.spacing.space$12),
         child: Center(
-          child: MemberAvatar(
-            name: controller.workerName,
-            image: controller.workerImage,
-            radius: AppUIConstants.radius.radius$16,
-            onPressed: controller.navigateToProfile,
-          ),
+          child: Obx(() {
+            if (controller.isProfileLoading.value) {
+              return AppSkeletonAvatar(size: AppUIConstants.radius.radius$16 * 2);
+            }
+            return MemberAvatar(
+              name: controller.workerName.value,
+              image: controller.workerImage.value,
+              radius: AppUIConstants.radius.radius$16,
+              onPressed: controller.navigateToProfile,
+            );
+          }),
         ),
       ),
       actions: [

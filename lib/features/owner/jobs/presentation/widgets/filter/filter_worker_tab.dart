@@ -5,7 +5,7 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/common/widgets/member/member_list_tile.dart';
 import 'package:trackyond/features/owner/jobs/presentation/controllers/jobs_controller.dart';
-import 'package:trackyond/features/owner/jobs/presentation/widgets/job_worker_capsule.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/worker/job_worker_capsule.dart';
 
 class FilterWorkerTab extends StatelessWidget {
   final JobsController controller;
@@ -36,8 +36,8 @@ class FilterWorkerTab extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.only(bottom: 12),
             child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: AppUIConstants.spacing.space$8,
+              runSpacing: AppUIConstants.spacing.space$8,
               children: selected.map((worker) {
                 return JobWorkerCapsule(
                   worker: worker,

@@ -11,8 +11,7 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/jobs/presentation/controllers/create_job_controller.dart';
 
 class CreateJobPage extends GetView<CreateJobController> {
-  final Function(Object?)? onSuccess;
-  const CreateJobPage({super.key, this.onSuccess});
+  const CreateJobPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -162,7 +161,7 @@ class CreateJobPage extends GetView<CreateJobController> {
                             ),
                           ),
                           Icon(
-                            Icons.keyboard_arrow_down_rounded,
+                            AppIcons.common.chevronDown,
                             color: context.theme.colorScheme.onSurface
                                 .withValues(alpha: 0.5),
                           ),

@@ -109,12 +109,68 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<Either<AppFailure, MemberProfile?>> getMemberProfile() async {
-    return Right(_userService.getProfile()?.toEntity());
+    final localProfile = _userService.getProfile();
+    final role = _userService.getUserRole();
+
+    if (localProfile == null && role != null) {
+      final response = await _dataSource.getProfile(role: role);
+      return response.when(
+        success: (_, _, data) {
+          if (data?.profile != null) {
+            _userService.setProfile(data!.profile!);
+            if (data.company != null) {
+              _userService.setCompany(data.company!);
+            }
+            return Right(data.profile!.toEntity());
+          }
+          return const Right(null);
+        },
+        error: (_, message, _, _) => Left(ServerFailure(message)),
+      );
+    }
+
+    // If local exists, return it immediately but refresh in background
+    if (localProfile != null && role != null) {
+      _dataSource.getProfile(role: role).then((response) {
+        response.when(
+          success: (_, _, data) {
+            if (data?.profile != null) {
+              _userService.setProfile(data!.profile!);
+              if (data.company != null) {
+                _userService.setCompany(data.company!);
+              }
+            }
+          },
+          error: (_, _, _, _) {},
+        );
+      });
+    }
+
+    return Right(localProfile?.toEntity());
   }
 
   @override
   Future<Either<AppFailure, CompanyEntity?>> getCompany() async {
-    return Right(_userService.getCompany()?.toEntity());
+    final localCompany = _userService.getCompany();
+    final role = _userService.getUserRole();
+
+    if (localCompany == null && role != null) {
+      final response = await _dataSource.getProfile(role: role);
+      return response.when(
+        success: (_, _, data) {
+          if (data?.company != null) {
+            _userService.setCompany(data!.company!);
+            if (data.profile != null) {
+              _userService.setProfile(data.profile!);
+            }
+            return Right(data.company!.toEntity());
+          }
+          return const Right(null);
+        },
+        error: (_, message, _, _) => Left(ServerFailure(message)),
+      );
+    }
+    return Right(localCompany?.toEntity());
   }
 
   @override

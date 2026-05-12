@@ -24,7 +24,12 @@ class LightColors {
   final Color pending = const Color(0xFFFEA619);
   final Color inProgress = const Color(0xFF2563EB);
   final Color completed = const Color(0xFF007D55);
+  final Color cancelled = const Color(0xFFB00020);
   final Color ghostBorder = const Color(0xFFC3C6D7); // outline-variant
+
+  // Shimmer
+  final Color shimmerBase = const Color(0xFFE0E0E0); // Colors.grey[300]
+  final Color shimmerHighlight = const Color(0xFFF5F5F5); // Colors.grey[100]
 
   // Typography
   final Color textDefault = const Color(
@@ -49,7 +54,11 @@ class DarkColors {
   final Color pending = const Color(0xFFFEA619);
   final Color inProgress = const Color(0xFF2563EB);
   final Color completed = const Color(0xFF007D55);
+  final Color cancelled = const Color(0xFFB00020);
   final Color ghostBorder = const Color(0xFFC3C6D7);
+
+  final Color shimmerBase = const Color(0xFF424242); // Colors.grey[800]
+  final Color shimmerHighlight = const Color(0xFF616161); // Colors.grey[700]
 
   final Color textDefault = const Color(0xFFFFFFFF);
   final Color textSubtle = const Color(0xB3FFFFFF);

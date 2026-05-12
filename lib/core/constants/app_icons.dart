@@ -46,6 +46,13 @@ class _StatusIcons {
 class _CommonIcons {
   const _CommonIcons();
 
+  IconData get edit => Icons.edit_outlined;
+  IconData get history => Icons.history_rounded;
+  IconData get chat => Icons.chat_bubble_outline;
+  IconData get security => Icons.security_outlined;
+  IconData get block => Icons.block_flipped;
+  IconData get circle => Icons.circle;
+
   IconData get back => Icons.arrow_back_ios_new_rounded;
 
   IconData get logout => Icons.logout_rounded;
@@ -99,6 +106,7 @@ class _DashboardIcons {
   IconData get active => Icons.bolt_rounded;
 
   IconData get completed => Icons.task_alt_rounded;
+  IconData get cancelled => Icons.cancel_outlined;
 
   IconData get insights => Icons.insights_rounded;
 

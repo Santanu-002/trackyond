@@ -1,4 +1,4 @@
-import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_stats_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_options_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_pagination_entity.dart';

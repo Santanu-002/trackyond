@@ -29,9 +29,10 @@ Map<String, dynamic> _$OwnerDashboardModelToJson(
 
 _JobCountsModel _$JobCountsModelFromJson(Map<String, dynamic> json) =>
     _JobCountsModel(
-      pending: (json['pending'] as num).toInt(),
-      inProgress: (json['inProgress'] as num).toInt(),
-      completed: (json['completed'] as num).toInt(),
+      pending: (json['pending'] as num?)?.toInt() ?? 0,
+      inProgress: (json['inProgress'] as num?)?.toInt() ?? 0,
+      completed: (json['completed'] as num?)?.toInt() ?? 0,
+      cancelled: (json['cancelled'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$JobCountsModelToJson(_JobCountsModel instance) =>
@@ -39,4 +40,5 @@ Map<String, dynamic> _$JobCountsModelToJson(_JobCountsModel instance) =>
       'pending': instance.pending,
       'inProgress': instance.inProgress,
       'completed': instance.completed,
+      'cancelled': instance.cancelled,
     };

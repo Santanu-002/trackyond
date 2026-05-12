@@ -96,6 +96,7 @@ Common utilities are located in `lib/core/utils/`.
   - `admin/`: Owner-specific logic.
   - `employee/`: Worker-specific logic.
   - `common/`: Shared resources like file handling.
+- **Thin Routers & Fat Services**: All API router files (e.g., `api/v1/.../*.py`) must remain "thin". They should only handle endpoint definitions, dependency injection (extracting `db` and `user`), and returning the final `GenericResponse`. All business logic, database queries (`db.query()`), and data serialization MUST be encapsulated in dedicated service modules inside the `services/` folder (e.g., `services/dashboard_service.py`).
 - **Logic**: Encapsulated in `services/` (e.g., `auth_service.py`).
 
 ### 3. Requirements & Metadata

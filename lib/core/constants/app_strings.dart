@@ -282,10 +282,9 @@ class OwnerDashboardStrings {
   String get stats => 'Stats';
 
   String get pending => 'Pending';
-
   String get progress => 'In Progress';
-
   String get completed => 'Completed';
+  String get cancelled => 'Cancelled';
 
   String get working => 'Working';
 
@@ -294,7 +293,7 @@ class OwnerDashboardStrings {
   String get statsTitle => 'Task Statistics';
 
   String get recentJobs => 'Recent Jobs';
-
+  String get noRecentJobs => 'No recent jobs found';
   String get viewAll => 'View All';
 }
 
@@ -479,6 +478,8 @@ class CreateJobStrings {
   String get photoOnStartSubtitle => 'Worker must take photo before starting';
   String get createJobButton => 'Create New Job';
   String get membersLabel => 'Members';
+  String get assignWorkerWarning => 'Please assign a worker to this job.';
+  String get createJobSuccess => 'Job created successfully.';
 }
 
 class JobsStrings {
@@ -495,7 +496,7 @@ class JobsStrings {
   String get thisMonth => 'This Month';
   String get last3Months => 'Last 3 Months';
   String get pending => 'Pending';
-  String get assigned => 'Assigned';
+  String get assigned => 'Pending';
   String get inProgress => 'In Progress';
   String get completed => 'Completed';
   String get cancelled => 'Cancelled';
@@ -507,7 +508,30 @@ class JobsStrings {
   String get clear => 'Clear';
   String get searchInAllDates => 'Search in all dates';
   String noSearchFound(String query) => 'No results found for "$query"';
-  String get tryMatchAny => 'Try switching to "Match ANY" to see more results';
+  String get startDateAfterEndDateError => 'Start date cannot be after end date';
+  String get selectStatuses => 'Select Statuses';
+  String get filterLogic => 'Filter Logic';
+  String get summary => 'Summary';
+  String get assignTo => 'Assign To';
+  String get resetAll => 'Reset All';
+  String get applyFilters => 'Apply Filters';
+  String get noFiltersApplied => 'No filters applied';
+  String get chooseDateRange => 'Choose Date Range';
+  String get dateRange => 'Date Range';
+  String get searchByAll => 'All';
+  String get searchByTitle => 'Title';
+  String get searchByCustomer => 'Customer';
+  String get searchByAddress => 'Address';
+  String get searchByWorker => 'Worker';
+  String get sortDateCreated => 'Date Created';
+  String get sortJobTitle => 'Job Title';
+  String get sortStatus => 'Status';
+  String get sortCustomerName => 'Customer Name';
+  String get sortWorkerName => 'Worker Name';
+  String get sortAssignedAt => 'Assigned At';
+  String get sortCompletedAt => 'Completed At';
+  String get sortStartedAt => 'Started At';
+  String get sortUpdatedAt => 'Updated At';
 }
 
 class JobDetailsStrings {

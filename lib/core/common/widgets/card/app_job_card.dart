@@ -67,6 +67,30 @@ class AppJobCard extends StatelessWidget {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
+                if (job.workerName != null) ...[
+                  AppUIConstants.widgets.verticalBox$4,
+                  Row(
+                    children: [
+                      Icon(
+                        AppIcons.common.person,
+                        size: 14,
+                        color: colorScheme.primary,
+                      ),
+                      AppUIConstants.widgets.horizontalBox$4,
+                      Expanded(
+                        child: Text(
+                          job.workerName!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

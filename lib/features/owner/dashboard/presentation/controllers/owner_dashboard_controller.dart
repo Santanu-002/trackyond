@@ -12,7 +12,7 @@ import 'package:trackyond/features/owner/dashboard/domain/entities/drawer_item_c
 import 'package:trackyond/features/owner/dashboard/domain/entities/task_stat_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/usecases/get_owner_dashboard_use_case.dart';
 import 'package:trackyond/core/common/entities/job_entity.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
 
 class OwnerDashboardController extends GetxController {
   final GetOwnerDashboardUseCase _getOwnerDashboardUseCase;
@@ -36,20 +36,23 @@ class OwnerDashboardController extends GetxController {
   final title = AppStrings.ownerDashboard.title.obs;
   final notificationCount = 3.obs;
   final isLoading = false.obs;
+  final isProfileLoading = false.obs;
+
+  final teamMembers = <TeamMemberStatusEntity>[].obs;
+  final recentJobs = <JobEntity>[].obs;
+  final stats = DashboardStats(pending: 0, inProgress: 0, completed: 0, cancelled: 0).obs;
 
   final ownerName = 'Owner'.obs;
   final ownerPhone = ''.obs;
   final companyName = 'Company'.obs;
 
-  final teamMembers = <TeamMemberStatusEntity>[].obs;
-  final recentJobs = <JobEntity>[].obs;
-  final stats = DashboardStats(pending: 0, inProgress: 0, completed: 0).obs;
-
   Future<void> _loadUserInfo() async {
+    isProfileLoading.value = true;
     final authController = Get.find<AuthController>();
     ownerName.value = await authController.ownerName;
     ownerPhone.value = await authController.ownerPhone;
     companyName.value = await authController.companyName;
+    isProfileLoading.value = false;
   }
 
   Future<void> fetchDashboardData() async {
@@ -85,6 +88,12 @@ class OwnerDashboardController extends GetxController {
       value: stats.value.completed,
       icon: AppIcons.dashboard.completed,
       color: Get.theme.colorScheme.completed,
+    ),
+    TaskStatConfig(
+      label: AppStrings.ownerDashboard.cancelled,
+      value: stats.value.cancelled,
+      icon: AppIcons.dashboard.cancelled,
+      color: Get.theme.colorScheme.cancelled,
     ),
   ];
 
@@ -161,6 +170,6 @@ class OwnerDashboardController extends GetxController {
   }
 
   void goToJobDetails(JobEntity job) {
-    AppSnackbar.info(AppStrings.common.underDevelopment);
+    Get.toNamed(AppRoutes.owner.jobDetails, arguments: job);
   }
 }

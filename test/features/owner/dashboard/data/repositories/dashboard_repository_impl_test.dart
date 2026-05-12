@@ -20,7 +20,7 @@ setUp(() {
   group('getOwnerDashboard', () {
     final tDashboardModel = OwnerDashboardModel(
       teamMembersStatus: const [],
-      jobCounts: const JobCountsModel(pending: 5, inProgress: 2, completed: 10),
+      jobCounts: const JobCountsModel(pending: 5, inProgress: 2, completed: 10, cancelled: 0),
       recentJobs: [
         JobModel(
           jobId: '123',

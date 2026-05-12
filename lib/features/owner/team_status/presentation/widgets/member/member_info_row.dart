@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/text/app_highlighted_text.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 
 class MemberInfoRow extends StatelessWidget {
@@ -38,7 +39,7 @@ class MemberInfoRow extends StatelessWidget {
               horizontal: AppUIConstants.spacing.space$8,
             ),
             child: Icon(
-              Icons.circle,
+              AppIcons.common.circle,
               size: 4,
               color: context.theme.colorScheme.onSurfaceVariant
                   .withValues(alpha: 0.4),

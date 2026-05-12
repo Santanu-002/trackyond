@@ -71,7 +71,11 @@ class JobsRemoteDataSourceImpl with BaseRemoteDataSource implements IJobsRemoteD
     }
 
     return performApiRequest(
-      _dio.get(ApiEndpoints.admin.jobs, queryParameters: queryParams),
+      _dio.get(
+        ApiEndpoints.admin.jobs,
+        queryParameters: queryParams,
+        options: Options(listFormat: ListFormat.multiCompatible),
+      ),
       (data) {
         final jobsList = (data as Map<String, dynamic>)['jobs'] as List;
         return jobsList.map((e) => JobModel.fromJson(e as Map<String, dynamic>)).toList();

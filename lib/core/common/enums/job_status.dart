@@ -44,7 +44,7 @@ enum JobStatus {
       JobStatus.assigned => colorScheme.pending, // Using pending color for assigned
       JobStatus.inProgress => colorScheme.inProgress,
       JobStatus.completed => colorScheme.completed,
-      JobStatus.cancelled => colorScheme.error,
+      JobStatus.cancelled => colorScheme.cancelled,
     };
   }
 }

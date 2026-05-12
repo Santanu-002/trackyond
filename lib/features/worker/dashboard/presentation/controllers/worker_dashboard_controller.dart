@@ -37,14 +37,15 @@ class WorkerDashboardController extends GetxController {
   AppLifecycleListener? _lifecycleListener;
   Timer? _timer;
 
+  final authController = Get.find<AuthController>();
+
   // UI Observables
   final title = AppStrings.workerDashboard.title.obs;
-  final _workerName = 'Worker'.obs;
-  final _workerImage = RxnString();
 
-  String get workerName => _workerName.value;
+  final workerName = 'Worker'.obs;
+  final workerImage = RxnString();
 
-  String? get workerImage => _workerImage.value;
+  final isProfileLoading = false.obs;
 
   // Workday State
   final attendanceStatus = AttendanceStatus.notStarted.obs;
@@ -69,8 +70,17 @@ class WorkerDashboardController extends GetxController {
     _initLifecycleListener();
     _checkAndRequestLocationPermission();
 
+    _loadUserInfo();
     _checkInitialStatus();
     _fetchAssignedJobs();
+  }
+
+  Future<void> _loadUserInfo() async {
+    isProfileLoading.value = true;
+    final profile = await authController.profile;
+    workerName.value = profile?.name ?? 'Worker';
+    workerImage.value = profile?.image;
+    isProfileLoading.value = false;
   }
 
   @override
@@ -116,9 +126,6 @@ class WorkerDashboardController extends GetxController {
   Future<void> _checkInitialStatus() async {
     final profile = await Get.find<AuthController>().profile;
     if (profile == null) return;
-
-    _workerName.value = profile.name;
-    _workerImage.value = profile.image;
 
     final result = await _getAttendanceStatusUseCase(
       GetAttendanceStatusParams(accountUid: profile.accountUid),

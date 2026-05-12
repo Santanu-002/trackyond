@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
+import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/jobs/presentation/controllers/jobs_controller.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
@@ -13,7 +15,7 @@ class FilterDateTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select Date Range', style: context.textTheme.titleMedium),
+        Text(AppStrings.jobs.dateRange, style: context.textTheme.titleMedium),
         AppUIConstants.widgets.verticalBox$16,
         Obx(() {
           final fromDate = controller.fromDate;
@@ -22,10 +24,10 @@ class FilterDateTab extends StatelessWidget {
 
           return AppButton.outlined(
             text: fromDate == null
-                ? 'Choose Date Range'
+                ? AppStrings.jobs.chooseDateRange
                 : controller.getValueLabel(dateRule?.value),
-            leading: const Icon(Icons.date_range_rounded, size: 20),
-            onPressed: () => controller.showDatePicker(context),
+            leading: Icon(AppIcons.common.calendarRange, size: 20),
+            onPressed: () => controller.showDatePicker(),
           );
         }),
       ],

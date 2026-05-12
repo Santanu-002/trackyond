@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/widgets/layout/app_nav_layout.dart';
+import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/core/constants/app_icons.dart';
-import 'package:trackyond/core/common/widgets/layout/app_nav_layout.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/app_drawer.dart';
-import 'package:trackyond/features/owner/dashboard/presentation/widgets/team_status_section.dart';
-import 'package:trackyond/features/owner/dashboard/presentation/widgets/task_stats_section.dart';
-import 'package:trackyond/features/owner/dashboard/presentation/widgets/recent_jobs_section.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:trackyond/features/owner/dashboard/presentation/widgets/jobs/recent_jobs_section.dart';
+import 'package:trackyond/features/owner/dashboard/presentation/widgets/stats/task_stats_section.dart';
+import 'package:trackyond/features/owner/dashboard/presentation/widgets/team/team_status_section.dart';
 import 'package:trackyond/features/owner/jobs/presentation/bindings/create_job_binding.dart';
+import 'package:trackyond/features/owner/jobs/presentation/controllers/create_job_controller.dart';
 import 'package:trackyond/features/owner/jobs/presentation/screens/create_job_page.dart';
 
 class OwnerDashboardPage extends GetView<OwnerDashboardController> {
@@ -27,20 +27,18 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
       useScrollView: false,
       openBuilder: (context, action) {
         CreateJobBinding().dependencies();
-        return CreateJobPage(
-          onSuccess: (job) {
-            if (job is JobEntity) {
-              controller.recentJobs.insert(0, job);
-              controller.stats.value = controller.stats.value.copyWith(
-                pending: controller.stats.value.pending + 1,
-              );
-              if (controller.recentJobs.length > 10) {
-                controller.recentJobs.removeLast();
-              }
-            }
-            action(returnValue: job);
-          },
-        );
+        final createJobController = Get.find<CreateJobController>();
+        createJobController.onSuccess = (job) {
+          controller.recentJobs.insert(0, job);
+          controller.stats.value = controller.stats.value.copyWith(
+            pending: controller.stats.value.pending + 1,
+          );
+          if (controller.recentJobs.length > 10) {
+            controller.recentJobs.removeLast();
+          }
+          action(returnValue: job);
+        };
+        return const CreateJobPage();
       },
       drawer: const AppDrawer(),
       actions: [
@@ -50,24 +48,29 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
               icon: Icon(AppIcons.common.notifications),
               onPressed: controller.openNotifications,
             ),
-            Obx(() => controller.notificationCount.value > 0
-                ? Positioned(
-                    right: 12,
-                    top: 12,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.error,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: theme.scaffoldBackgroundColor, width: 1.5),
+            Obx(
+              () => controller.notificationCount.value > 0
+                  ? Positioned(
+                      right: 12,
+                      top: 12,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.error,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: theme.scaffoldBackgroundColor,
+                            width: 1.5,
+                          ),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 8,
+                          minHeight: 8,
+                        ),
                       ),
-                      constraints: const BoxConstraints(
-                        minWidth: 8,
-                        minHeight: 8,
-                      ),
-                    ),
-                  )
-                : const SizedBox.shrink()),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ],
         ),
         AppUIConstants.widgets.horizontalBox$8,
@@ -81,21 +84,25 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
             spacing: AppUIConstants.spacing.space$32,
             children: [
               // Team Status Section
-              Obx(() => TeamStatusSection(
-                    members: controller.teamMembers.toList(),
-                    isLoading: controller.isLoading.value,
-                  )),
+              Obx(
+                () => TeamStatusSection(
+                  members: controller.teamMembers.toList(),
+                  isLoading: controller.isLoading.value,
+                ),
+              ),
 
               // Stats Section
-              Obx(() => TaskStatsSection(
-                    stats: controller.taskStats,
-                    isLoading: controller.isLoading.value,
-                  )),
+              Obx(
+                () => TaskStatsSection(
+                  stats: controller.taskStats,
+                  isLoading: controller.isLoading.value,
+                ),
+              ),
 
               // Recent Jobs Section
-              Obx(() => RecentJobsSection(
-                    isLoading: controller.isLoading.value,
-                  )),
+              Obx(
+                () => RecentJobsSection(isLoading: controller.isLoading.value),
+              ),
 
               AppUIConstants.widgets.verticalBox$32,
             ],

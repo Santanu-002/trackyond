@@ -13,8 +13,19 @@ extension ColorSchemeExtension on ColorScheme {
   Color get completed => brightness == Brightness.light
       ? AppColors.light.completed
       : AppColors.dark.completed;
+
+  Color get cancelled => brightness == Brightness.light
+      ? AppColors.light.cancelled
+      : AppColors.dark.cancelled;
+
+  Color get shimmerBase => brightness == Brightness.light
+      ? AppColors.light.shimmerBase
+      : AppColors.dark.shimmerBase;
+
+  Color get shimmerHighlight => brightness == Brightness.light
+      ? AppColors.light.shimmerHighlight
+      : AppColors.dark.shimmerHighlight;
 }
 extension BuildContextThemeExtension on BuildContext {
   ColorScheme get colorScheme => Theme.of(this).colorScheme;
-  TextTheme get textTheme => Theme.of(this).textTheme;
 }

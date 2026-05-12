@@ -49,6 +49,7 @@ class AppFilterChip extends StatelessWidget {
       ),
       showCheckmark: false,
       pressElevation: 0,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
   }
 }

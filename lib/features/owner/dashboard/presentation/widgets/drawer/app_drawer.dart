@@ -6,6 +6,7 @@ import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/app_drawer_header.dart';
+import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/app_drawer_header_skeleton.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/drawer_item.dart';
 
 class AppDrawer extends GetView<OwnerDashboardController> {
@@ -21,10 +22,15 @@ class AppDrawer extends GetView<OwnerDashboardController> {
       child: Column(
         children: [
           Obx(
-            () => AppDrawerHeader(
-              name: controller.ownerName.value,
-              phone: controller.ownerPhone.value,
-            ),
+            () {
+              if (controller.isProfileLoading.value) {
+                return const AppDrawerHeaderSkeleton();
+              }
+              return AppDrawerHeader(
+                name: controller.ownerName.value,
+                phone: controller.ownerPhone.value,
+              );
+            },
           ),
 
           Divider(

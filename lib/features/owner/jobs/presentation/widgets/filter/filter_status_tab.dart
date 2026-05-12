@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/status_quick_chip.dart';
 import 'package:trackyond/features/owner/jobs/presentation/controllers/jobs_controller.dart';
 
 class FilterStatusTab extends StatelessWidget {
@@ -11,30 +13,31 @@ class FilterStatusTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: EdgeInsets.zero,
       children: [
-        Text('Select Statuses', style: context.textTheme.titleMedium),
+        Text(AppStrings.jobs.selectStatuses, style: context.textTheme.titleMedium),
         AppUIConstants.widgets.verticalBox$16,
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: JobStatus.values.map((status) {
-            return Obx(() {
-              final isSelected = controller.isStatusSelected(status);
-              return FilterChip(
-                label: Text(status.name.capitalizeFirst!),
-                selected: isSelected,
-                onSelected: (_) => controller.setStatus(status),
-                labelStyle: TextStyle(
-                  color: isSelected
-                      ? context.theme.colorScheme.onPrimaryContainer
-                      : null,
-                  fontWeight: isSelected ? FontWeight.bold : null,
-                ),
-                selectedColor: context.theme.colorScheme.primaryContainer,
-                showCheckmark: false,
-              );
-            });
-          }).toList(),
+          spacing: AppUIConstants.spacing.space$8,
+          runSpacing: AppUIConstants.spacing.space$8,
+          children: [
+            StatusQuickChip(
+              label: AppStrings.jobs.pending,
+              status: JobStatus.pending,
+            ),
+            StatusQuickChip(
+              label: AppStrings.jobs.inProgress,
+              status: JobStatus.inProgress,
+            ),
+            StatusQuickChip(
+              label: AppStrings.jobs.completed,
+              status: JobStatus.completed,
+            ),
+            StatusQuickChip(
+              label: AppStrings.jobs.cancelled,
+              status: JobStatus.cancelled,
+            ),
+          ],
         ),
       ],
     );

@@ -7,16 +7,14 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/common/widgets/chip/app_filter_chip_row.dart';
 import 'package:trackyond/features/owner/jobs/presentation/controllers/jobs_controller.dart';
 import 'package:trackyond/core/common/widgets/card/app_job_card.dart';
-import 'package:trackyond/features/owner/jobs/presentation/widgets/jobs_list_skeleton.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/skeleton/jobs_list_skeleton.dart';
 import 'package:trackyond/core/common/widgets/search/app_search_bar.dart';
 import 'package:trackyond/features/owner/jobs/domain/entities/job_filter_options.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
-import 'package:trackyond/core/common/enums/filter_enums.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
-import 'package:trackyond/features/owner/jobs/presentation/widgets/status_quick_chip.dart';
-import 'package:trackyond/features/owner/jobs/presentation/widgets/jobs_action_bar_button.dart';
-import 'package:trackyond/features/owner/jobs/presentation/widgets/job_worker_capsule.dart';
-
+import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/status_quick_chip.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/layout/jobs_action_bar_button.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/worker/job_worker_capsule.dart';
 class JobsPage extends GetView<JobsController> {
   const JobsPage({super.key});
 
@@ -31,46 +29,15 @@ class JobsPage extends GetView<JobsController> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // 1. Search Bar
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppUIConstants.spacing.space$16,
-                ),
-                child: AppSearchBar<JobSearchField>(
-                  query: controller.searchQuery,
-                  hintText: AppStrings.jobs.searchHint,
-                  searchByItems: JobSearchField.values,
-                  selectedSearchByGetter: () => controller.searchBy.value,
-                  searchByLabelBuilder: (value) =>
-                      controller.getSearchByLabel(value),
-                  onSearchBySelected: (value) =>
-                      controller.searchBy.value = value,
-                  extraTrailing: [
-                    Obx(() {
-                      if (!controller.isFilteringActive) return const SizedBox.shrink();
-                      return AppButton.ghost(
-                        onPressed: controller.clearFilters,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              AppIcons.common.refresh,
-                              size: 18,
-                              color: context.theme.colorScheme.error,
-                            ),
-                            AppUIConstants.widgets.horizontalBox$4,
-                            Text(
-                              'Clear',
-                              style: context.textTheme.labelLarge?.copyWith(
-                                color: context.theme.colorScheme.error,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                ),
+              AppSearchBar<JobSearchField>(
+                query: controller.searchQuery,
+                hintText: AppStrings.jobs.searchHint,
+                searchByItems: JobSearchField.values,
+                selectedSearchByGetter: () => controller.searchBy.value,
+                searchByLabelBuilder: (value) =>
+                    controller.getSearchByLabel(value),
+                onSearchBySelected: (value) =>
+                    controller.searchBy.value = value,
               ),
 
               // 2. Selected Worker Capsules (Below Search Bar)
@@ -78,132 +45,143 @@ class JobsPage extends GetView<JobsController> {
                 final selected = controller.selectedWorkers;
                 if (selected.isEmpty) return const SizedBox.shrink();
 
-                return Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppUIConstants.spacing.space$16,
-                    AppUIConstants.spacing.space$12,
-                    AppUIConstants.spacing.space$16,
-                    0,
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        '${AppStrings.jobs.members}:',
-                        style: context.textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: context.theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      AppUIConstants.widgets.horizontalBox$8,
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: selected.map((worker) {
-                              return Padding(
-                                padding: EdgeInsets.only(
-                                  right: AppUIConstants.spacing.space$8,
-                                ),
-                                child: JobWorkerCapsule(
-                                  worker: worker,
-                                  onRemove: () =>
-                                      controller.toggleWorker(worker),
-                                  isCompact: true,
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-
-              // 3. Common Filter Chips
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  AppUIConstants.spacing.space$16,
-                  AppUIConstants.spacing.space$12,
-                  AppUIConstants.spacing.space$16,
-                  0,
-                ),
-                child: Column(
+                return Column(
                   children: [
-                    // Date Row
+                    AppUIConstants.widgets.verticalBox$12,
                     Row(
                       children: [
                         Text(
-                          '${AppStrings.jobs.date}:',
+                          '${AppStrings.jobs.members}:',
                           style: context.textTheme.labelMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: context.theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
+                        AppUIConstants.widgets.horizontalBox$8,
                         Expanded(
-                          child: Obx(
-                            () {
-                              // Register dependencies
-                              controller.filter.value;
-                              controller.activeDateFilterIndex.value;
-                              
-                              return AppFilterChipRow.fromEntityList(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: AppUIConstants.spacing.space$16,
-                                ),
-                                items: controller.dateFilterChips,
-                                isSelected: (index) => switch (index) {
-                                  0 => controller.isTodaySelected,
-                                  1 => controller.isThisWeekSelected,
-                                  2 => controller.isThisMonthSelected,
-                                  3 => controller.isLast3MonthsSelected,
-                                  _ => false,
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    AppUIConstants.widgets.verticalBox$8,
-                    // Status Row
-                    Row(
-                      children: [
-                        Text(
-                          '${AppStrings.jobs.status}:',
-                          style: context.textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: context.theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        Expanded(
-                          child: AppFilterChipRow.children(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppUIConstants.spacing.space$16,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: selected.map((worker) {
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    right: AppUIConstants.spacing.space$8,
+                                  ),
+                                  child: JobWorkerCapsule(
+                                    worker: worker,
+                                    onRemove: () =>
+                                        controller.toggleWorker(worker),
+                                    isCompact: true,
+                                  ),
+                                );
+                              }).toList(),
                             ),
-                            children: [
-                              StatusQuickChip(
-                                label: AppStrings.jobs.pending,
-                                status: JobStatus.pending,
-                              ),
-                              StatusQuickChip(
-                                label: AppStrings.jobs.inProgress,
-                                status: JobStatus.inProgress,
-                              ),
-                              StatusQuickChip(
-                                label: AppStrings.jobs.completed,
-                                status: JobStatus.completed,
-                              ),
-                            ],
                           ),
                         ),
                       ],
                     ),
                   ],
-                ),
+                );
+              }),
+
+              AppUIConstants.widgets.verticalBox$12,
+
+              // 3. Common Filter Chips
+              Column(
+                children: [
+                  // Date Row
+                  Row(
+                    children: [
+                      Text(
+                        '${AppStrings.jobs.date}:',
+                        style: context.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: context.theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Expanded(
+                        child: Obx(
+                          () {
+                            // Register dependencies
+                            controller.filter.value;
+                            controller.activeDateFilterIndex.value;
+                            
+                            return AppFilterChipRow.fromEntityList(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppUIConstants.spacing.space$16,
+                              ),
+                              items: controller.dateFilterChips,
+                              isSelected: (index) => switch (index) {
+                                0 => controller.isTodaySelected,
+                                1 => controller.isThisWeekSelected,
+                                2 => controller.isThisMonthSelected,
+                                3 => controller.isLast3MonthsSelected,
+                                _ => false,
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  AppUIConstants.widgets.verticalBox$8,
+                  // Status Row
+                  Row(
+                    children: [
+                      Text(
+                        '${AppStrings.jobs.status}:',
+                        style: context.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: context.theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Expanded(
+                        child: AppFilterChipRow.children(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppUIConstants.spacing.space$16,
+                          ),
+                          children: [
+                            StatusQuickChip(
+                              label: AppStrings.jobs.pending,
+                              status: JobStatus.pending,
+                            ),
+                            StatusQuickChip(
+                              label: AppStrings.jobs.inProgress,
+                              status: JobStatus.inProgress,
+                            ),
+                            StatusQuickChip(
+                              label: AppStrings.jobs.completed,
+                              status: JobStatus.completed,
+                            ),
+                            StatusQuickChip(
+                              label: AppStrings.jobs.cancelled,
+                              status: JobStatus.cancelled,
+                            ),
+                            ],                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
 
-              // 4. Jobs List
+              // 4. Jobs List Action
+              Obx(() {
+                if (!controller.isFilteringActive) return const SizedBox.shrink();
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    AppButton.ghost(
+                      text: 'Clear',
+                      onPressed: controller.clearFilters,
+                      width: null,
+                      height: null,
+                      color: context.theme.colorScheme.primary,
+                    ),
+                  ],
+                );
+              }),
+
+              // 5. Jobs List
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
@@ -272,13 +250,7 @@ class JobsPage extends GetView<JobsController> {
                     alpha: 0.9,
                   ),
                   borderRadius: BorderRadius.circular(999),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: AppUIConstants.shadows.normal,
                   border: Border.all(
                     color: context.theme.colorScheme.outlineVariant,
                   ),
@@ -335,38 +307,19 @@ class JobsPage extends GetView<JobsController> {
               controller.searchQuery.isNotEmpty
                   ? AppStrings.jobs.noSearchFound(controller.searchQuery.value)
                   : controller.isFilteringActive
-                  ? AppStrings.jobs.noJobsMatchingFilters
-                  : AppStrings.jobs.noJobsFound,
+                      ? AppStrings.jobs.noJobsMatchingFilters
+                      : AppStrings.jobs.noJobsFound,
               textAlign: TextAlign.center,
               style: context.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             if (controller.isFilteringActive)
-              TextButton.icon(
+              AppButton.ghost(
                 onPressed: controller.clearFilters,
-                icon: Icon(AppIcons.common.refresh),
-                label: Text(AppStrings.jobs.clearAllFilters),
+                text: AppStrings.jobs.clearAllFilters,
+                width: null,
+                height: null,
               ),
-            if (controller.searchQuery.isNotEmpty &&
-                controller.fromDate != null)
-              TextButton.icon(
-                onPressed: controller.clearDateFilter,
-                icon: Icon(AppIcons.common.calendarRange),
-                label: Text(AppStrings.jobs.searchInAllDates),
-              ),
-            Obx(() {
-              if (controller.hasResultsWithOr.value) {
-                return Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: AppButton.ghost(
-                    text: AppStrings.jobs.tryMatchAny,
-                    onPressed: () =>
-                        controller.setLogicalOperator(LogicalOperator.or),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            }),
           ],
         ),
       ),

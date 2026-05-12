@@ -41,7 +41,14 @@ class JobStatus(str, Enum):
     @classmethod
     def _missing_(cls, value):
         if isinstance(value, str):
-            val = value.lower().replace(" ", "_")
+            # Handle camelCase, PascalCase, spaces, and hyphens
+            import re
+            # Convert camelCase/PascalCase to snake_case
+            s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', value)
+            val = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+            # Normalize separators
+            val = val.replace(" ", "_").replace("-", "_")
+            
             for member in cls:
                 if member.value == val:
                     return member

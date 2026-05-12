@@ -10,14 +10,15 @@ import 'package:trackyond/core/common/entities/job_entity.dart';
 import 'package:trackyond/features/owner/jobs/domain/usecases/get_jobs_use_case.dart';
 import 'package:trackyond/features/owner/jobs/domain/entities/job_filter_options.dart';
 import 'package:trackyond/features/owner/jobs/domain/entities/job_sort_options.dart';
-import 'package:trackyond/features/owner/jobs/presentation/widgets/filter_bottom_sheet.dart';
-import 'package:trackyond/features/owner/jobs/presentation/widgets/sort_bottom_sheet.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/filter_bottom_sheet.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/sort_bottom_sheet.dart';
+import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/app_chip_entity.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/status_picker_sheet.dart';
 
 class JobsController extends GetxController {
   final GetJobsUseCase _getJobsUseCase;
@@ -103,8 +104,6 @@ class JobsController extends GetxController {
     }
   }
 
-  final RxBool hasResultsWithOr = false.obs;
-
   Future<void> fetchJobs({bool refresh = false}) async {
     if (refresh) {
       _offset = 0;
@@ -129,7 +128,7 @@ class JobsController extends GetxController {
       final start = (dateRule.value as List)[0] as DateTime;
       final end = (dateRule.value as List)[1] as DateTime;
       if (start.isAfter(end)) {
-        AppSnackbar.destructive('Start date cannot be after end date');
+        AppSnackbar.destructive(AppStrings.jobs.startDateAfterEndDateError);
         if (refresh) {
           isLoading.value = false;
         } else {
@@ -161,16 +160,6 @@ class JobsController extends GetxController {
         if (refresh) {
           jobs.assignAll(newItems);
           isLoading.value = false;
-
-          // Smart Analysis: If 0 results and using AND, check if OR would yield results
-          if (newItems.isEmpty &&
-              filter.value.advancedFilter.logicalOperator ==
-                  LogicalOperator.and &&
-              filter.value.advancedFilter.rules.length > 1) {
-            _checkIfOrHasResults();
-          } else {
-            hasResultsWithOr.value = false;
-          }
         } else {
           jobs.addAll(newItems);
           isMoreLoading.value = false;
@@ -182,23 +171,6 @@ class JobsController extends GetxController {
           _offset += newItems.length;
         }
       },
-    );
-  }
-
-  Future<void> _checkIfOrHasResults() async {
-    final orFilter = filter.value.copyWith(
-      advancedFilter: filter.value.advancedFilter.copyWith(
-        logicalOperator: LogicalOperator.or,
-      ),
-    );
-
-    final result = await _getJobsUseCase(
-      GetJobsParams(limit: 1, offset: 0, filter: orFilter, sort: sort.value),
-    );
-
-    result.fold(
-      (_) => hasResultsWithOr.value = false,
-      (items) => hasResultsWithOr.value = items.isNotEmpty,
     );
   }
 
@@ -412,6 +384,7 @@ class JobsController extends GetxController {
       currentOps[index] = op;
       filter.value = filter.value.copyWith(
         advancedFilter: filter.value.advancedFilter.copyWith(
+          logicalOperator: op, // Sync the main operator as well
           operators: currentOps,
         ),
       );
@@ -588,11 +561,11 @@ class JobsController extends GetxController {
 
   // Helpers for UI
   String getSearchByLabel(JobSearchField field) => switch (field) {
-    JobSearchField.all => 'All',
-    JobSearchField.title => 'Title',
-    JobSearchField.customer => 'Customer',
-    JobSearchField.address => 'Address',
-    JobSearchField.worker => 'Worker',
+    JobSearchField.all => AppStrings.jobs.searchByAll,
+    JobSearchField.title => AppStrings.jobs.searchByTitle,
+    JobSearchField.customer => AppStrings.jobs.searchByCustomer,
+    JobSearchField.address => AppStrings.jobs.searchByAddress,
+    JobSearchField.worker => AppStrings.jobs.searchByWorker,
   };
 
   String getWorkerSearchByLabel(String value) => switch (value) {
@@ -604,15 +577,15 @@ class JobsController extends GetxController {
   };
 
   String getSortFieldLabel(JobSortField field) => switch (field) {
-    JobSortField.createdAt => 'Date Created',
-    JobSortField.jobTitle => 'Job Title',
-    JobSortField.status => 'Status',
-    JobSortField.customerName => 'Customer Name',
-    JobSortField.workerName => 'Worker Name',
-    JobSortField.assignedAt => 'Assigned At',
-    JobSortField.completedAt => 'Completed At',
-    JobSortField.startedAt => 'Started At',
-    JobSortField.updatedAt => 'Updated At',
+    JobSortField.createdAt => AppStrings.jobs.sortDateCreated,
+    JobSortField.jobTitle => AppStrings.jobs.sortJobTitle,
+    JobSortField.status => AppStrings.jobs.sortStatus,
+    JobSortField.customerName => AppStrings.jobs.sortCustomerName,
+    JobSortField.workerName => AppStrings.jobs.sortWorkerName,
+    JobSortField.assignedAt => AppStrings.jobs.sortAssignedAt,
+    JobSortField.completedAt => AppStrings.jobs.sortCompletedAt,
+    JobSortField.startedAt => AppStrings.jobs.sortStartedAt,
+    JobSortField.updatedAt => AppStrings.jobs.sortUpdatedAt,
   };
 
   // Quick Filter Actions
@@ -675,9 +648,9 @@ class JobsController extends GetxController {
       };
 
   String getFieldLabel(String field) => switch (field) {
-    'status' => 'Status',
-    'date' => 'Date',
-    'worker' => 'Worker',
+    'status' => AppStrings.jobs.status,
+    'date' => AppStrings.jobs.date,
+    'worker' => AppStrings.jobs.members,
     _ => field,
   };
 
@@ -703,84 +676,14 @@ class JobsController extends GetxController {
     return value.toString();
   }
 
-  Future<void> showAddFilterMenu(BuildContext context) async {
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(
-          button.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-      ),
-      Offset.zero & overlay.size,
-    );
-
-    final selectedField = await showMenu<String>(
-      context: context,
-      position: position,
-      items: [
-        const PopupMenuItem(value: 'status', child: Text('Status')),
-        const PopupMenuItem(value: 'date', child: Text('Date Range')),
-      ],
-    );
-
-    if (!context.mounted) return;
-
-    if (selectedField == 'status') {
-      showStatusPicker(context);
-    } else if (selectedField == 'date') {
-      showDatePicker(context);
-    }
-  }
-
-  void showStatusPicker(BuildContext context) {
+  void showStatusPicker() {
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: context.theme.scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Select Statuses',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              children: JobStatus.values.map((status) {
-                return Obx(() {
-                  final isSelected = isStatusSelected(status);
-                  return FilterChip(
-                    label: Text(status.name.capitalizeFirst!),
-                    selected: isSelected,
-                    onSelected: (_) => setStatus(status),
-                  );
-                });
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-              ),
-              onPressed: () => Get.back(),
-              child: const Text('Done'),
-            ),
-          ],
-        ),
-      ),
+      const StatusPickerSheet(),
+      isScrollControlled: true,
     );
   }
 
-  Future<void> showDatePicker(BuildContext context) async {
+  Future<void> showDatePicker() async {
     final initialDateRange = fromDate != null
         ? DateTimeRange(
             start: fromDate!,
@@ -789,7 +692,7 @@ class JobsController extends GetxController {
         : null;
 
     final pickedRange = await showDateRangePicker(
-      context: context,
+      context: Get.context!,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
       initialDateRange: initialDateRange,

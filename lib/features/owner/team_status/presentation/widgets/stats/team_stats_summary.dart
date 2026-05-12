@@ -4,7 +4,7 @@ import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
-import 'package:trackyond/features/owner/dashboard/presentation/widgets/stats_card.dart';
+import 'package:trackyond/features/owner/dashboard/presentation/widgets/stats/stats_card.dart';
 import 'package:trackyond/features/owner/team_status/presentation/controllers/team_status_controller.dart';
 
 class TeamStatsSummary extends GetView<TeamStatusController> {

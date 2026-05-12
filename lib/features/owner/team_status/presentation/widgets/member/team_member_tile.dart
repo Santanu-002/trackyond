@@ -5,7 +5,7 @@ import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/common/widgets/card/app_card.dart';
 import 'package:trackyond/core/common/widgets/chip/app_status_chip.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/presentation/controllers/team_member_profile_page_controller.dart';
 import 'package:trackyond/features/owner/team_status/presentation/screens/team_member_profile_page.dart';
 import 'package:trackyond/features/owner/team_status/presentation/widgets/member/attendance_status_time.dart';

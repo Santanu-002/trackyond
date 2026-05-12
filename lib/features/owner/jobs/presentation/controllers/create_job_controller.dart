@@ -1,14 +1,15 @@
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/entities/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/owner/jobs/domain/usecases/create_job_use_case.dart';
-import 'package:trackyond/features/owner/team_status/domain/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/features/owner/jobs/presentation/widgets/worker_picker_sheet.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/worker/worker_picker_sheet.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 
 class CreateJobController extends GetxController {
@@ -36,6 +37,10 @@ class CreateJobController extends GetxController {
   
   final isLoading = false.obs;
   final isWorkersLoading = false.obs;
+
+  /// Optional callback to be called when job is created successfully.
+  /// If provided, this controller will NOT call [Get.back].
+  void Function(JobEntity)? onSuccess;
 
   // Pref Keys
   static const String _prefKeyPhotoOnCompletion = 'job_pref_photo_on_completion';
@@ -162,7 +167,7 @@ class CreateJobController extends GetxController {
     if (formKey.currentState?.validate() != true) return;
     
     if (selectedWorker.value == null) {
-      AppSnackbar.warn('Please assign a worker to this job.');
+      AppSnackbar.warn(AppStrings.createJob.assignWorkerWarning);
       return;
     }
 
@@ -188,13 +193,17 @@ class CreateJobController extends GetxController {
       (failure) => AppSnackbar.destructive(failure.message),
       (job) {
         _savePreferences();
-        AppSnackbar.success('Job created successfully.');
+        AppSnackbar.success(AppStrings.createJob.createJobSuccess);
         
         // Reset form
         _clearForm();
         
-        // Return the fresh job to the previous screen (Dashboard)
-        Get.back(result: job);
+        if (onSuccess != null) {
+          onSuccess!(job);
+        } else {
+          // Return the fresh job to the previous screen (Dashboard)
+          Get.back(result: job);
+        }
       },
     );
   }

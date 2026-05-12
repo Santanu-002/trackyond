@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:trackyond/features/owner/team_status/data/models/member/team_member_status_model.dart';
+import 'package:trackyond/core/common/models/member/team_member_status_model.dart';
 import 'package:trackyond/features/owner/team_status/data/models/status/team_status_stats_model.dart';
 import 'package:trackyond/features/owner/team_status/data/models/status/team_status_options_model.dart';
 import 'package:trackyond/features/owner/team_status/data/models/status/team_status_pagination_model.dart';

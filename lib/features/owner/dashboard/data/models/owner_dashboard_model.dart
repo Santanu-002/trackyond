@@ -2,7 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/dashboard_stats.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/owner_dashboard_data.dart';
 import 'package:trackyond/core/common/models/job_model.dart';
-import 'package:trackyond/features/owner/team_status/data/models/member/team_member_status_model.dart';
+import 'package:trackyond/core/common/models/member/team_member_status_model.dart';
 
 part 'owner_dashboard_model.freezed.dart';
 part 'owner_dashboard_model.g.dart';
@@ -30,9 +30,10 @@ sealed class OwnerDashboardModel with _$OwnerDashboardModel {
 @freezed
 sealed class JobCountsModel with _$JobCountsModel {
   const factory JobCountsModel({
-    required int pending,
-    required int inProgress,
-    required int completed,
+    @Default(0) int pending,
+    @Default(0) int inProgress,
+    @Default(0) int completed,
+    @Default(0) int cancelled,
   }) = _JobCountsModel;
 
   const JobCountsModel._();
@@ -44,5 +45,6 @@ sealed class JobCountsModel with _$JobCountsModel {
         pending: pending,
         inProgress: inProgress,
         completed: completed,
+        cancelled: cancelled,
       );
 }

@@ -40,6 +40,9 @@ class _AdminEndpoints {
 
   _AuthEndpoints get auth => _AuthEndpoints(prefix: _root);
 
+  // Profiles
+  String get profile => '$_root/profiles/me';
+
   // Company
   String get company => '$_root/company';
 
@@ -81,6 +84,7 @@ class _EmployeeEndpoints {
   _AuthEndpoints get auth => _AuthEndpoints(prefix: _root);
 
   // Profiles
+  String get profile => '$_root/profiles/me';
   String get profiles => '$_root/profiles';
 
   String get profilesSwitch => '$_root/profiles/switch';

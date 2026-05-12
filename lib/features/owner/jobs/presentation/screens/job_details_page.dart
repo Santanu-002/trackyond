@@ -5,8 +5,6 @@ import 'package:trackyond/core/common/enums/job_status.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/core/theme/color_scheme_extension.dart';
-import 'package:trackyond/core/theme/text_styles.dart';
 import 'package:trackyond/features/owner/jobs/presentation/controllers/job_details_controller.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
@@ -22,7 +20,7 @@ class JobDetailsPage extends GetView<JobDetailsController> {
       appBar: AppBar(
         title: Text(
           AppStrings.jobDetails.appBarTitle,
-          style: AppTextStyles.light.titleLarge,
+          style: context.textTheme.titleLarge,
         ),
         leading: IconButton(
           icon: Icon(AppIcons.common.back),
@@ -146,10 +144,10 @@ class JobDetailsPage extends GetView<JobDetailsController> {
     return Container(
       padding: EdgeInsets.all(AppUIConstants.spacing.space$16),
       decoration: BoxDecoration(
-        color: context.colorScheme.primaryContainer.withValues(alpha: 0.1),
+        color: context.theme.colorScheme.primaryContainer.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
         border: Border.all(
-          color: context.colorScheme.primary.withValues(alpha: 0.2),
+          color: context.theme.colorScheme.primary.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
@@ -160,14 +158,15 @@ class JobDetailsPage extends GetView<JobDetailsController> {
             children: [
               Text(
                 'Job #${job.jobId}',
-                style: AppTextStyles.light.titleLarge.copyWith(
-                  color: context.colorScheme.primary,
+                style: context.textTheme.titleLarge?.copyWith(
+                  color: context.theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               AppUIConstants.widgets.verticalBox$4,
               Text(
                 DateFormat('EEEE, dd MMMM').format(job.createdAt),
-                style: AppTextStyles.light.labelSmall,
+                style: context.textTheme.labelSmall,
               ),
             ],
           ),
@@ -192,7 +191,7 @@ class JobDetailsPage extends GetView<JobDetailsController> {
       ),
       child: Text(
         status.label(context).toUpperCase(),
-        style: AppTextStyles.light.labelSmall.copyWith(
+        style: context.textTheme.labelSmall?.copyWith(
           color: color,
           fontWeight: FontWeight.bold,
           letterSpacing: 0.5,
@@ -212,13 +211,13 @@ class JobDetailsPage extends GetView<JobDetailsController> {
       children: [
         Row(
           children: [
-            Icon(icon, size: 20, color: context.colorScheme.primary),
+            Icon(icon, size: 20, color: context.theme.colorScheme.primary),
             AppUIConstants.widgets.horizontalBox$8,
             Text(
               title,
-              style: AppTextStyles.light.labelLarge.copyWith(
+              style: context.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: context.colorScheme.onSurface.withValues(alpha: 0.8),
+                color: context.theme.colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
           ],
@@ -228,11 +227,11 @@ class JobDetailsPage extends GetView<JobDetailsController> {
           width: double.infinity,
           padding: EdgeInsets.all(AppUIConstants.spacing.space$16),
           decoration: BoxDecoration(
-            color: context.colorScheme.surface,
+            color: context.theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(
               AppUIConstants.radius.radius$16,
             ),
-            border: Border.all(color: context.colorScheme.outlineVariant),
+            border: Border.all(color: context.theme.colorScheme.outlineVariant),
             boxShadow: AppUIConstants.shadows.sm,
           ),
           child: Column(children: children),
@@ -256,8 +255,8 @@ class JobDetailsPage extends GetView<JobDetailsController> {
             flex: 2,
             child: Text(
               label,
-              style: AppTextStyles.light.bodyMedium.copyWith(
-                color: context.colorScheme.onSurface.withValues(alpha: 0.5),
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: context.theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -267,9 +266,9 @@ class JobDetailsPage extends GetView<JobDetailsController> {
               onTap: onTap,
               child: Text(
                 value,
-                style: AppTextStyles.light.bodyMedium.copyWith(
+                style: context.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: onTap != null ? context.colorScheme.primary : null,
+                  color: onTap != null ? context.theme.colorScheme.primary : null,
                 ),
               ),
             ),
@@ -284,7 +283,7 @@ class JobDetailsPage extends GetView<JobDetailsController> {
     if (workerName == null || workerName.trim().isEmpty) {
       return Text(
         AppStrings.jobDetails.unassigned,
-        style: AppTextStyles.light.bodyMedium.copyWith(
+        style: context.textTheme.bodyMedium?.copyWith(
           fontStyle: FontStyle.italic,
         ),
       );
@@ -297,7 +296,9 @@ class JobDetailsPage extends GetView<JobDetailsController> {
           backgroundColor: AvatarUtils.getAvatarColor(workerName),
           child: Text(
             AvatarUtils.getInitials(workerName),
-            style: AppTextStyles.light.labelLarge.copyWith(color: Colors.white),
+            style: context.textTheme.labelLarge?.copyWith(
+              color: context.theme.colorScheme.onPrimary,
+            ),
           ),
         ),
         AppUIConstants.widgets.horizontalBox$12,
@@ -307,14 +308,14 @@ class JobDetailsPage extends GetView<JobDetailsController> {
             children: [
               Text(
                 workerName,
-                style: AppTextStyles.light.bodyLarge.copyWith(
+                style: context.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               if (job.workerAccountUid != null)
                 Text(
                   job.workerAccountUid!,
-                  style: AppTextStyles.light.labelSmall,
+                  style: context.textTheme.labelSmall,
                 ),
             ],
           ),
@@ -333,12 +334,14 @@ class JobDetailsPage extends GetView<JobDetailsController> {
       child: Row(
         children: [
           Icon(
-            value ? Icons.check_circle_rounded : Icons.cancel_rounded,
+            value ? AppIcons.common.checkCircle : AppIcons.dashboard.cancelled,
             size: 16,
-            color: value ? Colors.green : Colors.grey,
+            color: value
+                ? context.theme.colorScheme.tertiary
+                : context.theme.colorScheme.onSurfaceVariant,
           ),
           AppUIConstants.widgets.horizontalBox$8,
-          Text(label, style: AppTextStyles.light.bodyMedium),
+          Text(label, style: context.textTheme.bodyMedium),
         ],
       ),
     );

@@ -1,5 +1,5 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/worker/dashboard/data/datasources/job_datasource.dart';

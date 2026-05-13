@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 from db.database import get_db
+from db import models
 from schemas.common import OTPRequest, VerifyOTPRequest
 from services.auth_service import auth_service
 from core.responses.models import GenericResponse
@@ -46,15 +47,14 @@ async def verify_otp(
         "browserVersion": browser_version,
         "appVersion": app_version
     }
-    
+
     success, is_new_user, response_data = auth_service.verify_otp_logic(
         db, req.phone, req.otp_id, req.otp, device_id, metadata, role="worker"
     )
 
-    
     if not success:
         return GenericResponse(success=False, message=strings.invalid_otp)
-    
+
     return GenericResponse(
         success=True,
         message=strings.login_success,
@@ -75,8 +75,18 @@ async def refresh_token(
         data=tokens
     )
 
+from services.notification_service import deactivate_fcm_token
+from api.dependencies import get_current_user
+
 @router.post("/logout", response_model=GenericResponse)
-async def logout():
+async def logout(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+    device_id: str = Header(alias="device-id")
+):
+    # Deactivate FCM token for this device
+    deactivate_fcm_token(db, current_user.uid, device_id)
+
     return GenericResponse(
         success=True,
         message="Logged out successfully"

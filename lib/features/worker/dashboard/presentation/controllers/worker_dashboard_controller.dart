@@ -5,39 +5,41 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
+import 'package:trackyond/core/common/entities/attendance/attendance_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
+import 'package:trackyond/core/common/enums/stats_filter.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:trackyond/core/common/entities/attendance/attendance_entity.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
-import 'package:trackyond/features/worker/attendance/domain/usecases/get_attendance_status_usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/attendance_info_item.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
-import 'package:trackyond/features/worker/dashboard/domain/usecases/get_assigned_jobs_usecase.dart';
+import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
+import 'package:trackyond/features/worker/dashboard/domain/usecases/get_worker_dashboard_use_case.dart';
+import 'package:trackyond/features/worker/settings/presentation/controllers/worker_settings_controller.dart';
+import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 
 class WorkerDashboardController extends GetxController {
   final StartAttendanceUseCase _startAttendanceUseCase;
   final EndAttendanceUseCase _endAttendanceUseCase;
-  final GetAttendanceStatusUseCase _getAttendanceStatusUseCase;
-  final GetAssignedJobsUseCase _getAssignedJobsUseCase;
+  final GetWorkerDashboardUseCase _getWorkerDashboardUseCase;
 
   WorkerDashboardController({
     required StartAttendanceUseCase startAttendanceUseCase,
     required EndAttendanceUseCase endAttendanceUseCase,
-    required GetAttendanceStatusUseCase getAttendanceStatusUseCase,
-    required GetAssignedJobsUseCase getAssignedJobsUseCase,
+    required GetWorkerDashboardUseCase getWorkerDashboardUseCase,
   }) : _startAttendanceUseCase = startAttendanceUseCase,
        _endAttendanceUseCase = endAttendanceUseCase,
-       _getAttendanceStatusUseCase = getAttendanceStatusUseCase,
-       _getAssignedJobsUseCase = getAssignedJobsUseCase;
+       _getWorkerDashboardUseCase = getWorkerDashboardUseCase;
 
   AppLifecycleListener? _lifecycleListener;
   Timer? _timer;
 
   final authController = Get.find<AuthController>();
+  final settingsController = Get.find<WorkerSettingsController>();
 
   // UI Observables
   final title = AppStrings.workerDashboard.title.obs;
@@ -46,6 +48,7 @@ class WorkerDashboardController extends GetxController {
   final workerImage = RxnString();
 
   final isProfileLoading = false.obs;
+  final isDashboardLoading = false.obs;
 
   // Workday State
   final attendanceStatus = AttendanceStatus.notStarted.obs;
@@ -56,9 +59,16 @@ class WorkerDashboardController extends GetxController {
   final isActionLoading = false.obs;
   final actionLoadingMessage = RxnString();
 
-  // Jobs State
-  final assignedJobs = <JobEntity>[].obs;
-  final isJobsLoading = false.obs;
+  // Dashboard Data State
+  final recentJobs = <JobEntity>[].obs;
+  final _todayStats = const JobSummaryStats().obs;
+  final _overallStats = const JobSummaryStats().obs;
+  final selectedStatsFilter = StatsFilter.today.obs;
+
+  JobSummaryStats get dashboardStats =>
+      selectedStatsFilter.value == StatsFilter.today
+          ? _todayStats.value
+          : _overallStats.value;
 
   // Location Status
   final isLocationEnabled = false.obs;
@@ -71,8 +81,23 @@ class WorkerDashboardController extends GetxController {
     _checkAndRequestLocationPermission();
 
     _loadUserInfo();
-    _checkInitialStatus();
-    _fetchAssignedJobs();
+    _loadStatsFilter();
+    fetchDashboardData();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    Get.find<NotificationController>().requestPermission();
+  }
+
+  Future<void> _loadStatsFilter() async {
+    selectedStatsFilter.value = await settingsController.dashboardStatsFilter;
+  }
+
+  Future<void> setStatsFilter(StatsFilter filter) async {
+    selectedStatsFilter.value = filter;
+    await settingsController.saveDashboardStatsFilter(filter);
   }
 
   Future<void> _loadUserInfo() async {
@@ -81,6 +106,32 @@ class WorkerDashboardController extends GetxController {
     workerName.value = profile?.name ?? 'Worker';
     workerImage.value = profile?.image;
     isProfileLoading.value = false;
+  }
+
+  Future<void> fetchDashboardData() async {
+    isDashboardLoading.value = true;
+    final result = await _getWorkerDashboardUseCase(const NoParams());
+
+    result.fold((failure) => AppSnackbar.destructive(failure.message), (data) {
+      // Update Attendance Status
+      attendanceStatus.value = data.attendanceStatus.status;
+      attendanceInfo.value = data.attendanceStatus.attendance;
+
+      if (data.attendanceStatus.status == AttendanceStatus.working &&
+          data.attendanceStatus.attendance != null) {
+        currentLocation.value = data.attendanceStatus.attendance!.startAddress;
+        startTimer(data.attendanceStatus.attendance!.startAt);
+      } else if (data.attendanceStatus.status == AttendanceStatus.notStarted) {
+        stopTimer();
+        currentLocation.value = null;
+      }
+
+      // Update Jobs and Stats
+      recentJobs.assignAll(data.recentJobs);
+      _todayStats.value = data.todayStats;
+      _overallStats.value = data.overallStats;
+    });
+    isDashboardLoading.value = false;
   }
 
   @override
@@ -121,39 +172,6 @@ class WorkerDashboardController extends GetxController {
     // Sync hardware status after request as well
     final isEnabled = await Geolocator.isLocationServiceEnabled();
     isLocationEnabled.value = isEnabled;
-  }
-
-  Future<void> _checkInitialStatus() async {
-    final profile = await Get.find<AuthController>().profile;
-    if (profile == null) return;
-
-    final result = await _getAttendanceStatusUseCase(
-      GetAttendanceStatusParams(accountUid: profile.accountUid),
-    );
-
-    result.fold((failure) => AppSnackbar.destructive(failure.message), (
-      statusEntity,
-    ) {
-      attendanceStatus.value = statusEntity.status;
-      attendanceInfo.value = statusEntity.attendance;
-
-      if (statusEntity.status == AttendanceStatus.working &&
-          statusEntity.attendance != null) {
-        currentLocation.value = statusEntity.attendance!.startAddress;
-        startTimer(statusEntity.attendance!.startAt);
-      }
-    });
-  }
-
-  Future<void> _fetchAssignedJobs() async {
-    isJobsLoading.value = true;
-    final result = await _getAssignedJobsUseCase(GetAssignedJobsParams());
-
-    result.fold(
-      (failure) => AppSnackbar.destructive(failure.message),
-      (jobs) => assignedJobs.assignAll(jobs),
-    );
-    isJobsLoading.value = false;
   }
 
   Future<void> _setPhase(String message) async {
@@ -375,10 +393,14 @@ class WorkerDashboardController extends GetxController {
   ];
 
   Future<void> refreshDashboard() async {
-    await Future.wait([
-      _checkInitialStatus(),
-      _fetchAssignedJobs(),
-    ]);
+    await fetchDashboardData();
+  }
+
+  void goToJobs() => AppSnackbar.info(AppStrings.common.underDevelopment);
+
+  void goToJobDetails(JobEntity job) {
+    // TODO: Implement navigation to worker job details
+    // Get.toNamed(AppRoutes.worker.jobDetails, arguments: job);
   }
 
   void navigateToProfile() => Get.toNamed(AppRoutes.worker.profile);

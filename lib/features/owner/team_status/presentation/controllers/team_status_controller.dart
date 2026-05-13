@@ -7,11 +7,10 @@ import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/entities/status/team_status_stats_entity.dart';
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
-import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:trackyond/features/owner/settings/presentation/controllers/owner_settings_controller.dart';
 
 class TeamStatusController extends GetxController {
   final GetTeamStatusUseCase _getTeamStatusUseCase;
-  final AuthController _authController;
   
   static const String _searchByPrefKey = 'team_status_search_by';
 
@@ -35,9 +34,7 @@ class TeamStatusController extends GetxController {
 
   TeamStatusController({
     required GetTeamStatusUseCase getTeamStatusUseCase,
-    required AuthController authController,
-  })  : _getTeamStatusUseCase = getTeamStatusUseCase,
-        _authController = authController;
+  })  : _getTeamStatusUseCase = getTeamStatusUseCase;
 
   final isLoading = false.obs;
 
@@ -176,13 +173,15 @@ class TeamStatusController extends GetxController {
     super.onInit();
     _loadSearchPreference();
     ever(searchBy, (String value) {
-      _authController.saveSetting(_searchByPrefKey, value);
+      final settingsController = Get.find<OwnerSettingsController>();
+      settingsController.saveSetting(_searchByPrefKey, value);
     });
     fetchTeamStatus();
   }
 
   Future<void> _loadSearchPreference() async {
-    final result = await _authController.getStringSetting(_searchByPrefKey);
+    final settingsController = Get.find<OwnerSettingsController>();
+    final result = await settingsController.getStringSetting(_searchByPrefKey);
     if (result != null) {
       searchBy.value = result;
     }

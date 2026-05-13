@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/features/owner/jobs/domain/entities/job_sort_options.dart';
+import 'package:trackyond/core/common/entities/job/job_sort_options.dart';
 import 'package:trackyond/features/owner/jobs/presentation/controllers/jobs_controller.dart';
 
 class SortBottomSheet extends GetView<JobsController> {

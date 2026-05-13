@@ -9,7 +9,7 @@ import 'package:trackyond/features/owner/jobs/presentation/controllers/jobs_cont
 import 'package:trackyond/core/common/widgets/card/app_job_card.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/skeleton/jobs_list_skeleton.dart';
 import 'package:trackyond/core/common/widgets/search/app_search_bar.dart';
-import 'package:trackyond/features/owner/jobs/domain/entities/job_filter_options.dart';
+import 'package:trackyond/core/common/entities/job/job_filter_options.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/status_quick_chip.dart';

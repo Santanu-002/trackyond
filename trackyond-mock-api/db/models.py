@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from core.utils.datetime_utils import now_utc
 from .database import Base
-from core.constants.enums import UserRole, JobStatus, AttendanceStatus
+from core.constants.enums import UserRole, JobStatus, AttendanceStatus, NotificationStatus
 
 class User(Base):
     __tablename__ = "users"
@@ -41,18 +41,18 @@ class Member(Base):
     __tablename__ = "members"
     id = Column(Integer, primary_key=True, index=True)
     account_uid = Column(String, unique=True, index=True) # Unique ID for this membership/profile
-    user_uid = Column(String, ForeignKey("users.uid"), index=True) # UID of the user account
-    name = Column(String)
-    phone = Column(String, index=True)
-    designation = Column(String)
+    user_uid = Column(String, ForeignKey("users.uid"), index=True, nullable=False) # UID of the user account
+    name = Column(String, nullable=False)
+    phone = Column(String, index=True, nullable=False)
+    designation = Column(String, nullable=False)
     image = Column(String, nullable=True)
     gender = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     
     # New fields for multi-tenancy and creator tracking
     created_by = Column(String, ForeignKey("users.uid"), nullable=True)
     company_uid = Column(String, ForeignKey("companies.company_id"), nullable=False)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, nullable=False)
 
     __table_args__ = (
         UniqueConstraint('user_uid', 'company_uid', name='_user_company_uc'),
@@ -64,16 +64,16 @@ class Job(Base):
     job_id = Column(String, unique=True, index=True)
     title = Column(String)
     customer_name = Column(String)
-    customer_phone = Column(String)
+    customer_phone = Column(String, nullable=False)
     customer_address = Column(String, nullable=True)
-    worker_account_uid = Column(String, ForeignKey("members.account_uid"), nullable=True)
+    worker_account_uid = Column(String, ForeignKey("members.account_uid"), nullable=False)
     company_uid = Column(String, ForeignKey("companies.company_id"), index=True)
     created_by = Column(String, ForeignKey("users.uid"))
     status = Column(SQLEnum(JobStatus), default=JobStatus.pending)
 
-    require_photo_on_start = Column(Boolean, default=False)
-    require_photo_on_complete = Column(Boolean, default=False)
-    capture_location = Column(Boolean, default=False)
+    require_photo_on_start = Column(Boolean, default=False, nullable=False)
+    require_photo_on_complete = Column(Boolean, default=False, nullable=False)
+    capture_location = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=now_utc)
     assigned_at = Column(DateTime, nullable=True)
     started_at = Column(DateTime, nullable=True)
@@ -84,10 +84,37 @@ class Notification(Base):
     __tablename__ = "notifications"
     id = Column(Integer, primary_key=True, index=True)
     notification_id = Column(String, unique=True, index=True)
-    user_uid = Column(String, ForeignKey("users.uid"))
-    message = Column(String)
+    user_uid = Column(String, ForeignKey("users.uid"), nullable=False)
+    profile_uid = Column(String, nullable=True) # Member.account_uid
+    title = Column(String, nullable=True)
+    message = Column(String, nullable=False)
+    data_payload = Column(Text, nullable=True) # JSON string
+    status = Column(SQLEnum(NotificationStatus), default=NotificationStatus.sent, nullable=False)
+    
     read = Column(Boolean, default=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    delivered_at = Column(DateTime, nullable=True)
+    seen_at = Column(DateTime, nullable=True)
+
+class FCMToken(Base):
+    __tablename__ = "fcm_tokens"
+    id = Column(Integer, primary_key=True, index=True)
+    user_uid = Column(String, ForeignKey("users.uid"), index=True, nullable=False)
+    profile_uid = Column(String, nullable=True)
+    device_id = Column(String, index=True, nullable=False)
+    fcm_token = Column(String, nullable=False)
+    user_role = Column(SQLEnum(UserRole), nullable=False)
+    platform = Column(String, nullable=True) # android, ios, etc
+    app_version = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        UniqueConstraint('user_uid', 'device_id', name='_user_device_fcm_uc'),
+    )
 
 class Attendance(Base):
     __tablename__ = "attendance"

@@ -11,10 +11,22 @@ We use a modern and robust set of packages:
 - **Functional Programming**: `fpdart`
 - **Code Generation**: `freezed`, `json_serializable`, `build_runner`
 - **Storage**: `shared_preferences`, `flutter_secure_storage`
-- **UI & Styling**: `google_fonts`, `pinput`, `cached_network_image`, `animations`
+- **UI & Styling**: `google_fonts`, `pinput`, `cached_network_image`, `animations`, `shimmer`
 - **Utilities**: `connectivity_plus`, `device_info_plus`, `geolocator`, `package_info_plus`, `intl`
 
-### 2. Folder Structure
+### 2. Shimmer & Skeleton Standards
+To maintain a consistent loading experience across the app:
+- **Shimmer Wrapper**: ALWAYS wrap skeleton widgets (e.g., `AppSkeletonText`, `AppSkeletonButton`, `AppSkeletonContainer`) with `AppShimmer`. The skeleton widgets provide the shape, while `AppShimmer` provides the animated color gradient.
+- **Example Usage**:
+  ```dart
+  if (isLoading)
+    const AppShimmer(child: AppSkeletonText(width: 150))
+  else
+    Text(data)
+  ```
+- **Custom Shapes**: For complex layouts, use `AppSkeletonContainer` with `AppShimmer` to create a custom-shaped placeholder.
+
+### 3. Folder Structure
 The project follows a modified Clean Architecture:
 - `lib/app`: App-wide configurations, initializers, and main routes.
 - `lib/core`: Shared logic, constants, network, services, theme, and common widgets.

@@ -105,6 +105,9 @@ class _EmployeeEndpoints {
 
   String get attendanceStatus => '$_root/attendance/status';
 
+  // Dashboard
+  String get dashboard => '$_root/dashboard';
+
   // Notifications
   String get notifications => '$_root/notifications';
 }

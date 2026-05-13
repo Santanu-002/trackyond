@@ -375,6 +375,60 @@ Punch out with location.
 
 ---
 
+## Dashboard
+
+---
+
+### GET `/dashboard`
+
+Fetch consolidated dashboard data including attendance status, assigned jobs, recent jobs, and summary stats.
+
+**Response — 200**
+```json
+{
+  "success": true,
+  "message": "Employee dashboard fetched successfully",
+  "data": {
+    "attendanceStatus": {
+      "status": "working",
+      "attendance": {
+        "id": 123,
+        "accountUid": "acc_123",
+        "startAt": "2026-05-13T08:00:00Z",
+        "startAddress": "123 Main St, City"
+      }
+    },
+    "assignedJobs": [
+      {
+        "jobId": "job001",
+        "jobTitle": "Fix Leak",
+        "status": "assigned",
+        "customerName": "John Doe"
+      }
+    ],
+    "recentJobs": [
+      {
+        "jobId": "job000",
+        "jobTitle": "Check Wiring",
+        "status": "completed",
+        "customerName": "Jane Smith"
+      }
+    ],
+    "stats": {
+      "completedToday": 1,
+      "totalAssigned": 1
+    }
+  }
+}
+```
+
+| Code | Meaning |
+|------|---------|
+| 200 | Dashboard data returned |
+| 401 | Unauthorized |
+
+---
+
 ## Notifications
 
 ---

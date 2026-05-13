@@ -1,7 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/core/usecase/usecase.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/features/owner/jobs/domain/repositories/i_jobs_repository.dart';
 
 class CreateJobParams {
@@ -10,7 +10,7 @@ class CreateJobParams {
   final String customerName;
   final String customerPhone;
   final String? customerAddress;
-  final String? workerAccountUid;
+  final String workerAccountUid;
   final bool requirePhotoOnStart;
   final bool requirePhotoOnComplete;
   final bool captureLocation;
@@ -21,7 +21,7 @@ class CreateJobParams {
     required this.customerName,
     required this.customerPhone,
     this.customerAddress,
-    this.workerAccountUid,
+    required this.workerAccountUid,
     this.requirePhotoOnStart = false,
     this.requirePhotoOnComplete = false,
     this.captureLocation = true,

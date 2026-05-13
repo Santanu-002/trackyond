@@ -8,8 +8,11 @@ class AppSection extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? childPadding;
+  final EdgeInsetsGeometry? headerPadding;
   final VoidCallback? onActionPressed;
   final String? actionLabel;
+  final Widget? trailing;
+  final double? spacing;
 
   const AppSection({
     super.key,
@@ -17,8 +20,11 @@ class AppSection extends StatelessWidget {
     required this.child,
     this.padding,
     this.childPadding,
+    this.headerPadding,
     this.onActionPressed,
     this.actionLabel,
+    this.trailing,
+    this.spacing,
   });
 
   @override
@@ -27,22 +33,27 @@ class AppSection extends StatelessWidget {
       padding: padding ?? EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: AppUIConstants.spacing.space$12,
+        spacing: spacing ?? AppUIConstants.spacing.space$12,
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppUIConstants.spacing.space$24,
-            ),
+            padding: headerPadding ??
+                EdgeInsets.symmetric(
+                  horizontal: AppUIConstants.spacing.space$24,
+                ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: context.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                if (onActionPressed != null && actionLabel != null)
+                if (trailing != null)
+                  trailing!
+                else if (onActionPressed != null && actionLabel != null)
                   AppButton.ghost(
                     text: actionLabel,
                     onPressed: onActionPressed,

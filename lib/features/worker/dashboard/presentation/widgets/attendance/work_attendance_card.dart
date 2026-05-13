@@ -8,9 +8,12 @@ import 'package:trackyond/features/worker/dashboard/presentation/widgets/attenda
 import 'package:trackyond/features/worker/dashboard/presentation/widgets/attendance/attendance_grid.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/widgets/permission/location_permission_banner.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/widgets/attendance/working_status_chip.dart';
+import 'package:trackyond/core/common/widgets/skeleton/app_skeleton.dart';
 
 class WorkerAttendanceCard extends GetView<WorkerDashboardController> {
-  const WorkerAttendanceCard({super.key});
+  final bool isLoading;
+
+  const WorkerAttendanceCard({super.key, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -22,26 +25,52 @@ class WorkerAttendanceCard extends GetView<WorkerDashboardController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Obx(
-                () => Text(
-                  AppStrings.workerDashboard.greetingWithName(
-                    controller.greeting,
-                    controller.workerName.value,
+              if (isLoading)
+                const AppShimmer(
+                  child: AppSkeletonText(
+                    width: 150,
+                    variant: AppSkeletonTextVariant.title,
                   ),
-                  style: context.textTheme.titleMedium,
+                )
+              else
+                Obx(
+                  () => Text(
+                    AppStrings.workerDashboard.greetingWithName(
+                      controller.greeting,
+                      controller.workerName.value,
+                    ),
+                    style: context.textTheme.titleMedium,
+                  ),
                 ),
-              ),
-              Obx(
-                () => WorkingStatusChip(
-                  status: controller.attendanceStatus.value,
+              if (isLoading)
+                const AppShimmer(
+                  child: AppSkeletonButton(
+                    width: 80,
+                    height: 26,
+                  ),
+                )
+              else
+                Obx(
+                  () => WorkingStatusChip(
+                    status: controller.attendanceStatus.value,
+                  ),
                 ),
-              ),
             ],
           ),
-          const LocationPermissionBanner(),
-          const AttendanceGrid(),
-          AppUIConstants.widgets.verticalBox$16,
-          const AttendanceAction()
+          if (isLoading) ...[
+            AppUIConstants.widgets.verticalBox$16,
+            const AppShimmer(
+              child: AppSkeletonButton(
+                width: double.infinity,
+                height: 56,
+              ),
+            ),
+          ] else ...[
+            const LocationPermissionBanner(),
+            const AttendanceGrid(),
+            AppUIConstants.widgets.verticalBox$16,
+            const AttendanceAction()
+          ],
         ],
       ),
     );

@@ -120,10 +120,10 @@ def get_employee_dashboard_data(db: Session, user_uid: str, primary_account_uid:
     ).order_by(desc(models.Attendance.created_at)).first()
 
     attendance_data = serialize_attendance(latest_attendance)
-    status = attendance_data["status"] if attendance_data else "notStarted"
+    status = attendance_data["status"] if attendance_data else AttendanceStatus.not_started
 
-    # 2. Get assigned jobs
-    recent_jobs_results = db.query(
+    # 2. Get assigned and in-progress jobs
+    active_jobs_results = db.query(
         models.Job,
         models.Member.name.label("worker_name"),
         models.Member.image.label("worker_image")
@@ -131,15 +131,54 @@ def get_employee_dashboard_data(db: Session, user_uid: str, primary_account_uid:
         models.Member, models.Job.worker_account_uid == models.Member.account_uid
     ).filter(
         models.Job.worker_account_uid == active_member.account_uid,
-        models.Job.status.in_(["assigned", "in_progress", "on_hold"])
-    ).order_by(desc(models.Job.assigned_at)).limit(20).all()
+        models.Job.status.in_([JobStatus.assigned, JobStatus.in_progress])
+    ).order_by(desc(models.Job.assigned_at)).all()
 
-    assigned_jobs = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in recent_jobs_results]
+    assigned_jobs = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in active_jobs_results]
+
+    # 3. Get recent jobs (last 10, sorted by assigned_at)
+    recent_jobs_results = db.query(
+        models.Job,
+        models.Member.name.label("worker_name"),
+        models.Member.image.label("worker_image")
+    ).outerjoin(
+        models.Member, models.Job.worker_account_uid == models.Member.account_uid
+    ).filter(
+        models.Job.worker_account_uid == active_member.account_uid
+    ).order_by(desc(models.Job.assigned_at)).limit(10).all()
+
+    recent_jobs = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in recent_jobs_results]
+
+    # 4. Summary Stats
+    def get_counts(start_date=None):
+        base_query = db.query(models.Job).filter(models.Job.worker_account_uid == active_member.account_uid)
+        if start_date:
+            return {
+                "pending": base_query.filter(models.Job.status == JobStatus.assigned, models.Job.assigned_at >= start_date).count(),
+                "inProgress": base_query.filter(models.Job.status == JobStatus.in_progress, models.Job.assigned_at >= start_date).count(),
+                "completed": base_query.filter(models.Job.status == JobStatus.completed, models.Job.completed_at >= today_start).count(),
+                "cancelled": base_query.filter(models.Job.status == JobStatus.cancelled, models.Job.updated_at >= today_start).count(),
+                "completedToday": base_query.filter(models.Job.status == JobStatus.completed, models.Job.completed_at >= today_start).count(),
+                "totalAssigned": base_query.filter(models.Job.status.in_([JobStatus.assigned, JobStatus.in_progress]), models.Job.assigned_at >= start_date).count()
+            }
+        else:
+            return {
+                "pending": base_query.filter(models.Job.status == JobStatus.assigned).count(),
+                "inProgress": base_query.filter(models.Job.status == JobStatus.in_progress).count(),
+                "completed": base_query.filter(models.Job.status == JobStatus.completed).count(),
+                "cancelled": base_query.filter(models.Job.status == JobStatus.cancelled).count(),
+                "completedToday": base_query.filter(models.Job.status == JobStatus.completed, models.Job.completed_at >= today_start).count(),
+                "totalAssigned": base_query.filter(models.Job.status.in_([JobStatus.assigned, JobStatus.in_progress])).count()
+            }
 
     return {
         "attendanceStatus": {
             "status": status,
             "attendance": attendance_data
         },
-        "assignedJobs": assigned_jobs
+        "recentJobs": recent_jobs,
+        "stats": {
+            "today": get_counts(today_start),
+            "overall": get_counts()
+        }
     }, None

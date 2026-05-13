@@ -3,7 +3,7 @@ import 'package:trackyond/core/common/widgets/layout/app_section.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/task_stat_config.dart';
-import 'package:trackyond/features/owner/dashboard/presentation/widgets/stats/stats_card.dart';
+import 'package:trackyond/core/common/widgets/card/stats_card.dart';
 
 class TaskStatsSection extends StatelessWidget {
   final List<TaskStatConfig> stats;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';

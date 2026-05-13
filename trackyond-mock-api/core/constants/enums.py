@@ -48,8 +48,13 @@ class JobStatus(str, Enum):
             val = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
             # Normalize separators
             val = val.replace(" ", "_").replace("-", "_")
-            
+
             for member in cls:
                 if member.value == val:
                     return member
         return super()._missing_(value)
+
+class NotificationStatus(str, Enum):
+    sent = "sent"
+    delivered = "delivered"
+    read = "read"

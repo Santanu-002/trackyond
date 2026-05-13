@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 from db.database import get_db
+from db import models
 from schemas.common import OTPRequest, VerifyOTPRequest
 from services.auth_service import auth_service
 from core.responses.models import GenericResponse
@@ -75,8 +76,18 @@ async def refresh_token(
         data=tokens
     )
 
+from services.notification_service import deactivate_fcm_token
+from api.dependencies import get_admin_user
+
 @router.post("/logout", response_model=GenericResponse)
-async def logout():
+async def logout(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_admin_user),
+    device_id: str = Header(alias="device-id")
+):
+    # Deactivate FCM token for this device
+    deactivate_fcm_token(db, current_user.uid, device_id)
+    
     return GenericResponse(
         success=True,
         message="Logged out successfully"

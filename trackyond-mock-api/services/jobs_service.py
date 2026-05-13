@@ -6,6 +6,7 @@ from db import models
 from core.constants.enums import JobStatus
 from core.utils.datetime_utils import now_utc
 from services.serializers import serialize_job
+from services.notification_service import create_notification
 
 def get_admin_jobs(
     db: Session,
@@ -152,6 +153,12 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
         if worker_member:
             worker_name = worker_member.name
             worker_image = worker_member.image
+            # Create notification for worker
+            create_notification(
+                db, 
+                user_uid=worker_member.user_uid,
+                message=f"New job assigned: {new_job.title}"
+            )
 
     return serialize_job(new_job, worker_name, worker_image), None
 
@@ -161,7 +168,19 @@ def notify_job_worker(db: Session, job_id: str):
     if not job:
         return False, "Job not found"
     
-    # Mock notification logic
+    if not job.worker_account_uid:
+        return False, "Job not assigned to any worker"
+    
+    worker_member = db.query(models.Member).filter(models.Member.account_uid == job.worker_account_uid).first()
+    if not worker_member:
+        return False, "Worker profile not found"
+    
+    create_notification(
+        db,
+        user_uid=worker_member.user_uid,
+        message=f"Reminder: You have an assigned job: {job.title}"
+    )
+
     return True, None
 
 
@@ -182,7 +201,13 @@ def get_employee_assigned_jobs(
     if not member:
         return None, "Member profile not found"
 
-    query = db.query(models.Job).filter(models.Job.worker_account_uid == member.account_uid)
+    query = db.query(
+        models.Job,
+        models.Member.name.label("worker_name"),
+        models.Member.image.label("worker_image")
+    ).outerjoin(
+        models.Member, models.Job.worker_account_uid == models.Member.account_uid
+    ).filter(models.Job.worker_account_uid == member.account_uid)
 
     if status:
         query = query.filter(models.Job.status.in_(status))
@@ -223,12 +248,11 @@ def get_employee_assigned_jobs(
         query = query.order_by(desc(sort_column))
 
     total_count = query.count()
-    jobs = query.limit(limit).offset(offset).all()
+    results = query.limit(limit).offset(offset).all()
     
     total_pages = (total_count + limit - 1) // limit
 
-    # Use serialize_job without worker_name/image since employee already knows their own name
-    jobs_data = [serialize_job(j, None, None) for j in jobs]
+    jobs_data = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in results]
 
     return {
         "totalCount": total_count,

@@ -7,12 +7,13 @@ import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:trackyond/features/owner/dashboard/domain/entities/dashboard_stats.dart';
+import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/drawer_item_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/task_stat_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/usecases/get_owner_dashboard_use_case.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 
 class OwnerDashboardController extends GetxController {
   final GetOwnerDashboardUseCase _getOwnerDashboardUseCase;
@@ -30,6 +31,7 @@ class OwnerDashboardController extends GetxController {
   @override
   void onReady() {
     super.onReady();
+    Get.find<NotificationController>().requestPermission();
     fetchDashboardData();
   }
 
@@ -40,7 +42,7 @@ class OwnerDashboardController extends GetxController {
 
   final teamMembers = <TeamMemberStatusEntity>[].obs;
   final recentJobs = <JobEntity>[].obs;
-  final stats = DashboardStats(pending: 0, inProgress: 0, completed: 0, cancelled: 0).obs;
+  final stats = const JobSummaryStats().obs;
 
   final ownerName = 'Owner'.obs;
   final ownerPhone = ''.obs;
@@ -74,7 +76,7 @@ class OwnerDashboardController extends GetxController {
     TaskStatConfig(
       label: AppStrings.ownerDashboard.pending,
       value: stats.value.pending,
-      icon: AppIcons.dashboard.recentHistory,
+      icon: AppIcons.dashboard.timer,
       color: Get.theme.colorScheme.pending,
     ),
     TaskStatConfig(

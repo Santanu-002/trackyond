@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:intl/intl.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
+import 'package:trackyond/core/common/widgets/button/app_button.dart';
+import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/features/owner/jobs/presentation/controllers/job_details_controller.dart';
-import 'package:trackyond/core/common/widgets/button/app_button.dart';
-import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/utils/avatar_utils.dart';
-import 'package:intl/intl.dart';
+import 'package:trackyond/features/owner/jobs/presentation/controllers/job_details_controller.dart';
 
 class JobDetailsPage extends GetView<JobDetailsController> {
   const JobDetailsPage({super.key});
@@ -144,14 +144,16 @@ class JobDetailsPage extends GetView<JobDetailsController> {
     return Container(
       padding: EdgeInsets.all(AppUIConstants.spacing.space$16),
       decoration: BoxDecoration(
-        color: context.theme.colorScheme.primaryContainer.withValues(alpha: 0.1),
+        color: context.theme.colorScheme.primaryContainer.withValues(
+          alpha: 0.1,
+        ),
         borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
         border: Border.all(
           color: context.theme.colorScheme.primary.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: .spaceBetween,
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,7 +219,9 @@ class JobDetailsPage extends GetView<JobDetailsController> {
               title,
               style: context.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: context.theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                color: context.theme.colorScheme.onSurface.withValues(
+                  alpha: 0.8,
+                ),
               ),
             ),
           ],
@@ -256,7 +260,9 @@ class JobDetailsPage extends GetView<JobDetailsController> {
             child: Text(
               label,
               style: context.textTheme.bodyMedium?.copyWith(
-                color: context.theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                color: context.theme.colorScheme.onSurface.withValues(
+                  alpha: 0.5,
+                ),
               ),
             ),
           ),
@@ -268,7 +274,9 @@ class JobDetailsPage extends GetView<JobDetailsController> {
                 value,
                 style: context.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: onTap != null ? context.theme.colorScheme.primary : null,
+                  color: onTap != null
+                      ? context.theme.colorScheme.primary
+                      : null,
                 ),
               ),
             ),
@@ -312,11 +320,10 @@ class JobDetailsPage extends GetView<JobDetailsController> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              if (job.workerAccountUid != null)
-                Text(
-                  job.workerAccountUid!,
-                  style: context.textTheme.labelSmall,
-                ),
+              Text(
+                job.workerAccountUid,
+                style: context.textTheme.labelSmall,
+              ),
             ],
           ),
         ),

@@ -7,6 +7,7 @@ import 'package:trackyond/features/auth/presentation/screens/auth_gate_page.dart
 import 'package:trackyond/features/auth/presentation/screens/choose_role_page.dart';
 import 'package:trackyond/features/auth/presentation/screens/send_otp_page.dart';
 import 'package:trackyond/features/auth/presentation/screens/verify_otp_page.dart';
+import 'package:trackyond/features/notification/presentation/bindings/notification_binding.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/bindings/add_team_member_binding.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/screens/add_member_details_page.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/screens/add_team_member_page.dart';
@@ -25,11 +26,13 @@ import 'package:trackyond/features/owner/jobs/presentation/bindings/jobs_binding
 import 'package:trackyond/features/owner/jobs/presentation/screens/create_job_page.dart';
 import 'package:trackyond/features/owner/jobs/presentation/screens/job_details_page.dart';
 import 'package:trackyond/features/owner/jobs/presentation/screens/jobs_page.dart';
+import 'package:trackyond/features/owner/settings/presentation/bindings/owner_settings_binding.dart';
 import 'package:trackyond/features/worker/attendance/presentation/bindings/attendance_binding.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/bindings/worker_dashboard_binding.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/screens/worker_dashboard_page.dart';
 import 'package:trackyond/features/worker/profile/presentation/bindings/worker_profile_binding.dart';
 import 'package:trackyond/features/worker/profile/presentation/screens/worker_profile_page.dart';
+import 'package:trackyond/features/worker/settings/presentation/bindings/worker_settings_binding.dart';
 
 class AppPages {
   const AppPages._();
@@ -66,7 +69,7 @@ class AppPages {
   static List<GetPage> get _ownerPages => [
     GetPage(
       name: AppRoutes.owner.dashboard,
-      binding: OwnerDashboardBinding(),
+      bindings: [OwnerDashboardBinding(), OwnerSettingsBinding(), NotificationBinding()],
       page: () => const OwnerDashboardPage(),
     ),
     GetPage(
@@ -120,7 +123,7 @@ class AppPages {
   static List<GetPage> get _workerPages => [
     GetPage(
       name: AppRoutes.worker.dashboard,
-      bindings: [AuthBindings(), AttendanceBinding(), WorkerDashboardBinding()],
+      bindings: [AuthBindings(), AttendanceBinding(), WorkerDashboardBinding(), WorkerSettingsBinding(), NotificationBinding()],
       page: () => const WorkerDashboardPage(),
     ),
     GetPage(

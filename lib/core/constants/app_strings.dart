@@ -369,7 +369,24 @@ class WorkerDashboardStrings {
 
   String get endingSession => 'Ending session...';
 
+  String get jobStatsTitle => 'Job Stats';
+
+  String get today => 'Today';
+  String get overall => 'Overall';
+  String get pending => 'Pending';
+  String get inProgress => 'In Progress';
+  String get completed => 'Completed';
+  String get cancelled => 'Cancelled';
+
+  String get completedToday => 'Completed Today';
+
+  String get totalAssigned => 'Total Assigned';
+
   String get recentJobs => 'Recent Jobs';
+
+  String get viewAll => 'View All';
+
+  String get noRecentJobs => 'No recent jobs';
 
   String jobHash(int id) => 'Job #$id';
 

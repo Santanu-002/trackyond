@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
-import 'package:trackyond/core/common/models/job_model.dart';
+import 'package:trackyond/core/common/models/job/job_model.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
 abstract interface class IJobDataSource {

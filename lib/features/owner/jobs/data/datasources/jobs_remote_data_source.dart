@@ -2,10 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
-import 'package:trackyond/core/common/models/job_model.dart';
+import 'package:trackyond/core/common/models/job/job_model.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
-import 'package:trackyond/features/owner/jobs/domain/entities/job_filter_options.dart';
-import 'package:trackyond/features/owner/jobs/domain/entities/job_sort_options.dart';
+import 'package:trackyond/core/common/entities/job/job_filter_options.dart';
+import 'package:trackyond/core/common/entities/job/job_sort_options.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
 
 abstract interface class IJobsRemoteDataSource {

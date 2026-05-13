@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 
 class JobDetailsController extends GetxController {
   final _job = Rxn<JobEntity>();

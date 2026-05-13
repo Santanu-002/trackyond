@@ -5,7 +5,7 @@ import 'package:trackyond/core/common/widgets/layout/app_section.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
-import 'package:trackyond/features/owner/dashboard/presentation/widgets/skeleton/recent_job_card_skeleton.dart';
+import 'package:trackyond/core/common/widgets/skeleton/app_job_card_skeleton.dart';
 
 class RecentJobsSection extends GetView<OwnerDashboardController> {
   final bool isLoading;
@@ -48,7 +48,7 @@ class RecentJobsSection extends GetView<OwnerDashboardController> {
               AppUIConstants.widgets.verticalBox$12,
           itemBuilder: (context, index) {
             if (isLoading) {
-              return const RecentJobCardSkeleton();
+              return const AppJobCardSkeleton();
             }
             final job = controller.recentJobs[index];
 

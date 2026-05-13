@@ -4,7 +4,8 @@ import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/features/owner/dashboard/data/datasources/dashboard_remote_data_source.dart';
 import 'package:trackyond/features/owner/dashboard/data/models/owner_dashboard_model.dart';
 import 'package:trackyond/features/owner/dashboard/data/repositories/dashboard_repository_impl.dart';
-import 'package:trackyond/core/common/models/job_model.dart';
+import 'package:trackyond/core/common/models/job/job_model.dart';
+import 'package:trackyond/core/common/models/job/job_summary_stats_model.dart';
 
 class MockDashboardRemoteDataSource extends Mock implements IDashboardRemoteDataSource {}
 
@@ -12,7 +13,7 @@ void main() {
   late DashboardRepositoryImpl repository;
   late MockDashboardRemoteDataSource mockRemoteDataSource;
 
-setUp(() {
+  setUp(() {
     mockRemoteDataSource = MockDashboardRemoteDataSource();
     repository = DashboardRepositoryImpl(mockRemoteDataSource);
   });
@@ -20,13 +21,14 @@ setUp(() {
   group('getOwnerDashboard', () {
     final tDashboardModel = OwnerDashboardModel(
       teamMembersStatus: const [],
-      jobCounts: const JobCountsModel(pending: 5, inProgress: 2, completed: 10, cancelled: 0),
+      jobCounts: const JobSummaryStatsModel(pending: 5, inProgress: 2, completed: 10, cancelled: 0),
       recentJobs: [
         JobModel(
           jobId: '123',
           jobTitle: 'Test Job',
           customerName: 'Customer',
           customerPhone: '1234567890',
+          workerAccountUid: 'worker_123',
           status: 'pending',
           requirePhotoOnStart: false,
           requirePhotoOnComplete: false,

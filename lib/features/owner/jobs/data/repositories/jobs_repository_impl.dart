@@ -2,10 +2,10 @@ import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/owner/jobs/data/datasources/jobs_remote_data_source.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/features/owner/jobs/domain/repositories/i_jobs_repository.dart';
-import 'package:trackyond/features/owner/jobs/domain/entities/job_filter_options.dart';
-import 'package:trackyond/features/owner/jobs/domain/entities/job_sort_options.dart';
+import 'package:trackyond/core/common/entities/job/job_filter_options.dart';
+import 'package:trackyond/core/common/entities/job/job_sort_options.dart';
 
 class JobsRepositoryImpl implements IJobsRepository {
   final IJobsRemoteDataSource _remoteDataSource;

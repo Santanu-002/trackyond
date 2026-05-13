@@ -1,7 +1,7 @@
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/entities/job_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -10,12 +10,11 @@ import 'package:trackyond/core/common/entities/member/team_member_status_entity.
 import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/worker/worker_picker_sheet.dart';
-import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:trackyond/features/owner/settings/presentation/controllers/owner_settings_controller.dart';
 
 class CreateJobController extends GetxController {
   final CreateJobUseCase _createJobUseCase;
   final GetTeamStatusUseCase _getTeamStatusUseCase;
-  final AuthController _authController;
   
   final formKey = GlobalKey<FormState>();
   
@@ -50,10 +49,8 @@ class CreateJobController extends GetxController {
   CreateJobController({
     required CreateJobUseCase createJobUseCase,
     required GetTeamStatusUseCase getTeamStatusUseCase,
-    required AuthController authController,
   })  : _createJobUseCase = createJobUseCase,
-        _getTeamStatusUseCase = getTeamStatusUseCase,
-        _authController = authController;
+        _getTeamStatusUseCase = getTeamStatusUseCase;
 
   @override
   void onInit() {
@@ -69,15 +66,17 @@ class CreateJobController extends GetxController {
   }
 
   Future<void> _loadPreferences() async {
-    requirePhotoOnCompletion.value = await _authController.getBoolSetting(_prefKeyPhotoOnCompletion);
-    captureLocation.value = await _authController.getBoolSetting(_prefKeyCaptureLocation, defaultValue: true);
-    requirePhotoOnStart.value = await _authController.getBoolSetting(_prefKeyPhotoOnStart);
+    final settingsController = Get.find<OwnerSettingsController>();
+    requirePhotoOnCompletion.value = await settingsController.getBoolSetting(_prefKeyPhotoOnCompletion);
+    captureLocation.value = await settingsController.getBoolSetting(_prefKeyCaptureLocation, defaultValue: true);
+    requirePhotoOnStart.value = await settingsController.getBoolSetting(_prefKeyPhotoOnStart);
   }
 
   Future<void> _savePreferences() async {
-    await _authController.saveSetting(_prefKeyPhotoOnCompletion, requirePhotoOnCompletion.value);
-    await _authController.saveSetting(_prefKeyCaptureLocation, captureLocation.value);
-    await _authController.saveSetting(_prefKeyPhotoOnStart, requirePhotoOnStart.value);
+    final settingsController = Get.find<OwnerSettingsController>();
+    await settingsController.saveSetting(_prefKeyPhotoOnCompletion, requirePhotoOnCompletion.value);
+    await settingsController.saveSetting(_prefKeyCaptureLocation, captureLocation.value);
+    await settingsController.saveSetting(_prefKeyPhotoOnStart, requirePhotoOnStart.value);
   }
 
   // All workers fetched from backend
@@ -179,7 +178,7 @@ class CreateJobController extends GetxController {
       customerPhone: phoneController.text.trim(),
       customerAddress: addressController.text.trim(),
       description: null, // Optional, can add a controller for this if needed
-      workerAccountUid: selectedWorker.value?.accountUid,
+      workerAccountUid: selectedWorker.value!.accountUid,
       requirePhotoOnStart: requirePhotoOnStart.value,
       requirePhotoOnComplete: requirePhotoOnCompletion.value,
       captureLocation: captureLocation.value,

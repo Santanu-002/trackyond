@@ -1,10 +1,10 @@
 import 'package:fpdart/fpdart.dart';
-import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
-import 'package:trackyond/features/owner/jobs/domain/repositories/i_jobs_repository.dart';
 import 'package:trackyond/core/common/entities/job/job_filter_options.dart';
 import 'package:trackyond/core/common/entities/job/job_sort_options.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
+import 'package:trackyond/core/exception/app_failures.dart';
+import 'package:trackyond/features/owner/jobs/domain/repositories/i_jobs_repository.dart';
 
 class GetJobsParams {
   final int limit;
@@ -12,12 +12,7 @@ class GetJobsParams {
   final JobFilterOptions? filter;
   final JobSortOptions? sort;
 
-  GetJobsParams({
-    this.limit = 20,
-    this.offset = 0,
-    this.filter,
-    this.sort,
-  });
+  GetJobsParams({this.limit = 20, this.offset = 0, this.filter, this.sort});
 }
 
 class GetJobsUseCase implements BaseUseCase<List<JobEntity>, GetJobsParams> {

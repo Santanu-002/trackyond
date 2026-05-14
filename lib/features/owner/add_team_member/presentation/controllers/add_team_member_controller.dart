@@ -7,7 +7,7 @@ import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/enums/gender.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/usecases/add_team_member_usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/usecases/get_team_company_usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/usecases/get_team_members_usecase.dart';

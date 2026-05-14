@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/entities/app_chip_entity.dart';
+import 'package:trackyond/core/common/entities/filter/app_chip_entity.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -11,7 +11,7 @@ import 'package:trackyond/features/owner/settings/presentation/controllers/owner
 
 class TeamStatusController extends GetxController {
   final GetTeamStatusUseCase _getTeamStatusUseCase;
-  
+
   static const String _searchByPrefKey = 'team_status_search_by';
 
   List<AppChipEntity<AttendanceStatus?>> get filterEntities => [
@@ -32,9 +32,8 @@ class TeamStatusController extends GetxController {
     ),
   ];
 
-  TeamStatusController({
-    required GetTeamStatusUseCase getTeamStatusUseCase,
-  })  : _getTeamStatusUseCase = getTeamStatusUseCase;
+  TeamStatusController({required GetTeamStatusUseCase getTeamStatusUseCase})
+    : _getTeamStatusUseCase = getTeamStatusUseCase;
 
   final isLoading = false.obs;
 
@@ -244,9 +243,6 @@ class TeamStatusController extends GetxController {
   // ---------------------------------------------------------------------------
 
   void goToMemberProfile(TeamMemberStatusEntity member) {
-    Get.toNamed(
-      AppRoutes.owner.teamMemberProfile,
-      arguments: member,
-    );
+    Get.toNamed(AppRoutes.owner.teamMemberProfile, arguments: member);
   }
 }

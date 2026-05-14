@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/core/common/models/job/job_model.dart';
-import 'package:trackyond/core/common/models/job/job_summary_stats_model.dart';
+import 'package:trackyond/core/common/models/job_summary/job_summary_stats_model.dart';
 import 'package:trackyond/core/common/models/member/team_member_status_model.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/owner_dashboard_data.dart';
 

@@ -1,13 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
+import 'package:trackyond/core/common/models/job/job_model.dart';
+import 'package:trackyond/core/common/models/job_summary/job_summary_stats_model.dart';
 import 'package:trackyond/features/owner/dashboard/data/datasources/dashboard_remote_data_source.dart';
 import 'package:trackyond/features/owner/dashboard/data/models/owner_dashboard_model.dart';
 import 'package:trackyond/features/owner/dashboard/data/repositories/dashboard_repository_impl.dart';
-import 'package:trackyond/core/common/models/job/job_model.dart';
-import 'package:trackyond/core/common/models/job/job_summary_stats_model.dart';
 
-class MockDashboardRemoteDataSource extends Mock implements IDashboardRemoteDataSource {}
+class MockDashboardRemoteDataSource extends Mock
+    implements IDashboardRemoteDataSource {}
 
 void main() {
   late DashboardRepositoryImpl repository;
@@ -21,7 +22,12 @@ void main() {
   group('getOwnerDashboard', () {
     final tDashboardModel = OwnerDashboardModel(
       teamMembersStatus: const [],
-      jobCounts: const JobSummaryStatsModel(pending: 5, inProgress: 2, completed: 10, cancelled: 0),
+      jobCounts: const JobSummaryStatsModel(
+        pending: 5,
+        inProgress: 2,
+        completed: 10,
+        cancelled: 0,
+      ),
       recentJobs: [
         JobModel(
           jobId: '123',
@@ -38,47 +44,48 @@ void main() {
       ],
     );
 
-    test('should return OwnerDashboardData when the call to remote data source is successful', () async {
-      // arrange
-      when(() => mockRemoteDataSource.getOwnerDashboard()).thenAnswer(
-        (_) async => ApiResponse.success(
-          success: true,
-          message: 'Success',
-          data: tDashboardModel,
-        ),
-      );
+    test(
+      'should return OwnerDashboardData when the call to remote data source is successful',
+      () async {
+        // arrange
+        when(() => mockRemoteDataSource.getOwnerDashboard()).thenAnswer(
+          (_) async => ApiResponse.success(
+            success: true,
+            message: 'Success',
+            data: tDashboardModel,
+          ),
+        );
 
-      // act
-      final result = await repository.getOwnerDashboard();
+        // act
+        final result = await repository.getOwnerDashboard();
 
-      // assert
-      expect(result.isRight(), true);
-      result.fold(
-        (failure) => fail('Should not return failure'),
-        (data) {
+        // assert
+        expect(result.isRight(), true);
+        result.fold((failure) => fail('Should not return failure'), (data) {
           expect(data.jobCounts.pending, 5);
           expect(data.recentJobs.length, 1);
           expect(data.recentJobs.first.jobTitle, 'Test Job');
-        },
-      );
-      verify(() => mockRemoteDataSource.getOwnerDashboard()).called(1);
-    });
+        });
+        verify(() => mockRemoteDataSource.getOwnerDashboard()).called(1);
+      },
+    );
 
-    test('should return ServerFailure when the call to remote data source is unsuccessful', () async {
-      // arrange
-      when(() => mockRemoteDataSource.getOwnerDashboard()).thenAnswer(
-        (_) async => const ApiResponse.error(
-          success: false,
-          message: 'Server Error',
-        ),
-      );
+    test(
+      'should return ServerFailure when the call to remote data source is unsuccessful',
+      () async {
+        // arrange
+        when(() => mockRemoteDataSource.getOwnerDashboard()).thenAnswer(
+          (_) async =>
+              const ApiResponse.error(success: false, message: 'Server Error'),
+        );
 
-      // act
-      final result = await repository.getOwnerDashboard();
+        // act
+        final result = await repository.getOwnerDashboard();
 
-      // assert
-      expect(result.isLeft(), true);
-      verify(() => mockRemoteDataSource.getOwnerDashboard()).called(1);
-    });
+        // assert
+        expect(result.isLeft(), true);
+        verify(() => mockRemoteDataSource.getOwnerDashboard()).called(1);
+      },
+    );
   });
 }

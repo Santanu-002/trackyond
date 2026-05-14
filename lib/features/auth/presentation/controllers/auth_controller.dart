@@ -3,7 +3,7 @@ import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_auth_status_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_onboarding_status_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_token_validity_usecase.dart';
@@ -12,6 +12,7 @@ import 'package:trackyond/features/auth/domain/usecases/get_company_usecase.dart
 import 'package:trackyond/features/auth/domain/usecases/get_member_profile_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_user_role_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 
 class AuthController extends GetxController {
   final CheckAuthStatusUseCase _checkAuthStatusUseCase;
@@ -32,14 +33,14 @@ class AuthController extends GetxController {
     required LogoutUseCase logoutUseCase,
     required CheckTokenValidityUseCase checkTokenValidityUseCase,
     required CheckOnboardingStatusUseCase checkOnboardingStatusUseCase,
-  })  : _checkAuthStatusUseCase = checkAuthStatusUseCase,
-        _getAuthenticatedUserUseCase = getAuthenticatedUserUseCase,
-        _getUserRoleUseCase = getUserRoleUseCase,
-        _getMemberProfileUseCase = getMemberProfileUseCase,
-        _getCompanyUseCase = getCompanyUseCase,
-        _logoutUseCase = logoutUseCase,
-        _checkTokenValidityUseCase = checkTokenValidityUseCase,
-        _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase;
+  }) : _checkAuthStatusUseCase = checkAuthStatusUseCase,
+       _getAuthenticatedUserUseCase = getAuthenticatedUserUseCase,
+       _getUserRoleUseCase = getUserRoleUseCase,
+       _getMemberProfileUseCase = getMemberProfileUseCase,
+       _getCompanyUseCase = getCompanyUseCase,
+       _logoutUseCase = logoutUseCase,
+       _checkTokenValidityUseCase = checkTokenValidityUseCase,
+       _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase;
 
   @override
   void onReady() async {
@@ -131,6 +132,9 @@ class AuthController extends GetxController {
   }
 
   Future<void> logout() async {
+    if (Get.isRegistered<NotificationController>()) {
+      await Get.find<NotificationController>().deleteFcmToken();
+    }
     await _logoutUseCase(const NoParams());
     Get.offAllNamed(AppRoutes.common.auth.chooseRole);
   }

@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/core/common/models/attendance/attendance_status_model.dart';
-import 'package:trackyond/core/common/models/job/job_summary_stats_model.dart';
 import 'package:trackyond/core/common/models/job/job_model.dart';
+import 'package:trackyond/core/common/models/job_summary/job_summary_stats_model.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/dashboard/worker_dashboard_data.dart';
 
 part 'worker_dashboard_model.freezed.dart';
@@ -21,11 +21,11 @@ sealed class WorkerDashboardModel with _$WorkerDashboardModel {
       _$WorkerDashboardModelFromJson(json);
 
   WorkerDashboardData toEntity() => WorkerDashboardData(
-        attendanceStatus: attendanceStatus.toEntity(),
-        recentJobs: recentJobs.map((e) => e.toEntity()).toList(),
-        todayStats: stats.today.toEntity(),
-        overallStats: stats.overall.toEntity(),
-      );
+    attendanceStatus: attendanceStatus.toEntity(),
+    recentJobs: recentJobs.map((e) => e.toEntity()).toList(),
+    todayStats: stats.today.toEntity(),
+    overallStats: stats.overall.toEntity(),
+  );
 }
 
 @freezed

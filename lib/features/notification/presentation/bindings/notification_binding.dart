@@ -9,6 +9,7 @@ import 'package:trackyond/features/notification/data/datasources/notification_da
 import 'package:trackyond/features/notification/data/repositories/notification_repository_impl.dart';
 import 'package:trackyond/features/notification/domain/repositories/i_notification_repository.dart';
 import 'package:trackyond/features/notification/domain/usecases/sync_fcm_token_usecase.dart';
+import 'package:trackyond/features/notification/domain/usecases/delete_fcm_token_usecase.dart';
 import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 
 class NotificationBinding extends Bindings {
@@ -38,8 +39,15 @@ class NotificationBinding extends Bindings {
       SyncFcmTokenUseCase(Get.find<INotificationRepository>()),
     );
 
+    Get.put<DeleteFcmTokenUseCase>(
+      DeleteFcmTokenUseCase(Get.find<INotificationRepository>()),
+    );
+
     Get.put<NotificationController>(
-      NotificationController(syncFcmTokenUseCase: Get.find<SyncFcmTokenUseCase>()),
+      NotificationController(
+        syncFcmTokenUseCase: Get.find<SyncFcmTokenUseCase>(),
+        deleteFcmTokenUseCase: Get.find<DeleteFcmTokenUseCase>(),
+      ),
     );
   }
 }

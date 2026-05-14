@@ -114,7 +114,7 @@ class MemberProfileHeader extends GetView<TeamMemberProfilePageController> {
               AppUIConstants.spacing.space$12;
 
           final Color expandedIconColor = isDarkHeader
-              ? Colors.white
+              ? context.theme.colorScheme.onPrimary
               : context.theme.colorScheme.onSurface;
           final Color collapsedIconColor = context.theme.colorScheme.onSurface;
           final Color currentIconColor = Color.lerp(

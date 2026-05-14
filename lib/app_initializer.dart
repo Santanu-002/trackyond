@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,7 @@ class AppInitializer {
   const AppInitializer._();
 
   static Future<void> initialize() async {
+    await Firebase.initializeApp();
     await _initStorage();
     await _initServices();
   }

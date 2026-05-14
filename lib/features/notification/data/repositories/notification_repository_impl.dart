@@ -55,4 +55,14 @@ class NotificationRepositoryImpl implements INotificationRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<AppFailure, void>> deleteFcmToken() async {
+    try {
+      await _fcmTokenService.deleteToken();
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

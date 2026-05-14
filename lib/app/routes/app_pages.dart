@@ -13,13 +13,6 @@ import 'package:trackyond/features/owner/add_team_member/presentation/screens/ad
 import 'package:trackyond/features/owner/add_team_member/presentation/screens/add_team_member_page.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/bindings/owner_dashboard_binding.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/screens/owner_dashboard_page.dart';
-import 'package:trackyond/features/owner/setup_company/presentation/bindings/setup_company_binding.dart';
-import 'package:trackyond/features/owner/setup_company/presentation/screens/choose_team_size_page.dart';
-import 'package:trackyond/features/owner/setup_company/presentation/screens/setup_company_page.dart';
-import 'package:trackyond/features/owner/team_status/presentation/bindings/team_member_profile_binding.dart';
-import 'package:trackyond/features/owner/team_status/presentation/bindings/team_status_binding.dart';
-import 'package:trackyond/features/owner/team_status/presentation/screens/team_member_profile_page.dart';
-import 'package:trackyond/features/owner/team_status/presentation/screens/team_status_page.dart';
 import 'package:trackyond/features/owner/jobs/presentation/bindings/create_job_binding.dart';
 import 'package:trackyond/features/owner/jobs/presentation/bindings/job_details_binding.dart';
 import 'package:trackyond/features/owner/jobs/presentation/bindings/jobs_binding.dart';
@@ -27,6 +20,13 @@ import 'package:trackyond/features/owner/jobs/presentation/screens/create_job_pa
 import 'package:trackyond/features/owner/jobs/presentation/screens/job_details_page.dart';
 import 'package:trackyond/features/owner/jobs/presentation/screens/jobs_page.dart';
 import 'package:trackyond/features/owner/settings/presentation/bindings/owner_settings_binding.dart';
+import 'package:trackyond/features/owner/setup_company/presentation/bindings/setup_company_binding.dart';
+import 'package:trackyond/features/owner/setup_company/presentation/screens/choose_team_size_page.dart';
+import 'package:trackyond/features/owner/setup_company/presentation/screens/setup_company_page.dart';
+import 'package:trackyond/features/owner/team_status/presentation/bindings/team_member_profile_binding.dart';
+import 'package:trackyond/features/owner/team_status/presentation/bindings/team_status_binding.dart';
+import 'package:trackyond/features/owner/team_status/presentation/screens/team_member_profile_page.dart';
+import 'package:trackyond/features/owner/team_status/presentation/screens/team_status_page.dart';
 import 'package:trackyond/features/worker/attendance/presentation/bindings/attendance_binding.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/bindings/worker_dashboard_binding.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/screens/worker_dashboard_page.dart';
@@ -69,7 +69,11 @@ class AppPages {
   static List<GetPage> get _ownerPages => [
     GetPage(
       name: AppRoutes.owner.dashboard,
-      bindings: [OwnerDashboardBinding(), OwnerSettingsBinding(), NotificationBinding()],
+      bindings: [
+        OwnerDashboardBinding(),
+        OwnerSettingsBinding(),
+        NotificationBinding(),
+      ],
       page: () => const OwnerDashboardPage(),
     ),
     GetPage(
@@ -123,7 +127,13 @@ class AppPages {
   static List<GetPage> get _workerPages => [
     GetPage(
       name: AppRoutes.worker.dashboard,
-      bindings: [AuthBindings(), AttendanceBinding(), WorkerDashboardBinding(), WorkerSettingsBinding(), NotificationBinding()],
+      bindings: [
+        AuthBindings(),
+        AttendanceBinding(),
+        WorkerDashboardBinding(),
+        WorkerSettingsBinding(),
+        NotificationBinding(),
+      ],
       page: () => const WorkerDashboardPage(),
     ),
     GetPage(

@@ -1,7 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/entities/attendance/attendance_entity.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/repositories/attendance_repository.dart';
 
 class EndAttendanceUseCase

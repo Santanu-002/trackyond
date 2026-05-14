@@ -41,4 +41,15 @@ class FCMTokenService extends GetxService {
   Future<void> markTokenAsUnsynced() async {
     await _prefs.setBool(_isSyncedKey, false);
   }
+
+  /// Delete FCM token from Firebase and clear local storage
+  Future<void> deleteToken() async {
+    try {
+      await FirebaseMessaging.instance.deleteToken();
+      await _prefs.remove(_fcmTokenKey);
+      await _prefs.remove(_isSyncedKey);
+    } catch (e) {
+      debugPrint("Failed to delete FCM token: $e");
+    }
+  }
 }

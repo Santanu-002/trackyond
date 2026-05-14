@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/worker/settings/domain/repositories/i_worker_settings_repository.dart';
 
 class GetWorkerSettingParams {
@@ -10,7 +10,8 @@ class GetWorkerSettingParams {
   GetWorkerSettingParams({required this.key, required this.type});
 }
 
-class GetWorkerSettingUseCase implements BaseUseCase<dynamic, GetWorkerSettingParams> {
+class GetWorkerSettingUseCase
+    implements BaseUseCase<dynamic, GetWorkerSettingParams> {
   final IWorkerSettingsRepository _repository;
 
   GetWorkerSettingUseCase(this._repository);

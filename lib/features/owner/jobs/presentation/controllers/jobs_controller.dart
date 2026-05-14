@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
-import 'package:trackyond/core/common/enums/job_status.dart';
-import 'package:trackyond/core/common/enums/filter_enums.dart';
-import 'package:trackyond/core/common/entities/filter_rule_entity.dart';
-import 'package:trackyond/core/theme/color_scheme_extension.dart';
+import 'package:trackyond/core/common/entities/filter/app_chip_entity.dart';
+import 'package:trackyond/core/common/entities/filter/filter_rule_entity.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
-import 'package:trackyond/features/owner/jobs/domain/usecases/get_jobs_use_case.dart';
 import 'package:trackyond/core/common/entities/job/job_filter_options.dart';
 import 'package:trackyond/core/common/entities/job/job_sort_options.dart';
+import 'package:trackyond/core/common/entities/member/member_profile.dart';
+import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/core/common/enums/filter_enums.dart';
+import 'package:trackyond/core/common/enums/job_status.dart';
+import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
+import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
+import 'package:trackyond/features/owner/jobs/domain/usecases/get_jobs_use_case.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/filter_bottom_sheet.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/sort_bottom_sheet.dart';
-import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
-import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
-import 'package:trackyond/core/common/entities/member/member_profile.dart';
-import 'package:trackyond/core/common/entities/app_chip_entity.dart';
-import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/status_picker_sheet.dart';
+import 'package:trackyond/features/owner/team_status/domain/usecases/get_team_status_use_case.dart';
 
 class JobsController extends GetxController {
   final GetJobsUseCase _getJobsUseCase;
@@ -677,10 +677,7 @@ class JobsController extends GetxController {
   }
 
   void showStatusPicker() {
-    Get.bottomSheet(
-      const StatusPickerSheet(),
-      isScrollControlled: true,
-    );
+    Get.bottomSheet(const StatusPickerSheet(), isScrollControlled: true);
   }
 
   Future<void> showDatePicker() async {

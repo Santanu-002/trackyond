@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/enums/stats_filter.dart';
+import 'package:trackyond/core/common/widgets/card/stats_card.dart';
 import 'package:trackyond/core/common/widgets/layout/app_section.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/core/common/widgets/card/stats_card.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/controllers/worker_dashboard_controller.dart';
 
 class WorkerStatsSection extends GetView<WorkerDashboardController> {
@@ -28,21 +29,11 @@ class WorkerStatsSection extends GetView<WorkerDashboardController> {
           segments: [
             ButtonSegment<StatsFilter>(
               value: StatsFilter.today,
-              label: Text(
-                strings.today,
-                style: context.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              label: Text(strings.today),
             ),
             ButtonSegment<StatsFilter>(
               value: StatsFilter.overall,
-              label: Text(
-                strings.overall,
-                style: context.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              label: Text(strings.overall),
             ),
           ],
           selected: {controller.selectedStatsFilter.value},
@@ -59,6 +50,7 @@ class WorkerStatsSection extends GetView<WorkerDashboardController> {
       ),
       child: Obx(() {
         final stats = controller.dashboardStats;
+        final colorScheme = context.colorScheme;
 
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -75,7 +67,7 @@ class WorkerStatsSection extends GetView<WorkerDashboardController> {
                     title: strings.pending,
                     value: stats.pending.toString(),
                     icon: AppIcons.dashboard.timer,
-                    color: Colors.orange,
+                    color: colorScheme.pending,
                     isLoading: isLoading,
                   ),
                 ),
@@ -85,7 +77,7 @@ class WorkerStatsSection extends GetView<WorkerDashboardController> {
                     title: strings.inProgress,
                     value: stats.inProgress.toString(),
                     icon: AppIcons.dashboard.active,
-                    color: Colors.blue,
+                    color: colorScheme.inProgress,
                     isLoading: isLoading,
                   ),
                 ),
@@ -95,7 +87,7 @@ class WorkerStatsSection extends GetView<WorkerDashboardController> {
                     title: strings.completed,
                     value: stats.completed.toString(),
                     icon: AppIcons.dashboard.completed,
-                    color: Colors.green,
+                    color: colorScheme.completed,
                     isLoading: isLoading,
                   ),
                 ),
@@ -105,7 +97,7 @@ class WorkerStatsSection extends GetView<WorkerDashboardController> {
                     title: strings.cancelled,
                     value: stats.cancelled.toString(),
                     icon: AppIcons.dashboard.cancelled,
-                    color: Colors.red,
+                    color: colorScheme.cancelled,
                     isLoading: isLoading,
                   ),
                 ),

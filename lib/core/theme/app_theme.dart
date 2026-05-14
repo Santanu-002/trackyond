@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/app_colors.dart';
 import 'package:trackyond/core/theme/text_styles.dart';
-import 'package:trackyond/core/constants/app_ui_constants.dart';
 
 class AppTheme {
   const AppTheme._();
@@ -459,6 +459,11 @@ class AppTheme {
         }),
         side: WidgetStateProperty.all(
           BorderSide(color: colors.outline.withValues(alpha: 0.2)),
+        ),
+        textStyle: WidgetStatePropertyAll(
+          (colors.brightness == Brightness.light
+              ? AppTextStyles.light.labelSmall
+              : AppTextStyles.dark.labelSmall),
         ),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(

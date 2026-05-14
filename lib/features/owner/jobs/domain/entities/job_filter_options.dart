@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:trackyond/core/common/entities/filter_group_entity.dart';
+import 'package:trackyond/core/common/entities/filter/filter_group_entity.dart';
 
 enum JobSearchField {
   all('all'),
@@ -9,6 +9,7 @@ enum JobSearchField {
   worker('worker');
 
   final String value;
+
   const JobSearchField(this.value);
 }
 
@@ -24,11 +25,7 @@ class JobFilterOptions extends Equatable {
   });
 
   @override
-  List<Object?> get props => [
-        search,
-        searchBy,
-        advancedFilter,
-      ];
+  List<Object?> get props => [search, searchBy, advancedFilter];
 
   JobFilterOptions copyWith({
     String? search,
@@ -43,6 +40,5 @@ class JobFilterOptions extends Equatable {
   }
 
   bool get isEmpty =>
-      (search == null || search!.isEmpty) &&
-      advancedFilter.isEmpty;
+      (search == null || search!.isEmpty) && advancedFilter.isEmpty;
 }

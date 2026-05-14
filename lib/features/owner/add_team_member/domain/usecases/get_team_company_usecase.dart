@@ -1,7 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/entities/company/company_entity.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/repositories/i_team_repository.dart';
 
 /// Fetches company info for the Add Team Member flow.

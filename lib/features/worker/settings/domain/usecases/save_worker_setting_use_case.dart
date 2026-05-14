@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/features/worker/settings/domain/repositories/i_worker_settings_repository.dart';
 
 class SaveWorkerSettingParams {
@@ -10,7 +10,8 @@ class SaveWorkerSettingParams {
   SaveWorkerSettingParams({required this.key, required this.value});
 }
 
-class SaveWorkerSettingUseCase implements BaseUseCase<void, SaveWorkerSettingParams> {
+class SaveWorkerSettingUseCase
+    implements BaseUseCase<void, SaveWorkerSettingParams> {
   final IWorkerSettingsRepository _repository;
 
   SaveWorkerSettingUseCase(this._repository);

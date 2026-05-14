@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:trackyond/core/common/entities/app_chip_entity.dart';
+import 'package:trackyond/core/common/entities/filter/app_chip_entity.dart';
 import 'package:trackyond/core/common/widgets/chip/app_filter_chip.dart';
 
 class AppFilterChipRow extends StatelessWidget {

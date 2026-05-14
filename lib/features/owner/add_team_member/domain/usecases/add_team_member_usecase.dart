@@ -1,17 +1,20 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/enums/gender.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/owner/add_team_member/domain/repositories/i_team_repository.dart';
 
-class AddTeamMemberUseCase implements BaseUseCase<MemberProfile, AddTeamMemberParams> {
+class AddTeamMemberUseCase
+    implements BaseUseCase<MemberProfile, AddTeamMemberParams> {
   final ITeamRepository _repository;
 
   AddTeamMemberUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, MemberProfile>> call(AddTeamMemberParams params) async {
+  Future<Either<AppFailure, MemberProfile>> call(
+    AddTeamMemberParams params,
+  ) async {
     return await _repository.addTeamMember(
       name: params.name,
       phone: params.phone,

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:trackyond/core/common/entities/filter_rule_entity.dart';
+import 'package:trackyond/core/common/entities/filter/filter_rule_entity.dart';
 import 'package:trackyond/core/common/enums/filter_enums.dart';
 
 class FilterGroupEntity extends Equatable {

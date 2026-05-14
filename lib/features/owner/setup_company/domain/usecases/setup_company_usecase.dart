@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/owner/setup_company/domain/entities/setup_company_result_entity.dart';
 import 'package:trackyond/features/owner/setup_company/domain/repositories/i_company_repository.dart';
 

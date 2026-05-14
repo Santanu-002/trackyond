@@ -7,20 +7,19 @@ import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/attendance/attendance_entity.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/enums/stats_filter.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/attendance_info_item.dart';
-import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
 import 'package:trackyond/features/worker/dashboard/domain/usecases/get_worker_dashboard_use_case.dart';
 import 'package:trackyond/features/worker/settings/presentation/controllers/worker_settings_controller.dart';
-import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 
 class WorkerDashboardController extends GetxController {
   final StartAttendanceUseCase _startAttendanceUseCase;
@@ -67,8 +66,8 @@ class WorkerDashboardController extends GetxController {
 
   JobSummaryStats get dashboardStats =>
       selectedStatsFilter.value == StatsFilter.today
-          ? _todayStats.value
-          : _overallStats.value;
+      ? _todayStats.value
+      : _overallStats.value;
 
   // Location Status
   final isLocationEnabled = false.obs;
@@ -83,12 +82,6 @@ class WorkerDashboardController extends GetxController {
     _loadUserInfo();
     _loadStatsFilter();
     fetchDashboardData();
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
-    Get.find<NotificationController>().requestPermission();
   }
 
   Future<void> _loadStatsFilter() async {

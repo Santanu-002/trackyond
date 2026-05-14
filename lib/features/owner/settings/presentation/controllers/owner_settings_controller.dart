@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/enums/stats_filter.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/features/owner/settings/domain/usecases/get_owner_dashboard_stats_filter_use_case.dart';
 import 'package:trackyond/features/owner/settings/domain/usecases/get_owner_setting_use_case.dart';
 import 'package:trackyond/features/owner/settings/domain/usecases/save_owner_dashboard_stats_filter_use_case.dart';
@@ -16,16 +16,19 @@ class OwnerSettingsController extends GetxController {
     required GetOwnerSettingUseCase getSettingUseCase,
     required SaveOwnerSettingUseCase saveSettingUseCase,
     required GetOwnerDashboardStatsFilterUseCase getDashboardStatsFilterUseCase,
-    required SaveOwnerDashboardStatsFilterUseCase saveDashboardStatsFilterUseCase,
-  })  : _getSettingUseCase = getSettingUseCase,
-        _saveSettingUseCase = saveSettingUseCase,
-        _getDashboardStatsFilterUseCase = getDashboardStatsFilterUseCase,
-        _saveDashboardStatsFilterUseCase = saveDashboardStatsFilterUseCase;
+    required SaveOwnerDashboardStatsFilterUseCase
+    saveDashboardStatsFilterUseCase,
+  }) : _getSettingUseCase = getSettingUseCase,
+       _saveSettingUseCase = saveSettingUseCase,
+       _getDashboardStatsFilterUseCase = getDashboardStatsFilterUseCase,
+       _saveDashboardStatsFilterUseCase = saveDashboardStatsFilterUseCase;
 
   // ============== SETTINGS ==============
 
   Future<dynamic> getSetting(String key, Type type) async {
-    final res = await _getSettingUseCase(GetOwnerSettingParams(key: key, type: type));
+    final res = await _getSettingUseCase(
+      GetOwnerSettingParams(key: key, type: type),
+    );
     return res.fold((_) => null, (v) => v);
   }
 
@@ -45,7 +48,10 @@ class OwnerSettingsController extends GetxController {
 
   Future<StatsFilter> get dashboardStatsFilter async {
     final res = await _getDashboardStatsFilterUseCase(const NoParams());
-    return res.fold((_) => StatsFilter.today, (val) => StatsFilter.fromString(val));
+    return res.fold(
+      (_) => StatsFilter.today,
+      (val) => StatsFilter.fromString(val),
+    );
   }
 
   Future<void> saveDashboardStatsFilter(StatsFilter filter) async {

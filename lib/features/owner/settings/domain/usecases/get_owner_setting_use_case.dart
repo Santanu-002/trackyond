@@ -1,6 +1,6 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/owner/settings/domain/repositories/i_owner_settings_repository.dart';
 
 class GetOwnerSettingParams {
@@ -10,7 +10,8 @@ class GetOwnerSettingParams {
   GetOwnerSettingParams({required this.key, required this.type});
 }
 
-class GetOwnerSettingUseCase implements BaseUseCase<dynamic, GetOwnerSettingParams> {
+class GetOwnerSettingUseCase
+    implements BaseUseCase<dynamic, GetOwnerSettingParams> {
   final IOwnerSettingsRepository _repository;
 
   GetOwnerSettingUseCase(this._repository);

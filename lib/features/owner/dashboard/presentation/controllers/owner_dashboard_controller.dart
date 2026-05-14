@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
+import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
+import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/drawer_item_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/task_stat_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/usecases/get_owner_dashboard_use_case.dart';
-import 'package:trackyond/core/common/entities/job/job_entity.dart';
-import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
-import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 
 class OwnerDashboardController extends GetxController {
   final GetOwnerDashboardUseCase _getOwnerDashboardUseCase;
 
   OwnerDashboardController({
     required GetOwnerDashboardUseCase getOwnerDashboardUseCase,
-  })  : _getOwnerDashboardUseCase = getOwnerDashboardUseCase;
+  }) : _getOwnerDashboardUseCase = getOwnerDashboardUseCase;
 
   @override
   void onInit() {
@@ -31,7 +30,6 @@ class OwnerDashboardController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    Get.find<NotificationController>().requestPermission();
     fetchDashboardData();
   }
 
@@ -61,14 +59,11 @@ class OwnerDashboardController extends GetxController {
     isLoading.value = true;
     final result = await _getOwnerDashboardUseCase(NoParams());
 
-    result.fold(
-      (failure) => AppSnackbar.destructive(failure.message),
-      (data) {
-        teamMembers.assignAll(data.teamMembersStatus);
-        stats.value = data.jobCounts;
-        recentJobs.assignAll(data.recentJobs);
-      },
-    );
+    result.fold((failure) => AppSnackbar.destructive(failure.message), (data) {
+      teamMembers.assignAll(data.teamMembersStatus);
+      stats.value = data.jobCounts;
+      recentJobs.assignAll(data.recentJobs);
+    });
     isLoading.value = false;
   }
 
@@ -154,12 +149,10 @@ class OwnerDashboardController extends GetxController {
     if (result is JobEntity) {
       // Add to recent jobs list immediately
       recentJobs.insert(0, result);
-      
+
       // Update stats
-      stats.value = stats.value.copyWith(
-        pending: stats.value.pending + 1,
-      );
-      
+      stats.value = stats.value.copyWith(pending: stats.value.pending + 1);
+
       // Optional: limit the list size
       if (recentJobs.length > 10) {
         recentJobs.removeLast();

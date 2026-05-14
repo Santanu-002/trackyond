@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/enums/stats_filter.dart';
-import 'package:trackyond/core/usecase/usecase.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/features/worker/settings/domain/usecases/get_worker_dashboard_stats_filter_use_case.dart';
 import 'package:trackyond/features/worker/settings/domain/usecases/get_worker_setting_use_case.dart';
 import 'package:trackyond/features/worker/settings/domain/usecases/save_worker_dashboard_stats_filter_use_case.dart';
@@ -15,17 +15,21 @@ class WorkerSettingsController extends GetxController {
   WorkerSettingsController({
     required GetWorkerSettingUseCase getSettingUseCase,
     required SaveWorkerSettingUseCase saveSettingUseCase,
-    required GetWorkerDashboardStatsFilterUseCase getDashboardStatsFilterUseCase,
-    required SaveWorkerDashboardStatsFilterUseCase saveDashboardStatsFilterUseCase,
-  })  : _getSettingUseCase = getSettingUseCase,
-        _saveSettingUseCase = saveSettingUseCase,
-        _getDashboardStatsFilterUseCase = getDashboardStatsFilterUseCase,
-        _saveDashboardStatsFilterUseCase = saveDashboardStatsFilterUseCase;
+    required GetWorkerDashboardStatsFilterUseCase
+    getDashboardStatsFilterUseCase,
+    required SaveWorkerDashboardStatsFilterUseCase
+    saveDashboardStatsFilterUseCase,
+  }) : _getSettingUseCase = getSettingUseCase,
+       _saveSettingUseCase = saveSettingUseCase,
+       _getDashboardStatsFilterUseCase = getDashboardStatsFilterUseCase,
+       _saveDashboardStatsFilterUseCase = saveDashboardStatsFilterUseCase;
 
   // ============== SETTINGS ==============
 
   Future<dynamic> getSetting(String key, Type type) async {
-    final res = await _getSettingUseCase(GetWorkerSettingParams(key: key, type: type));
+    final res = await _getSettingUseCase(
+      GetWorkerSettingParams(key: key, type: type),
+    );
     return res.fold((_) => null, (v) => v);
   }
 
@@ -45,7 +49,10 @@ class WorkerSettingsController extends GetxController {
 
   Future<StatsFilter> get dashboardStatsFilter async {
     final res = await _getDashboardStatsFilterUseCase(const NoParams());
-    return res.fold((_) => StatsFilter.today, (val) => StatsFilter.fromString(val));
+    return res.fold(
+      (_) => StatsFilter.today,
+      (val) => StatsFilter.fromString(val),
+    );
   }
 
   Future<void> saveDashboardStatsFilter(StatsFilter filter) async {

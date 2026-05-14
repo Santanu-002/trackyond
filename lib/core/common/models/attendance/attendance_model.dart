@@ -1,8 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/core/common/entities/attendance/attendance_entity.dart';
-
 import 'package:trackyond/core/common/enums/attendance_status.dart';
-import 'package:trackyond/core/common/utils/json_converters.dart';
+import 'package:trackyond/core/utils/json_converters.dart';
 
 part 'attendance_model.freezed.dart';
 part 'attendance_model.g.dart';

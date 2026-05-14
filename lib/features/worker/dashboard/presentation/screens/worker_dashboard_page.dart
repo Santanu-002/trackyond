@@ -5,6 +5,7 @@ import 'package:trackyond/core/common/widgets/icons/app_notification_bell.dart';
 import 'package:trackyond/core/common/widgets/scaffold/app_scaffold.dart';
 import 'package:trackyond/core/common/widgets/skeleton/app_skeleton_avatar.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/controllers/worker_dashboard_controller.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/widgets/attendance/work_attendance_card.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/widgets/recent_jobs/worker_recent_jobs_section.dart';
@@ -15,6 +16,7 @@ class WorkerDashboardPage extends GetView<WorkerDashboardController> {
 
   @override
   Widget build(BuildContext context) {
+    final notificationController = Get.find<NotificationController>();
     return AppScaffold(
       title: controller.title.value,
       useScrollView: false,
@@ -38,9 +40,25 @@ class WorkerDashboardPage extends GetView<WorkerDashboardController> {
         ),
       ),
       actions: [
-        AppNotificationBell(count: 0, onPressed: () {}),
+        Obx(() => AppNotificationBell(
+              count: notificationController.unreadCount.value,
+              onPressed: controller.openNotifications,
+            )),
         AppUIConstants.widgets.horizontalBox$8,
       ],
+      floatingActionButton: Obx(() {
+        if (controller.isActionLoading.value) {
+          return const FloatingActionButton(
+            onPressed: null,
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        }
+        return FloatingActionButton(
+          onPressed: controller.sendTestNotification,
+          tooltip: 'Send Test Notification',
+          child: const Icon(Icons.send),
+        );
+      }),
       child: RefreshIndicator(
         onRefresh: controller.refreshDashboard,
         child: SingleChildScrollView(

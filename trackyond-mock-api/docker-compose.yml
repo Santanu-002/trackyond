@@ -45,6 +45,8 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/trackyond_db
       - REDIS_URL=redis://redis:6379/0
       - APP_ENV=development
+      - GOOGLE_CLOUD_PROJECT=trackyond
+      - FIREBASE_CREDENTIALS_JSON=/app/service-account.json
     restart: unless-stopped
 
   pgadmin:

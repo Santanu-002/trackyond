@@ -8,6 +8,7 @@ import 'package:trackyond/features/auth/presentation/screens/choose_role_page.da
 import 'package:trackyond/features/auth/presentation/screens/send_otp_page.dart';
 import 'package:trackyond/features/auth/presentation/screens/verify_otp_page.dart';
 import 'package:trackyond/features/notification/presentation/bindings/notification_binding.dart';
+import 'package:trackyond/features/notification/presentation/pages/notifications_page.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/bindings/add_team_member_binding.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/screens/add_member_details_page.dart';
 import 'package:trackyond/features/owner/add_team_member/presentation/screens/add_team_member_page.dart';
@@ -39,8 +40,16 @@ class AppPages {
 
   static List<GetPage> get pages => [
     ..._authPages,
+    ..._commonPages,
     ..._ownerPages,
     ..._workerPages,
+  ];
+
+  static List<GetPage> get _commonPages => [
+    GetPage(
+      name: AppRoutes.common.notifications,
+      page: () => const NotificationsPage(),
+    ),
   ];
 
   static List<GetPage> get _authPages => [

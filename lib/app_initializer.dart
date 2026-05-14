@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,13 +14,43 @@ import 'package:trackyond/core/services/token/token_service.dart';
 import 'package:trackyond/core/services/token/token_service_impl.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
 
+import 'package:trackyond/core/services/notification/background_ack_service.dart';
+
 class AppInitializer {
   const AppInitializer._();
 
   static Future<void> initialize() async {
     await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     await _initStorage();
     await _initServices();
+    
+    // Retry any failed acks on app startup
+    try {
+      final ackService = await BackgroundAckService.init();
+      await ackService.retryFailedAcks();
+    } catch (e) {
+      debugPrint("Failed to retry acks on startup: $e");
+    }
+  }
+
+  // MUST be a top-level function
+  @pragma('vm:entry-point')
+  static Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+    // If you're going to use other Firebase services in the background, such as Firestore,
+    // make sure you call `initializeApp` before using other Firebase services.
+    await Firebase.initializeApp();
+    debugPrint("Handling a background message: ${message.messageId}");
+    
+    try {
+      final notificationId = message.data['notificationId'];
+      if (notificationId != null) {
+        final ackService = await BackgroundAckService.init();
+        await ackService.sendAck(notificationId, 'delivered');
+      }
+    } catch (e) {
+      debugPrint("Error sending background ack: $e");
+    }
   }
 
   // ------------------ STORAGE ------------------

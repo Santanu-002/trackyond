@@ -45,4 +45,6 @@ class _CommonRoutes {
   const _CommonRoutes();
 
   _AuthRoutes get auth => const _AuthRoutes();
+  
+  String get notifications => '/notifications';
 }

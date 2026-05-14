@@ -18,6 +18,16 @@ class AppStrings {
   static const createJob = CreateJobStrings();
   static const jobs = JobsStrings();
   static const jobDetails = JobDetailsStrings();
+  static const notifications = NotificationsStrings();
+}
+
+class NotificationsStrings {
+  const NotificationsStrings();
+
+  String get appBarTitle => 'Notifications';
+  String get noNotifications => 'No notifications yet';
+  String get clearAll => 'Clear All';
+  String get markAllAsRead => 'Mark all as read';
 }
 
 class CommonStrings {

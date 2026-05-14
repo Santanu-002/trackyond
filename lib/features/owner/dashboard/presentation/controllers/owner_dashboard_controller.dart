@@ -11,6 +11,7 @@ import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/drawer_item_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/task_stat_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/usecases/get_owner_dashboard_use_case.dart';
@@ -156,7 +157,8 @@ class OwnerDashboardController extends GetxController {
   }
 
   void openNotifications() {
-    //TODO: Navigate to notifications page
+    Get.find<NotificationController>().clearUnread();
+    Get.toNamed(AppRoutes.common.notifications);
   }
 
   void goToJobs() {

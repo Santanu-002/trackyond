@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/layout/app_nav_layout.dart';
-import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/common/widgets/icons/app_notification_bell.dart';
+import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/controllers/owner_dashboard_controller.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/drawer/app_drawer.dart';
 import 'package:trackyond/features/owner/dashboard/presentation/widgets/jobs/recent_jobs_section.dart';
@@ -19,7 +20,7 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.ownerDashboard;
-    final theme = context.theme;
+    final notificationController = Get.find<NotificationController>();
 
     return AppNavLayout(
       title: strings.title,
@@ -36,37 +37,10 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
       },
       drawer: const AppDrawer(),
       actions: [
-        Stack(
-          children: [
-            IconButton(
-              icon: Icon(AppIcons.common.notifications),
+        Obx(() => AppNotificationBell(
+              count: notificationController.unreadCount.value,
               onPressed: controller.openNotifications,
-            ),
-            Obx(
-              () => controller.notificationCount.value > 0
-                  ? Positioned(
-                      right: 12,
-                      top: 12,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.error,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: theme.scaffoldBackgroundColor,
-                            width: 1.5,
-                          ),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 8,
-                          minHeight: 8,
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
-        ),
+            )),
         AppUIConstants.widgets.horizontalBox$8,
       ],
       child: RefreshIndicator(

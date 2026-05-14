@@ -1,19 +1,23 @@
+import 'dart:convert';
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/features/notification/domain/repositories/i_notification_repository.dart';
 import 'package:trackyond/features/notification/data/datasources/notification_data_source.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/core/services/notification/fcm_token_service.dart';
+import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
 
 class NotificationRepositoryImpl implements INotificationRepository {
   final FCMTokenService _fcmTokenService;
   final INotificationDataSource _dataSource;
   final UserService _userService;
+  final LocalNotificationService _localNotificationService;
 
   NotificationRepositoryImpl(
     this._fcmTokenService,
     this._dataSource,
     this._userService,
+    this._localNotificationService,
   );
 
   @override
@@ -60,6 +64,25 @@ class NotificationRepositoryImpl implements INotificationRepository {
   Future<Either<AppFailure, void>> deleteFcmToken() async {
     try {
       await _fcmTokenService.deleteToken();
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<AppFailure, void>> showLocalNotification({
+    required String title,
+    required String body,
+    Map<String, dynamic>? payload,
+  }) async {
+    try {
+      await _localNotificationService.showNotification(
+        id: DateTime.now().millisecond,
+        title: title,
+        body: body,
+        payload: payload != null ? jsonEncode(payload) : null,
+      );
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));

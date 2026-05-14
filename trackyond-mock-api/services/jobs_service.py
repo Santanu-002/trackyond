@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc, or_, and_
 import uuid
+import json
 from typing import Optional
 from db import models
 from core.constants.enums import JobStatus
@@ -120,8 +121,10 @@ def get_admin_jobs(
 
 
 def create_admin_job(db: Session, admin_uid: str, job_data: dict):
+    print(f"DEBUG: Creating job for admin {admin_uid} with data: {job_data}")
     admin_member = db.query(models.Member).filter(models.Member.user_uid == admin_uid).first()
     if not admin_member:
+        print(f"DEBUG Error: Admin profile not found for uid {admin_uid}")
         return None, "Admin profile not found"
 
     new_job = models.Job(
@@ -145,21 +148,34 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
     db.add(new_job)
     db.commit()
     db.refresh(new_job)
+    print(f"DEBUG: Job created successfully with ID: {new_job.job_id}")
 
     worker_name = None
     worker_image = None
     if new_job.worker_profile_uid:
+        print(f"DEBUG: Job assigned to worker profile {new_job.worker_profile_uid}, triggering notification...")
         worker_member = db.query(models.Member).filter(models.Member.uid == new_job.worker_profile_uid).first()
         if worker_member:
             worker_name = worker_member.name
             worker_image = worker_member.image
+            
+            serialized_job = serialize_job(new_job, worker_name, worker_image)
+            
             # Create notification for worker
             create_notification(
                 db, 
                 user_uid=worker_member.user_uid,
                 message=f"New job assigned: {new_job.title}",
-                profile_uid=worker_member.uid
+                profile_uid=worker_member.uid,
+                data_payload=json.dumps({
+                    "type": "jobAssigned",
+                    "jobId": new_job.job_id,
+                    "title": new_job.title,
+                    "fullJobData": json.dumps(serialized_job)
+                })
             )
+        else:
+            print(f"DEBUG Error: Worker profile {new_job.worker_profile_uid} not found in members table")
 
     return serialize_job(new_job, worker_name, worker_image), None
 

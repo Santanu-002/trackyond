@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,11 +10,15 @@ import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/enums/stats_filter.dart';
+import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/network/api/api_endpoints.dart';
+import 'package:trackyond/core/network/api/request_extras.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/attendance_info_item.dart';
@@ -389,6 +393,36 @@ class WorkerDashboardController extends GetxController {
     await fetchDashboardData();
   }
 
+  void onNewJobReceived(JobEntity job) {
+    // 1. Update Recent Jobs (Add to the top and keep only latest few if needed)
+    // Here we just insert at the beginning
+    if (!recentJobs.any((j) => j.jobId == job.jobId)) {
+      recentJobs.insert(0, job);
+      if (recentJobs.length > 5) {
+        recentJobs.removeLast();
+      }
+    }
+
+    // 2. Update Stats
+    // For a new job assignment, totalAssigned and pending/assigned count increases.
+    _todayStats.value = _todayStats.value.copyWith(
+      totalAssigned: _todayStats.value.totalAssigned + 1,
+      pending: _todayStats.value.pending + 1, // Assuming new jobs are pending/assigned
+    );
+
+    _overallStats.value = _overallStats.value.copyWith(
+      totalAssigned: _overallStats.value.totalAssigned + 1,
+      pending: _overallStats.value.pending + 1,
+    );
+
+    debugPrint('WorkerDashboard updated reactively with new job: ${job.jobId}');
+  }
+
+  void openNotifications() {
+    Get.find<NotificationController>().clearUnread();
+    Get.toNamed(AppRoutes.common.notifications);
+  }
+
   void goToJobs() => AppSnackbar.info(AppStrings.common.underDevelopment);
 
   void goToJobDetails(JobEntity job) {
@@ -397,6 +431,40 @@ class WorkerDashboardController extends GetxController {
   }
 
   void navigateToProfile() => Get.toNamed(AppRoutes.worker.profile);
+
+  Future<void> sendTestNotification() async {
+    isActionLoading.value = true;
+    try {
+      final dio = Get.find<Dio>();
+      final profile = await authController.profile;
+      if (profile == null) return;
+      
+      final response = await dio.post(
+        ApiEndpoints.admin.jobs, // Using admin endpoint to trigger creation
+        data: {
+          "title": "Mock Demo Job ${DateTime.now().second}",
+          "customerName": "Demo Customer",
+          "customerPhone": "0000000000",
+          "workerProfileUid": profile.uid,
+          "requirePhotoOnStart": false,
+          "requirePhotoOnComplete": false,
+          "captureLocation": false
+        },
+        options: Options(
+          extra: {RequestExtras.userRole: UserRole.owner.value}, // Force owner role for admin endpoint
+        ),
+      );
+      
+      if (response.statusCode == 200) {
+        AppSnackbar.success("Mock job sent! Wait for notification.");
+      }
+    } catch (e) {
+      debugPrint("Error sending mock job: $e");
+      AppSnackbar.destructive("Failed to send mock job");
+    } finally {
+      isActionLoading.value = false;
+    }
+  }
 
   Future<void> logout() async => await Get.find<AuthController>().logout();
 }

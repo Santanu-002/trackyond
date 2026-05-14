@@ -1,9 +1,11 @@
 import uuid
+import json
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from db import models
 from core.constants.enums import NotificationStatus, UserRole
 from typing import Optional
+from firebase_admin import messaging
 
 def upsert_admin_fcm_token(db: Session, admin_uid: str, device_id: str, fcm_token: str, platform: Optional[str] = None, app_version: Optional[str] = None):
     """
@@ -108,7 +110,7 @@ def deactivate_fcm_token(db: Session, user_uid: str, device_id: str):
 
 def create_notification(db: Session, user_uid: str, message: str, title: Optional[str] = None, profile_uid: Optional[str] = None, data_payload: Optional[str] = None):
     """
-    Creates a notification record in the database for a specific user.
+    Creates a notification record in the database for a specific user and sends FCM push.
     """
     now = datetime.now(timezone.utc)
     notification = models.Notification(
@@ -126,6 +128,64 @@ def create_notification(db: Session, user_uid: str, message: str, title: Optiona
     db.add(notification)
     db.commit()
     db.refresh(notification)
+
+    # --- FCM PUSH LOGIC ---
+    # Get active FCM tokens for the user
+    tokens = db.query(models.FCMToken).filter(
+        models.FCMToken.user_uid == user_uid,
+        models.FCMToken.is_active == True
+    ).all()
+    
+    fcm_tokens = [t.fcm_token for t in tokens]
+    
+    if fcm_tokens:
+        print(f"DEBUG: Found {len(fcm_tokens)} active FCM tokens for user {user_uid}")
+        
+        # Prepare data payload
+        fcm_data = {}
+        if data_payload:
+            try:
+                if isinstance(data_payload, str):
+                    fcm_data = json.loads(data_payload)
+                elif isinstance(data_payload, dict):
+                    fcm_data = data_payload
+            except Exception as e:
+                print(f"DEBUG: Failed to parse data_payload: {e}")
+                fcm_data = {"raw_payload": str(data_payload)}
+        
+        # Add basic info to data payload
+        fcm_data.update({
+            "notificationId": notification.notification_id,
+            "clickAction": "FLUTTER_NOTIFICATION_CLICK",
+        })
+        
+        # Convert all values to strings for FCM data (FCM requirement)
+        fcm_data = {k: str(v) for k, v in fcm_data.items()}
+
+        message_payload = messaging.MulticastMessage(
+            notification=messaging.Notification(
+                title=title or "Trackyond",
+                body=message,
+            ),
+            data=fcm_data,
+            tokens=fcm_tokens,
+        )
+        
+        print(f"DEBUG FCM Payload: Title='{title}', Body='{message}', Data={fcm_data}")
+        
+        try:
+            response = messaging.send_each_for_multicast(message_payload)
+            print(f"DEBUG FCM Send Result: Success={response.success_count}, Failure={response.failure_count}")
+            
+            if response.failure_count > 0:
+                for idx, resp in enumerate(response.responses):
+                    if not resp.success:
+                        print(f"DEBUG FCM Error for token {fcm_tokens[idx]}: {resp.exception}")
+        except Exception as e:
+            print(f"DEBUG FCM Send Exception: {e}")
+    else:
+        print(f"DEBUG: No active FCM tokens found for user {user_uid}")
+
     return notification
 
 def get_user_notifications(db: Session, user_uid: str):

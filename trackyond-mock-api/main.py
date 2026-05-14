@@ -11,11 +11,28 @@ import os
 import sys
 import subprocess
 import logging
+import firebase_admin
+from firebase_admin import credentials
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager for startup and shutdown events."""
+    # Initialize Firebase Admin
+    try:
+        fb_cred_path = os.getenv("FIREBASE_CREDENTIALS_JSON")
+        project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+        
+        if fb_cred_path and os.path.exists(fb_cred_path):
+            cred = credentials.Certificate(fb_cred_path)
+            firebase_admin.initialize_app(cred, options={'projectId': project_id} if project_id else None)
+            print(f"[STARTUP] Firebase Admin initialized with certificate: {fb_cred_path}")
+        else:
+            firebase_admin.initialize_app(options={'projectId': project_id} if project_id else None)
+            print(f"[STARTUP] Firebase Admin initialized with default credentials (Project ID: {project_id})")
+    except Exception as e:
+        print(f"[STARTUP] Firebase Admin initialization failed or already initialized: {e}")
+
     try:
         print("[STARTUP] Applying database migrations...")
         # Use sys.executable so we always invoke the same Python env as the running process.

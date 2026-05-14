@@ -11,7 +11,7 @@ from db import models
 
 def _serialize_member(member: models.Member):
     return {
-        "accountUid": member.account_uid,
+        "uid": member.uid,
         "userUid": member.user_uid,
         "name": member.name,
         "phone": member.phone,
@@ -101,7 +101,7 @@ def add_admin_member_data(
     image_path = _save_member_image(member_image, company_uid, target_user_uid)
 
     new_member = models.Member(
-        account_uid=uuid.uuid4().hex[:10],
+        uid=uuid.uuid4().hex[:10],
         user_uid=target_user_uid,
         name=member_name,
         phone=user_phone_no,
@@ -117,14 +117,14 @@ def add_admin_member_data(
     target_user = db.query(models.User).filter(
         models.User.uid == target_user_uid
     ).first()
-    if target_user and target_user.primary_account_uid is None:
-        target_user.primary_account_uid = new_member.account_uid
+    if target_user and target_user.primary_profile_uid is None:
+        target_user.primary_profile_uid = new_member.uid
 
     db.commit()
     db.refresh(new_member)
 
     return {
-        "accountUid": new_member.account_uid,
+        "uid": new_member.uid,
         "userUid": new_member.user_uid,
         "name": new_member.name,
         "phone": new_member.phone,

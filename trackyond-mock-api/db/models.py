@@ -13,7 +13,7 @@ class User(Base):
     role = Column(SQLEnum(UserRole), default=UserRole.worker)
 
     is_new_user = Column(Boolean, default=True)
-    primary_account_uid = Column(String, nullable=True) # UID of the primary Member/Profile record
+    primary_profile_uid = Column(String, nullable=True) # UID of the primary Member/Profile record
     created_at = Column(DateTime, default=now_utc)
     updated_at = Column(DateTime, default=now_utc, onupdate=now_utc)
 
@@ -40,7 +40,7 @@ class Company(Base):
 class Member(Base):
     __tablename__ = "members"
     id = Column(Integer, primary_key=True, index=True)
-    account_uid = Column(String, unique=True, index=True) # Unique ID for this membership/profile
+    uid = Column(String, unique=True, index=True) # Unique ID for this membership/profile
     user_uid = Column(String, ForeignKey("users.uid"), index=True, nullable=False) # UID of the user account
     name = Column(String, nullable=False)
     phone = Column(String, index=True, nullable=False)
@@ -66,7 +66,7 @@ class Job(Base):
     customer_name = Column(String)
     customer_phone = Column(String, nullable=False)
     customer_address = Column(String, nullable=True)
-    worker_account_uid = Column(String, ForeignKey("members.account_uid"), nullable=False)
+    worker_profile_uid = Column(String, ForeignKey("members.uid"), nullable=False)
     company_uid = Column(String, ForeignKey("companies.company_id"), index=True)
     created_by = Column(String, ForeignKey("users.uid"))
     status = Column(SQLEnum(JobStatus), default=JobStatus.pending)
@@ -85,7 +85,7 @@ class Notification(Base):
     id = Column(Integer, primary_key=True, index=True)
     notification_id = Column(String, unique=True, index=True)
     user_uid = Column(String, ForeignKey("users.uid"), nullable=False)
-    profile_uid = Column(String, nullable=True) # Member.account_uid
+    profile_uid = Column(String, nullable=True) # Member.uid
     title = Column(String, nullable=True)
     message = Column(String, nullable=False)
     data_payload = Column(Text, nullable=True) # JSON string
@@ -119,7 +119,7 @@ class FCMToken(Base):
 class Attendance(Base):
     __tablename__ = "attendance"
     id = Column(Integer, primary_key=True, index=True)
-    account_uid = Column(String, ForeignKey("members.account_uid"))
+    profile_uid = Column(String, ForeignKey("members.uid"))
     user_uid = Column(String, index=True) # Derived/Saved for convenience
     company_uid = Column(String, index=True) # Derived/Saved for convenience
     

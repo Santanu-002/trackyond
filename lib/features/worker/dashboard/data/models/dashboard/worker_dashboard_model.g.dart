@@ -15,8 +15,8 @@ _WorkerDashboardModel _$WorkerDashboardModelFromJson(
   recentJobs: (json['recentJobs'] as List<dynamic>)
       .map((e) => JobModel.fromJson(e as Map<String, dynamic>))
       .toList(),
-  stats: WorkerDashboardModelStats.fromJson(
-    json['stats'] as Map<String, dynamic>,
+  jobCounts: WorkerDashboardModelStats.fromJson(
+    json['jobCounts'] as Map<String, dynamic>,
   ),
 );
 
@@ -25,18 +25,23 @@ Map<String, dynamic> _$WorkerDashboardModelToJson(
 ) => <String, dynamic>{
   'attendanceStatus': instance.attendanceStatus,
   'recentJobs': instance.recentJobs,
-  'stats': instance.stats,
+  'jobCounts': instance.jobCounts,
 };
 
 _WorkerDashboardModelStats _$WorkerDashboardModelStatsFromJson(
   Map<String, dynamic> json,
 ) => _WorkerDashboardModelStats(
-  today: JobSummaryStatsModel.fromJson(json['today'] as Map<String, dynamic>),
-  overall: JobSummaryStatsModel.fromJson(
-    json['overall'] as Map<String, dynamic>,
+  todayStats: JobSummaryStatsModel.fromJson(
+    json['todayStats'] as Map<String, dynamic>,
+  ),
+  overallStats: JobSummaryStatsModel.fromJson(
+    json['overallStats'] as Map<String, dynamic>,
   ),
 );
 
 Map<String, dynamic> _$WorkerDashboardModelStatsToJson(
   _WorkerDashboardModelStats instance,
-) => <String, dynamic>{'today': instance.today, 'overall': instance.overall};
+) => <String, dynamic>{
+  'todayStats': instance.todayStats,
+  'overallStats': instance.overallStats,
+};

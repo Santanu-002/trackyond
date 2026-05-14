@@ -10,7 +10,7 @@ part 'attendance_model.g.dart';
 sealed class AttendanceModel with _$AttendanceModel {
   const factory AttendanceModel({
     required int id,
-    required String accountUid,
+    required String profileUid,
     required String userUid,
     required String companyUid,
     @DateTimeConverter() required DateTime startAt,

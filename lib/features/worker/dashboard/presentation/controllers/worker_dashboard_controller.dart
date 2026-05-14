@@ -121,8 +121,8 @@ class WorkerDashboardController extends GetxController {
 
       // Update Jobs and Stats
       recentJobs.assignAll(data.recentJobs);
-      _todayStats.value = data.todayStats;
-      _overallStats.value = data.overallStats;
+      _todayStats.value = data.jobCounts.todayStats;
+      _overallStats.value = data.jobCounts.overallStats;
     });
     isDashboardLoading.value = false;
   }
@@ -174,8 +174,8 @@ class WorkerDashboardController extends GetxController {
 
   void startMyDay() async {
     final profile = await Get.find<AuthController>().profile;
-    final accountUid = profile?.accountUid;
-    if (accountUid == null) return;
+    final profileUid = profile?.uid;
+    if (profileUid == null) return;
 
     isActionLoading.value = true;
     await _setPhase(AppStrings.workerDashboard.checkingPermissions);
@@ -225,7 +225,7 @@ class WorkerDashboardController extends GetxController {
       await _setPhase(AppStrings.workerDashboard.syncingWithServer);
       final result = await _startAttendanceUseCase(
         StartAttendanceParams(
-          accountUid: accountUid,
+          profileUid: profileUid,
           latitude: position.latitude,
           longitude: position.longitude,
           address: address,
@@ -251,8 +251,8 @@ class WorkerDashboardController extends GetxController {
 
   void endMyDay() async {
     final profile = await Get.find<AuthController>().profile;
-    final accountUid = profile?.accountUid;
-    if (accountUid == null) return;
+    final profileUid = profile?.uid;
+    if (profileUid == null) return;
 
     isActionLoading.value = true;
     await _setPhase(AppStrings.workerDashboard.acquiringGps);
@@ -284,7 +284,7 @@ class WorkerDashboardController extends GetxController {
       await _setPhase(AppStrings.workerDashboard.endingSession);
       final result = await _endAttendanceUseCase(
         EndAttendanceParams(
-          accountUid: accountUid,
+          profileUid: profileUid,
           latitude: position.latitude,
           longitude: position.longitude,
           address: address,

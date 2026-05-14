@@ -7,7 +7,7 @@ class JobBase(BaseModel):
     customerName: str
     customerPhone: str
     customerAddress: Optional[str] = None
-    workerAccountUid: Optional[str] = None
+    workerProfileUid: Optional[str] = None
     requirePhotoOnStart: bool = False
     requirePhotoOnComplete: bool = False
     captureLocation: bool = True

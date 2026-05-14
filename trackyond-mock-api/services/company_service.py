@@ -46,7 +46,7 @@ def create_company_data(db: Session, req):
 
     if not member:
         member = models.Member(
-            account_uid=uuid.uuid4().hex[:10],
+            uid=uuid.uuid4().hex[:10],
             user_uid=user.uid,
             name=req.owner_name,
             phone=req.owner_phone,
@@ -65,8 +65,8 @@ def create_company_data(db: Session, req):
         member.company_uid = new_company.company_id
         member.created_by = None
 
-    if user.primary_account_uid is None:
-        user.primary_account_uid = member.account_uid
+    if user.primary_profile_uid is None:
+        user.primary_profile_uid = member.uid
 
     db.commit()
     db.refresh(new_company)
@@ -74,7 +74,7 @@ def create_company_data(db: Session, req):
 
     return {
         "ownerProfile": {
-            "accountUid": member.account_uid,
+            "uid": member.uid,
             "userUid": member.user_uid,
             "name": member.name,
             "phone": member.phone,
@@ -122,7 +122,7 @@ def get_admin_team_status_data(
 
     for member in members:
         latest_attendance = db.query(models.Attendance).filter(
-            models.Attendance.account_uid == member.account_uid,
+            models.Attendance.profile_uid == member.uid,
             models.Attendance.created_at >= today_start,
         ).order_by(models.Attendance.created_at.desc()).first()
 

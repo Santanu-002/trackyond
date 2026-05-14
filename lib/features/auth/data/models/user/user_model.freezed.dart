@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UserModel {
 
- String get uid; String get phone;@JsonKey(fromJson: UserRole.fromString) UserRole get role; bool get isNewUser; String? get primaryAccountUid;
+ String get uid; String get phone;@JsonKey(fromJson: UserRole.fromString) UserRole get role; bool get isNewUser; String? get primaryProfileUid;
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $UserModelCopyWith<UserModel> get copyWith => _$UserModelCopyWithImpl<UserModel>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.role, role) || other.role == role)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.primaryAccountUid, primaryAccountUid) || other.primaryAccountUid == primaryAccountUid));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.role, role) || other.role == role)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.primaryProfileUid, primaryProfileUid) || other.primaryProfileUid == primaryProfileUid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,phone,role,isNewUser,primaryAccountUid);
+int get hashCode => Object.hash(runtimeType,uid,phone,role,isNewUser,primaryProfileUid);
 
 @override
 String toString() {
-  return 'UserModel(uid: $uid, phone: $phone, role: $role, isNewUser: $isNewUser, primaryAccountUid: $primaryAccountUid)';
+  return 'UserModel(uid: $uid, phone: $phone, role: $role, isNewUser: $isNewUser, primaryProfileUid: $primaryProfileUid)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $UserModelCopyWith<$Res>  {
   factory $UserModelCopyWith(UserModel value, $Res Function(UserModel) _then) = _$UserModelCopyWithImpl;
 @useResult
 $Res call({
- String uid, String phone,@JsonKey(fromJson: UserRole.fromString) UserRole role, bool isNewUser, String? primaryAccountUid
+ String uid, String phone,@JsonKey(fromJson: UserRole.fromString) UserRole role, bool isNewUser, String? primaryProfileUid
 });
 
 
@@ -65,13 +65,13 @@ class _$UserModelCopyWithImpl<$Res>
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? phone = null,Object? role = null,Object? isNewUser = null,Object? primaryAccountUid = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? phone = null,Object? role = null,Object? isNewUser = null,Object? primaryProfileUid = freezed,}) {
   return _then(_self.copyWith(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as UserRole,isNewUser: null == isNewUser ? _self.isNewUser : isNewUser // ignore: cast_nullable_to_non_nullable
-as bool,primaryAccountUid: freezed == primaryAccountUid ? _self.primaryAccountUid : primaryAccountUid // ignore: cast_nullable_to_non_nullable
+as bool,primaryProfileUid: freezed == primaryProfileUid ? _self.primaryProfileUid : primaryProfileUid // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -154,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String phone, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  bool isNewUser,  String? primaryAccountUid)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String phone, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  bool isNewUser,  String? primaryProfileUid)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
-return $default(_that.uid,_that.phone,_that.role,_that.isNewUser,_that.primaryAccountUid);case _:
+return $default(_that.uid,_that.phone,_that.role,_that.isNewUser,_that.primaryProfileUid);case _:
   return orElse();
 
 }
@@ -175,10 +175,10 @@ return $default(_that.uid,_that.phone,_that.role,_that.isNewUser,_that.primaryAc
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String phone, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  bool isNewUser,  String? primaryAccountUid)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String phone, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  bool isNewUser,  String? primaryProfileUid)  $default,) {final _that = this;
 switch (_that) {
 case _UserModel():
-return $default(_that.uid,_that.phone,_that.role,_that.isNewUser,_that.primaryAccountUid);}
+return $default(_that.uid,_that.phone,_that.role,_that.isNewUser,_that.primaryProfileUid);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -192,10 +192,10 @@ return $default(_that.uid,_that.phone,_that.role,_that.isNewUser,_that.primaryAc
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String phone, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  bool isNewUser,  String? primaryAccountUid)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String phone, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  bool isNewUser,  String? primaryProfileUid)?  $default,) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
-return $default(_that.uid,_that.phone,_that.role,_that.isNewUser,_that.primaryAccountUid);case _:
+return $default(_that.uid,_that.phone,_that.role,_that.isNewUser,_that.primaryProfileUid);case _:
   return null;
 
 }
@@ -207,14 +207,14 @@ return $default(_that.uid,_that.phone,_that.role,_that.isNewUser,_that.primaryAc
 @JsonSerializable()
 
 class _UserModel extends UserModel {
-  const _UserModel({required this.uid, required this.phone, @JsonKey(fromJson: UserRole.fromString) required this.role, required this.isNewUser, this.primaryAccountUid}): super._();
+  const _UserModel({required this.uid, required this.phone, @JsonKey(fromJson: UserRole.fromString) required this.role, required this.isNewUser, this.primaryProfileUid}): super._();
   factory _UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);
 
 @override final  String uid;
 @override final  String phone;
 @override@JsonKey(fromJson: UserRole.fromString) final  UserRole role;
 @override final  bool isNewUser;
-@override final  String? primaryAccountUid;
+@override final  String? primaryProfileUid;
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
@@ -229,16 +229,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.role, role) || other.role == role)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.primaryAccountUid, primaryAccountUid) || other.primaryAccountUid == primaryAccountUid));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserModel&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.role, role) || other.role == role)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.primaryProfileUid, primaryProfileUid) || other.primaryProfileUid == primaryProfileUid));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,phone,role,isNewUser,primaryAccountUid);
+int get hashCode => Object.hash(runtimeType,uid,phone,role,isNewUser,primaryProfileUid);
 
 @override
 String toString() {
-  return 'UserModel(uid: $uid, phone: $phone, role: $role, isNewUser: $isNewUser, primaryAccountUid: $primaryAccountUid)';
+  return 'UserModel(uid: $uid, phone: $phone, role: $role, isNewUser: $isNewUser, primaryProfileUid: $primaryProfileUid)';
 }
 
 
@@ -249,7 +249,7 @@ abstract mixin class _$UserModelCopyWith<$Res> implements $UserModelCopyWith<$Re
   factory _$UserModelCopyWith(_UserModel value, $Res Function(_UserModel) _then) = __$UserModelCopyWithImpl;
 @override @useResult
 $Res call({
- String uid, String phone,@JsonKey(fromJson: UserRole.fromString) UserRole role, bool isNewUser, String? primaryAccountUid
+ String uid, String phone,@JsonKey(fromJson: UserRole.fromString) UserRole role, bool isNewUser, String? primaryProfileUid
 });
 
 
@@ -266,13 +266,13 @@ class __$UserModelCopyWithImpl<$Res>
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? phone = null,Object? role = null,Object? isNewUser = null,Object? primaryAccountUid = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? phone = null,Object? role = null,Object? isNewUser = null,Object? primaryProfileUid = freezed,}) {
   return _then(_UserModel(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as UserRole,isNewUser: null == isNewUser ? _self.isNewUser : isNewUser // ignore: cast_nullable_to_non_nullable
-as bool,primaryAccountUid: freezed == primaryAccountUid ? _self.primaryAccountUid : primaryAccountUid // ignore: cast_nullable_to_non_nullable
+as bool,primaryProfileUid: freezed == primaryProfileUid ? _self.primaryProfileUid : primaryProfileUid // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

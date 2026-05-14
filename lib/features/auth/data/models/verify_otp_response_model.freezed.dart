@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$VerifyOtpResponseModel {
 
- String get userUid;@JsonKey(name: 'phone') String get phone; bool get isNewUser; String? get primaryAccountUid;@JsonKey(fromJson: UserRole.fromString) UserRole get role; String get accessToken; String get refreshToken; String get accessExpireAt; String get refreshExpireAt; String get tokenIssuedAt; MemberProfileModel? get profile; CompanyModel? get company;
+ String get userUid;@JsonKey(name: 'phone') String get phone; bool get isNewUser; String? get primaryProfileUid;@JsonKey(fromJson: UserRole.fromString) UserRole get role; String get accessToken; String get refreshToken; String get accessExpireAt; String get refreshExpireAt; String get tokenIssuedAt; MemberProfileModel? get profile; CompanyModel? get company;
 /// Create a copy of VerifyOtpResponseModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $VerifyOtpResponseModelCopyWith<VerifyOtpResponseModel> get copyWith => _$Verify
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyOtpResponseModel&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.primaryAccountUid, primaryAccountUid) || other.primaryAccountUid == primaryAccountUid)&&(identical(other.role, role) || other.role == role)&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken)&&(identical(other.accessExpireAt, accessExpireAt) || other.accessExpireAt == accessExpireAt)&&(identical(other.refreshExpireAt, refreshExpireAt) || other.refreshExpireAt == refreshExpireAt)&&(identical(other.tokenIssuedAt, tokenIssuedAt) || other.tokenIssuedAt == tokenIssuedAt)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.company, company) || other.company == company));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VerifyOtpResponseModel&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.primaryProfileUid, primaryProfileUid) || other.primaryProfileUid == primaryProfileUid)&&(identical(other.role, role) || other.role == role)&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken)&&(identical(other.accessExpireAt, accessExpireAt) || other.accessExpireAt == accessExpireAt)&&(identical(other.refreshExpireAt, refreshExpireAt) || other.refreshExpireAt == refreshExpireAt)&&(identical(other.tokenIssuedAt, tokenIssuedAt) || other.tokenIssuedAt == tokenIssuedAt)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.company, company) || other.company == company));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userUid,phone,isNewUser,primaryAccountUid,role,accessToken,refreshToken,accessExpireAt,refreshExpireAt,tokenIssuedAt,profile,company);
+int get hashCode => Object.hash(runtimeType,userUid,phone,isNewUser,primaryProfileUid,role,accessToken,refreshToken,accessExpireAt,refreshExpireAt,tokenIssuedAt,profile,company);
 
 @override
 String toString() {
-  return 'VerifyOtpResponseModel(userUid: $userUid, phone: $phone, isNewUser: $isNewUser, primaryAccountUid: $primaryAccountUid, role: $role, accessToken: $accessToken, refreshToken: $refreshToken, accessExpireAt: $accessExpireAt, refreshExpireAt: $refreshExpireAt, tokenIssuedAt: $tokenIssuedAt, profile: $profile, company: $company)';
+  return 'VerifyOtpResponseModel(userUid: $userUid, phone: $phone, isNewUser: $isNewUser, primaryProfileUid: $primaryProfileUid, role: $role, accessToken: $accessToken, refreshToken: $refreshToken, accessExpireAt: $accessExpireAt, refreshExpireAt: $refreshExpireAt, tokenIssuedAt: $tokenIssuedAt, profile: $profile, company: $company)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $VerifyOtpResponseModelCopyWith<$Res>  {
   factory $VerifyOtpResponseModelCopyWith(VerifyOtpResponseModel value, $Res Function(VerifyOtpResponseModel) _then) = _$VerifyOtpResponseModelCopyWithImpl;
 @useResult
 $Res call({
- String userUid,@JsonKey(name: 'phone') String phone, bool isNewUser, String? primaryAccountUid,@JsonKey(fromJson: UserRole.fromString) UserRole role, String accessToken, String refreshToken, String accessExpireAt, String refreshExpireAt, String tokenIssuedAt, MemberProfileModel? profile, CompanyModel? company
+ String userUid,@JsonKey(name: 'phone') String phone, bool isNewUser, String? primaryProfileUid,@JsonKey(fromJson: UserRole.fromString) UserRole role, String accessToken, String refreshToken, String accessExpireAt, String refreshExpireAt, String tokenIssuedAt, MemberProfileModel? profile, CompanyModel? company
 });
 
 
@@ -65,12 +65,12 @@ class _$VerifyOtpResponseModelCopyWithImpl<$Res>
 
 /// Create a copy of VerifyOtpResponseModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userUid = null,Object? phone = null,Object? isNewUser = null,Object? primaryAccountUid = freezed,Object? role = null,Object? accessToken = null,Object? refreshToken = null,Object? accessExpireAt = null,Object? refreshExpireAt = null,Object? tokenIssuedAt = null,Object? profile = freezed,Object? company = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userUid = null,Object? phone = null,Object? isNewUser = null,Object? primaryProfileUid = freezed,Object? role = null,Object? accessToken = null,Object? refreshToken = null,Object? accessExpireAt = null,Object? refreshExpireAt = null,Object? tokenIssuedAt = null,Object? profile = freezed,Object? company = freezed,}) {
   return _then(_self.copyWith(
 userUid: null == userUid ? _self.userUid : userUid // ignore: cast_nullable_to_non_nullable
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,isNewUser: null == isNewUser ? _self.isNewUser : isNewUser // ignore: cast_nullable_to_non_nullable
-as bool,primaryAccountUid: freezed == primaryAccountUid ? _self.primaryAccountUid : primaryAccountUid // ignore: cast_nullable_to_non_nullable
+as bool,primaryProfileUid: freezed == primaryProfileUid ? _self.primaryProfileUid : primaryProfileUid // ignore: cast_nullable_to_non_nullable
 as String?,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as UserRole,accessToken: null == accessToken ? _self.accessToken : accessToken // ignore: cast_nullable_to_non_nullable
 as String,refreshToken: null == refreshToken ? _self.refreshToken : refreshToken // ignore: cast_nullable_to_non_nullable
@@ -185,10 +185,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userUid, @JsonKey(name: 'phone')  String phone,  bool isNewUser,  String? primaryAccountUid, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  String accessToken,  String refreshToken,  String accessExpireAt,  String refreshExpireAt,  String tokenIssuedAt,  MemberProfileModel? profile,  CompanyModel? company)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userUid, @JsonKey(name: 'phone')  String phone,  bool isNewUser,  String? primaryProfileUid, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  String accessToken,  String refreshToken,  String accessExpireAt,  String refreshExpireAt,  String tokenIssuedAt,  MemberProfileModel? profile,  CompanyModel? company)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VerifyOtpResponseModel() when $default != null:
-return $default(_that.userUid,_that.phone,_that.isNewUser,_that.primaryAccountUid,_that.role,_that.accessToken,_that.refreshToken,_that.accessExpireAt,_that.refreshExpireAt,_that.tokenIssuedAt,_that.profile,_that.company);case _:
+return $default(_that.userUid,_that.phone,_that.isNewUser,_that.primaryProfileUid,_that.role,_that.accessToken,_that.refreshToken,_that.accessExpireAt,_that.refreshExpireAt,_that.tokenIssuedAt,_that.profile,_that.company);case _:
   return orElse();
 
 }
@@ -206,10 +206,10 @@ return $default(_that.userUid,_that.phone,_that.isNewUser,_that.primaryAccountUi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userUid, @JsonKey(name: 'phone')  String phone,  bool isNewUser,  String? primaryAccountUid, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  String accessToken,  String refreshToken,  String accessExpireAt,  String refreshExpireAt,  String tokenIssuedAt,  MemberProfileModel? profile,  CompanyModel? company)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userUid, @JsonKey(name: 'phone')  String phone,  bool isNewUser,  String? primaryProfileUid, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  String accessToken,  String refreshToken,  String accessExpireAt,  String refreshExpireAt,  String tokenIssuedAt,  MemberProfileModel? profile,  CompanyModel? company)  $default,) {final _that = this;
 switch (_that) {
 case _VerifyOtpResponseModel():
-return $default(_that.userUid,_that.phone,_that.isNewUser,_that.primaryAccountUid,_that.role,_that.accessToken,_that.refreshToken,_that.accessExpireAt,_that.refreshExpireAt,_that.tokenIssuedAt,_that.profile,_that.company);}
+return $default(_that.userUid,_that.phone,_that.isNewUser,_that.primaryProfileUid,_that.role,_that.accessToken,_that.refreshToken,_that.accessExpireAt,_that.refreshExpireAt,_that.tokenIssuedAt,_that.profile,_that.company);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -223,10 +223,10 @@ return $default(_that.userUid,_that.phone,_that.isNewUser,_that.primaryAccountUi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userUid, @JsonKey(name: 'phone')  String phone,  bool isNewUser,  String? primaryAccountUid, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  String accessToken,  String refreshToken,  String accessExpireAt,  String refreshExpireAt,  String tokenIssuedAt,  MemberProfileModel? profile,  CompanyModel? company)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userUid, @JsonKey(name: 'phone')  String phone,  bool isNewUser,  String? primaryProfileUid, @JsonKey(fromJson: UserRole.fromString)  UserRole role,  String accessToken,  String refreshToken,  String accessExpireAt,  String refreshExpireAt,  String tokenIssuedAt,  MemberProfileModel? profile,  CompanyModel? company)?  $default,) {final _that = this;
 switch (_that) {
 case _VerifyOtpResponseModel() when $default != null:
-return $default(_that.userUid,_that.phone,_that.isNewUser,_that.primaryAccountUid,_that.role,_that.accessToken,_that.refreshToken,_that.accessExpireAt,_that.refreshExpireAt,_that.tokenIssuedAt,_that.profile,_that.company);case _:
+return $default(_that.userUid,_that.phone,_that.isNewUser,_that.primaryProfileUid,_that.role,_that.accessToken,_that.refreshToken,_that.accessExpireAt,_that.refreshExpireAt,_that.tokenIssuedAt,_that.profile,_that.company);case _:
   return null;
 
 }
@@ -238,13 +238,13 @@ return $default(_that.userUid,_that.phone,_that.isNewUser,_that.primaryAccountUi
 @JsonSerializable()
 
 class _VerifyOtpResponseModel extends VerifyOtpResponseModel {
-  const _VerifyOtpResponseModel({required this.userUid, @JsonKey(name: 'phone') required this.phone, this.isNewUser = false, this.primaryAccountUid, @JsonKey(fromJson: UserRole.fromString) required this.role, required this.accessToken, required this.refreshToken, required this.accessExpireAt, required this.refreshExpireAt, required this.tokenIssuedAt, this.profile, this.company}): super._();
+  const _VerifyOtpResponseModel({required this.userUid, @JsonKey(name: 'phone') required this.phone, this.isNewUser = false, this.primaryProfileUid, @JsonKey(fromJson: UserRole.fromString) required this.role, required this.accessToken, required this.refreshToken, required this.accessExpireAt, required this.refreshExpireAt, required this.tokenIssuedAt, this.profile, this.company}): super._();
   factory _VerifyOtpResponseModel.fromJson(Map<String, dynamic> json) => _$VerifyOtpResponseModelFromJson(json);
 
 @override final  String userUid;
 @override@JsonKey(name: 'phone') final  String phone;
 @override@JsonKey() final  bool isNewUser;
-@override final  String? primaryAccountUid;
+@override final  String? primaryProfileUid;
 @override@JsonKey(fromJson: UserRole.fromString) final  UserRole role;
 @override final  String accessToken;
 @override final  String refreshToken;
@@ -267,16 +267,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyOtpResponseModel&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.primaryAccountUid, primaryAccountUid) || other.primaryAccountUid == primaryAccountUid)&&(identical(other.role, role) || other.role == role)&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken)&&(identical(other.accessExpireAt, accessExpireAt) || other.accessExpireAt == accessExpireAt)&&(identical(other.refreshExpireAt, refreshExpireAt) || other.refreshExpireAt == refreshExpireAt)&&(identical(other.tokenIssuedAt, tokenIssuedAt) || other.tokenIssuedAt == tokenIssuedAt)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.company, company) || other.company == company));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VerifyOtpResponseModel&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.isNewUser, isNewUser) || other.isNewUser == isNewUser)&&(identical(other.primaryProfileUid, primaryProfileUid) || other.primaryProfileUid == primaryProfileUid)&&(identical(other.role, role) || other.role == role)&&(identical(other.accessToken, accessToken) || other.accessToken == accessToken)&&(identical(other.refreshToken, refreshToken) || other.refreshToken == refreshToken)&&(identical(other.accessExpireAt, accessExpireAt) || other.accessExpireAt == accessExpireAt)&&(identical(other.refreshExpireAt, refreshExpireAt) || other.refreshExpireAt == refreshExpireAt)&&(identical(other.tokenIssuedAt, tokenIssuedAt) || other.tokenIssuedAt == tokenIssuedAt)&&(identical(other.profile, profile) || other.profile == profile)&&(identical(other.company, company) || other.company == company));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userUid,phone,isNewUser,primaryAccountUid,role,accessToken,refreshToken,accessExpireAt,refreshExpireAt,tokenIssuedAt,profile,company);
+int get hashCode => Object.hash(runtimeType,userUid,phone,isNewUser,primaryProfileUid,role,accessToken,refreshToken,accessExpireAt,refreshExpireAt,tokenIssuedAt,profile,company);
 
 @override
 String toString() {
-  return 'VerifyOtpResponseModel(userUid: $userUid, phone: $phone, isNewUser: $isNewUser, primaryAccountUid: $primaryAccountUid, role: $role, accessToken: $accessToken, refreshToken: $refreshToken, accessExpireAt: $accessExpireAt, refreshExpireAt: $refreshExpireAt, tokenIssuedAt: $tokenIssuedAt, profile: $profile, company: $company)';
+  return 'VerifyOtpResponseModel(userUid: $userUid, phone: $phone, isNewUser: $isNewUser, primaryProfileUid: $primaryProfileUid, role: $role, accessToken: $accessToken, refreshToken: $refreshToken, accessExpireAt: $accessExpireAt, refreshExpireAt: $refreshExpireAt, tokenIssuedAt: $tokenIssuedAt, profile: $profile, company: $company)';
 }
 
 
@@ -287,7 +287,7 @@ abstract mixin class _$VerifyOtpResponseModelCopyWith<$Res> implements $VerifyOt
   factory _$VerifyOtpResponseModelCopyWith(_VerifyOtpResponseModel value, $Res Function(_VerifyOtpResponseModel) _then) = __$VerifyOtpResponseModelCopyWithImpl;
 @override @useResult
 $Res call({
- String userUid,@JsonKey(name: 'phone') String phone, bool isNewUser, String? primaryAccountUid,@JsonKey(fromJson: UserRole.fromString) UserRole role, String accessToken, String refreshToken, String accessExpireAt, String refreshExpireAt, String tokenIssuedAt, MemberProfileModel? profile, CompanyModel? company
+ String userUid,@JsonKey(name: 'phone') String phone, bool isNewUser, String? primaryProfileUid,@JsonKey(fromJson: UserRole.fromString) UserRole role, String accessToken, String refreshToken, String accessExpireAt, String refreshExpireAt, String tokenIssuedAt, MemberProfileModel? profile, CompanyModel? company
 });
 
 
@@ -304,12 +304,12 @@ class __$VerifyOtpResponseModelCopyWithImpl<$Res>
 
 /// Create a copy of VerifyOtpResponseModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userUid = null,Object? phone = null,Object? isNewUser = null,Object? primaryAccountUid = freezed,Object? role = null,Object? accessToken = null,Object? refreshToken = null,Object? accessExpireAt = null,Object? refreshExpireAt = null,Object? tokenIssuedAt = null,Object? profile = freezed,Object? company = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userUid = null,Object? phone = null,Object? isNewUser = null,Object? primaryProfileUid = freezed,Object? role = null,Object? accessToken = null,Object? refreshToken = null,Object? accessExpireAt = null,Object? refreshExpireAt = null,Object? tokenIssuedAt = null,Object? profile = freezed,Object? company = freezed,}) {
   return _then(_VerifyOtpResponseModel(
 userUid: null == userUid ? _self.userUid : userUid // ignore: cast_nullable_to_non_nullable
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,isNewUser: null == isNewUser ? _self.isNewUser : isNewUser // ignore: cast_nullable_to_non_nullable
-as bool,primaryAccountUid: freezed == primaryAccountUid ? _self.primaryAccountUid : primaryAccountUid // ignore: cast_nullable_to_non_nullable
+as bool,primaryProfileUid: freezed == primaryProfileUid ? _self.primaryProfileUid : primaryProfileUid // ignore: cast_nullable_to_non_nullable
 as String?,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as UserRole,accessToken: null == accessToken ? _self.accessToken : accessToken // ignore: cast_nullable_to_non_nullable
 as String,refreshToken: null == refreshToken ? _self.refreshToken : refreshToken // ignore: cast_nullable_to_non_nullable

@@ -440,11 +440,11 @@ class JobsController extends GetxController {
   }
 
   List<TeamMemberStatusEntity> get filteredMembers {
-    final selectedIds = selectedWorkers.map((w) => w.accountUid).toSet();
+    final selectedIds = selectedWorkers.map((w) => w.uid).toSet();
 
     // Filter out already selected members
     final availableMembers = _allFetchedMembers.where(
-      (m) => !selectedIds.contains(m.profile.accountUid),
+      (m) => !selectedIds.contains(m.profile.uid),
     );
 
     if (workerSearchQuery.isEmpty) {
@@ -486,8 +486,8 @@ class JobsController extends GetxController {
       );
     }
 
-    if (selected.any((w) => w.accountUid == worker.accountUid)) {
-      selected.removeWhere((w) => w.accountUid == worker.accountUid);
+    if (selected.any((w) => w.uid == worker.uid)) {
+      selected.removeWhere((w) => w.uid == worker.uid);
     } else {
       selected.add(worker);
     }
@@ -510,7 +510,7 @@ class JobsController extends GetxController {
   }
 
   bool isWorkerSelected(MemberProfile worker) {
-    return selectedWorkers.any((w) => w.accountUid == worker.accountUid);
+    return selectedWorkers.any((w) => w.uid == worker.uid);
   }
 
   bool get isFilteringActive =>

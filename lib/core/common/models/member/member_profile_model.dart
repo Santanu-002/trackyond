@@ -8,7 +8,7 @@ part 'member_profile_model.g.dart';
 @freezed
 sealed class MemberProfileModel with _$MemberProfileModel {
   const factory MemberProfileModel({
-    required String accountUid,
+    required String uid,
     required String userUid,
     required String name,
     required String phone,
@@ -25,7 +25,7 @@ sealed class MemberProfileModel with _$MemberProfileModel {
   const MemberProfileModel._();
 
   MemberProfile toEntity() => MemberProfile(
-        accountUid: accountUid,
+        uid: uid,
         userUid: userUid,
         name: name,
         phone: phone,
@@ -38,7 +38,7 @@ sealed class MemberProfileModel with _$MemberProfileModel {
 
   factory MemberProfileModel.fromEntity(MemberProfile entity) =>
       MemberProfileModel(
-        accountUid: entity.accountUid,
+        uid: entity.uid,
         userUid: entity.userUid,
         name: entity.name,
         phone: entity.phone,

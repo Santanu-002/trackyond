@@ -14,12 +14,12 @@ class GetAttendanceStatusUseCase
   Future<Either<AppFailure, AttendanceStatusEntity>> call(
     GetAttendanceStatusParams params,
   ) {
-    return _repository.getAttendanceStatus(accountUid: params.accountUid);
+    return _repository.getAttendanceStatus(profileUid: params.profileUid);
   }
 }
 
 class GetAttendanceStatusParams {
-  final String accountUid;
+  final String profileUid;
 
-  GetAttendanceStatusParams({required this.accountUid});
+  GetAttendanceStatusParams({required this.profileUid});
 }

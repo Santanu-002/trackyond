@@ -1,7 +1,7 @@
 import 'package:trackyond/core/common/enums/gender.dart';
 
 class MemberProfile {
-  final String accountUid;
+  final String uid;
   final String userUid;
   final String name;
   final String phone;
@@ -13,7 +13,7 @@ class MemberProfile {
   final String? createdBy;
 
   const MemberProfile({
-    required this.accountUid,
+    required this.uid,
     required this.userUid,
     required this.name,
     required this.phone,

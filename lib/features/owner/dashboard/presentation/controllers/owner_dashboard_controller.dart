@@ -4,6 +4,7 @@ import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
 import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
+import 'package:trackyond/core/common/enums/stats_filter.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
@@ -13,6 +14,7 @@ import 'package:trackyond/features/auth/presentation/controllers/auth_controller
 import 'package:trackyond/features/owner/dashboard/domain/entities/drawer_item_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/task_stat_config.dart';
 import 'package:trackyond/features/owner/dashboard/domain/usecases/get_owner_dashboard_use_case.dart';
+import 'package:trackyond/features/owner/settings/presentation/controllers/owner_settings_controller.dart';
 
 class OwnerDashboardController extends GetxController {
   final GetOwnerDashboardUseCase _getOwnerDashboardUseCase;
@@ -21,10 +23,14 @@ class OwnerDashboardController extends GetxController {
     required GetOwnerDashboardUseCase getOwnerDashboardUseCase,
   }) : _getOwnerDashboardUseCase = getOwnerDashboardUseCase;
 
+  final authController = Get.find<AuthController>();
+  final settingsController = Get.find<OwnerSettingsController>();
+
   @override
   void onInit() {
     super.onInit();
     _loadUserInfo();
+    _loadStatsFilter();
   }
 
   @override
@@ -40,15 +46,31 @@ class OwnerDashboardController extends GetxController {
 
   final teamMembers = <TeamMemberStatusEntity>[].obs;
   final recentJobs = <JobEntity>[].obs;
-  final stats = const JobSummaryStats().obs;
+  
+  final _todayStats = const JobSummaryStats().obs;
+  final _overallStats = const JobSummaryStats().obs;
+  final selectedStatsFilter = StatsFilter.today.obs;
+
+  JobSummaryStats get dashboardStats =>
+      selectedStatsFilter.value == StatsFilter.today
+      ? _todayStats.value
+      : _overallStats.value;
 
   final ownerName = 'Owner'.obs;
   final ownerPhone = ''.obs;
   final companyName = 'Company'.obs;
 
+  Future<void> _loadStatsFilter() async {
+    selectedStatsFilter.value = await settingsController.dashboardStatsFilter;
+  }
+
+  Future<void> setStatsFilter(StatsFilter filter) async {
+    selectedStatsFilter.value = filter;
+    await settingsController.saveDashboardStatsFilter(filter);
+  }
+
   Future<void> _loadUserInfo() async {
     isProfileLoading.value = true;
-    final authController = Get.find<AuthController>();
     ownerName.value = await authController.ownerName;
     ownerPhone.value = await authController.ownerPhone;
     companyName.value = await authController.companyName;
@@ -61,7 +83,8 @@ class OwnerDashboardController extends GetxController {
 
     result.fold((failure) => AppSnackbar.destructive(failure.message), (data) {
       teamMembers.assignAll(data.teamMembersStatus);
-      stats.value = data.jobCounts;
+      _todayStats.value = data.jobCounts.todayStats;
+      _overallStats.value = data.jobCounts.overallStats;
       recentJobs.assignAll(data.recentJobs);
     });
     isLoading.value = false;
@@ -70,25 +93,25 @@ class OwnerDashboardController extends GetxController {
   List<TaskStatConfig> get taskStats => [
     TaskStatConfig(
       label: AppStrings.ownerDashboard.pending,
-      value: stats.value.pending,
+      value: dashboardStats.pending,
       icon: AppIcons.dashboard.timer,
       color: Get.theme.colorScheme.pending,
     ),
     TaskStatConfig(
       label: AppStrings.ownerDashboard.progress,
-      value: stats.value.inProgress,
+      value: dashboardStats.inProgress,
       icon: AppIcons.dashboard.active,
       color: Get.theme.colorScheme.inProgress,
     ),
     TaskStatConfig(
       label: AppStrings.ownerDashboard.completed,
-      value: stats.value.completed,
+      value: dashboardStats.completed,
       icon: AppIcons.dashboard.completed,
       color: Get.theme.colorScheme.completed,
     ),
     TaskStatConfig(
       label: AppStrings.ownerDashboard.cancelled,
-      value: stats.value.cancelled,
+      value: dashboardStats.cancelled,
       icon: AppIcons.dashboard.cancelled,
       color: Get.theme.colorScheme.cancelled,
     ),
@@ -150,8 +173,9 @@ class OwnerDashboardController extends GetxController {
       // Add to recent jobs list immediately
       recentJobs.insert(0, result);
 
-      // Update stats
-      stats.value = stats.value.copyWith(pending: stats.value.pending + 1);
+      // Update stats (both today and overall)
+      _todayStats.value = _todayStats.value.copyWith(pending: _todayStats.value.pending + 1);
+      _overallStats.value = _overallStats.value.copyWith(pending: _overallStats.value.pending + 1);
 
       // Optional: limit the list size
       if (recentJobs.length > 10) {

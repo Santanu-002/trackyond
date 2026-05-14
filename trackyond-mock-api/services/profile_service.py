@@ -12,7 +12,7 @@ def _company_summary(company: models.Company):
 
 def _profile_summary(member: models.Member, company: models.Company, is_primary: bool):
     return {
-        "accountUid": member.account_uid,
+        "uid": member.uid,
         "userUid": member.user_uid,
         "name": member.name,
         "designation": member.designation,
@@ -24,7 +24,7 @@ def _profile_summary(member: models.Member, company: models.Company, is_primary:
 
 def _profile_details(member: models.Member):
     return {
-        "accountUid": member.account_uid,
+        "uid": member.uid,
         "userUid": member.user_uid,
         "name": member.name,
         "phone": member.phone,
@@ -59,7 +59,7 @@ def get_employee_profiles_data(db: Session, user: models.User):
             _profile_summary(
                 membership,
                 company,
-                user.primary_account_uid == membership.account_uid,
+                user.primary_profile_uid == membership.uid,
             )
         )
 
@@ -76,9 +76,9 @@ def get_employee_profile_data(db: Session, user: models.User):
         return None, "Employee profile not found"
 
     active_member = None
-    if user.primary_account_uid:
+    if user.primary_profile_uid:
         active_member = next(
-            (m for m in memberships if m.account_uid == user.primary_account_uid),
+            (m for m in memberships if m.uid == user.primary_profile_uid),
             None,
         )
 
@@ -95,9 +95,9 @@ def get_employee_profile_data(db: Session, user: models.User):
     }, None
 
 
-def switch_employee_profile(db: Session, user: models.User, account_uid: str):
+def switch_employee_profile(db: Session, user: models.User, profile_uid: str):
     membership = db.query(models.Member).filter(
-        models.Member.account_uid == account_uid,
+        models.Member.uid == profile_uid,
         models.Member.user_uid == user.uid,
         models.Member.is_active == True,
     ).first()
@@ -105,7 +105,7 @@ def switch_employee_profile(db: Session, user: models.User, account_uid: str):
     if not membership:
         return None, "Invalid profile UID"
 
-    user.primary_account_uid = account_uid
+    user.primary_profile_uid = profile_uid
     db.commit()
 
     company = db.query(models.Company).filter(
@@ -118,10 +118,10 @@ def switch_employee_profile(db: Session, user: models.User, account_uid: str):
             "phone": user.phone,
             "role": user.role,
             "isNewUser": user.is_new_user,
-            "primaryAccountUid": user.primary_account_uid,
+            "primaryProfileUid": user.primary_profile_uid,
         },
         "profile": {
-            "accountUid": membership.account_uid,
+            "uid": membership.uid,
             "userUid": membership.user_uid,
             "name": membership.name,
             "phone": membership.phone,

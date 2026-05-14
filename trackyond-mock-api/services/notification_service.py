@@ -9,6 +9,10 @@ def upsert_admin_fcm_token(db: Session, admin_uid: str, device_id: str, fcm_toke
     """
     Business logic for admin FCM token registration.
     """
+    # Fetch member to get profile_uid
+    member = db.query(models.Member).filter(models.Member.user_uid == admin_uid).first()
+    profile_uid = member.uid if member else None
+
     return upsert_fcm_token(
         db=db,
         user_uid=admin_uid,
@@ -17,7 +21,7 @@ def upsert_admin_fcm_token(db: Session, admin_uid: str, device_id: str, fcm_toke
         fcm_token=fcm_token,
         platform=platform,
         app_version=app_version,
-        profile_uid=None  # Admin might not need profile_uid for token
+        profile_uid=profile_uid
     )
 
 def upsert_employee_fcm_token(db: Session, employee_uid: str, device_id: str, fcm_token: str, platform: Optional[str] = None, app_version: Optional[str] = None):
@@ -26,7 +30,7 @@ def upsert_employee_fcm_token(db: Session, employee_uid: str, device_id: str, fc
     """
     # Fetch member to get profile_uid
     member = db.query(models.Member).filter(models.Member.user_uid == employee_uid).first()
-    profile_uid = member.account_uid if member else None
+    profile_uid = member.uid if member else None
 
     return upsert_fcm_token(
         db=db,

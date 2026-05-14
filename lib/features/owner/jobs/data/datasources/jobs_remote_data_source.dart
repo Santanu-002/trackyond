@@ -57,7 +57,7 @@ class JobsRemoteDataSourceImpl with BaseRemoteDataSource implements IJobsRemoteD
         if (rule.field == 'status' && rule.value is List) {
           queryParams['statuses'] = (rule.value as List).map((e) => (e as JobStatus).name).toList();
         } else if (rule.field == 'worker' && rule.value is List) {
-          queryParams['workerIds'] = (rule.value as List).map((e) => (e as MemberProfile).accountUid).toList();
+          queryParams['workerIds'] = (rule.value as List).map((e) => (e as MemberProfile).uid).toList();
         } else if (rule.field == 'date' && rule.value is List && (rule.value as List).length == 2) {
           queryParams['fromDate'] = (rule.value as List)[0].toIso8601String();
           queryParams['toDate'] = (rule.value as List)[1].toIso8601String();

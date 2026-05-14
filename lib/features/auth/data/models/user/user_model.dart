@@ -12,7 +12,7 @@ sealed class UserModel with _$UserModel {
     required String phone,
     @JsonKey(fromJson: UserRole.fromString) required UserRole role,
     required bool isNewUser,
-    String? primaryAccountUid,
+    String? primaryProfileUid,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -25,7 +25,7 @@ sealed class UserModel with _$UserModel {
         phone: phone,
         role: role,
         isNewUser: isNewUser,
-        primaryAccountUid: primaryAccountUid,
+        primaryProfileUid: primaryProfileUid,
       );
 
   factory UserModel.fromEntity(User entity) => UserModel(
@@ -33,6 +33,6 @@ sealed class UserModel with _$UserModel {
         phone: entity.phone,
         role: entity.role,
         isNewUser: entity.isNewUser,
-        primaryAccountUid: entity.primaryAccountUid,
+        primaryProfileUid: entity.primaryProfileUid,
       );
 }

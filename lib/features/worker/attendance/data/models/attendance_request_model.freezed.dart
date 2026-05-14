@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AttendanceRequestModel {
 
- String get accountUid; double get latitude; double get longitude; String? get address;
+ String get profileUid; double get latitude; double get longitude; String? get address;
 /// Create a copy of AttendanceRequestModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AttendanceRequestModelCopyWith<AttendanceRequestModel> get copyWith => _$Attend
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceRequestModel&&(identical(other.accountUid, accountUid) || other.accountUid == accountUid)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.address, address) || other.address == address));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceRequestModel&&(identical(other.profileUid, profileUid) || other.profileUid == profileUid)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.address, address) || other.address == address));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accountUid,latitude,longitude,address);
+int get hashCode => Object.hash(runtimeType,profileUid,latitude,longitude,address);
 
 @override
 String toString() {
-  return 'AttendanceRequestModel(accountUid: $accountUid, latitude: $latitude, longitude: $longitude, address: $address)';
+  return 'AttendanceRequestModel(profileUid: $profileUid, latitude: $latitude, longitude: $longitude, address: $address)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AttendanceRequestModelCopyWith<$Res>  {
   factory $AttendanceRequestModelCopyWith(AttendanceRequestModel value, $Res Function(AttendanceRequestModel) _then) = _$AttendanceRequestModelCopyWithImpl;
 @useResult
 $Res call({
- String accountUid, double latitude, double longitude, String? address
+ String profileUid, double latitude, double longitude, String? address
 });
 
 
@@ -65,9 +65,9 @@ class _$AttendanceRequestModelCopyWithImpl<$Res>
 
 /// Create a copy of AttendanceRequestModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? accountUid = null,Object? latitude = null,Object? longitude = null,Object? address = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? profileUid = null,Object? latitude = null,Object? longitude = null,Object? address = freezed,}) {
   return _then(_self.copyWith(
-accountUid: null == accountUid ? _self.accountUid : accountUid // ignore: cast_nullable_to_non_nullable
+profileUid: null == profileUid ? _self.profileUid : profileUid // ignore: cast_nullable_to_non_nullable
 as String,latitude: null == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as double,longitude: null == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
 as double,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
@@ -153,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accountUid,  double latitude,  double longitude,  String? address)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String profileUid,  double latitude,  double longitude,  String? address)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AttendanceRequestModel() when $default != null:
-return $default(_that.accountUid,_that.latitude,_that.longitude,_that.address);case _:
+return $default(_that.profileUid,_that.latitude,_that.longitude,_that.address);case _:
   return orElse();
 
 }
@@ -174,10 +174,10 @@ return $default(_that.accountUid,_that.latitude,_that.longitude,_that.address);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accountUid,  double latitude,  double longitude,  String? address)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String profileUid,  double latitude,  double longitude,  String? address)  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceRequestModel():
-return $default(_that.accountUid,_that.latitude,_that.longitude,_that.address);}
+return $default(_that.profileUid,_that.latitude,_that.longitude,_that.address);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -191,10 +191,10 @@ return $default(_that.accountUid,_that.latitude,_that.longitude,_that.address);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accountUid,  double latitude,  double longitude,  String? address)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String profileUid,  double latitude,  double longitude,  String? address)?  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceRequestModel() when $default != null:
-return $default(_that.accountUid,_that.latitude,_that.longitude,_that.address);case _:
+return $default(_that.profileUid,_that.latitude,_that.longitude,_that.address);case _:
   return null;
 
 }
@@ -206,10 +206,10 @@ return $default(_that.accountUid,_that.latitude,_that.longitude,_that.address);c
 @JsonSerializable()
 
 class _AttendanceRequestModel implements AttendanceRequestModel {
-  const _AttendanceRequestModel({required this.accountUid, required this.latitude, required this.longitude, this.address});
+  const _AttendanceRequestModel({required this.profileUid, required this.latitude, required this.longitude, this.address});
   factory _AttendanceRequestModel.fromJson(Map<String, dynamic> json) => _$AttendanceRequestModelFromJson(json);
 
-@override final  String accountUid;
+@override final  String profileUid;
 @override final  double latitude;
 @override final  double longitude;
 @override final  String? address;
@@ -227,16 +227,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceRequestModel&&(identical(other.accountUid, accountUid) || other.accountUid == accountUid)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.address, address) || other.address == address));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceRequestModel&&(identical(other.profileUid, profileUid) || other.profileUid == profileUid)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.address, address) || other.address == address));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accountUid,latitude,longitude,address);
+int get hashCode => Object.hash(runtimeType,profileUid,latitude,longitude,address);
 
 @override
 String toString() {
-  return 'AttendanceRequestModel(accountUid: $accountUid, latitude: $latitude, longitude: $longitude, address: $address)';
+  return 'AttendanceRequestModel(profileUid: $profileUid, latitude: $latitude, longitude: $longitude, address: $address)';
 }
 
 
@@ -247,7 +247,7 @@ abstract mixin class _$AttendanceRequestModelCopyWith<$Res> implements $Attendan
   factory _$AttendanceRequestModelCopyWith(_AttendanceRequestModel value, $Res Function(_AttendanceRequestModel) _then) = __$AttendanceRequestModelCopyWithImpl;
 @override @useResult
 $Res call({
- String accountUid, double latitude, double longitude, String? address
+ String profileUid, double latitude, double longitude, String? address
 });
 
 
@@ -264,9 +264,9 @@ class __$AttendanceRequestModelCopyWithImpl<$Res>
 
 /// Create a copy of AttendanceRequestModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? accountUid = null,Object? latitude = null,Object? longitude = null,Object? address = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? profileUid = null,Object? latitude = null,Object? longitude = null,Object? address = freezed,}) {
   return _then(_AttendanceRequestModel(
-accountUid: null == accountUid ? _self.accountUid : accountUid // ignore: cast_nullable_to_non_nullable
+profileUid: null == profileUid ? _self.profileUid : profileUid // ignore: cast_nullable_to_non_nullable
 as String,latitude: null == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as double,longitude: null == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
 as double,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable

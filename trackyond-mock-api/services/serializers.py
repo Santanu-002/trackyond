@@ -8,7 +8,7 @@ def serialize_attendance(attendance: models.Attendance):
     status = AttendanceStatus.working if attendance.end_at is None else AttendanceStatus.ended
     return {
         "id": attendance.id,
-        "accountUid": attendance.account_uid,
+        "profileUid": attendance.profile_uid,
         "userUid": attendance.user_uid,
         "companyUid": attendance.company_uid,
         "status": status,
@@ -32,7 +32,7 @@ def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = 
         "customerName": job.customer_name,
         "customerPhone": job.customer_phone,
         "customerAddress": job.customer_address,
-        "workerAccountUid": job.worker_account_uid,
+        "workerProfileUid": job.worker_profile_uid,
         "workerName": worker_name,
         "workerImage": worker_image,
         "status": job.status,
@@ -49,7 +49,7 @@ def serialize_member_profile(member: models.Member):
     if not member:
         return None
     return {
-        "accountUid": member.account_uid,
+        "uid": member.uid,
         "userUid": getattr(member, 'user_uid', ""),
         "name": member.name,
         "phone": member.phone,

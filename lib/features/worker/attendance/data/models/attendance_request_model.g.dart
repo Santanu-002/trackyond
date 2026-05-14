@@ -9,7 +9,7 @@ part of 'attendance_request_model.dart';
 _AttendanceRequestModel _$AttendanceRequestModelFromJson(
   Map<String, dynamic> json,
 ) => _AttendanceRequestModel(
-  accountUid: json['accountUid'] as String,
+  profileUid: json['profileUid'] as String,
   latitude: (json['latitude'] as num).toDouble(),
   longitude: (json['longitude'] as num).toDouble(),
   address: json['address'] as String?,
@@ -18,7 +18,7 @@ _AttendanceRequestModel _$AttendanceRequestModelFromJson(
 Map<String, dynamic> _$AttendanceRequestModelToJson(
   _AttendanceRequestModel instance,
 ) => <String, dynamic>{
-  'accountUid': instance.accountUid,
+  'profileUid': instance.profileUid,
   'latitude': instance.latitude,
   'longitude': instance.longitude,
   'address': instance.address,

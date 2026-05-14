@@ -11,7 +11,7 @@ part 'owner_dashboard_model.g.dart';
 sealed class OwnerDashboardModel with _$OwnerDashboardModel {
   const factory OwnerDashboardModel({
     required List<TeamMemberStatusModel> teamMembersStatus,
-    required JobSummaryStatsModel jobCounts,
+    required OwnerDashboardModelStats jobCounts,
     required List<JobModel> recentJobs,
   }) = _OwnerDashboardModel;
 
@@ -24,5 +24,23 @@ sealed class OwnerDashboardModel with _$OwnerDashboardModel {
     teamMembersStatus: teamMembersStatus.map((e) => e.toEntity()).toList(),
     jobCounts: jobCounts.toEntity(),
     recentJobs: recentJobs.map((e) => e.toEntity()).toList(),
+  );
+}
+
+@freezed
+sealed class OwnerDashboardModelStats with _$OwnerDashboardModelStats {
+  const factory OwnerDashboardModelStats({
+    required JobSummaryStatsModel todayStats,
+    required JobSummaryStatsModel overallStats,
+  }) = _OwnerDashboardModelStats;
+
+  const OwnerDashboardModelStats._();
+
+  factory OwnerDashboardModelStats.fromJson(Map<String, dynamic> json) =>
+      _$OwnerDashboardModelStatsFromJson(json);
+
+  JobCountsEntity toEntity() => JobCountsEntity(
+    todayStats: todayStats.toEntity(),
+    overallStats: overallStats.toEntity(),
   );
 }

@@ -16,7 +16,7 @@ abstract interface class IAttendanceRemoteDataSource {
   );
 
   Future<ApiResponse<AttendanceStatusModel>> getAttendanceStatus(
-    String accountUid,
+    String profileUid,
   );
 }
 
@@ -49,12 +49,12 @@ class AttendanceRemoteDataSourceImpl
 
   @override
   Future<ApiResponse<AttendanceStatusModel>> getAttendanceStatus(
-    String accountUid,
+    String profileUid,
   ) {
     return performApiRequest(
       _dio.get(
         ApiEndpoints.employee.attendanceStatus,
-        queryParameters: {'account_uid': accountUid},
+        queryParameters: {'profile_uid': profileUid},
       ),
       (json) => AttendanceStatusModel.fromJson(json as Map<String, dynamic>),
     );

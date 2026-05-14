@@ -6,7 +6,7 @@ part 'switch_profile_model.g.dart';
 @freezed
 sealed class SwitchProfileModel with _$SwitchProfileModel {
   const factory SwitchProfileModel({
-    required String accountUid,
+    required String profileUid,
     required String userUid,
     required String name,
     required String designation,

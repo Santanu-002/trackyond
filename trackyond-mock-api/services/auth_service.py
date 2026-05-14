@@ -342,7 +342,7 @@ class AuthService:
             "phone": phone,
             "role": user.role.value if isinstance(user.role, Enum) else user.role,
             "isNewUser": user.is_new_user,
-            "primaryAccountUid": user.primary_account_uid,
+            "primaryProfileUid": user.primary_profile_uid,
             **tokens
         }
 
@@ -357,21 +357,21 @@ class AuthService:
             if memberships:
                 # 2. Determine which membership is primary
                 active_member = None
-                if user.primary_account_uid:
+                if user.primary_profile_uid:
                     # Check if the primary account is among the ACTIVE memberships
-                    active_member = next((m for m in memberships if m.account_uid == user.primary_account_uid), None)
+                    active_member = next((m for m in memberships if m.uid == user.primary_profile_uid), None)
                 
                 # 3. Fallback to first active membership if primary not found (deleted/inactive) or not set
                 if not active_member:
                     active_member = memberships[0]
-                    user.primary_account_uid = active_member.account_uid
+                    user.primary_profile_uid = active_member.uid
                     db.commit()
                     # Update response_data with new primary
-                    response_data["primaryAccountUid"] = user.primary_account_uid
+                    response_data["primaryProfileUid"] = user.primary_profile_uid
                 
                 # 4. Fill response data
                 response_data["profile"] = {
-                    "accountUid": active_member.account_uid,
+                    "uid": active_member.uid,
                     "userUid": user.uid,
                     "name": active_member.name,
                     "phone": active_member.phone,

@@ -14,13 +14,13 @@ class AttendanceRepositoryImpl implements IAttendanceRepository {
 
   @override
   Future<Either<AppFailure, AttendanceEntity>> startAttendance({
-    required String accountUid,
+    required String profileUid,
     required double latitude,
     required double longitude,
     String? address,
   }) async {
     final request = AttendanceRequestModel(
-      accountUid: accountUid,
+      profileUid: profileUid,
       latitude: latitude,
       longitude: longitude,
       address: address,
@@ -38,13 +38,13 @@ class AttendanceRepositoryImpl implements IAttendanceRepository {
 
   @override
   Future<Either<AppFailure, AttendanceEntity>> endAttendance({
-    required String accountUid,
+    required String profileUid,
     required double latitude,
     required double longitude,
     String? address,
   }) async {
     final request = AttendanceRequestModel(
-      accountUid: accountUid,
+      profileUid: profileUid,
       latitude: latitude,
       longitude: longitude,
       address: address,
@@ -62,9 +62,9 @@ class AttendanceRepositoryImpl implements IAttendanceRepository {
 
   @override
   Future<Either<AppFailure, AttendanceStatusEntity>> getAttendanceStatus({
-    required String accountUid,
+    required String profileUid,
   }) async {
-    final response = await _remoteDataSource.getAttendanceStatus(accountUid);
+    final response = await _remoteDataSource.getAttendanceStatus(profileUid);
 
     return response.when(
       success: (_, _, data) {

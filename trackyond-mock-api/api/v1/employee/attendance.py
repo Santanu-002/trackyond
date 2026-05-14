@@ -32,8 +32,8 @@ async def end_attendance(req: MarkAttendanceRequest, db: Session = Depends(get_d
     )
 
 @router.get("/status", response_model=GenericResponse)
-async def get_attendance_status(account_uid: str, db: Session = Depends(get_db)):
-    data, error = get_employee_attendance_status(db, account_uid)
+async def get_attendance_status(profile_uid: str, db: Session = Depends(get_db)):
+    data, error = get_employee_attendance_status(db, profile_uid)
     if error:
         return GenericResponse(success=False, message=error)
 

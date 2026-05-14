@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SwitchProfileModel {
 
- String get accountUid; String get userUid; String get name; String get designation; String? get image; SwitchProfileCompanyModel get company;@JsonKey(name: 'isPrimary') bool get isPrimary;
+ String get profileUid; String get userUid; String get name; String get designation; String? get image; SwitchProfileCompanyModel get company;@JsonKey(name: 'isPrimary') bool get isPrimary;
 /// Create a copy of SwitchProfileModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SwitchProfileModelCopyWith<SwitchProfileModel> get copyWith => _$SwitchProfileM
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwitchProfileModel&&(identical(other.accountUid, accountUid) || other.accountUid == accountUid)&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.name, name) || other.name == name)&&(identical(other.designation, designation) || other.designation == designation)&&(identical(other.image, image) || other.image == image)&&(identical(other.company, company) || other.company == company)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwitchProfileModel&&(identical(other.profileUid, profileUid) || other.profileUid == profileUid)&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.name, name) || other.name == name)&&(identical(other.designation, designation) || other.designation == designation)&&(identical(other.image, image) || other.image == image)&&(identical(other.company, company) || other.company == company)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accountUid,userUid,name,designation,image,company,isPrimary);
+int get hashCode => Object.hash(runtimeType,profileUid,userUid,name,designation,image,company,isPrimary);
 
 @override
 String toString() {
-  return 'SwitchProfileModel(accountUid: $accountUid, userUid: $userUid, name: $name, designation: $designation, image: $image, company: $company, isPrimary: $isPrimary)';
+  return 'SwitchProfileModel(profileUid: $profileUid, userUid: $userUid, name: $name, designation: $designation, image: $image, company: $company, isPrimary: $isPrimary)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SwitchProfileModelCopyWith<$Res>  {
   factory $SwitchProfileModelCopyWith(SwitchProfileModel value, $Res Function(SwitchProfileModel) _then) = _$SwitchProfileModelCopyWithImpl;
 @useResult
 $Res call({
- String accountUid, String userUid, String name, String designation, String? image, SwitchProfileCompanyModel company,@JsonKey(name: 'isPrimary') bool isPrimary
+ String profileUid, String userUid, String name, String designation, String? image, SwitchProfileCompanyModel company,@JsonKey(name: 'isPrimary') bool isPrimary
 });
 
 
@@ -65,9 +65,9 @@ class _$SwitchProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of SwitchProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? accountUid = null,Object? userUid = null,Object? name = null,Object? designation = null,Object? image = freezed,Object? company = null,Object? isPrimary = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? profileUid = null,Object? userUid = null,Object? name = null,Object? designation = null,Object? image = freezed,Object? company = null,Object? isPrimary = null,}) {
   return _then(_self.copyWith(
-accountUid: null == accountUid ? _self.accountUid : accountUid // ignore: cast_nullable_to_non_nullable
+profileUid: null == profileUid ? _self.profileUid : profileUid // ignore: cast_nullable_to_non_nullable
 as String,userUid: null == userUid ? _self.userUid : userUid // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,designation: null == designation ? _self.designation : designation // ignore: cast_nullable_to_non_nullable
@@ -165,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accountUid,  String userUid,  String name,  String designation,  String? image,  SwitchProfileCompanyModel company, @JsonKey(name: 'isPrimary')  bool isPrimary)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String profileUid,  String userUid,  String name,  String designation,  String? image,  SwitchProfileCompanyModel company, @JsonKey(name: 'isPrimary')  bool isPrimary)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SwitchProfileModel() when $default != null:
-return $default(_that.accountUid,_that.userUid,_that.name,_that.designation,_that.image,_that.company,_that.isPrimary);case _:
+return $default(_that.profileUid,_that.userUid,_that.name,_that.designation,_that.image,_that.company,_that.isPrimary);case _:
   return orElse();
 
 }
@@ -186,10 +186,10 @@ return $default(_that.accountUid,_that.userUid,_that.name,_that.designation,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accountUid,  String userUid,  String name,  String designation,  String? image,  SwitchProfileCompanyModel company, @JsonKey(name: 'isPrimary')  bool isPrimary)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String profileUid,  String userUid,  String name,  String designation,  String? image,  SwitchProfileCompanyModel company, @JsonKey(name: 'isPrimary')  bool isPrimary)  $default,) {final _that = this;
 switch (_that) {
 case _SwitchProfileModel():
-return $default(_that.accountUid,_that.userUid,_that.name,_that.designation,_that.image,_that.company,_that.isPrimary);}
+return $default(_that.profileUid,_that.userUid,_that.name,_that.designation,_that.image,_that.company,_that.isPrimary);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -203,10 +203,10 @@ return $default(_that.accountUid,_that.userUid,_that.name,_that.designation,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accountUid,  String userUid,  String name,  String designation,  String? image,  SwitchProfileCompanyModel company, @JsonKey(name: 'isPrimary')  bool isPrimary)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String profileUid,  String userUid,  String name,  String designation,  String? image,  SwitchProfileCompanyModel company, @JsonKey(name: 'isPrimary')  bool isPrimary)?  $default,) {final _that = this;
 switch (_that) {
 case _SwitchProfileModel() when $default != null:
-return $default(_that.accountUid,_that.userUid,_that.name,_that.designation,_that.image,_that.company,_that.isPrimary);case _:
+return $default(_that.profileUid,_that.userUid,_that.name,_that.designation,_that.image,_that.company,_that.isPrimary);case _:
   return null;
 
 }
@@ -218,10 +218,10 @@ return $default(_that.accountUid,_that.userUid,_that.name,_that.designation,_tha
 @JsonSerializable()
 
 class _SwitchProfileModel implements SwitchProfileModel {
-  const _SwitchProfileModel({required this.accountUid, required this.userUid, required this.name, required this.designation, this.image, required this.company, @JsonKey(name: 'isPrimary') required this.isPrimary});
+  const _SwitchProfileModel({required this.profileUid, required this.userUid, required this.name, required this.designation, this.image, required this.company, @JsonKey(name: 'isPrimary') required this.isPrimary});
   factory _SwitchProfileModel.fromJson(Map<String, dynamic> json) => _$SwitchProfileModelFromJson(json);
 
-@override final  String accountUid;
+@override final  String profileUid;
 @override final  String userUid;
 @override final  String name;
 @override final  String designation;
@@ -242,16 +242,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwitchProfileModel&&(identical(other.accountUid, accountUid) || other.accountUid == accountUid)&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.name, name) || other.name == name)&&(identical(other.designation, designation) || other.designation == designation)&&(identical(other.image, image) || other.image == image)&&(identical(other.company, company) || other.company == company)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwitchProfileModel&&(identical(other.profileUid, profileUid) || other.profileUid == profileUid)&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.name, name) || other.name == name)&&(identical(other.designation, designation) || other.designation == designation)&&(identical(other.image, image) || other.image == image)&&(identical(other.company, company) || other.company == company)&&(identical(other.isPrimary, isPrimary) || other.isPrimary == isPrimary));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accountUid,userUid,name,designation,image,company,isPrimary);
+int get hashCode => Object.hash(runtimeType,profileUid,userUid,name,designation,image,company,isPrimary);
 
 @override
 String toString() {
-  return 'SwitchProfileModel(accountUid: $accountUid, userUid: $userUid, name: $name, designation: $designation, image: $image, company: $company, isPrimary: $isPrimary)';
+  return 'SwitchProfileModel(profileUid: $profileUid, userUid: $userUid, name: $name, designation: $designation, image: $image, company: $company, isPrimary: $isPrimary)';
 }
 
 
@@ -262,7 +262,7 @@ abstract mixin class _$SwitchProfileModelCopyWith<$Res> implements $SwitchProfil
   factory _$SwitchProfileModelCopyWith(_SwitchProfileModel value, $Res Function(_SwitchProfileModel) _then) = __$SwitchProfileModelCopyWithImpl;
 @override @useResult
 $Res call({
- String accountUid, String userUid, String name, String designation, String? image, SwitchProfileCompanyModel company,@JsonKey(name: 'isPrimary') bool isPrimary
+ String profileUid, String userUid, String name, String designation, String? image, SwitchProfileCompanyModel company,@JsonKey(name: 'isPrimary') bool isPrimary
 });
 
 
@@ -279,9 +279,9 @@ class __$SwitchProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of SwitchProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? accountUid = null,Object? userUid = null,Object? name = null,Object? designation = null,Object? image = freezed,Object? company = null,Object? isPrimary = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? profileUid = null,Object? userUid = null,Object? name = null,Object? designation = null,Object? image = freezed,Object? company = null,Object? isPrimary = null,}) {
   return _then(_SwitchProfileModel(
-accountUid: null == accountUid ? _self.accountUid : accountUid // ignore: cast_nullable_to_non_nullable
+profileUid: null == profileUid ? _self.profileUid : profileUid // ignore: cast_nullable_to_non_nullable
 as String,userUid: null == userUid ? _self.userUid : userUid // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,designation: null == designation ? _self.designation : designation // ignore: cast_nullable_to_non_nullable

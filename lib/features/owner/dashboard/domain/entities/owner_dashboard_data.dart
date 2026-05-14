@@ -5,7 +5,7 @@ import 'package:trackyond/core/common/entities/member/team_member_status_entity.
 
 class OwnerDashboardData extends Equatable {
   final List<TeamMemberStatusEntity> teamMembersStatus;
-  final JobSummaryStats jobCounts;
+  final JobCountsEntity jobCounts;
   final List<JobEntity> recentJobs;
 
   const OwnerDashboardData({
@@ -15,5 +15,22 @@ class OwnerDashboardData extends Equatable {
   });
 
   @override
-  List<Object?> get props => [teamMembersStatus, jobCounts, recentJobs];
+  List<Object?> get props => [
+    teamMembersStatus,
+    jobCounts,
+    recentJobs,
+  ];
+}
+
+class JobCountsEntity extends Equatable {
+  final JobSummaryStats todayStats;
+  final JobSummaryStats overallStats;
+
+  const JobCountsEntity({
+    required this.todayStats,
+    required this.overallStats,
+  });
+
+  @override
+  List<Object?> get props => [todayStats, overallStats];
 }

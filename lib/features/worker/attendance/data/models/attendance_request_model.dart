@@ -6,7 +6,7 @@ part 'attendance_request_model.g.dart';
 @freezed
 sealed class AttendanceRequestModel with _$AttendanceRequestModel {
   const factory AttendanceRequestModel({
-    required String accountUid,
+    required String profileUid,
     required double latitude,
     required double longitude,
     String? address,

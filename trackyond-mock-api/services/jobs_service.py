@@ -37,7 +37,7 @@ def get_admin_jobs(
         models.Member.name.label("worker_name"),
         models.Member.image.label("worker_image")
     ).outerjoin(
-        models.Member, models.Job.worker_account_uid == models.Member.account_uid
+        models.Member, models.Job.worker_profile_uid == models.Member.uid
     ).filter(models.Job.company_uid == company_uid)
 
     filter_clauses = []
@@ -53,7 +53,7 @@ def get_admin_jobs(
             filter_clauses.append(models.Job.status.in_(valid_statuses))
 
     if worker_ids:
-        filter_clauses.append(models.Job.worker_account_uid.in_(worker_ids))
+        filter_clauses.append(models.Job.worker_profile_uid.in_(worker_ids))
     
     if from_date:
         filter_clauses.append(models.Job.created_at >= from_date)
@@ -130,16 +130,16 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
         customer_name=job_data.get("customerName"),
         customer_phone=job_data.get("customerPhone"),
         customer_address=job_data.get("customerAddress"),
-        worker_account_uid=job_data.get("workerAccountUid"),
+        worker_profile_uid=job_data.get("workerProfileUid"),
         company_uid=admin_member.company_uid,
         created_by=admin_uid,
-        status=JobStatus.assigned if job_data.get("workerAccountUid") else JobStatus.pending,
+        status=JobStatus.assigned if job_data.get("workerProfileUid") else JobStatus.pending,
         require_photo_on_start=job_data.get("requirePhotoOnStart", False),
         require_photo_on_complete=job_data.get("requirePhotoOnComplete", False),
         capture_location=job_data.get("captureLocation", True)
     )
     
-    if new_job.worker_account_uid:
+    if new_job.worker_profile_uid:
         new_job.assigned_at = now_utc()
 
     db.add(new_job)
@@ -148,8 +148,8 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
 
     worker_name = None
     worker_image = None
-    if new_job.worker_account_uid:
-        worker_member = db.query(models.Member).filter(models.Member.account_uid == new_job.worker_account_uid).first()
+    if new_job.worker_profile_uid:
+        worker_member = db.query(models.Member).filter(models.Member.uid == new_job.worker_profile_uid).first()
         if worker_member:
             worker_name = worker_member.name
             worker_image = worker_member.image
@@ -157,7 +157,8 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
             create_notification(
                 db, 
                 user_uid=worker_member.user_uid,
-                message=f"New job assigned: {new_job.title}"
+                message=f"New job assigned: {new_job.title}",
+                profile_uid=worker_member.uid
             )
 
     return serialize_job(new_job, worker_name, worker_image), None
@@ -168,17 +169,18 @@ def notify_job_worker(db: Session, job_id: str):
     if not job:
         return False, "Job not found"
     
-    if not job.worker_account_uid:
+    if not job.worker_profile_uid:
         return False, "Job not assigned to any worker"
     
-    worker_member = db.query(models.Member).filter(models.Member.account_uid == job.worker_account_uid).first()
+    worker_member = db.query(models.Member).filter(models.Member.uid == job.worker_profile_uid).first()
     if not worker_member:
         return False, "Worker profile not found"
     
     create_notification(
         db,
         user_uid=worker_member.user_uid,
-        message=f"Reminder: You have an assigned job: {job.title}"
+        message=f"Reminder: You have an assigned job: {job.title}",
+        profile_uid=worker_member.uid
     )
 
     return True, None
@@ -186,7 +188,7 @@ def notify_job_worker(db: Session, job_id: str):
 
 def get_employee_assigned_jobs(
     db: Session,
-    primary_account_uid: str,
+    primary_profile_uid: str,
     limit: int,
     offset: int,
     order_by: str,
@@ -197,7 +199,7 @@ def get_employee_assigned_jobs(
     from_date: Optional[str],
     to_date: Optional[str]
 ):
-    member = db.query(models.Member).filter(models.Member.account_uid == primary_account_uid).first()
+    member = db.query(models.Member).filter(models.Member.uid == primary_profile_uid).first()
     if not member:
         return None, "Member profile not found"
 
@@ -206,8 +208,8 @@ def get_employee_assigned_jobs(
         models.Member.name.label("worker_name"),
         models.Member.image.label("worker_image")
     ).outerjoin(
-        models.Member, models.Job.worker_account_uid == models.Member.account_uid
-    ).filter(models.Job.worker_account_uid == member.account_uid)
+        models.Member, models.Job.worker_profile_uid == models.Member.uid
+    ).filter(models.Job.worker_profile_uid == member.uid)
 
     if status:
         query = query.filter(models.Job.status.in_(status))
@@ -264,12 +266,12 @@ def get_employee_assigned_jobs(
     }, None
 
 
-def update_job_status_for_employee(db: Session, primary_account_uid: str, job_id: str, status: JobStatus):
+def update_job_status_for_employee(db: Session, primary_profile_uid: str, job_id: str, status: JobStatus):
     job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
     if not job:
         return False, "Job not found", 404
     
-    if job.worker_account_uid != primary_account_uid:
+    if job.worker_profile_uid != primary_profile_uid:
         return False, "Not authorized to update this job", 403
 
     job.status = status

@@ -24,7 +24,7 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
             continue
 
         latest = db.query(models.Attendance).filter(
-            models.Attendance.account_uid == m.account_uid,
+            models.Attendance.profile_uid == m.uid,
             models.Attendance.created_at >= today_start
         ).order_by(models.Attendance.created_at.desc()).first()
             
@@ -34,25 +34,22 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
         })
     
     # 2. Job Statistics
-    pending_count = db.query(models.Job).filter(
-        models.Job.company_uid == company_uid, 
-        models.Job.status.in_([JobStatus.pending, JobStatus.assigned])
-    ).count()
-    
-    in_progress_count = db.query(models.Job).filter(
-        models.Job.company_uid == company_uid, 
-        models.Job.status == JobStatus.in_progress
-    ).count()
-    
-    completed_count = db.query(models.Job).filter(
-        models.Job.company_uid == company_uid, 
-        models.Job.status == JobStatus.completed
-    ).count()
-
-    cancelled_count = db.query(models.Job).filter(
-        models.Job.company_uid == company_uid, 
-        models.Job.status == JobStatus.cancelled
-    ).count()
+    def get_admin_counts(start_date=None):
+        base_query = db.query(models.Job).filter(models.Job.company_uid == company_uid)
+        if start_date:
+            return {
+                "pending": base_query.filter(models.Job.status.in_([JobStatus.pending, JobStatus.assigned]), models.Job.created_at >= start_date).count(),
+                "inProgress": base_query.filter(models.Job.status == JobStatus.in_progress, models.Job.created_at >= start_date).count(),
+                "completed": base_query.filter(models.Job.status == JobStatus.completed, models.Job.completed_at >= start_date).count(),
+                "cancelled": base_query.filter(models.Job.status == JobStatus.cancelled, models.Job.updated_at >= start_date).count(),
+            }
+        else:
+            return {
+                "pending": base_query.filter(models.Job.status.in_([JobStatus.pending, JobStatus.assigned])).count(),
+                "inProgress": base_query.filter(models.Job.status == JobStatus.in_progress).count(),
+                "completed": base_query.filter(models.Job.status == JobStatus.completed).count(),
+                "cancelled": base_query.filter(models.Job.status == JobStatus.cancelled).count(),
+            }
 
     # 3. Recent Jobs (last 10)
     recent_jobs_results = db.query(
@@ -60,7 +57,7 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
         models.Member.name.label("worker_name"),
         models.Member.image.label("worker_image")
     ).outerjoin(
-        models.Member, models.Job.worker_account_uid == models.Member.account_uid
+        models.Member, models.Job.worker_profile_uid == models.Member.uid
     ).filter(
         models.Job.company_uid == company_uid
     ).order_by(desc(models.Job.created_at)).limit(10).all()
@@ -87,10 +84,8 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
     return {
         "teamMembersStatus": team_status,
         "jobCounts": {
-            "pending": pending_count,
-            "inProgress": in_progress_count,
-            "completed": completed_count,
-            "cancelled": cancelled_count,
+            "todayStats": get_admin_counts(today_start),
+            "overallStats": get_admin_counts(),
         },
         "jobChart": [
             {"label": "Pending", "value": chart_data["pending"], "color": "0xFFFBBF24"},
@@ -101,12 +96,12 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
         "recentJobs": recent_jobs
     }, None
 
-def get_employee_dashboard_data(db: Session, user_uid: str, primary_account_uid: str):
-    if not primary_account_uid:
+def get_employee_dashboard_data(db: Session, user_uid: str, profile_uid: str):
+    if not profile_uid:
         return None, "No active profile found"
 
     active_member = db.query(models.Member).filter(
-        models.Member.account_uid == primary_account_uid
+        models.Member.uid == profile_uid
     ).first()
 
     if not active_member:
@@ -115,7 +110,7 @@ def get_employee_dashboard_data(db: Session, user_uid: str, primary_account_uid:
     # 1. Get today's attendance
     today_start = now_utc().replace(hour=0, minute=0, second=0, microsecond=0)
     latest_attendance = db.query(models.Attendance).filter(
-        models.Attendance.account_uid == active_member.account_uid,
+        models.Attendance.profile_uid == active_member.uid,
         models.Attendance.created_at >= today_start
     ).order_by(desc(models.Attendance.created_at)).first()
 
@@ -128,9 +123,9 @@ def get_employee_dashboard_data(db: Session, user_uid: str, primary_account_uid:
         models.Member.name.label("worker_name"),
         models.Member.image.label("worker_image")
     ).outerjoin(
-        models.Member, models.Job.worker_account_uid == models.Member.account_uid
+        models.Member, models.Job.worker_profile_uid == models.Member.uid
     ).filter(
-        models.Job.worker_account_uid == active_member.account_uid,
+        models.Job.worker_profile_uid == active_member.uid,
         models.Job.status.in_([JobStatus.assigned, JobStatus.in_progress])
     ).order_by(desc(models.Job.assigned_at)).all()
 
@@ -142,16 +137,16 @@ def get_employee_dashboard_data(db: Session, user_uid: str, primary_account_uid:
         models.Member.name.label("worker_name"),
         models.Member.image.label("worker_image")
     ).outerjoin(
-        models.Member, models.Job.worker_account_uid == models.Member.account_uid
+        models.Member, models.Job.worker_profile_uid == models.Member.uid
     ).filter(
-        models.Job.worker_account_uid == active_member.account_uid
+        models.Job.worker_profile_uid == active_member.uid
     ).order_by(desc(models.Job.assigned_at)).limit(10).all()
 
     recent_jobs = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in recent_jobs_results]
 
     # 4. Summary Stats
     def get_counts(start_date=None):
-        base_query = db.query(models.Job).filter(models.Job.worker_account_uid == active_member.account_uid)
+        base_query = db.query(models.Job).filter(models.Job.worker_profile_uid == active_member.uid)
         if start_date:
             return {
                 "pending": base_query.filter(models.Job.status == JobStatus.assigned, models.Job.assigned_at >= start_date).count(),
@@ -177,8 +172,8 @@ def get_employee_dashboard_data(db: Session, user_uid: str, primary_account_uid:
             "attendance": attendance_data
         },
         "recentJobs": recent_jobs,
-        "stats": {
-            "today": get_counts(today_start),
-            "overall": get_counts()
+        "jobCounts": {
+            "todayStats": get_counts(today_start),
+            "overallStats": get_counts()
         }
     }, None

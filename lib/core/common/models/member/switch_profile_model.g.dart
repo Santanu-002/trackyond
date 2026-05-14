@@ -8,7 +8,7 @@ part of 'switch_profile_model.dart';
 
 _SwitchProfileModel _$SwitchProfileModelFromJson(Map<String, dynamic> json) =>
     _SwitchProfileModel(
-      accountUid: json['accountUid'] as String,
+      profileUid: json['profileUid'] as String,
       userUid: json['userUid'] as String,
       name: json['name'] as String,
       designation: json['designation'] as String,
@@ -21,7 +21,7 @@ _SwitchProfileModel _$SwitchProfileModelFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SwitchProfileModelToJson(_SwitchProfileModel instance) =>
     <String, dynamic>{
-      'accountUid': instance.accountUid,
+      'profileUid': instance.profileUid,
       'userUid': instance.userUid,
       'name': instance.name,
       'designation': instance.designation,

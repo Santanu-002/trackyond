@@ -8,12 +8,12 @@ from services.dashboard_service import get_employee_dashboard_data
 
 router = APIRouter(prefix="/dashboard", tags=["Employee/Dashboard"])
 
-@router.get("", response_model=GenericResponse)
-async def get_employee_dashboard(
+@router.get("/", response_model=GenericResponse)
+async def get_dashboard(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user)
 ):
-    data, error = get_employee_dashboard_data(db, user.uid, user.primary_account_uid)
+    data, error = get_employee_dashboard_data(db, user.uid, user.primary_profile_uid)
     if error:
         return GenericResponse(success=False, message=error)
 

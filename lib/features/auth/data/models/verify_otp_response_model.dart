@@ -15,7 +15,7 @@ sealed class VerifyOtpResponseModel with _$VerifyOtpResponseModel {
     required String userUid,
     @JsonKey(name: 'phone') required String phone,
     @Default(false) bool isNewUser,
-    String? primaryAccountUid,
+    String? primaryProfileUid,
     @JsonKey(fromJson: UserRole.fromString) required UserRole role,
     required String accessToken,
     required String refreshToken,
@@ -63,6 +63,6 @@ sealed class VerifyOtpResponseModel with _$VerifyOtpResponseModel {
         phone: phone,
         role: role,
         isNewUser: isNewUser,
-        primaryAccountUid: primaryAccountUid,
+        primaryProfileUid: primaryProfileUid,
       );
 }

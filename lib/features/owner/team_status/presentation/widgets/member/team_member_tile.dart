@@ -70,7 +70,7 @@ class TeamMemberTile extends StatelessWidget {
                           designation: member.profile.designation,
                           phone: member.profile.phone,
                           highlight: highlight,
-                          accountUid: member.profile.accountUid,
+                          profileUid: member.profile.uid,
                         ),
                       ],
                     ),

@@ -50,14 +50,14 @@ async def get_employee_profile(
 
 @router.post("/switch", response_model=GenericResponse)
 async def switch_profile(
-    account_uid: str,
+    profile_uid: str,
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user)
 ):
     """
-    Switches the user's primary profile to the specified account_uid.
+    Switches the user's primary profile to the specified profile_uid.
     """
-    data, error = switch_employee_profile(db, user, account_uid)
+    data, error = switch_employee_profile(db, user, profile_uid)
     if error:
         return GenericResponse(success=False, message=error)
 

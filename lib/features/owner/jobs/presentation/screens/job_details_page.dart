@@ -321,7 +321,7 @@ class JobDetailsPage extends GetView<JobDetailsController> {
                 ),
               ),
               Text(
-                job.workerAccountUid,
+                job.workerProfileUid,
                 style: context.textTheme.labelSmall,
               ),
             ],

@@ -3,14 +3,14 @@ from typing import Optional
 from datetime import datetime
 
 class MarkAttendanceRequest(BaseModel):
-    accountUid: str
+    profileUid: str
     latitude: float
     longitude: float
     address: Optional[str] = None
 
 class AttendanceResponse(BaseModel):
     id: int
-    accountUid: str
+    profileUid: str
     userUid: str
     companyUid: str
     startAt: datetime

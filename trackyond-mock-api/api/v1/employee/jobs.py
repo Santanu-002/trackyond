@@ -27,7 +27,7 @@ async def get_assigned_jobs(
 ):
     data, error = get_employee_assigned_jobs(
         db=db,
-        primary_account_uid=user.primary_account_uid,
+        primary_profile_uid=user.primary_profile_uid,
         limit=limit,
         offset=offset,
         order_by=order_by,
@@ -57,7 +57,7 @@ async def update_job_status(
 ):
     success, error, code = update_job_status_for_employee(
         db=db,
-        primary_account_uid=user.primary_account_uid,
+        primary_profile_uid=user.primary_profile_uid,
         job_id=job_id,
         status=status
     )

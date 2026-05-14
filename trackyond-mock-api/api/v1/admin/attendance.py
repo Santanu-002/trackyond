@@ -12,7 +12,7 @@ router = APIRouter(prefix="/attendance", tags=["Admin/Attendance"])
 
 @router.get("", response_model=GenericResponse)
 async def get_attendance_logs(
-    account_uid: Optional[str] = Query(None, alias="accountUid"),
+    profile_uid: Optional[str] = Query(None, alias="profileUid"),
     status: Optional[str] = None,
     start_date: Optional[datetime] = Query(None, alias="startDate"),
     end_date: Optional[datetime] = Query(None, alias="endDate"),
@@ -27,7 +27,7 @@ async def get_attendance_logs(
     data, error = get_admin_attendance_logs(
         db=db,
         admin_uid=admin.uid,
-        account_uid=account_uid,
+        profile_uid=profile_uid,
         status=status,
         start_date=start_date,
         end_date=end_date,
@@ -49,7 +49,7 @@ async def get_attendance_logs(
 
 @router.get("/export/csv", response_model=GenericResponse)
 async def export_attendance_csv(
-    account_uid: str = Query(..., alias="accountUid"),
+    profile_uid: str = Query(..., alias="profileUid"),
     db: Session = Depends(get_db),
     admin: models.User = Depends(get_admin_user)
 ):
@@ -57,12 +57,12 @@ async def export_attendance_csv(
     return GenericResponse(
         success=True,
         message="CSV Export ready",
-        data={"downloadUrl": f"https://api.trackyond.com/exports/attendance_{account_uid}.csv"}
+        data={"downloadUrl": f"https://api.trackyond.com/exports/attendance_{profile_uid}.csv"}
     )
 
 @router.get("/export/pdf", response_model=GenericResponse)
 async def export_attendance_pdf(
-    account_uid: str = Query(..., alias="accountUid"),
+    profile_uid: str = Query(..., alias="profileUid"),
     db: Session = Depends(get_db),
     admin: models.User = Depends(get_admin_user)
 ):
@@ -70,5 +70,5 @@ async def export_attendance_pdf(
     return GenericResponse(
         success=True,
         message="PDF Export ready",
-        data={"downloadUrl": f"https://api.trackyond.com/exports/attendance_{account_uid}.pdf"}
+        data={"downloadUrl": f"https://api.trackyond.com/exports/attendance_{profile_uid}.pdf"}
     )

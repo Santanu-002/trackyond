@@ -5,13 +5,13 @@ class User {
   final String phone;
   final UserRole role;
   final bool isNewUser;
-  final String? primaryAccountUid;
+  final String? primaryProfileUid;
 
   User({
     required this.uid,
     required this.phone,
     required this.role,
     required this.isNewUser,
-    this.primaryAccountUid,
+    this.primaryProfileUid,
   });
 }

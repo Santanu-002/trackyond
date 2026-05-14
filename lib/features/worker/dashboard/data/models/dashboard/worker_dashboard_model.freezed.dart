@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WorkerDashboardModel {
 
- AttendanceStatusModel get attendanceStatus; List<JobModel> get recentJobs; WorkerDashboardModelStats get stats;
+ AttendanceStatusModel get attendanceStatus; List<JobModel> get recentJobs; WorkerDashboardModelStats get jobCounts;
 /// Create a copy of WorkerDashboardModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $WorkerDashboardModelCopyWith<WorkerDashboardModel> get copyWith => _$WorkerDash
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other.recentJobs, recentJobs)&&(identical(other.stats, stats) || other.stats == stats));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other.recentJobs, recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(recentJobs),stats);
+int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(recentJobs),jobCounts);
 
 @override
 String toString() {
-  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, stats: $stats)';
+  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, jobCounts: $jobCounts)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $WorkerDashboardModelCopyWith<$Res>  {
   factory $WorkerDashboardModelCopyWith(WorkerDashboardModel value, $Res Function(WorkerDashboardModel) _then) = _$WorkerDashboardModelCopyWithImpl;
 @useResult
 $Res call({
- AttendanceStatusModel attendanceStatus, List<JobModel> recentJobs, WorkerDashboardModelStats stats
+ AttendanceStatusModel attendanceStatus, List<JobModel> recentJobs, WorkerDashboardModelStats jobCounts
 });
 
 
-$AttendanceStatusModelCopyWith<$Res> get attendanceStatus;$WorkerDashboardModelStatsCopyWith<$Res> get stats;
+$AttendanceStatusModelCopyWith<$Res> get attendanceStatus;$WorkerDashboardModelStatsCopyWith<$Res> get jobCounts;
 
 }
 /// @nodoc
@@ -65,11 +65,11 @@ class _$WorkerDashboardModelCopyWithImpl<$Res>
 
 /// Create a copy of WorkerDashboardModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? attendanceStatus = null,Object? recentJobs = null,Object? stats = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? attendanceStatus = null,Object? recentJobs = null,Object? jobCounts = null,}) {
   return _then(_self.copyWith(
 attendanceStatus: null == attendanceStatus ? _self.attendanceStatus : attendanceStatus // ignore: cast_nullable_to_non_nullable
 as AttendanceStatusModel,recentJobs: null == recentJobs ? _self.recentJobs : recentJobs // ignore: cast_nullable_to_non_nullable
-as List<JobModel>,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
+as List<JobModel>,jobCounts: null == jobCounts ? _self.jobCounts : jobCounts // ignore: cast_nullable_to_non_nullable
 as WorkerDashboardModelStats,
   ));
 }
@@ -86,10 +86,10 @@ $AttendanceStatusModelCopyWith<$Res> get attendanceStatus {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$WorkerDashboardModelStatsCopyWith<$Res> get stats {
+$WorkerDashboardModelStatsCopyWith<$Res> get jobCounts {
   
-  return $WorkerDashboardModelStatsCopyWith<$Res>(_self.stats, (value) {
-    return _then(_self.copyWith(stats: value));
+  return $WorkerDashboardModelStatsCopyWith<$Res>(_self.jobCounts, (value) {
+    return _then(_self.copyWith(jobCounts: value));
   });
 }
 }
@@ -170,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats stats)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats jobCounts)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WorkerDashboardModel() when $default != null:
-return $default(_that.attendanceStatus,_that.recentJobs,_that.stats);case _:
+return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts);case _:
   return orElse();
 
 }
@@ -191,10 +191,10 @@ return $default(_that.attendanceStatus,_that.recentJobs,_that.stats);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats stats)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats jobCounts)  $default,) {final _that = this;
 switch (_that) {
 case _WorkerDashboardModel():
-return $default(_that.attendanceStatus,_that.recentJobs,_that.stats);}
+return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -208,10 +208,10 @@ return $default(_that.attendanceStatus,_that.recentJobs,_that.stats);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats stats)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats jobCounts)?  $default,) {final _that = this;
 switch (_that) {
 case _WorkerDashboardModel() when $default != null:
-return $default(_that.attendanceStatus,_that.recentJobs,_that.stats);case _:
+return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts);case _:
   return null;
 
 }
@@ -223,7 +223,7 @@ return $default(_that.attendanceStatus,_that.recentJobs,_that.stats);case _:
 @JsonSerializable()
 
 class _WorkerDashboardModel extends WorkerDashboardModel {
-  const _WorkerDashboardModel({required this.attendanceStatus, required final  List<JobModel> recentJobs, required this.stats}): _recentJobs = recentJobs,super._();
+  const _WorkerDashboardModel({required this.attendanceStatus, required final  List<JobModel> recentJobs, required this.jobCounts}): _recentJobs = recentJobs,super._();
   factory _WorkerDashboardModel.fromJson(Map<String, dynamic> json) => _$WorkerDashboardModelFromJson(json);
 
 @override final  AttendanceStatusModel attendanceStatus;
@@ -234,7 +234,7 @@ class _WorkerDashboardModel extends WorkerDashboardModel {
   return EqualUnmodifiableListView(_recentJobs);
 }
 
-@override final  WorkerDashboardModelStats stats;
+@override final  WorkerDashboardModelStats jobCounts;
 
 /// Create a copy of WorkerDashboardModel
 /// with the given fields replaced by the non-null parameter values.
@@ -249,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other._recentJobs, _recentJobs)&&(identical(other.stats, stats) || other.stats == stats));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other._recentJobs, _recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(_recentJobs),stats);
+int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(_recentJobs),jobCounts);
 
 @override
 String toString() {
-  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, stats: $stats)';
+  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, jobCounts: $jobCounts)';
 }
 
 
@@ -269,11 +269,11 @@ abstract mixin class _$WorkerDashboardModelCopyWith<$Res> implements $WorkerDash
   factory _$WorkerDashboardModelCopyWith(_WorkerDashboardModel value, $Res Function(_WorkerDashboardModel) _then) = __$WorkerDashboardModelCopyWithImpl;
 @override @useResult
 $Res call({
- AttendanceStatusModel attendanceStatus, List<JobModel> recentJobs, WorkerDashboardModelStats stats
+ AttendanceStatusModel attendanceStatus, List<JobModel> recentJobs, WorkerDashboardModelStats jobCounts
 });
 
 
-@override $AttendanceStatusModelCopyWith<$Res> get attendanceStatus;@override $WorkerDashboardModelStatsCopyWith<$Res> get stats;
+@override $AttendanceStatusModelCopyWith<$Res> get attendanceStatus;@override $WorkerDashboardModelStatsCopyWith<$Res> get jobCounts;
 
 }
 /// @nodoc
@@ -286,11 +286,11 @@ class __$WorkerDashboardModelCopyWithImpl<$Res>
 
 /// Create a copy of WorkerDashboardModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? attendanceStatus = null,Object? recentJobs = null,Object? stats = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? attendanceStatus = null,Object? recentJobs = null,Object? jobCounts = null,}) {
   return _then(_WorkerDashboardModel(
 attendanceStatus: null == attendanceStatus ? _self.attendanceStatus : attendanceStatus // ignore: cast_nullable_to_non_nullable
 as AttendanceStatusModel,recentJobs: null == recentJobs ? _self._recentJobs : recentJobs // ignore: cast_nullable_to_non_nullable
-as List<JobModel>,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
+as List<JobModel>,jobCounts: null == jobCounts ? _self.jobCounts : jobCounts // ignore: cast_nullable_to_non_nullable
 as WorkerDashboardModelStats,
   ));
 }
@@ -308,10 +308,10 @@ $AttendanceStatusModelCopyWith<$Res> get attendanceStatus {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$WorkerDashboardModelStatsCopyWith<$Res> get stats {
+$WorkerDashboardModelStatsCopyWith<$Res> get jobCounts {
   
-  return $WorkerDashboardModelStatsCopyWith<$Res>(_self.stats, (value) {
-    return _then(_self.copyWith(stats: value));
+  return $WorkerDashboardModelStatsCopyWith<$Res>(_self.jobCounts, (value) {
+    return _then(_self.copyWith(jobCounts: value));
   });
 }
 }
@@ -320,7 +320,7 @@ $WorkerDashboardModelStatsCopyWith<$Res> get stats {
 /// @nodoc
 mixin _$WorkerDashboardModelStats {
 
- JobSummaryStatsModel get today; JobSummaryStatsModel get overall;
+ JobSummaryStatsModel get todayStats; JobSummaryStatsModel get overallStats;
 /// Create a copy of WorkerDashboardModelStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -333,16 +333,16 @@ $WorkerDashboardModelStatsCopyWith<WorkerDashboardModelStats> get copyWith => _$
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModelStats&&(identical(other.today, today) || other.today == today)&&(identical(other.overall, overall) || other.overall == overall));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModelStats&&(identical(other.todayStats, todayStats) || other.todayStats == todayStats)&&(identical(other.overallStats, overallStats) || other.overallStats == overallStats));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,today,overall);
+int get hashCode => Object.hash(runtimeType,todayStats,overallStats);
 
 @override
 String toString() {
-  return 'WorkerDashboardModelStats(today: $today, overall: $overall)';
+  return 'WorkerDashboardModelStats(todayStats: $todayStats, overallStats: $overallStats)';
 }
 
 
@@ -353,11 +353,11 @@ abstract mixin class $WorkerDashboardModelStatsCopyWith<$Res>  {
   factory $WorkerDashboardModelStatsCopyWith(WorkerDashboardModelStats value, $Res Function(WorkerDashboardModelStats) _then) = _$WorkerDashboardModelStatsCopyWithImpl;
 @useResult
 $Res call({
- JobSummaryStatsModel today, JobSummaryStatsModel overall
+ JobSummaryStatsModel todayStats, JobSummaryStatsModel overallStats
 });
 
 
-$JobSummaryStatsModelCopyWith<$Res> get today;$JobSummaryStatsModelCopyWith<$Res> get overall;
+$JobSummaryStatsModelCopyWith<$Res> get todayStats;$JobSummaryStatsModelCopyWith<$Res> get overallStats;
 
 }
 /// @nodoc
@@ -370,10 +370,10 @@ class _$WorkerDashboardModelStatsCopyWithImpl<$Res>
 
 /// Create a copy of WorkerDashboardModelStats
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? today = null,Object? overall = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? todayStats = null,Object? overallStats = null,}) {
   return _then(_self.copyWith(
-today: null == today ? _self.today : today // ignore: cast_nullable_to_non_nullable
-as JobSummaryStatsModel,overall: null == overall ? _self.overall : overall // ignore: cast_nullable_to_non_nullable
+todayStats: null == todayStats ? _self.todayStats : todayStats // ignore: cast_nullable_to_non_nullable
+as JobSummaryStatsModel,overallStats: null == overallStats ? _self.overallStats : overallStats // ignore: cast_nullable_to_non_nullable
 as JobSummaryStatsModel,
   ));
 }
@@ -381,19 +381,19 @@ as JobSummaryStatsModel,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$JobSummaryStatsModelCopyWith<$Res> get today {
+$JobSummaryStatsModelCopyWith<$Res> get todayStats {
   
-  return $JobSummaryStatsModelCopyWith<$Res>(_self.today, (value) {
-    return _then(_self.copyWith(today: value));
+  return $JobSummaryStatsModelCopyWith<$Res>(_self.todayStats, (value) {
+    return _then(_self.copyWith(todayStats: value));
   });
 }/// Create a copy of WorkerDashboardModelStats
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$JobSummaryStatsModelCopyWith<$Res> get overall {
+$JobSummaryStatsModelCopyWith<$Res> get overallStats {
   
-  return $JobSummaryStatsModelCopyWith<$Res>(_self.overall, (value) {
-    return _then(_self.copyWith(overall: value));
+  return $JobSummaryStatsModelCopyWith<$Res>(_self.overallStats, (value) {
+    return _then(_self.copyWith(overallStats: value));
   });
 }
 }
@@ -474,10 +474,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( JobSummaryStatsModel today,  JobSummaryStatsModel overall)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( JobSummaryStatsModel todayStats,  JobSummaryStatsModel overallStats)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WorkerDashboardModelStats() when $default != null:
-return $default(_that.today,_that.overall);case _:
+return $default(_that.todayStats,_that.overallStats);case _:
   return orElse();
 
 }
@@ -495,10 +495,10 @@ return $default(_that.today,_that.overall);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( JobSummaryStatsModel today,  JobSummaryStatsModel overall)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( JobSummaryStatsModel todayStats,  JobSummaryStatsModel overallStats)  $default,) {final _that = this;
 switch (_that) {
 case _WorkerDashboardModelStats():
-return $default(_that.today,_that.overall);}
+return $default(_that.todayStats,_that.overallStats);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -512,10 +512,10 @@ return $default(_that.today,_that.overall);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( JobSummaryStatsModel today,  JobSummaryStatsModel overall)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( JobSummaryStatsModel todayStats,  JobSummaryStatsModel overallStats)?  $default,) {final _that = this;
 switch (_that) {
 case _WorkerDashboardModelStats() when $default != null:
-return $default(_that.today,_that.overall);case _:
+return $default(_that.todayStats,_that.overallStats);case _:
   return null;
 
 }
@@ -526,12 +526,12 @@ return $default(_that.today,_that.overall);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _WorkerDashboardModelStats implements WorkerDashboardModelStats {
-  const _WorkerDashboardModelStats({required this.today, required this.overall});
+class _WorkerDashboardModelStats extends WorkerDashboardModelStats {
+  const _WorkerDashboardModelStats({required this.todayStats, required this.overallStats}): super._();
   factory _WorkerDashboardModelStats.fromJson(Map<String, dynamic> json) => _$WorkerDashboardModelStatsFromJson(json);
 
-@override final  JobSummaryStatsModel today;
-@override final  JobSummaryStatsModel overall;
+@override final  JobSummaryStatsModel todayStats;
+@override final  JobSummaryStatsModel overallStats;
 
 /// Create a copy of WorkerDashboardModelStats
 /// with the given fields replaced by the non-null parameter values.
@@ -546,16 +546,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModelStats&&(identical(other.today, today) || other.today == today)&&(identical(other.overall, overall) || other.overall == overall));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModelStats&&(identical(other.todayStats, todayStats) || other.todayStats == todayStats)&&(identical(other.overallStats, overallStats) || other.overallStats == overallStats));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,today,overall);
+int get hashCode => Object.hash(runtimeType,todayStats,overallStats);
 
 @override
 String toString() {
-  return 'WorkerDashboardModelStats(today: $today, overall: $overall)';
+  return 'WorkerDashboardModelStats(todayStats: $todayStats, overallStats: $overallStats)';
 }
 
 
@@ -566,11 +566,11 @@ abstract mixin class _$WorkerDashboardModelStatsCopyWith<$Res> implements $Worke
   factory _$WorkerDashboardModelStatsCopyWith(_WorkerDashboardModelStats value, $Res Function(_WorkerDashboardModelStats) _then) = __$WorkerDashboardModelStatsCopyWithImpl;
 @override @useResult
 $Res call({
- JobSummaryStatsModel today, JobSummaryStatsModel overall
+ JobSummaryStatsModel todayStats, JobSummaryStatsModel overallStats
 });
 
 
-@override $JobSummaryStatsModelCopyWith<$Res> get today;@override $JobSummaryStatsModelCopyWith<$Res> get overall;
+@override $JobSummaryStatsModelCopyWith<$Res> get todayStats;@override $JobSummaryStatsModelCopyWith<$Res> get overallStats;
 
 }
 /// @nodoc
@@ -583,10 +583,10 @@ class __$WorkerDashboardModelStatsCopyWithImpl<$Res>
 
 /// Create a copy of WorkerDashboardModelStats
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? today = null,Object? overall = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? todayStats = null,Object? overallStats = null,}) {
   return _then(_WorkerDashboardModelStats(
-today: null == today ? _self.today : today // ignore: cast_nullable_to_non_nullable
-as JobSummaryStatsModel,overall: null == overall ? _self.overall : overall // ignore: cast_nullable_to_non_nullable
+todayStats: null == todayStats ? _self.todayStats : todayStats // ignore: cast_nullable_to_non_nullable
+as JobSummaryStatsModel,overallStats: null == overallStats ? _self.overallStats : overallStats // ignore: cast_nullable_to_non_nullable
 as JobSummaryStatsModel,
   ));
 }
@@ -595,19 +595,19 @@ as JobSummaryStatsModel,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$JobSummaryStatsModelCopyWith<$Res> get today {
+$JobSummaryStatsModelCopyWith<$Res> get todayStats {
   
-  return $JobSummaryStatsModelCopyWith<$Res>(_self.today, (value) {
-    return _then(_self.copyWith(today: value));
+  return $JobSummaryStatsModelCopyWith<$Res>(_self.todayStats, (value) {
+    return _then(_self.copyWith(todayStats: value));
   });
 }/// Create a copy of WorkerDashboardModelStats
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$JobSummaryStatsModelCopyWith<$Res> get overall {
+$JobSummaryStatsModelCopyWith<$Res> get overallStats {
   
-  return $JobSummaryStatsModelCopyWith<$Res>(_self.overall, (value) {
-    return _then(_self.copyWith(overall: value));
+  return $JobSummaryStatsModelCopyWith<$Res>(_self.overallStats, (value) {
+    return _then(_self.copyWith(overallStats: value));
   });
 }
 }

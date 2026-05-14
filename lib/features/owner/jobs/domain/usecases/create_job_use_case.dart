@@ -10,7 +10,7 @@ class CreateJobParams {
   final String customerName;
   final String customerPhone;
   final String? customerAddress;
-  final String workerAccountUid;
+  final String workerProfileUid;
   final bool requirePhotoOnStart;
   final bool requirePhotoOnComplete;
   final bool captureLocation;
@@ -21,7 +21,7 @@ class CreateJobParams {
     required this.customerName,
     required this.customerPhone,
     this.customerAddress,
-    required this.workerAccountUid,
+    required this.workerProfileUid,
     this.requirePhotoOnStart = false,
     this.requirePhotoOnComplete = false,
     this.captureLocation = true,
@@ -33,7 +33,7 @@ class CreateJobParams {
     'customerName': customerName,
     'customerPhone': customerPhone,
     'customerAddress': customerAddress,
-    'workerAccountUid': workerAccountUid,
+    'workerProfileUid': workerProfileUid,
     'requirePhotoOnStart': requirePhotoOnStart,
     'requirePhotoOnComplete': requirePhotoOnComplete,
     'captureLocation': captureLocation,

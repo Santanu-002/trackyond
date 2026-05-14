@@ -15,7 +15,7 @@ class StartAttendanceUseCase
     StartAttendanceParams params,
   ) {
     return _repository.startAttendance(
-      accountUid: params.accountUid,
+      profileUid: params.profileUid,
       latitude: params.latitude,
       longitude: params.longitude,
       address: params.address,
@@ -24,13 +24,13 @@ class StartAttendanceUseCase
 }
 
 class StartAttendanceParams {
-  final String accountUid;
+  final String profileUid;
   final double latitude;
   final double longitude;
   final String? address;
 
   StartAttendanceParams({
-    required this.accountUid,
+    required this.profileUid,
     required this.latitude,
     required this.longitude,
     this.address,

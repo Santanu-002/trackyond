@@ -12,7 +12,7 @@ from schemas.attendance import MarkAttendanceRequest
 def get_admin_attendance_logs(
     db: Session,
     admin_uid: str,
-    account_uid: Optional[str],
+    profile_uid: Optional[str],
     status: Optional[str],
     start_date: Optional[datetime],
     end_date: Optional[datetime],
@@ -30,8 +30,8 @@ def get_admin_attendance_logs(
     
     query = query.filter(models.Attendance.company_uid == admin_member.company_uid)
 
-    if account_uid:
-        query = query.filter(models.Attendance.account_uid == account_uid)
+    if profile_uid:
+        query = query.filter(models.Attendance.profile_uid == profile_uid)
     if status:
         query = query.filter(models.Attendance.status == status)
     if start_date:
@@ -65,14 +65,14 @@ def get_admin_attendance_logs(
     }, None
 
 def start_employee_attendance(db: Session, req: MarkAttendanceRequest):
-    member = db.query(models.Member).filter(models.Member.account_uid == req.accountUid).first()
+    member = db.query(models.Member).filter(models.Member.uid == req.profileUid).first()
     if not member:
         return None, strings.member_not_found
     
     today_start = now_utc().replace(hour=0, minute=0, second=0, microsecond=0)
     
     stale_sessions = db.query(models.Attendance).filter(
-        models.Attendance.account_uid == req.accountUid,
+        models.Attendance.profile_uid == req.profileUid,
         models.Attendance.status == AttendanceStatus.working,
         models.Attendance.created_at < today_start
     ).all()
@@ -86,7 +86,7 @@ def start_employee_attendance(db: Session, req: MarkAttendanceRequest):
         db.commit()
 
     active_session = db.query(models.Attendance).filter(
-        models.Attendance.account_uid == req.accountUid,
+        models.Attendance.profile_uid == req.profileUid,
         models.Attendance.status == AttendanceStatus.working,
         models.Attendance.created_at >= today_start
     ).first()
@@ -95,7 +95,7 @@ def start_employee_attendance(db: Session, req: MarkAttendanceRequest):
         return None, "Attendance already marked for start today"
 
     attendance = models.Attendance(
-        account_uid=req.accountUid,
+        profile_uid=req.profileUid,
         user_uid=member.user_uid,
         company_uid=member.company_uid,
         start_latitude=req.latitude,
@@ -114,7 +114,7 @@ def start_employee_attendance(db: Session, req: MarkAttendanceRequest):
 def end_employee_attendance(db: Session, req: MarkAttendanceRequest):
     attendance = db.query(models.Attendance).filter(
         models.Attendance.status == AttendanceStatus.working,
-        models.Attendance.account_uid == req.accountUid
+        models.Attendance.profile_uid == req.profileUid
     ).order_by(models.Attendance.start_at.desc()).first()
 
     if not attendance:
@@ -139,11 +139,11 @@ def end_employee_attendance(db: Session, req: MarkAttendanceRequest):
     return serialize_attendance(attendance), None
 
 
-def get_employee_attendance_status(db: Session, account_uid: str):
+def get_employee_attendance_status(db: Session, profile_uid: str):
     today_start = now_utc().replace(hour=0, minute=0, second=0, microsecond=0)
     
     latest_attendance = db.query(models.Attendance).filter(
-        models.Attendance.account_uid == account_uid,
+        models.Attendance.profile_uid == profile_uid,
         models.Attendance.created_at >= today_start
     ).order_by(models.Attendance.created_at.desc()).first()
     

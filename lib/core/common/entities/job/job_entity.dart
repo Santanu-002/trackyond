@@ -7,7 +7,7 @@ class JobEntity extends Equatable {
   final String customerName;
   final String customerPhone;
   final String? customerAddress;
-  final String workerAccountUid;
+  final String workerProfileUid;
   final String? workerName;
   final String? workerImage;
   final JobStatus status;
@@ -25,7 +25,7 @@ class JobEntity extends Equatable {
     required this.customerName,
     required this.customerPhone,
     this.customerAddress,
-    required this.workerAccountUid,
+    required this.workerProfileUid,
     this.workerName,
     this.workerImage,
     required this.status,
@@ -45,7 +45,7 @@ class JobEntity extends Equatable {
         customerName,
         customerPhone,
         customerAddress,
-        workerAccountUid,
+        workerProfileUid,
         workerName,
         workerImage,
         status,

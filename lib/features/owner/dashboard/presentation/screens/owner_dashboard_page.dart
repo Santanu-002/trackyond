@@ -29,13 +29,7 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
         CreateJobBinding().dependencies();
         final createJobController = Get.find<CreateJobController>();
         createJobController.onSuccess = (job) {
-          controller.recentJobs.insert(0, job);
-          controller.stats.value = controller.stats.value.copyWith(
-            pending: controller.stats.value.pending + 1,
-          );
-          if (controller.recentJobs.length > 10) {
-            controller.recentJobs.removeLast();
-          }
+          controller.fetchDashboardData(); // Refresh all data to be sure
           action(returnValue: job);
         };
         return const CreateJobPage();
@@ -94,7 +88,6 @@ class OwnerDashboardPage extends GetView<OwnerDashboardController> {
               // Stats Section
               Obx(
                 () => TaskStatsSection(
-                  stats: controller.taskStats,
                   isLoading: controller.isLoading.value,
                 ),
               ),

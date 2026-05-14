@@ -5,20 +5,20 @@ import 'package:trackyond/core/common/entities/attendance/attendance_status_enti
 
 abstract interface class IAttendanceRepository {
   Future<Either<AppFailure, AttendanceEntity>> startAttendance({
-    required String accountUid,
+    required String profileUid,
     required double latitude,
     required double longitude,
     String? address,
   });
 
   Future<Either<AppFailure, AttendanceEntity>> endAttendance({
-    required String accountUid,
+    required String profileUid,
     required double latitude,
     required double longitude,
     String? address,
   });
 
   Future<Either<AppFailure, AttendanceStatusEntity>> getAttendanceStatus({
-    required String accountUid,
+    required String profileUid,
   });
 }

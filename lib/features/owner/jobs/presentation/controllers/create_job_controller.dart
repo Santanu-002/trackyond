@@ -131,7 +131,7 @@ class CreateJobController extends GetxController {
       final entity = TeamMemberStatusEntity(profile: result);
       
       // Add to the list if not already there
-      if (!_allFetchedMembers.any((m) => m.profile.accountUid == result.accountUid)) {
+      if (!_allFetchedMembers.any((m) => m.profile.uid == result.uid)) {
         _allFetchedMembers.insert(0, entity);
       }
       
@@ -178,7 +178,7 @@ class CreateJobController extends GetxController {
       customerPhone: phoneController.text.trim(),
       customerAddress: addressController.text.trim(),
       description: null, // Optional, can add a controller for this if needed
-      workerAccountUid: selectedWorker.value!.accountUid,
+      workerProfileUid: selectedWorker.value!.uid,
       requirePhotoOnStart: requirePhotoOnStart.value,
       requirePhotoOnComplete: requirePhotoOnCompletion.value,
       captureLocation: captureLocation.value,

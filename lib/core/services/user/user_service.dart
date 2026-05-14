@@ -80,7 +80,7 @@ class UserService extends GetxService {
 
   MemberProfileModel? getProfile() => _profile.value;
 
-  String? getAccountUid() => _profile.value?.accountUid;
+  String? getProfileUid() => _profile.value?.uid;
 
   // ------------------ COMPANY ------------------
 

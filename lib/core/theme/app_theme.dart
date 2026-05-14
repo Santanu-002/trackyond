@@ -457,9 +457,13 @@ class AppTheme {
           }
           return colors.onSurface;
         }),
-        side: WidgetStateProperty.all(
-          BorderSide(color: colors.outline.withValues(alpha: 0.2)),
-        ),
+        side: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return BorderSide(color: colors.primary, width: 1.2);
+          }
+
+          return BorderSide(color: colors.outline.withValues(alpha: 0.2));
+        }),
         textStyle: WidgetStatePropertyAll(
           (colors.brightness == Brightness.light
               ? AppTextStyles.light.labelSmall

@@ -1,17 +1,19 @@
+import 'package:equatable/equatable.dart';
 import 'package:trackyond/core/common/entities/attendance/attendance_status_entity.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
-import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
+import 'package:trackyond/features/owner/dashboard/domain/entities/owner_dashboard_data.dart';
 
-class WorkerDashboardData {
+class WorkerDashboardData extends Equatable {
   final AttendanceStatusEntity attendanceStatus;
   final List<JobEntity> recentJobs;
-  final JobSummaryStats todayStats;
-  final JobSummaryStats overallStats;
+  final JobCountsEntity jobCounts;
 
-  WorkerDashboardData({
+  const WorkerDashboardData({
     required this.attendanceStatus,
     required this.recentJobs,
-    required this.todayStats,
-    required this.overallStats,
+    required this.jobCounts,
   });
+
+  @override
+  List<Object?> get props => [attendanceStatus, recentJobs, jobCounts];
 }

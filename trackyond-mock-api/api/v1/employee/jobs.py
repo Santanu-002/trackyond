@@ -6,7 +6,7 @@ from core.responses.models import GenericResponse
 from api.dependencies import get_current_user
 from typing import Optional
 from core.constants.enums import JobStatus
-from services.jobs_service import get_employee_assigned_jobs, update_job_status_for_employee
+from services.jobs_service import get_employee_assigned_jobs, update_job_status_for_employee, create_mock_job_for_employee
 
 
 router = APIRouter(prefix="/jobs", tags=["Employee/Jobs"])
@@ -45,6 +45,22 @@ async def get_assigned_jobs(
     return GenericResponse(
         success=True,
         message="Assigned jobs fetched successfully",
+        data=data
+    )
+
+@router.post("/mock", response_model=GenericResponse)
+async def create_mock_job(
+    db: Session = Depends(get_db),
+    user: models.User = Depends(get_current_user)
+):
+    data, error = create_mock_job_for_employee(db, user.uid)
+    
+    if error:
+        return GenericResponse(success=False, message=error)
+
+    return GenericResponse(
+        success=True,
+        message="Mock job created successfully",
         data=data
     )
 

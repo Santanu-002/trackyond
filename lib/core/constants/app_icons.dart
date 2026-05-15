@@ -68,12 +68,19 @@ class _CommonIcons {
   IconData get close => Icons.close_rounded;
 
   IconData get notifications => Icons.notifications_none_rounded;
+  IconData get notificationsActive => Icons.notifications_active_rounded;
 
   IconData get camera => Icons.camera_alt_rounded;
 
   IconData get gallery => Icons.photo_library_rounded;
 
   IconData get delete => Icons.delete_rounded;
+
+  IconData get copy => Icons.copy_all_rounded;
+
+  IconData get markRead => Icons.mark_email_read_rounded;
+
+  IconData get selectAll => Icons.select_all_rounded;
 
   IconData get business => Icons.business_rounded;
 

@@ -85,13 +85,16 @@ class Notification(Base):
     id = Column(Integer, primary_key=True, index=True)
     notification_id = Column(String, unique=True, index=True)
     user_uid = Column(String, ForeignKey("users.uid"), nullable=False)
-    profile_uid = Column(String, nullable=True) # Member.uid
+    profile_uid = Column(String, ForeignKey("members.uid"), index=True, nullable=False) # Member.uid
     title = Column(String, nullable=True)
-    message = Column(String, nullable=False)
+    body = Column(Text, nullable=False)
     data_payload = Column(Text, nullable=True) # JSON string
     status = Column(SQLEnum(NotificationStatus), default=NotificationStatus.sent, nullable=False)
-    
     read = Column(Boolean, default=False)
+    seen = Column(Boolean, default=False)
+    deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime, nullable=True)
+    deleted_by = Column(String, ForeignKey("members.uid"), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     delivered_at = Column(DateTime, nullable=True)

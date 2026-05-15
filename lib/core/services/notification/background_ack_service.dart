@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
+import 'package:trackyond/core/constants/notification_constants.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/network/api/request_extras.dart';
 import 'package:trackyond/core/network/client/client.dart';
@@ -22,7 +23,7 @@ class BackgroundAckService {
   }
 
   Future<void> _setup() async {
-    _networkClient = await NetworkClient.createBackgroundClient();
+    _networkClient = await NetworkClient.createBackground();
   }
 
   Future<void> sendAck(String notificationId, String status) async {
@@ -30,13 +31,16 @@ class BackgroundAckService {
     if (role == null) return; // Cannot send ack if not logged in
 
     final endpoint = role == UserRole.owner
-        ? '${ApiEndpoints.admin.notifications}/$notificationId/status'
-        : '${ApiEndpoints.employee.notifications}/$notificationId/status';
+        ? ApiEndpoints.admin.notificationsStatus
+        : ApiEndpoints.employee.notificationsStatus;
 
     try {
-      await dio.put(
+      await dio.post(
         endpoint,
-        data: {'status': status},
+        data: {
+          NotificationConstants.dataKeys.notificationIds: [notificationId],
+          NotificationConstants.dataKeys.status: status,
+        },
         options: Options(
           extra: {RequestExtras.userRole: role.value},
         ),
@@ -44,7 +48,7 @@ class BackgroundAckService {
       debugPrint('DEBUG: Successfully sent $status ack for notification $notificationId');
     } catch (e) {
       debugPrint('DEBUG: Failed to send $status ack for notification $notificationId: $e');
-      if (status == 'delivered') {
+      if (status == NotificationConstants.statuses.delivered) {
          await _saveFailedAck(notificationId, status);
       }
     }
@@ -52,19 +56,31 @@ class BackgroundAckService {
 
   Future<void> _saveFailedAck(String notificationId, String status) async {
     final prefs = await SharedPreferences.getInstance();
-    final failedAcksStr = prefs.getString('failed_acks') ?? '[]';
+    final failedAcksStr =
+        prefs.getString(NotificationConstants.storageKeys.failedAcks) ?? '[]';
     final List<dynamic> failedAcks = jsonDecode(failedAcksStr);
     
     // Avoid duplicates
-    if (!failedAcks.any((ack) => ack['id'] == notificationId && ack['status'] == status)) {
-      failedAcks.add({'id': notificationId, 'status': status});
-      await prefs.setString('failed_acks', jsonEncode(failedAcks));
+    if (!failedAcks.any(
+      (ack) =>
+          ack[NotificationConstants.dataKeys.id] == notificationId &&
+          ack[NotificationConstants.dataKeys.status] == status,
+    )) {
+      failedAcks.add({
+        NotificationConstants.dataKeys.id: notificationId,
+        NotificationConstants.dataKeys.status: status,
+      });
+      await prefs.setString(
+        NotificationConstants.storageKeys.failedAcks,
+        jsonEncode(failedAcks),
+      );
     }
   }
 
   Future<void> retryFailedAcks() async {
     final prefs = await SharedPreferences.getInstance();
-    final failedAcksStr = prefs.getString('failed_acks') ?? '[]';
+    final failedAcksStr =
+        prefs.getString(NotificationConstants.storageKeys.failedAcks) ?? '[]';
     final List<dynamic> failedAcks = jsonDecode(failedAcksStr);
 
     if (failedAcks.isEmpty) return;
@@ -75,17 +91,20 @@ class BackgroundAckService {
       final role = userService.getUserRole();
       if (role == null) continue;
 
-      final notificationId = ack['id'];
-      final status = ack['status'];
+      final notificationId = ack[NotificationConstants.dataKeys.id];
+      final status = ack[NotificationConstants.dataKeys.status];
 
       final endpoint = role == UserRole.owner
-          ? '${ApiEndpoints.admin.notifications}/$notificationId/status'
-          : '${ApiEndpoints.employee.notifications}/$notificationId/status';
+          ? ApiEndpoints.admin.notificationsStatus
+          : ApiEndpoints.employee.notificationsStatus;
 
       try {
-        await dio.put(
+        await dio.post(
           endpoint,
-          data: {'status': status},
+          data: {
+            NotificationConstants.dataKeys.notificationIds: [notificationId],
+            NotificationConstants.dataKeys.status: status,
+          },
           options: Options(
             extra: {RequestExtras.userRole: role.value},
           ),
@@ -97,7 +116,9 @@ class BackgroundAckService {
       }
     }
 
-    await prefs.setString('failed_acks', jsonEncode(remainingAcks));
+    await prefs.setString(
+      NotificationConstants.storageKeys.failedAcks,
+      jsonEncode(remainingAcks),
+    );
   }
 }
-

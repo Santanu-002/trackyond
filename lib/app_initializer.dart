@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,76 +9,66 @@ import 'package:trackyond/core/services/device_header/app_info_service.dart';
 import 'package:trackyond/core/services/device_header/device_id_service.dart';
 import 'package:trackyond/core/services/device_header/device_info_service.dart';
 import 'package:trackyond/core/services/device_header/platform_info_service.dart';
+import 'package:trackyond/core/services/notification/fcm_token_service.dart';
+import 'package:trackyond/core/services/notification/notification_service.dart';
 import 'package:trackyond/core/services/token/token_service.dart';
 import 'package:trackyond/core/services/token/token_service_impl.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
-
-import 'package:trackyond/core/services/notification/background_ack_service.dart';
 
 class AppInitializer {
   const AppInitializer._();
 
   static Future<void> initialize() async {
+    debugPrint('INIT: Starting AppInitializer.initialize()');
     await Firebase.initializeApp();
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    debugPrint('INIT: Firebase initialized');
+    NotificationService.registerBackgroundHandler();
+    debugPrint('INIT: Background notification handler registered');
     await _initStorage();
+    debugPrint('INIT: Storage initialized');
     await _initServices();
-    
-    // Retry any failed acks on app startup
-    try {
-      final ackService = await BackgroundAckService.init();
-      await ackService.retryFailedAcks();
-    } catch (e) {
-      debugPrint("Failed to retry acks on startup: $e");
-    }
-  }
-
-  // MUST be a top-level function
-  @pragma('vm:entry-point')
-  static Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-    // If you're going to use other Firebase services in the background, such as Firestore,
-    // make sure you call `initializeApp` before using other Firebase services.
-    await Firebase.initializeApp();
-    debugPrint("Handling a background message: ${message.messageId}");
-    
-    try {
-      final notificationId = message.data['notificationId'];
-      if (notificationId != null) {
-        final ackService = await BackgroundAckService.init();
-        await ackService.sendAck(notificationId, 'delivered');
-      }
-    } catch (e) {
-      debugPrint("Error sending background ack: $e");
-    }
+    debugPrint('INIT: Services initialized');
   }
 
   // ------------------ STORAGE ------------------
 
   static Future<void> _initStorage() async {
+    debugPrint('INIT: Initializing SharedPreferences');
     final prefs = await SharedPreferences.getInstance();
     Get.put<SharedPreferences>(prefs, permanent: true);
     Get.put<FlutterSecureStorage>(const FlutterSecureStorage(), permanent: true);
+    debugPrint('INIT: Storage initialized');
   }
 
   // ------------------ SERVICES ------------------
 
   static Future<void> _initServices() async {
+    debugPrint('INIT: Initializing services');
     Get.put<TokenService>(TokenServiceImpl(Get.find()), permanent: true);
+    debugPrint('INIT: TokenService initialized');
+
+    Get.put<FCMTokenService>(FCMTokenService(Get.find()), permanent: true);
+    debugPrint('INIT: FCMTokenService initialized');
 
     final userService = UserService(Get.find());
+    debugPrint('INIT: Initializing UserService');
     await userService.init();
     Get.put<UserService>(userService, permanent: true);
+    debugPrint('INIT: UserService initialized');
 
     // Device header services (used by PlatformInfoInterceptor on every request)
     final deviceIdService = DeviceIdService(Get.find<FlutterSecureStorage>());
     Get.put<DeviceIdService>(deviceIdService, permanent: true);
+    debugPrint('INIT: DeviceIdService initialized');
 
     Get.put<DeviceInfoService>(
       DeviceInfoService(deviceIdService),
       permanent: true,
     );
+    debugPrint('INIT: DeviceInfoService initialized');
 
     Get.put<AppInfoService>(AppInfoService(), permanent: true);
+    debugPrint('INIT: AppInfoService initialized');
 
     Get.put<PlatformInfoService>(
       PlatformInfoService(

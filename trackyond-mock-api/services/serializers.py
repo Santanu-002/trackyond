@@ -68,3 +68,22 @@ def serialize_company(company: models.Company):
         "teamSize": company.team_size,
         "ownerUid": company.owner_uid,
     }
+
+def serialize_notification(notification: models.Notification):
+    if not notification:
+        return None
+    return {
+        "id": notification.notification_id,
+        "userUid": notification.user_uid,
+        "profileUid": notification.profile_uid,
+        "title": notification.title or "Notification",
+        "body": notification.body,
+        "dataPayload": notification.data_payload,
+        "status": notification.status.value,
+        "read": notification.read,
+        "seen": notification.seen,
+        "createdAt": to_utc_iso(notification.created_at),
+        "updatedAt": to_utc_iso(notification.updated_at),
+        "deliveredAt": to_utc_iso(notification.delivered_at) if notification.delivered_at else None,
+        "seenAt": to_utc_iso(notification.seen_at) if notification.seen_at else None
+    }

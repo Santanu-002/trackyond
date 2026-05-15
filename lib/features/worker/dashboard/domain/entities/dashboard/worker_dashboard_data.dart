@@ -7,13 +7,15 @@ class WorkerDashboardData extends Equatable {
   final AttendanceStatusEntity attendanceStatus;
   final List<JobEntity> recentJobs;
   final JobCountsEntity jobCounts;
+  final int unreadNotificationCount;
 
   const WorkerDashboardData({
     required this.attendanceStatus,
     required this.recentJobs,
     required this.jobCounts,
+    this.unreadNotificationCount = 0,
   });
 
   @override
-  List<Object?> get props => [attendanceStatus, recentJobs, jobCounts];
+  List<Object?> get props => [attendanceStatus, recentJobs, jobCounts, unreadNotificationCount];
 }

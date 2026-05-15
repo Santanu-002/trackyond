@@ -1,24 +1,36 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/notification_constants.dart';
 
 class LocalNotificationService extends GetxService {
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  @override
+  void onInit() {
+    super.onInit();
+    init();
+  }
 
   Future<void> init() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    final AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings(
+          NotificationConstants.localChannel.launcherIcon,
+        );
 
-    const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
+    const DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        );
 
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsIOS,
+        );
 
     await _notificationsPlugin.initialize(
       settings: initializationSettings,
@@ -35,18 +47,21 @@ class LocalNotificationService extends GetxService {
     required String body,
     String? payload,
   }) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'trackyond_job_channel',
-      'Job Notifications',
-      channelDescription: 'Notifications for job assignments and updates',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: true,
-    );
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+          NotificationConstants.localChannel.jobChannelId,
+          NotificationConstants.localChannel.jobChannelName,
+          channelDescription:
+              NotificationConstants.localChannel.jobChannelDescription,
+          importance: Importance.max,
+          priority: Priority.high,
+          showWhen: true,
+          styleInformation: DefaultStyleInformation(true, true),
+        );
 
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
-      iOS: DarwinNotificationDetails(
+      iOS: const DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,

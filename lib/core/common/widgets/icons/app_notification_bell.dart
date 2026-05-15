@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
+import 'package:trackyond/core/utils/app_utils.dart';
 
 class AppNotificationBell extends StatelessWidget {
   final VoidCallback onPressed;
@@ -16,6 +17,7 @@ class AppNotificationBell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.theme;
     return Stack(
+      alignment: Alignment.center,
       children: [
         IconButton(
           icon: Icon(AppIcons.common.notifications),
@@ -23,21 +25,30 @@ class AppNotificationBell extends StatelessWidget {
         ),
         if (count > 0)
           Positioned(
-            right: 12,
-            top: 12,
+            right: 8,
+            top: 8,
             child: Container(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
                 color: theme.colorScheme.error,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: theme.scaffoldBackgroundColor,
                   width: 1.5,
                 ),
               ),
               constraints: const BoxConstraints(
-                minWidth: 8,
-                minHeight: 8,
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Text(
+                AppUtils.formatNotificationCount(count),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
           ),

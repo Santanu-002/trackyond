@@ -41,7 +41,7 @@ class OwnerDashboardController extends GetxController {
   }
 
   final title = AppStrings.ownerDashboard.title.obs;
-  final notificationCount = 3.obs;
+  int get notificationCount => Get.find<NotificationController>().unreadCount.value;
   final isLoading = false.obs;
   final isProfileLoading = false.obs;
 
@@ -87,6 +87,9 @@ class OwnerDashboardController extends GetxController {
       _todayStats.value = data.jobCounts.todayStats;
       _overallStats.value = data.jobCounts.overallStats;
       recentJobs.assignAll(data.recentJobs);
+      
+      // Sync unread notification count
+      Get.find<NotificationController>().unreadCount.value = data.unreadNotificationCount;
     });
     isLoading.value = false;
   }
@@ -157,7 +160,6 @@ class OwnerDashboardController extends GetxController {
   }
 
   void openNotifications() {
-    Get.find<NotificationController>().clearUnread();
     Get.toNamed(AppRoutes.common.notifications);
   }
 

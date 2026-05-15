@@ -28,6 +28,37 @@ class NotificationsStrings {
   String get noNotifications => 'No notifications yet';
   String get clearAll => 'Clear All';
   String get markAllAsRead => 'Mark all as read';
+  String get markAsRead => 'Mark as Read';
+  String get delete => 'Delete';
+  String get copyDetails => 'Copy Details';
+  String get notificationDetails => 'Notification Details';
+  String get noDetailsAvailable => 'No details available';
+  String get defaultNotificationTitle => 'Notification';
+  String get userRoleNotFound => 'User role not found';
+  String get fcmTokenNotFound => 'FCM token not found';
+  String get titleLabel => 'Title';
+  String get messageLabel => 'Message';
+  String get dateLabel => 'Date';
+  String get dateTimeFormat => 'MMM d, y h:mm a';
+  String selectedCount(int count) => '$count  Selected';
+
+  // Filter & sort labels
+  String get filterAll => 'All';
+  String get filterUnread => 'Unread';
+  String get filterRead => 'Read';
+  String get sortNewest => 'Newest';
+  String get sortOldest => 'Oldest';
+
+  // Date group headers
+  String get groupToday => 'Today';
+  String get groupYesterday => 'Yesterday';
+  String groupDate(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
 }
 
 class CommonStrings {

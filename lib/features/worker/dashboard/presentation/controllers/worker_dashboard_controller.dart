@@ -10,13 +10,11 @@ import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/enums/stats_filter.dart';
-import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
-import 'package:trackyond/core/network/api/request_extras.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
@@ -46,6 +44,7 @@ class WorkerDashboardController extends GetxController {
 
   // UI Observables
   final title = AppStrings.workerDashboard.title.obs;
+  int get notificationCount => Get.find<NotificationController>().unreadCount.value;
 
   final workerName = 'Worker'.obs;
   final workerImage = RxnString();
@@ -127,6 +126,9 @@ class WorkerDashboardController extends GetxController {
       recentJobs.assignAll(data.recentJobs);
       _todayStats.value = data.jobCounts.todayStats;
       _overallStats.value = data.jobCounts.overallStats;
+      
+      // Sync unread notification count
+      Get.find<NotificationController>().unreadCount.value = data.unreadNotificationCount;
     });
     isDashboardLoading.value = false;
   }
@@ -419,7 +421,6 @@ class WorkerDashboardController extends GetxController {
   }
 
   void openNotifications() {
-    Get.find<NotificationController>().clearUnread();
     Get.toNamed(AppRoutes.common.notifications);
   }
 
@@ -436,25 +437,8 @@ class WorkerDashboardController extends GetxController {
     isActionLoading.value = true;
     try {
       final dio = Get.find<Dio>();
-      final profile = await authController.profile;
-      if (profile == null) return;
-      
-      final response = await dio.post(
-        ApiEndpoints.admin.jobs, // Using admin endpoint to trigger creation
-        data: {
-          "title": "Mock Demo Job ${DateTime.now().second}",
-          "customerName": "Demo Customer",
-          "customerPhone": "0000000000",
-          "workerProfileUid": profile.uid,
-          "requirePhotoOnStart": false,
-          "requirePhotoOnComplete": false,
-          "captureLocation": false
-        },
-        options: Options(
-          extra: {RequestExtras.userRole: UserRole.owner.value}, // Force owner role for admin endpoint
-        ),
-      );
-      
+      final response = await dio.post(ApiEndpoints.employee.jobsMock);
+
       if (response.statusCode == 200) {
         AppSnackbar.success("Mock job sent! Wait for notification.");
       }
@@ -465,6 +449,5 @@ class WorkerDashboardController extends GetxController {
       isActionLoading.value = false;
     }
   }
-
   Future<void> logout() async => await Get.find<AuthController>().logout();
 }

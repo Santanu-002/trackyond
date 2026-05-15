@@ -17,6 +17,8 @@ _OwnerDashboardModel _$OwnerDashboardModelFromJson(Map<String, dynamic> json) =>
       recentJobs: (json['recentJobs'] as List<dynamic>)
           .map((e) => JobModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      unreadNotificationCount:
+          (json['unreadNotificationCount'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$OwnerDashboardModelToJson(
@@ -25,6 +27,7 @@ Map<String, dynamic> _$OwnerDashboardModelToJson(
   'teamMembersStatus': instance.teamMembersStatus,
   'jobCounts': instance.jobCounts,
   'recentJobs': instance.recentJobs,
+  'unreadNotificationCount': instance.unreadNotificationCount,
 };
 
 _OwnerDashboardModelStats _$OwnerDashboardModelStatsFromJson(

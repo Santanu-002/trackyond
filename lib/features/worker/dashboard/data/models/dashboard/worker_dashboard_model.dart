@@ -14,6 +14,7 @@ sealed class WorkerDashboardModel with _$WorkerDashboardModel {
     required AttendanceStatusModel attendanceStatus,
     required List<JobModel> recentJobs,
     required WorkerDashboardModelStats jobCounts,
+    @Default(0) int unreadNotificationCount,
   }) = _WorkerDashboardModel;
 
   const WorkerDashboardModel._();
@@ -25,6 +26,7 @@ sealed class WorkerDashboardModel with _$WorkerDashboardModel {
     attendanceStatus: attendanceStatus.toEntity(),
     recentJobs: recentJobs.map((e) => e.toEntity()).toList(),
     jobCounts: jobCounts.toEntity(),
+    unreadNotificationCount: unreadNotificationCount,
   );
 }
 

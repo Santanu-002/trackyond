@@ -7,11 +7,13 @@ class OwnerDashboardData extends Equatable {
   final List<TeamMemberStatusEntity> teamMembersStatus;
   final JobCountsEntity jobCounts;
   final List<JobEntity> recentJobs;
+  final int unreadNotificationCount;
 
   const OwnerDashboardData({
     required this.teamMembersStatus,
     required this.jobCounts,
     required this.recentJobs,
+    this.unreadNotificationCount = 0,
   });
 
   @override
@@ -19,6 +21,7 @@ class OwnerDashboardData extends Equatable {
     teamMembersStatus,
     jobCounts,
     recentJobs,
+    unreadNotificationCount,
   ];
 }
 

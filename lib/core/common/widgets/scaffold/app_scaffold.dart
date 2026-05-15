@@ -7,6 +7,9 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 class AppScaffold extends StatelessWidget {
   final Widget child;
   final String? title;
+  final Widget? titleWidget;
+  final bool? centerTitle;
+  final double? titleSpacing;
   final VoidCallback? onBackPressed;
   final bool automaticallyImplyLeading;
   final List<Widget>? actions;
@@ -23,6 +26,9 @@ class AppScaffold extends StatelessWidget {
     super.key,
     required this.child,
     this.title,
+    this.titleWidget,
+    this.centerTitle,
+    this.titleSpacing,
     this.onBackPressed,
     this.automaticallyImplyLeading = true,
     this.actions,
@@ -49,8 +55,9 @@ class AppScaffold extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: context.theme.scaffoldBackgroundColor,
           elevation: 0,
-          centerTitle: true,
-          title: title != null ? Text(title!) : null,
+          titleSpacing: titleSpacing,
+          centerTitle: centerTitle ?? true,
+          title: titleWidget ?? (title != null ? Text(title!) : null),
           systemOverlayStyle: context.theme.brightness == Brightness.light
               ? SystemUiOverlayStyle.dark
               : SystemUiOverlayStyle.light,

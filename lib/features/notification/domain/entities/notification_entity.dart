@@ -7,6 +7,7 @@ class NotificationEntity extends Equatable {
   final DateTime createdAt;
   final Map<String, dynamic>? data;
   final bool isRead;
+  final bool isSeen;
 
   const NotificationEntity({
     required this.id,
@@ -15,10 +16,11 @@ class NotificationEntity extends Equatable {
     required this.createdAt,
     this.data,
     this.isRead = false,
+    this.isSeen = false,
   });
 
   @override
-  List<Object?> get props => [id, title, body, createdAt, data, isRead];
+  List<Object?> get props => [id, title, body, createdAt, data, isRead, isSeen];
 
   NotificationEntity copyWith({
     String? id,
@@ -27,6 +29,7 @@ class NotificationEntity extends Equatable {
     DateTime? createdAt,
     Map<String, dynamic>? data,
     bool? isRead,
+    bool? isSeen,
   }) {
     return NotificationEntity(
       id: id ?? this.id,
@@ -35,6 +38,7 @@ class NotificationEntity extends Equatable {
       createdAt: createdAt ?? this.createdAt,
       data: data ?? this.data,
       isRead: isRead ?? this.isRead,
+      isSeen: isSeen ?? this.isSeen,
     );
   }
 }

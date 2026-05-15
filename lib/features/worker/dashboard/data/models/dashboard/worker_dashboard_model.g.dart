@@ -18,6 +18,8 @@ _WorkerDashboardModel _$WorkerDashboardModelFromJson(
   jobCounts: WorkerDashboardModelStats.fromJson(
     json['jobCounts'] as Map<String, dynamic>,
   ),
+  unreadNotificationCount:
+      (json['unreadNotificationCount'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$WorkerDashboardModelToJson(
@@ -26,6 +28,7 @@ Map<String, dynamic> _$WorkerDashboardModelToJson(
   'attendanceStatus': instance.attendanceStatus,
   'recentJobs': instance.recentJobs,
   'jobCounts': instance.jobCounts,
+  'unreadNotificationCount': instance.unreadNotificationCount,
 };
 
 _WorkerDashboardModelStats _$WorkerDashboardModelStatsFromJson(

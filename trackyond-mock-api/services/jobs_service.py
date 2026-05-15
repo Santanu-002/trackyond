@@ -4,7 +4,7 @@ import uuid
 import json
 from typing import Optional
 from db import models
-from core.constants.enums import JobStatus
+from core.constants.enums import JobStatus, NotificationType
 from core.utils.datetime_utils import now_utc
 from services.serializers import serialize_job
 from services.notification_service import create_notification
@@ -121,10 +121,8 @@ def get_admin_jobs(
 
 
 def create_admin_job(db: Session, admin_uid: str, job_data: dict):
-    print(f"DEBUG: Creating job for admin {admin_uid} with data: {job_data}")
     admin_member = db.query(models.Member).filter(models.Member.user_uid == admin_uid).first()
     if not admin_member:
-        print(f"DEBUG Error: Admin profile not found for uid {admin_uid}")
         return None, "Admin profile not found"
 
     new_job = models.Job(
@@ -148,12 +146,10 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
     db.add(new_job)
     db.commit()
     db.refresh(new_job)
-    print(f"DEBUG: Job created successfully with ID: {new_job.job_id}")
 
     worker_name = None
     worker_image = None
     if new_job.worker_profile_uid:
-        print(f"DEBUG: Job assigned to worker profile {new_job.worker_profile_uid}, triggering notification...")
         worker_member = db.query(models.Member).filter(models.Member.uid == new_job.worker_profile_uid).first()
         if worker_member:
             worker_name = worker_member.name
@@ -163,21 +159,62 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
             
             # Create notification for worker
             create_notification(
-                db, 
+                db=db,
                 user_uid=worker_member.user_uid,
-                message=f"New job assigned: {new_job.title}",
                 profile_uid=worker_member.uid,
-                data_payload=json.dumps({
-                    "type": "jobAssigned",
-                    "jobId": new_job.job_id,
-                    "title": new_job.title,
-                    "fullJobData": json.dumps(serialized_job)
-                })
+                title="New Job Assigned",
+                body=f"<b>Job#{new_job.job_id}</b> : {new_job.title}<br>You have been assigned a new job.",
+                notification_type=NotificationType.job_assigned,
+                extra_data={
+                    "job": json.dumps(serialized_job)
+                }
             )
-        else:
-            print(f"DEBUG Error: Worker profile {new_job.worker_profile_uid} not found in members table")
 
-    return serialize_job(new_job, worker_name, worker_image), None
+    return serialized_job, None
+
+
+def create_mock_job_for_employee(db: Session, user_uid: str):
+    # Find the member profile for this user
+    member = db.query(models.Member).filter(models.Member.user_uid == user_uid).first()
+    if not member:
+        return None, "Member profile not found"
+
+    new_job = models.Job(
+        job_id=uuid.uuid4().hex[:10].upper(),
+        title=f"Mock Demo Job {now_utc().second}",
+        customer_name="Demo Customer",
+        customer_phone="0000000000",
+        customer_address="123 Test Street, Mock City",
+        worker_profile_uid=member.uid,
+        company_uid=member.company_uid,
+        created_by=user_uid,
+        status=JobStatus.assigned,
+        assigned_at=now_utc(),
+        require_photo_on_start=False,
+        require_photo_on_complete=False,
+        capture_location=False
+    )
+
+    db.add(new_job)
+    db.commit()
+    db.refresh(new_job)
+    
+    serialized_job = serialize_job(new_job, member.name, member.image)
+    
+    # Create notification for worker
+    create_notification(
+        db=db,
+        user_uid=member.user_uid,
+        profile_uid=member.uid,
+        title="Job Cancelled",
+        body=f"<b>Job#{new_job.job_id}</b> : {new_job.title}<br>This job has been cancelled.",
+        notification_type=NotificationType.system,
+        extra_data={
+            "job": json.dumps(serialized_job)
+        }
+    )
+
+    return serialized_job, None
 
 
 def notify_job_worker(db: Session, job_id: str):
@@ -192,11 +229,18 @@ def notify_job_worker(db: Session, job_id: str):
     if not worker_member:
         return False, "Worker profile not found"
     
+    serialized_job = serialize_job(job, worker_member.name, worker_member.image)
+    
     create_notification(
-        db,
+        db=db,
         user_uid=worker_member.user_uid,
-        message=f"Reminder: You have an assigned job: {job.title}",
-        profile_uid=worker_member.uid
+        profile_uid=worker_member.uid,
+        title="Job Updated",
+        body=f"<b>Job#{job.job_id}</b> : {job.title}<br>The details for this job have been updated.",
+        notification_type=NotificationType.system,
+        extra_data={
+            "job": json.dumps(serialized_job)
+        }
     )
 
     return True, None

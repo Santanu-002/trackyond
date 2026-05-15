@@ -13,6 +13,7 @@ sealed class OwnerDashboardModel with _$OwnerDashboardModel {
     required List<TeamMemberStatusModel> teamMembersStatus,
     required OwnerDashboardModelStats jobCounts,
     required List<JobModel> recentJobs,
+    @Default(0) int unreadNotificationCount,
   }) = _OwnerDashboardModel;
 
   const OwnerDashboardModel._();
@@ -24,6 +25,7 @@ sealed class OwnerDashboardModel with _$OwnerDashboardModel {
     teamMembersStatus: teamMembersStatus.map((e) => e.toEntity()).toList(),
     jobCounts: jobCounts.toEntity(),
     recentJobs: recentJobs.map((e) => e.toEntity()).toList(),
+    unreadNotificationCount: unreadNotificationCount,
   );
 }
 

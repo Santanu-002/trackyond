@@ -57,4 +57,12 @@ class JobStatus(str, Enum):
 class NotificationStatus(str, Enum):
     sent = "sent"
     delivered = "delivered"
+    seen = "seen"
     read = "read"
+
+class NotificationType(str, Enum):
+    job_assigned = "job_assigned"
+    job_reminder = "job_reminder"
+    attendance_reminder = "attendance_reminder"
+    announcement = "announcement"
+    system = "system"

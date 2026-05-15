@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WorkerDashboardModel {
 
- AttendanceStatusModel get attendanceStatus; List<JobModel> get recentJobs; WorkerDashboardModelStats get jobCounts;
+ AttendanceStatusModel get attendanceStatus; List<JobModel> get recentJobs; WorkerDashboardModelStats get jobCounts; int get unreadNotificationCount;
 /// Create a copy of WorkerDashboardModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $WorkerDashboardModelCopyWith<WorkerDashboardModel> get copyWith => _$WorkerDash
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other.recentJobs, recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other.recentJobs, recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts)&&(identical(other.unreadNotificationCount, unreadNotificationCount) || other.unreadNotificationCount == unreadNotificationCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(recentJobs),jobCounts);
+int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(recentJobs),jobCounts,unreadNotificationCount);
 
 @override
 String toString() {
-  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, jobCounts: $jobCounts)';
+  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, jobCounts: $jobCounts, unreadNotificationCount: $unreadNotificationCount)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $WorkerDashboardModelCopyWith<$Res>  {
   factory $WorkerDashboardModelCopyWith(WorkerDashboardModel value, $Res Function(WorkerDashboardModel) _then) = _$WorkerDashboardModelCopyWithImpl;
 @useResult
 $Res call({
- AttendanceStatusModel attendanceStatus, List<JobModel> recentJobs, WorkerDashboardModelStats jobCounts
+ AttendanceStatusModel attendanceStatus, List<JobModel> recentJobs, WorkerDashboardModelStats jobCounts, int unreadNotificationCount
 });
 
 
@@ -65,12 +65,13 @@ class _$WorkerDashboardModelCopyWithImpl<$Res>
 
 /// Create a copy of WorkerDashboardModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? attendanceStatus = null,Object? recentJobs = null,Object? jobCounts = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? attendanceStatus = null,Object? recentJobs = null,Object? jobCounts = null,Object? unreadNotificationCount = null,}) {
   return _then(_self.copyWith(
 attendanceStatus: null == attendanceStatus ? _self.attendanceStatus : attendanceStatus // ignore: cast_nullable_to_non_nullable
 as AttendanceStatusModel,recentJobs: null == recentJobs ? _self.recentJobs : recentJobs // ignore: cast_nullable_to_non_nullable
 as List<JobModel>,jobCounts: null == jobCounts ? _self.jobCounts : jobCounts // ignore: cast_nullable_to_non_nullable
-as WorkerDashboardModelStats,
+as WorkerDashboardModelStats,unreadNotificationCount: null == unreadNotificationCount ? _self.unreadNotificationCount : unreadNotificationCount // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 /// Create a copy of WorkerDashboardModel
@@ -170,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats jobCounts)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats jobCounts,  int unreadNotificationCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WorkerDashboardModel() when $default != null:
-return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts);case _:
+return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts,_that.unreadNotificationCount);case _:
   return orElse();
 
 }
@@ -191,10 +192,10 @@ return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats jobCounts)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats jobCounts,  int unreadNotificationCount)  $default,) {final _that = this;
 switch (_that) {
 case _WorkerDashboardModel():
-return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts);}
+return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts,_that.unreadNotificationCount);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -208,10 +209,10 @@ return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats jobCounts)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AttendanceStatusModel attendanceStatus,  List<JobModel> recentJobs,  WorkerDashboardModelStats jobCounts,  int unreadNotificationCount)?  $default,) {final _that = this;
 switch (_that) {
 case _WorkerDashboardModel() when $default != null:
-return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts);case _:
+return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts,_that.unreadNotificationCount);case _:
   return null;
 
 }
@@ -223,7 +224,7 @@ return $default(_that.attendanceStatus,_that.recentJobs,_that.jobCounts);case _:
 @JsonSerializable()
 
 class _WorkerDashboardModel extends WorkerDashboardModel {
-  const _WorkerDashboardModel({required this.attendanceStatus, required final  List<JobModel> recentJobs, required this.jobCounts}): _recentJobs = recentJobs,super._();
+  const _WorkerDashboardModel({required this.attendanceStatus, required final  List<JobModel> recentJobs, required this.jobCounts, this.unreadNotificationCount = 0}): _recentJobs = recentJobs,super._();
   factory _WorkerDashboardModel.fromJson(Map<String, dynamic> json) => _$WorkerDashboardModelFromJson(json);
 
 @override final  AttendanceStatusModel attendanceStatus;
@@ -235,6 +236,7 @@ class _WorkerDashboardModel extends WorkerDashboardModel {
 }
 
 @override final  WorkerDashboardModelStats jobCounts;
+@override@JsonKey() final  int unreadNotificationCount;
 
 /// Create a copy of WorkerDashboardModel
 /// with the given fields replaced by the non-null parameter values.
@@ -249,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other._recentJobs, _recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other._recentJobs, _recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts)&&(identical(other.unreadNotificationCount, unreadNotificationCount) || other.unreadNotificationCount == unreadNotificationCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(_recentJobs),jobCounts);
+int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(_recentJobs),jobCounts,unreadNotificationCount);
 
 @override
 String toString() {
-  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, jobCounts: $jobCounts)';
+  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, jobCounts: $jobCounts, unreadNotificationCount: $unreadNotificationCount)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$WorkerDashboardModelCopyWith<$Res> implements $WorkerDash
   factory _$WorkerDashboardModelCopyWith(_WorkerDashboardModel value, $Res Function(_WorkerDashboardModel) _then) = __$WorkerDashboardModelCopyWithImpl;
 @override @useResult
 $Res call({
- AttendanceStatusModel attendanceStatus, List<JobModel> recentJobs, WorkerDashboardModelStats jobCounts
+ AttendanceStatusModel attendanceStatus, List<JobModel> recentJobs, WorkerDashboardModelStats jobCounts, int unreadNotificationCount
 });
 
 
@@ -286,12 +288,13 @@ class __$WorkerDashboardModelCopyWithImpl<$Res>
 
 /// Create a copy of WorkerDashboardModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? attendanceStatus = null,Object? recentJobs = null,Object? jobCounts = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? attendanceStatus = null,Object? recentJobs = null,Object? jobCounts = null,Object? unreadNotificationCount = null,}) {
   return _then(_WorkerDashboardModel(
 attendanceStatus: null == attendanceStatus ? _self.attendanceStatus : attendanceStatus // ignore: cast_nullable_to_non_nullable
 as AttendanceStatusModel,recentJobs: null == recentJobs ? _self._recentJobs : recentJobs // ignore: cast_nullable_to_non_nullable
 as List<JobModel>,jobCounts: null == jobCounts ? _self.jobCounts : jobCounts // ignore: cast_nullable_to_non_nullable
-as WorkerDashboardModelStats,
+as WorkerDashboardModelStats,unreadNotificationCount: null == unreadNotificationCount ? _self.unreadNotificationCount : unreadNotificationCount // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

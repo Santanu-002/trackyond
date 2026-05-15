@@ -64,6 +64,8 @@ class _AdminEndpoints {
 
   // Notifications
   String get notifications => '$_root/notifications';
+  String get notificationsStatus => '$_root/notifications/status';
+  String get notificationsFcmToken => '$_root/notifications/fcm-token';
 
   // Attendance
   String get attendance => '$_root/attendance';
@@ -92,6 +94,8 @@ class _EmployeeEndpoints {
   // Jobs
   String get jobs => '$_root/jobs';
 
+  String get jobsMock => '$_root/jobs/mock';
+
   String jobStatus(String jobId) => '$_root/jobs/$jobId/status';
 
   String jobProgress(String jobId) => '$_root/jobs/$jobId/progress';
@@ -110,6 +114,8 @@ class _EmployeeEndpoints {
 
   // Notifications
   String get notifications => '$_root/notifications';
+  String get notificationsStatus => '$_root/notifications/status';
+  String get notificationsFcmToken => '$_root/notifications/fcm-token';
 }
 
 // ─────────────────────────────────────────

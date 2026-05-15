@@ -4,6 +4,7 @@ from db import models
 from core.utils.datetime_utils import now_utc
 from core.constants.enums import JobStatus, AttendanceStatus
 from services.serializers import serialize_attendance, serialize_job, serialize_member_profile
+from services.notification_service import get_unread_notification_count
 
 def get_admin_dashboard_data(db: Session, admin_uid: str):
     # Fetch admin's member profile to get company_uid
@@ -83,6 +84,7 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
 
     return {
         "teamMembersStatus": team_status,
+        "unreadNotificationCount": get_unread_notification_count(db, admin_uid),
         "jobCounts": {
             "todayStats": get_admin_counts(today_start),
             "overallStats": get_admin_counts(),
@@ -171,6 +173,7 @@ def get_employee_dashboard_data(db: Session, user_uid: str, profile_uid: str):
             "status": status,
             "attendance": attendance_data
         },
+        "unreadNotificationCount": get_unread_notification_count(db, user_uid),
         "recentJobs": recent_jobs,
         "jobCounts": {
             "todayStats": get_counts(today_start),

@@ -47,4 +47,5 @@ class _CommonRoutes {
   _AuthRoutes get auth => const _AuthRoutes();
   
   String get notifications => '/notifications';
+  String get notificationDetails => '/notification-details';
 }

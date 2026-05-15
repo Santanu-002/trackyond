@@ -8,7 +8,7 @@ from services.dashboard_service import get_employee_dashboard_data
 
 router = APIRouter(prefix="/dashboard", tags=["Employee/Dashboard"])
 
-@router.get("/", response_model=GenericResponse)
+@router.get("", response_model=GenericResponse)
 async def get_dashboard(
     db: Session = Depends(get_db),
     user: models.User = Depends(get_current_user)

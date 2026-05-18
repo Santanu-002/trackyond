@@ -224,7 +224,7 @@ class JobsPage extends GetView<JobsController> {
                         }
                         return AppJobCard(
                           job: controller.jobs[index],
-                          onTap: () => controller.goToJobDetails(controller.jobs[index]),
+                          onTap: () => controller.goToJobChat(controller.jobs[index]),
                         );
                       },
                     ),

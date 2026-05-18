@@ -23,7 +23,7 @@ def serialize_attendance(attendance: models.Attendance):
         "endAddress": attendance.end_address
     }
 
-def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = None):
+def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = None, creator_name: str = None):
     if not job:
         return None
     return {
@@ -35,6 +35,8 @@ def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = 
         "workerProfileUid": job.worker_profile_uid,
         "workerName": worker_name,
         "workerImage": worker_image,
+        "createdByProfileUid": job.created_by_profile_uid,
+        "createdByName": creator_name,
         "status": job.status,
         "requirePhotoOnStart": job.require_photo_on_start,
         "requirePhotoOnComplete": job.require_photo_on_complete,

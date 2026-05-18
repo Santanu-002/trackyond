@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$JobModel {
 
- String get jobId; String get jobTitle; String get customerName; String get customerPhone; String? get customerAddress; String get workerProfileUid; String? get workerName; String? get workerImage; String get status; bool get requirePhotoOnStart; bool get requirePhotoOnComplete; bool get captureLocation; DateTime get createdAt; DateTime? get assignedAt; DateTime? get updatedAt; DateTime? get completedAt;
+ String get jobId; String get jobTitle; String get customerName; String get customerPhone; String? get customerAddress; String get workerProfileUid; String? get workerName; String? get workerImage; String? get createdByProfileUid; String? get createdByName; String get status; bool get requirePhotoOnStart; bool get requirePhotoOnComplete; bool get captureLocation; DateTime get createdAt; DateTime? get assignedAt; DateTime? get updatedAt; DateTime? get completedAt;
 /// Create a copy of JobModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $JobModelCopyWith<JobModel> get copyWith => _$JobModelCopyWithImpl<JobModel>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobModel&&(identical(other.jobId, jobId) || other.jobId == jobId)&&(identical(other.jobTitle, jobTitle) || other.jobTitle == jobTitle)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.customerAddress, customerAddress) || other.customerAddress == customerAddress)&&(identical(other.workerProfileUid, workerProfileUid) || other.workerProfileUid == workerProfileUid)&&(identical(other.workerName, workerName) || other.workerName == workerName)&&(identical(other.workerImage, workerImage) || other.workerImage == workerImage)&&(identical(other.status, status) || other.status == status)&&(identical(other.requirePhotoOnStart, requirePhotoOnStart) || other.requirePhotoOnStart == requirePhotoOnStart)&&(identical(other.requirePhotoOnComplete, requirePhotoOnComplete) || other.requirePhotoOnComplete == requirePhotoOnComplete)&&(identical(other.captureLocation, captureLocation) || other.captureLocation == captureLocation)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.assignedAt, assignedAt) || other.assignedAt == assignedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobModel&&(identical(other.jobId, jobId) || other.jobId == jobId)&&(identical(other.jobTitle, jobTitle) || other.jobTitle == jobTitle)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.customerAddress, customerAddress) || other.customerAddress == customerAddress)&&(identical(other.workerProfileUid, workerProfileUid) || other.workerProfileUid == workerProfileUid)&&(identical(other.workerName, workerName) || other.workerName == workerName)&&(identical(other.workerImage, workerImage) || other.workerImage == workerImage)&&(identical(other.createdByProfileUid, createdByProfileUid) || other.createdByProfileUid == createdByProfileUid)&&(identical(other.createdByName, createdByName) || other.createdByName == createdByName)&&(identical(other.status, status) || other.status == status)&&(identical(other.requirePhotoOnStart, requirePhotoOnStart) || other.requirePhotoOnStart == requirePhotoOnStart)&&(identical(other.requirePhotoOnComplete, requirePhotoOnComplete) || other.requirePhotoOnComplete == requirePhotoOnComplete)&&(identical(other.captureLocation, captureLocation) || other.captureLocation == captureLocation)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.assignedAt, assignedAt) || other.assignedAt == assignedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,jobId,jobTitle,customerName,customerPhone,customerAddress,workerProfileUid,workerName,workerImage,status,requirePhotoOnStart,requirePhotoOnComplete,captureLocation,createdAt,assignedAt,updatedAt,completedAt);
+int get hashCode => Object.hash(runtimeType,jobId,jobTitle,customerName,customerPhone,customerAddress,workerProfileUid,workerName,workerImage,createdByProfileUid,createdByName,status,requirePhotoOnStart,requirePhotoOnComplete,captureLocation,createdAt,assignedAt,updatedAt,completedAt);
 
 @override
 String toString() {
-  return 'JobModel(jobId: $jobId, jobTitle: $jobTitle, customerName: $customerName, customerPhone: $customerPhone, customerAddress: $customerAddress, workerProfileUid: $workerProfileUid, workerName: $workerName, workerImage: $workerImage, status: $status, requirePhotoOnStart: $requirePhotoOnStart, requirePhotoOnComplete: $requirePhotoOnComplete, captureLocation: $captureLocation, createdAt: $createdAt, assignedAt: $assignedAt, updatedAt: $updatedAt, completedAt: $completedAt)';
+  return 'JobModel(jobId: $jobId, jobTitle: $jobTitle, customerName: $customerName, customerPhone: $customerPhone, customerAddress: $customerAddress, workerProfileUid: $workerProfileUid, workerName: $workerName, workerImage: $workerImage, createdByProfileUid: $createdByProfileUid, createdByName: $createdByName, status: $status, requirePhotoOnStart: $requirePhotoOnStart, requirePhotoOnComplete: $requirePhotoOnComplete, captureLocation: $captureLocation, createdAt: $createdAt, assignedAt: $assignedAt, updatedAt: $updatedAt, completedAt: $completedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $JobModelCopyWith<$Res>  {
   factory $JobModelCopyWith(JobModel value, $Res Function(JobModel) _then) = _$JobModelCopyWithImpl;
 @useResult
 $Res call({
- String jobId, String jobTitle, String customerName, String customerPhone, String? customerAddress, String workerProfileUid, String? workerName, String? workerImage, String status, bool requirePhotoOnStart, bool requirePhotoOnComplete, bool captureLocation, DateTime createdAt, DateTime? assignedAt, DateTime? updatedAt, DateTime? completedAt
+ String jobId, String jobTitle, String customerName, String customerPhone, String? customerAddress, String workerProfileUid, String? workerName, String? workerImage, String? createdByProfileUid, String? createdByName, String status, bool requirePhotoOnStart, bool requirePhotoOnComplete, bool captureLocation, DateTime createdAt, DateTime? assignedAt, DateTime? updatedAt, DateTime? completedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$JobModelCopyWithImpl<$Res>
 
 /// Create a copy of JobModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? jobId = null,Object? jobTitle = null,Object? customerName = null,Object? customerPhone = null,Object? customerAddress = freezed,Object? workerProfileUid = null,Object? workerName = freezed,Object? workerImage = freezed,Object? status = null,Object? requirePhotoOnStart = null,Object? requirePhotoOnComplete = null,Object? captureLocation = null,Object? createdAt = null,Object? assignedAt = freezed,Object? updatedAt = freezed,Object? completedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? jobId = null,Object? jobTitle = null,Object? customerName = null,Object? customerPhone = null,Object? customerAddress = freezed,Object? workerProfileUid = null,Object? workerName = freezed,Object? workerImage = freezed,Object? createdByProfileUid = freezed,Object? createdByName = freezed,Object? status = null,Object? requirePhotoOnStart = null,Object? requirePhotoOnComplete = null,Object? captureLocation = null,Object? createdAt = null,Object? assignedAt = freezed,Object? updatedAt = freezed,Object? completedAt = freezed,}) {
   return _then(_self.copyWith(
 jobId: null == jobId ? _self.jobId : jobId // ignore: cast_nullable_to_non_nullable
 as String,jobTitle: null == jobTitle ? _self.jobTitle : jobTitle // ignore: cast_nullable_to_non_nullable
@@ -75,6 +75,8 @@ as String,customerAddress: freezed == customerAddress ? _self.customerAddress : 
 as String?,workerProfileUid: null == workerProfileUid ? _self.workerProfileUid : workerProfileUid // ignore: cast_nullable_to_non_nullable
 as String,workerName: freezed == workerName ? _self.workerName : workerName // ignore: cast_nullable_to_non_nullable
 as String?,workerImage: freezed == workerImage ? _self.workerImage : workerImage // ignore: cast_nullable_to_non_nullable
+as String?,createdByProfileUid: freezed == createdByProfileUid ? _self.createdByProfileUid : createdByProfileUid // ignore: cast_nullable_to_non_nullable
+as String?,createdByName: freezed == createdByName ? _self.createdByName : createdByName // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,requirePhotoOnStart: null == requirePhotoOnStart ? _self.requirePhotoOnStart : requirePhotoOnStart // ignore: cast_nullable_to_non_nullable
 as bool,requirePhotoOnComplete: null == requirePhotoOnComplete ? _self.requirePhotoOnComplete : requirePhotoOnComplete // ignore: cast_nullable_to_non_nullable
@@ -165,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String jobId,  String jobTitle,  String customerName,  String customerPhone,  String? customerAddress,  String workerProfileUid,  String? workerName,  String? workerImage,  String status,  bool requirePhotoOnStart,  bool requirePhotoOnComplete,  bool captureLocation,  DateTime createdAt,  DateTime? assignedAt,  DateTime? updatedAt,  DateTime? completedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String jobId,  String jobTitle,  String customerName,  String customerPhone,  String? customerAddress,  String workerProfileUid,  String? workerName,  String? workerImage,  String? createdByProfileUid,  String? createdByName,  String status,  bool requirePhotoOnStart,  bool requirePhotoOnComplete,  bool captureLocation,  DateTime createdAt,  DateTime? assignedAt,  DateTime? updatedAt,  DateTime? completedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JobModel() when $default != null:
-return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhone,_that.customerAddress,_that.workerProfileUid,_that.workerName,_that.workerImage,_that.status,_that.requirePhotoOnStart,_that.requirePhotoOnComplete,_that.captureLocation,_that.createdAt,_that.assignedAt,_that.updatedAt,_that.completedAt);case _:
+return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhone,_that.customerAddress,_that.workerProfileUid,_that.workerName,_that.workerImage,_that.createdByProfileUid,_that.createdByName,_that.status,_that.requirePhotoOnStart,_that.requirePhotoOnComplete,_that.captureLocation,_that.createdAt,_that.assignedAt,_that.updatedAt,_that.completedAt);case _:
   return orElse();
 
 }
@@ -186,10 +188,10 @@ return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhon
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String jobId,  String jobTitle,  String customerName,  String customerPhone,  String? customerAddress,  String workerProfileUid,  String? workerName,  String? workerImage,  String status,  bool requirePhotoOnStart,  bool requirePhotoOnComplete,  bool captureLocation,  DateTime createdAt,  DateTime? assignedAt,  DateTime? updatedAt,  DateTime? completedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String jobId,  String jobTitle,  String customerName,  String customerPhone,  String? customerAddress,  String workerProfileUid,  String? workerName,  String? workerImage,  String? createdByProfileUid,  String? createdByName,  String status,  bool requirePhotoOnStart,  bool requirePhotoOnComplete,  bool captureLocation,  DateTime createdAt,  DateTime? assignedAt,  DateTime? updatedAt,  DateTime? completedAt)  $default,) {final _that = this;
 switch (_that) {
 case _JobModel():
-return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhone,_that.customerAddress,_that.workerProfileUid,_that.workerName,_that.workerImage,_that.status,_that.requirePhotoOnStart,_that.requirePhotoOnComplete,_that.captureLocation,_that.createdAt,_that.assignedAt,_that.updatedAt,_that.completedAt);}
+return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhone,_that.customerAddress,_that.workerProfileUid,_that.workerName,_that.workerImage,_that.createdByProfileUid,_that.createdByName,_that.status,_that.requirePhotoOnStart,_that.requirePhotoOnComplete,_that.captureLocation,_that.createdAt,_that.assignedAt,_that.updatedAt,_that.completedAt);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -203,10 +205,10 @@ return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhon
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String jobId,  String jobTitle,  String customerName,  String customerPhone,  String? customerAddress,  String workerProfileUid,  String? workerName,  String? workerImage,  String status,  bool requirePhotoOnStart,  bool requirePhotoOnComplete,  bool captureLocation,  DateTime createdAt,  DateTime? assignedAt,  DateTime? updatedAt,  DateTime? completedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String jobId,  String jobTitle,  String customerName,  String customerPhone,  String? customerAddress,  String workerProfileUid,  String? workerName,  String? workerImage,  String? createdByProfileUid,  String? createdByName,  String status,  bool requirePhotoOnStart,  bool requirePhotoOnComplete,  bool captureLocation,  DateTime createdAt,  DateTime? assignedAt,  DateTime? updatedAt,  DateTime? completedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _JobModel() when $default != null:
-return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhone,_that.customerAddress,_that.workerProfileUid,_that.workerName,_that.workerImage,_that.status,_that.requirePhotoOnStart,_that.requirePhotoOnComplete,_that.captureLocation,_that.createdAt,_that.assignedAt,_that.updatedAt,_that.completedAt);case _:
+return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhone,_that.customerAddress,_that.workerProfileUid,_that.workerName,_that.workerImage,_that.createdByProfileUid,_that.createdByName,_that.status,_that.requirePhotoOnStart,_that.requirePhotoOnComplete,_that.captureLocation,_that.createdAt,_that.assignedAt,_that.updatedAt,_that.completedAt);case _:
   return null;
 
 }
@@ -218,7 +220,7 @@ return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhon
 @JsonSerializable()
 
 class _JobModel extends JobModel {
-  const _JobModel({required this.jobId, required this.jobTitle, required this.customerName, required this.customerPhone, this.customerAddress, required this.workerProfileUid, this.workerName, this.workerImage, required this.status, required this.requirePhotoOnStart, required this.requirePhotoOnComplete, required this.captureLocation, required this.createdAt, this.assignedAt, this.updatedAt, this.completedAt}): super._();
+  const _JobModel({required this.jobId, required this.jobTitle, required this.customerName, required this.customerPhone, this.customerAddress, required this.workerProfileUid, this.workerName, this.workerImage, this.createdByProfileUid, this.createdByName, required this.status, required this.requirePhotoOnStart, required this.requirePhotoOnComplete, required this.captureLocation, required this.createdAt, this.assignedAt, this.updatedAt, this.completedAt}): super._();
   factory _JobModel.fromJson(Map<String, dynamic> json) => _$JobModelFromJson(json);
 
 @override final  String jobId;
@@ -229,6 +231,8 @@ class _JobModel extends JobModel {
 @override final  String workerProfileUid;
 @override final  String? workerName;
 @override final  String? workerImage;
+@override final  String? createdByProfileUid;
+@override final  String? createdByName;
 @override final  String status;
 @override final  bool requirePhotoOnStart;
 @override final  bool requirePhotoOnComplete;
@@ -251,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobModel&&(identical(other.jobId, jobId) || other.jobId == jobId)&&(identical(other.jobTitle, jobTitle) || other.jobTitle == jobTitle)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.customerAddress, customerAddress) || other.customerAddress == customerAddress)&&(identical(other.workerProfileUid, workerProfileUid) || other.workerProfileUid == workerProfileUid)&&(identical(other.workerName, workerName) || other.workerName == workerName)&&(identical(other.workerImage, workerImage) || other.workerImage == workerImage)&&(identical(other.status, status) || other.status == status)&&(identical(other.requirePhotoOnStart, requirePhotoOnStart) || other.requirePhotoOnStart == requirePhotoOnStart)&&(identical(other.requirePhotoOnComplete, requirePhotoOnComplete) || other.requirePhotoOnComplete == requirePhotoOnComplete)&&(identical(other.captureLocation, captureLocation) || other.captureLocation == captureLocation)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.assignedAt, assignedAt) || other.assignedAt == assignedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobModel&&(identical(other.jobId, jobId) || other.jobId == jobId)&&(identical(other.jobTitle, jobTitle) || other.jobTitle == jobTitle)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone)&&(identical(other.customerAddress, customerAddress) || other.customerAddress == customerAddress)&&(identical(other.workerProfileUid, workerProfileUid) || other.workerProfileUid == workerProfileUid)&&(identical(other.workerName, workerName) || other.workerName == workerName)&&(identical(other.workerImage, workerImage) || other.workerImage == workerImage)&&(identical(other.createdByProfileUid, createdByProfileUid) || other.createdByProfileUid == createdByProfileUid)&&(identical(other.createdByName, createdByName) || other.createdByName == createdByName)&&(identical(other.status, status) || other.status == status)&&(identical(other.requirePhotoOnStart, requirePhotoOnStart) || other.requirePhotoOnStart == requirePhotoOnStart)&&(identical(other.requirePhotoOnComplete, requirePhotoOnComplete) || other.requirePhotoOnComplete == requirePhotoOnComplete)&&(identical(other.captureLocation, captureLocation) || other.captureLocation == captureLocation)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.assignedAt, assignedAt) || other.assignedAt == assignedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,jobId,jobTitle,customerName,customerPhone,customerAddress,workerProfileUid,workerName,workerImage,status,requirePhotoOnStart,requirePhotoOnComplete,captureLocation,createdAt,assignedAt,updatedAt,completedAt);
+int get hashCode => Object.hash(runtimeType,jobId,jobTitle,customerName,customerPhone,customerAddress,workerProfileUid,workerName,workerImage,createdByProfileUid,createdByName,status,requirePhotoOnStart,requirePhotoOnComplete,captureLocation,createdAt,assignedAt,updatedAt,completedAt);
 
 @override
 String toString() {
-  return 'JobModel(jobId: $jobId, jobTitle: $jobTitle, customerName: $customerName, customerPhone: $customerPhone, customerAddress: $customerAddress, workerProfileUid: $workerProfileUid, workerName: $workerName, workerImage: $workerImage, status: $status, requirePhotoOnStart: $requirePhotoOnStart, requirePhotoOnComplete: $requirePhotoOnComplete, captureLocation: $captureLocation, createdAt: $createdAt, assignedAt: $assignedAt, updatedAt: $updatedAt, completedAt: $completedAt)';
+  return 'JobModel(jobId: $jobId, jobTitle: $jobTitle, customerName: $customerName, customerPhone: $customerPhone, customerAddress: $customerAddress, workerProfileUid: $workerProfileUid, workerName: $workerName, workerImage: $workerImage, createdByProfileUid: $createdByProfileUid, createdByName: $createdByName, status: $status, requirePhotoOnStart: $requirePhotoOnStart, requirePhotoOnComplete: $requirePhotoOnComplete, captureLocation: $captureLocation, createdAt: $createdAt, assignedAt: $assignedAt, updatedAt: $updatedAt, completedAt: $completedAt)';
 }
 
 
@@ -271,7 +275,7 @@ abstract mixin class _$JobModelCopyWith<$Res> implements $JobModelCopyWith<$Res>
   factory _$JobModelCopyWith(_JobModel value, $Res Function(_JobModel) _then) = __$JobModelCopyWithImpl;
 @override @useResult
 $Res call({
- String jobId, String jobTitle, String customerName, String customerPhone, String? customerAddress, String workerProfileUid, String? workerName, String? workerImage, String status, bool requirePhotoOnStart, bool requirePhotoOnComplete, bool captureLocation, DateTime createdAt, DateTime? assignedAt, DateTime? updatedAt, DateTime? completedAt
+ String jobId, String jobTitle, String customerName, String customerPhone, String? customerAddress, String workerProfileUid, String? workerName, String? workerImage, String? createdByProfileUid, String? createdByName, String status, bool requirePhotoOnStart, bool requirePhotoOnComplete, bool captureLocation, DateTime createdAt, DateTime? assignedAt, DateTime? updatedAt, DateTime? completedAt
 });
 
 
@@ -288,7 +292,7 @@ class __$JobModelCopyWithImpl<$Res>
 
 /// Create a copy of JobModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? jobId = null,Object? jobTitle = null,Object? customerName = null,Object? customerPhone = null,Object? customerAddress = freezed,Object? workerProfileUid = null,Object? workerName = freezed,Object? workerImage = freezed,Object? status = null,Object? requirePhotoOnStart = null,Object? requirePhotoOnComplete = null,Object? captureLocation = null,Object? createdAt = null,Object? assignedAt = freezed,Object? updatedAt = freezed,Object? completedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? jobId = null,Object? jobTitle = null,Object? customerName = null,Object? customerPhone = null,Object? customerAddress = freezed,Object? workerProfileUid = null,Object? workerName = freezed,Object? workerImage = freezed,Object? createdByProfileUid = freezed,Object? createdByName = freezed,Object? status = null,Object? requirePhotoOnStart = null,Object? requirePhotoOnComplete = null,Object? captureLocation = null,Object? createdAt = null,Object? assignedAt = freezed,Object? updatedAt = freezed,Object? completedAt = freezed,}) {
   return _then(_JobModel(
 jobId: null == jobId ? _self.jobId : jobId // ignore: cast_nullable_to_non_nullable
 as String,jobTitle: null == jobTitle ? _self.jobTitle : jobTitle // ignore: cast_nullable_to_non_nullable
@@ -298,6 +302,8 @@ as String,customerAddress: freezed == customerAddress ? _self.customerAddress : 
 as String?,workerProfileUid: null == workerProfileUid ? _self.workerProfileUid : workerProfileUid // ignore: cast_nullable_to_non_nullable
 as String,workerName: freezed == workerName ? _self.workerName : workerName // ignore: cast_nullable_to_non_nullable
 as String?,workerImage: freezed == workerImage ? _self.workerImage : workerImage // ignore: cast_nullable_to_non_nullable
+as String?,createdByProfileUid: freezed == createdByProfileUid ? _self.createdByProfileUid : createdByProfileUid // ignore: cast_nullable_to_non_nullable
+as String?,createdByName: freezed == createdByName ? _self.createdByName : createdByName // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,requirePhotoOnStart: null == requirePhotoOnStart ? _self.requirePhotoOnStart : requirePhotoOnStart // ignore: cast_nullable_to_non_nullable
 as bool,requirePhotoOnComplete: null == requirePhotoOnComplete ? _self.requirePhotoOnComplete : requirePhotoOnComplete // ignore: cast_nullable_to_non_nullable

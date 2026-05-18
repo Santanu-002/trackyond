@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/services/device_header/device_id_service.dart';
 import 'package:trackyond/core/services/notification/fcm_token_service.dart';
 import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
@@ -22,7 +21,6 @@ class NotificationBinding extends Bindings {
     Get.lazyPut<INotificationDataSource>(
       () => NotificationDataSourceImpl(
         Get.find<Dio>(),
-        Get.find<DeviceIdService>(),
       ),
     );
 

@@ -27,28 +27,30 @@ class AppNotificationBell extends StatelessWidget {
           Positioned(
             right: 8,
             top: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.error,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: theme.scaffoldBackgroundColor,
-                  width: 1.5,
+            child: IgnorePointer(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.error,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: theme.scaffoldBackgroundColor,
+                    width: 1.5,
+                  ),
                 ),
-              ),
-              constraints: const BoxConstraints(
-                minWidth: 16,
-                minHeight: 16,
-              ),
-              child: Text(
-                AppUtils.formatNotificationCount(count),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
                 ),
-                textAlign: TextAlign.center,
+                child: Text(
+                  AppUtils.formatNotificationCount(count),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ),

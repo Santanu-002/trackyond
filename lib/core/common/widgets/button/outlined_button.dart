@@ -5,8 +5,8 @@ class _OutlinedAppButton extends StatelessWidget {
   final Widget? child;
   final Widget? leading;
   final VoidCallback? onPressed;
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
   final Color? color;
   final double? borderRadius;
   final AppButtonShape shape;
@@ -18,8 +18,8 @@ class _OutlinedAppButton extends StatelessWidget {
     this.child,
     this.leading,
     this.onPressed,
-    required this.width,
-    required this.height,
+    this.width,
+    this.height,
     this.color,
     this.borderRadius,
     required this.shape,

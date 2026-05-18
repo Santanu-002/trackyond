@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from sqlalchemy.orm import Session
 from db.database import get_db
 from db import models
@@ -72,7 +72,10 @@ async def delete_notifications(
 async def register_fcm_token(
     request: FCMTokenRequest,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_admin_user)
+    current_user: models.User = Depends(get_admin_user),
+    device_id: str = Header(..., alias="device-id"),
+    platform: str = Header(..., alias="device-os"),
+    app_version: str = Header(..., alias="app-version")
 ):
     """
     Register or update an FCM token for an admin user.
@@ -80,9 +83,9 @@ async def register_fcm_token(
     upsert_admin_fcm_token(
         db=db,
         admin_uid=current_user.uid,
-        device_id=request.deviceId,
+        device_id=device_id,
         fcm_token=request.fcmToken,
-        platform=request.platform,
-        app_version=request.appVersion
+        platform=platform,
+        app_version=app_version
     )
     return GenericResponse(success=True, message="FCM token registered successfully")

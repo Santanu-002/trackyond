@@ -127,4 +127,5 @@ class _CommonEndpoints {
   static const String _root = '/common';
 
   String download(String path) => '$_root/files/download/$path';
+  String jobChatMessages(String jobId) => '$_root/job-chat/$jobId/messages';
 }

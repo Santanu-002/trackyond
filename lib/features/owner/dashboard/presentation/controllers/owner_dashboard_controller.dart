@@ -192,7 +192,7 @@ class OwnerDashboardController extends GetxController {
     Get.toNamed(AppRoutes.owner.teamMemberProfile, arguments: member);
   }
 
-  void goToJobDetails(JobEntity job) {
-    Get.toNamed(AppRoutes.owner.jobDetails, arguments: job);
+  void goToJobChat(JobEntity job) {
+    Get.toNamed(AppRoutes.common.jobChat, arguments: job);
   }
 }

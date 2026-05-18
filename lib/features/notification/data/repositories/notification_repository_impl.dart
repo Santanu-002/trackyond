@@ -9,6 +9,7 @@ import 'package:trackyond/core/services/notification/local_notification_service.
 import 'package:trackyond/core/services/user/user_service.dart';
 import 'package:trackyond/core/services/notification/fcm_token_service.dart';
 import 'package:trackyond/features/notification/data/datasources/notification_data_source.dart';
+import 'package:trackyond/features/notification/data/models/request/notification_filter_request_model.dart';
 import 'package:trackyond/features/notification/domain/entities/notification_entity.dart';
 import 'package:trackyond/features/notification/domain/entities/notification_filter_options.dart';
 import 'package:trackyond/features/notification/domain/repositories/i_notification_repository.dart';
@@ -103,7 +104,7 @@ class NotificationRepositoryImpl implements INotificationRepository {
 
     final response = await _dataSource.getNotifications(
       role: role,
-      options: options,
+      options: NotificationFilterRequestModel.fromEntity(options),
     );
     return response.when(
       success: (_, message, models) {

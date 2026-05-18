@@ -66,3 +66,11 @@ class NotificationType(str, Enum):
     attendance_reminder = "attendance_reminder"
     announcement = "announcement"
     system = "system"
+
+class ChatMessageType(str, Enum):
+    text = "text"
+    image = "image"
+    video = "video"
+    docs = "docs"
+    activity = "activity"
+    header = "header"

@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -87,17 +88,20 @@ class NotificationsPageController extends GetxController {
     final selected = notificationController.notifications
         .where((n) => selectedIds.contains(n.id))
         .toList();
-        
+
     final DateFormat formatter = DateFormat('dd MMM yyyy, hh:mm a');
     String buffer = '';
-    
+
     for (var i = 0; i < selected.length; i++) {
       final n = selected[i];
-      
+
       // Clean up body text (remove HTML tags, convert <br> to newline)
-      String cleanBody = n.body.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+      String cleanBody = n.body.replaceAll(
+        RegExp(r'<br\s*/?>', caseSensitive: false),
+        '\n',
+      );
       cleanBody = cleanBody.replaceAll(RegExp(r'<[^>]*>'), '');
-      
+
       buffer += '${n.title}\n\n';
       buffer += '$cleanBody\n\n';
 
@@ -105,7 +109,7 @@ class NotificationsPageController extends GetxController {
         String? customerName;
         String? customerAddress;
         String? customerPhone;
-        
+
         // Parse from 'job' JSON string
         final String? jobDataStr = n.data!['job']?.toString();
         if (jobDataStr != null && jobDataStr.isNotEmpty) {
@@ -116,7 +120,7 @@ class NotificationsPageController extends GetxController {
             customerPhone = jobData['customerPhone']?.toString();
           } catch (_) {}
         }
-        
+
         bool hasCustomerData = false;
         if (customerName != null && customerName.isNotEmpty) {
           buffer += 'Customer: $customerName\n';
@@ -132,13 +136,14 @@ class NotificationsPageController extends GetxController {
         }
         if (hasCustomerData) buffer += '\n';
       }
-      
+
       final localDate = n.createdAt.toLocal();
-      buffer += '${AppStrings.notifications.dateLabel}: ${formatter.format(localDate)}\n';
-      
+      buffer +=
+          '${AppStrings.notifications.dateLabel}: ${formatter.format(localDate)}\n';
+
       if (i < selected.length - 1) buffer += '\n\n';
     }
-    
+
     Clipboard.setData(ClipboardData(text: buffer.trim()));
     AppSnackbar.success(AppStrings.common.copied);
     exitSelectionMode();
@@ -181,7 +186,6 @@ class NotificationsPageController extends GetxController {
 
   void toggleSort() {
     isNewestFirst.value = !isNewestFirst.value;
-    _fetchWithFilters();
   }
 
   void _fetchWithFilters() {
@@ -193,10 +197,7 @@ class NotificationsPageController extends GetxController {
     }
 
     notificationController.fetchNotifications(
-      options: NotificationFilterOptions(
-        isRead: isRead,
-        isNewestFirst: isNewestFirst.value,
-      ),
+      options: NotificationFilterOptions(isRead: isRead, isNewestFirst: true),
     );
   }
 
@@ -204,10 +205,22 @@ class NotificationsPageController extends GetxController {
   Map<String, List<NotificationEntity>> get groupedNotifications {
     final result = <String, List<NotificationEntity>>{};
 
-    // Group them keeping the returned sort order
+    // 1. Group them.
+    // We assume notificationController.notifications is ALREADY sorted newest first from the API.
+    // This ensures that the groups themselves are ordered from newest to oldest.
     for (final n in notificationController.notifications) {
       final label = AppUtils.formatDateGroup(n.createdAt);
       result.putIfAbsent(label, () => []).add(n);
+    }
+
+    // 2. Sort items within each group based on the toggle preference
+    final newestFirst = isNewestFirst.value;
+    for (final list in result.values) {
+      list.sort(
+        (a, b) => newestFirst
+            ? b.createdAt.compareTo(a.createdAt)
+            : a.createdAt.compareTo(b.createdAt),
+      );
     }
 
     return result;

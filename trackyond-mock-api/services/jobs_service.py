@@ -1,13 +1,14 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from sqlalchemy import desc, asc, or_, and_
 import uuid
 import json
 from typing import Optional
 from db import models
-from core.constants.enums import JobStatus, NotificationType
+from core.constants.enums import JobStatus, NotificationType, ChatMessageType
 from core.utils.datetime_utils import now_utc
 from services.serializers import serialize_job
 from services.notification_service import create_notification
+from services.job_chat_service import create_system_activity_message
 
 def get_admin_jobs(
     db: Session,
@@ -33,12 +34,19 @@ def get_admin_jobs(
 
     company_uid = admin_member.company_uid
 
+    # Aliases for Member table to join twice
+    worker_member = aliased(models.Member)
+    creator_member = aliased(models.Member)
+
     query = db.query(
         models.Job, 
-        models.Member.name.label("worker_name"),
-        models.Member.image.label("worker_image")
+        worker_member.name.label("worker_name"),
+        worker_member.image.label("worker_image"),
+        creator_member.name.label("creator_name")
     ).outerjoin(
-        models.Member, models.Job.worker_profile_uid == models.Member.uid
+        worker_member, models.Job.worker_profile_uid == worker_member.uid
+    ).outerjoin(
+        creator_member, models.Job.created_by_profile_uid == creator_member.uid
     ).filter(models.Job.company_uid == company_uid)
 
     filter_clauses = []
@@ -108,7 +116,7 @@ def get_admin_jobs(
     
     total_pages = (total_count + limit - 1) // limit
 
-    jobs_data = [serialize_job(job, worker_name, worker_image) for job, worker_name, worker_image in results]
+    jobs_data = [serialize_job(job, worker_name, worker_image, creator_name) for job, worker_name, worker_image, creator_name in results]
 
     return {
         "totalCount": total_count,
@@ -134,6 +142,7 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
         worker_profile_uid=job_data.get("workerProfileUid"),
         company_uid=admin_member.company_uid,
         created_by=admin_uid,
+        created_by_profile_uid=admin_member.uid,
         status=JobStatus.assigned if job_data.get("workerProfileUid") else JobStatus.pending,
         require_photo_on_start=job_data.get("requirePhotoOnStart", False),
         require_photo_on_complete=job_data.get("requirePhotoOnComplete", False),
@@ -155,7 +164,15 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
             worker_name = worker_member.name
             worker_image = worker_member.image
             
-            serialized_job = serialize_job(new_job, worker_name, worker_image)
+            serialized_job = serialize_job(new_job, worker_name, worker_image, admin_member.name)
+            
+            # Log job assignment to chat timeline
+            create_system_activity_message(
+                db=db,
+                job_id=new_job.job_id,
+                text=f"@[profileUid#{admin_member.uid}] created this job and assigned to @[profileUid#{new_job.worker_profile_uid}]",
+                message_type=ChatMessageType.header
+            )
             
             # Create notification for worker
             create_notification(
@@ -199,7 +216,7 @@ def create_mock_job_for_employee(db: Session, user_uid: str):
     db.commit()
     db.refresh(new_job)
     
-    serialized_job = serialize_job(new_job, member.name, member.image)
+    serialized_job = serialize_job(new_job, member.name, member.image, member.name)
     
     # Create notification for worker
     create_notification(
@@ -229,7 +246,11 @@ def notify_job_worker(db: Session, job_id: str):
     if not worker_member:
         return False, "Worker profile not found"
     
-    serialized_job = serialize_job(job, worker_member.name, worker_member.image)
+    # We might need creator_name here too, but let's assume we can fetch it if needed.
+    creator_member = db.query(models.Member).filter(models.Member.uid == job.created_by_profile_uid).first()
+    creator_name = creator_member.name if creator_member else None
+
+    serialized_job = serialize_job(job, worker_member.name, worker_member.image, creator_name)
     
     create_notification(
         db=db,
@@ -263,12 +284,19 @@ def get_employee_assigned_jobs(
     if not member:
         return None, "Member profile not found"
 
+    # Aliases for Member table to join twice
+    worker_member = aliased(models.Member)
+    creator_member = aliased(models.Member)
+
     query = db.query(
         models.Job,
-        models.Member.name.label("worker_name"),
-        models.Member.image.label("worker_image")
+        worker_member.name.label("worker_name"),
+        worker_member.image.label("worker_image"),
+        creator_member.name.label("creator_name")
     ).outerjoin(
-        models.Member, models.Job.worker_profile_uid == models.Member.uid
+        worker_member, models.Job.worker_profile_uid == worker_member.uid
+    ).outerjoin(
+        creator_member, models.Job.created_by_profile_uid == creator_member.uid
     ).filter(models.Job.worker_profile_uid == member.uid)
 
     if status:
@@ -314,7 +342,7 @@ def get_employee_assigned_jobs(
     
     total_pages = (total_count + limit - 1) // limit
 
-    jobs_data = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in results]
+    jobs_data = [serialize_job(j, worker_name, worker_image, creator_name) for j, worker_name, worker_image, creator_name in results]
 
     return {
         "totalCount": total_count,

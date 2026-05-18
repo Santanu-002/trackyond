@@ -48,4 +48,5 @@ class _CommonRoutes {
   
   String get notifications => '/notifications';
   String get notificationDetails => '/notification-details';
+  String get jobChat => '/job-chat';
 }

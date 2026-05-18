@@ -54,7 +54,7 @@ class RecentJobsSection extends GetView<OwnerDashboardController> {
 
             return AppJobCard(
               job: job,
-              onTap: () => controller.goToJobDetails(job),
+              onTap: () => controller.goToJobChat(job),
             );
           },
         );

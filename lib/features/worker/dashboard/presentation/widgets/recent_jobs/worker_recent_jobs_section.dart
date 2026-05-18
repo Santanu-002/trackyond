@@ -60,7 +60,7 @@ class WorkerRecentJobsSection extends GetView<WorkerDashboardController> {
             final job = recentJobs[index];
             return JobItemWidget(
               job: job,
-              onTap: () => controller.goToJobDetails(job),
+              onTap: () => controller.goToJobChat(job),
             );
           },
         );

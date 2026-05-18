@@ -7,6 +7,8 @@ import 'package:trackyond/features/auth/presentation/screens/auth_gate_page.dart
 import 'package:trackyond/features/auth/presentation/screens/choose_role_page.dart';
 import 'package:trackyond/features/auth/presentation/screens/send_otp_page.dart';
 import 'package:trackyond/features/auth/presentation/screens/verify_otp_page.dart';
+import 'package:trackyond/features/job_chat/presentation/bindings/job_chat_binding.dart';
+import 'package:trackyond/features/job_chat/presentation/screens/job_chat_page.dart';
 import 'package:trackyond/features/notification/presentation/bindings/notification_binding.dart';
 import 'package:trackyond/features/notification/presentation/bindings/notifications_page_binding.dart';
 import 'package:trackyond/features/notification/presentation/pages/notification_details_page.dart';
@@ -56,6 +58,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.common.notificationDetails,
       page: () => const NotificationDetailsPage(),
+    ),
+    GetPage(
+      name: AppRoutes.common.jobChat,
+      binding: JobChatBinding(),
+      page: () => const JobChatPage(),
     ),
   ];
 

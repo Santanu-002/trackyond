@@ -426,9 +426,8 @@ class WorkerDashboardController extends GetxController {
 
   void goToJobs() => AppSnackbar.info(AppStrings.common.underDevelopment);
 
-  void goToJobDetails(JobEntity job) {
-    // TODO: Implement navigation to worker job details
-    // Get.toNamed(AppRoutes.worker.jobDetails, arguments: job);
+  void goToJobChat(JobEntity job) {
+    Get.toNamed(AppRoutes.common.jobChat, arguments: job);
   }
 
   void navigateToProfile() => Get.toNamed(AppRoutes.worker.profile);

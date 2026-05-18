@@ -708,7 +708,7 @@ class JobsController extends GetxController {
     Get.bottomSheet(const FilterBottomSheet(), isScrollControlled: true);
   }
 
-  void goToJobDetails(JobEntity job) {
-    Get.toNamed(AppRoutes.owner.jobDetails, arguments: job);
+  void goToJobChat(JobEntity job) {
+    Get.toNamed(AppRoutes.common.jobChat, arguments: job);
   }
 }

@@ -10,6 +10,8 @@ class JobEntity extends Equatable {
   final String workerProfileUid;
   final String? workerName;
   final String? workerImage;
+  final String? createdByProfileUid;
+  final String? createdByName;
   final JobStatus status;
   final bool requirePhotoOnStart;
   final bool requirePhotoOnComplete;
@@ -28,6 +30,8 @@ class JobEntity extends Equatable {
     required this.workerProfileUid,
     this.workerName,
     this.workerImage,
+    this.createdByProfileUid,
+    this.createdByName,
     required this.status,
     required this.requirePhotoOnStart,
     required this.requirePhotoOnComplete,
@@ -48,6 +52,8 @@ class JobEntity extends Equatable {
         workerProfileUid,
         workerName,
         workerImage,
+        createdByProfileUid,
+        createdByName,
         status,
         requirePhotoOnStart,
         requirePhotoOnComplete,

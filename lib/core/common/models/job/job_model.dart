@@ -26,6 +26,7 @@ sealed class JobModel with _$JobModel {
     DateTime? assignedAt,
     DateTime? updatedAt,
     DateTime? completedAt,
+    @Default([]) List<String> allowedActions,
   }) = _JobModel;
 
   const JobModel._();
@@ -51,5 +52,6 @@ sealed class JobModel with _$JobModel {
         assignedAt: assignedAt,
         updatedAt: updatedAt,
         completedAt: completedAt,
+        allowedActions: allowedActions,
       );
 }

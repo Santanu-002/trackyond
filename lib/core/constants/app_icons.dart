@@ -137,6 +137,15 @@ class _JobsIcons {
   IconData get filter => Icons.filter_list_rounded;
   IconData get sort => Icons.swap_vert_rounded;
   IconData get filterOff => Icons.filter_list_off_rounded;
+
+  IconData get reached => Icons.location_on_outlined;
+  IconData get coffee => Icons.coffee_rounded;
+  IconData get myLocation => Icons.my_location_rounded;
+  IconData get locationSearching => Icons.location_searching_rounded;
+  IconData get statusQuestion => Icons.question_mark_rounded;
+  IconData get cameraOutlined => Icons.camera_alt_outlined;
+  IconData get checkIn => Icons.where_to_vote_rounded;
+  IconData get locationPinFilled => Icons.location_on_rounded;
 }
 
 class _ProfileIcons {

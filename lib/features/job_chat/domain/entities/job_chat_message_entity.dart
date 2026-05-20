@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'job_chat_message_content_entity.dart';
 
 class JobChatMessageEntity extends Equatable {
-  final String id;
+  final String uid;
   final String? localId;
   final String jobId;
   final String authorType; // 'user', 'system'
@@ -24,7 +24,7 @@ class JobChatMessageEntity extends Equatable {
   final bool deleted;
 
   const JobChatMessageEntity({
-    required this.id,
+    required this.uid,
     this.localId,
     required this.jobId,
     this.authorType = 'user',
@@ -45,7 +45,7 @@ class JobChatMessageEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
+        uid,
         localId,
         jobId,
         authorType,

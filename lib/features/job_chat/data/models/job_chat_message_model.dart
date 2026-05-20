@@ -40,7 +40,7 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
 
   JobChatMessageEntity toEntity() {
     return JobChatMessageEntity(
-      id: uid,
+      uid: uid,
       localId: localId,
       jobId: jobId,
       authorType: authorType,

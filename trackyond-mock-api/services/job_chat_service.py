@@ -6,7 +6,7 @@ from datetime import datetime
 from db import models
 from schemas import job_chat as schemas
 from core.utils.datetime_utils import now_utc
-from core.constants.enums import ChatMessageType
+from core.constants.enums import ChatMessageType, JobStatus
 
 def get_job_messages(db: Session, job_id: str):
     messages = db.query(models.JobChatMessage).filter(
@@ -47,6 +47,15 @@ def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMe
             metadata_json=json.dumps(content.metadata) if content.metadata else None
         )
         db.add(db_content)
+        
+        # Check for reached_location activity
+        if content.type == "activity" and content.metadata:
+            activity_type = content.metadata.get("activity_type")
+            if activity_type == "reached_location":
+                job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+                if job:
+                    job.status = JobStatus.assigned.value
+                    job.updated_at = now_utc()
     
     db.commit()
     db.refresh(db_message)

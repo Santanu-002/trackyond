@@ -1,10 +1,13 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_remote_datasource.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_content_model.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repository.dart';
+
+import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
 class JobChatRepositoryImpl implements IJobChatRepository {
   final IJobChatDataSource _remoteDataSource;
@@ -25,10 +28,10 @@ class JobChatRepositoryImpl implements IJobChatRepository {
   }
 
   @override
-  Future<Either<AppFailure, JobChatMessageEntity>> sendMessage(JobChatMessageEntity message) async {
+  Future<Either<AppFailure, SendMessageResult>> sendMessage(JobChatMessageEntity message) async {
     // Map Entity to Model
     final model = JobChatMessageModel(
-      uid: message.id,
+      uid: message.uid,
       localId: message.localId,
       jobId: message.jobId,
       authorType: message.authorType,
@@ -54,6 +57,19 @@ class JobChatRepositoryImpl implements IJobChatRepository {
     );
 
     final response = await _remoteDataSource.sendMessage(message: model);
+    
+    return response.fold(
+      (error) => Left(ServerFailure(error.message)),
+      (data) {
+        if (data == null) return Left(ServerFailure('No data returned'));
+        return Right(data.toEntity());
+      },
+    );
+  }
+
+  @override
+  Future<Either<AppFailure, JobEntity>> updateJobStatus(String jobId, String status) async {
+    final response = await _remoteDataSource.updateJobStatus(jobId: jobId, status: status);
     
     return response.fold(
       (error) => Left(ServerFailure(error.message)),

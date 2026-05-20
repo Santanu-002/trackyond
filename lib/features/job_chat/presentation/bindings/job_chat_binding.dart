@@ -4,6 +4,7 @@ import 'package:trackyond/features/job_chat/data/repositories/job_chat_repositor
 import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repository.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_messages_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/send_message_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/update_job_status_usecase.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 
 class JobChatBinding extends Bindings {
@@ -14,6 +15,7 @@ class JobChatBinding extends Bindings {
     
     Get.lazyPut(() => GetJobMessagesUseCase(Get.find()));
     Get.lazyPut(() => SendMessageUseCase(Get.find()));
+    Get.lazyPut(() => UpdateJobStatusUseCase(Get.find()));
     
     Get.lazyPut(
       () => JobChatController(

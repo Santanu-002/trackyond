@@ -1,12 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
+import 'package:trackyond/core/common/models/job/job_model.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
 
+import 'package:trackyond/features/job_chat/data/models/send_message_response_model.dart';
+
 abstract interface class IJobChatDataSource {
   Future<ApiResponse<List<JobChatMessageModel>>> getMessages({required String jobId});
-  Future<ApiResponse<JobChatMessageModel>> sendMessage({required JobChatMessageModel message});
+  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required JobChatMessageModel message});
+  Future<ApiResponse<JobModel>> updateJobStatus({
+    required String jobId,
+    required String status,
+  });
 }
 
 class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatDataSource {
@@ -26,13 +33,27 @@ class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatD
   }
 
   @override
-  Future<ApiResponse<JobChatMessageModel>> sendMessage({required JobChatMessageModel message}) async {
+  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required JobChatMessageModel message}) async {
     return performApiRequest(
       _dio.post(
         ApiEndpoints.common.jobChatMessages(message.jobId),
         data: message.toJson(),
       ),
-      (data) => JobChatMessageModel.fromJson(data as Map<String, dynamic>),
+      (data) => SendMessageResponseModel.fromJson(data as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<JobModel>> updateJobStatus({
+    required String jobId,
+    required String status,
+  }) async {
+    return performApiRequest(
+      _dio.patch(
+        ApiEndpoints.employee.jobStatus(jobId),
+        data: {'status': status},
+      ),
+      (data) => JobModel.fromJson(data as Map<String, dynamic>),
     );
   }
 }

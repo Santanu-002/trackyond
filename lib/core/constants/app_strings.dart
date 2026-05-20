@@ -19,6 +19,7 @@ class AppStrings {
   static const jobs = JobsStrings();
   static const jobDetails = JobDetailsStrings();
   static const notifications = NotificationsStrings();
+  static const jobChat = JobChatStrings();
 }
 
 class NotificationsStrings {
@@ -613,4 +614,14 @@ class JobDetailsStrings {
   String get photoRequiredOnCompletion => 'Photo required on completion';
   String get locationTrackingEnabled => 'Location tracking enabled';
   String get jobId => 'Job ID';
+}
+
+class JobChatStrings {
+  const JobChatStrings();
+
+  String get jobUpdateBannerTitle => 'Job Update';
+  String get timeFormat => 'hh:mm a';
+  String jobSubtitle(String jobId, String status) => 'Job #$jobId • $status';
+  String get somethingWentWrong => 'Something went wrong';
+  String get retry => 'Retry';
 }

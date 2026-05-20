@@ -1,4 +1,5 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_type.dart';
@@ -6,13 +7,15 @@ import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repos
 
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 
+import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
+
 class MockJobChatRepositoryImpl implements IJobChatRepository {
   @override
   Future<Either<AppFailure, List<JobChatMessageEntity>>> getMessages(String jobId) async {
     await Future.delayed(const Duration(milliseconds: 500));
     return Right([
       JobChatMessageEntity(
-        id: '1',
+        uid: '1',
         jobId: jobId,
         authorType: 'system',
         senderName: 'System',
@@ -27,7 +30,7 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
         isMe: false,
       ),
       JobChatMessageEntity(
-        id: '2',
+        uid: '2',
         jobId: jobId,
         senderName: 'John Doe',
         senderId: 'worker_1',
@@ -44,8 +47,14 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
   }
 
   @override
-  Future<Either<AppFailure, JobChatMessageEntity>> sendMessage(JobChatMessageEntity message) async {
+  Future<Either<AppFailure, SendMessageResult>> sendMessage(JobChatMessageEntity message) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    return Right(message);
+    return Right(SendMessageResult(message: message, allowedActions: []));
+  }
+
+  @override
+  Future<Either<AppFailure, JobEntity>> updateJobStatus(String jobId, String status) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return Left(ServerFailure('Mock status update not implemented'));
   }
 }

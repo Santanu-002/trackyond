@@ -42,6 +42,7 @@ dependencies:
   flutter_local_notifications: ^21.0.0
   sqflite: ^2.4.2+1
   flutter_new_badger: ^1.1.1
+  nanoid: ^1.0.0
   
 dev_dependencies:
   flutter_test:

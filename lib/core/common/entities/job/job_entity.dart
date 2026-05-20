@@ -20,6 +20,7 @@ class JobEntity extends Equatable {
   final DateTime? assignedAt;
   final DateTime? updatedAt;
   final DateTime? completedAt;
+  final List<String> allowedActions;
 
   const JobEntity({
     required this.jobId,
@@ -40,6 +41,7 @@ class JobEntity extends Equatable {
     this.assignedAt,
     this.updatedAt,
     this.completedAt,
+    this.allowedActions = const [],
   });
 
   @override
@@ -62,5 +64,6 @@ class JobEntity extends Equatable {
         assignedAt,
         updatedAt,
         completedAt,
+        allowedActions,
       ];
 }

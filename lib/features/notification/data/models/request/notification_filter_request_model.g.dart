@@ -11,8 +11,8 @@ _NotificationFilterRequestModel _$NotificationFilterRequestModelFromJson(
 ) => _NotificationFilterRequestModel(
   limit: (json['limit'] as num).toInt(),
   offset: (json['offset'] as num).toInt(),
-  isRead: json['is_read'] as bool?,
-  isNewestFirst: json['is_newest_first'] as bool,
+  isRead: json['isRead'] as bool?,
+  isNewestFirst: json['isNewestFirst'] as bool,
 );
 
 Map<String, dynamic> _$NotificationFilterRequestModelToJson(
@@ -20,6 +20,6 @@ Map<String, dynamic> _$NotificationFilterRequestModelToJson(
 ) => <String, dynamic>{
   'limit': instance.limit,
   'offset': instance.offset,
-  'is_read': instance.isRead,
-  'is_newest_first': instance.isNewestFirst,
+  'isRead': ?instance.isRead,
+  'isNewestFirst': instance.isNewestFirst,
 };

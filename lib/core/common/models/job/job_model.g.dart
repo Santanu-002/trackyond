@@ -31,6 +31,11 @@ _JobModel _$JobModelFromJson(Map<String, dynamic> json) => _JobModel(
   completedAt: json['completedAt'] == null
       ? null
       : DateTime.parse(json['completedAt'] as String),
+  allowedActions:
+      (json['allowedActions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$JobModelToJson(_JobModel instance) => <String, dynamic>{
@@ -52,4 +57,5 @@ Map<String, dynamic> _$JobModelToJson(_JobModel instance) => <String, dynamic>{
   'assignedAt': instance.assignedAt?.toIso8601String(),
   'updatedAt': instance.updatedAt?.toIso8601String(),
   'completedAt': instance.completedAt?.toIso8601String(),
+  'allowedActions': instance.allowedActions,
 };

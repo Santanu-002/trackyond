@@ -15,20 +15,22 @@ class DateChip extends StatelessWidget {
 
     return Center(
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: AppUIConstants.spacing.space$16),
+        margin: EdgeInsets.only(
+          top: AppUIConstants.spacing.space$16,
+          bottom: AppUIConstants.spacing.space$8,
+        ),
         padding: EdgeInsets.symmetric(
           horizontal: AppUIConstants.spacing.space$12,
           vertical: AppUIConstants.spacing.space$4,
         ),
         decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
-          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+          color: colorScheme.primary,
+          borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$8),
         ),
         child: Text(
           _formatDate(date),
           style: textTheme.labelSmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
+            color: colorScheme.onPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),

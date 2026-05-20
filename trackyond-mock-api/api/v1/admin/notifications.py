@@ -30,8 +30,8 @@ router = APIRouter(prefix="/notifications", tags=["Admin Notifications"])
 async def get_notifications(
     limit: int = Query(50, ge=1),
     offset: int = Query(0, ge=0),
-    is_read: Optional[bool] = Query(None),
-    is_newest_first: bool = Query(True),
+    is_read: Optional[bool] = Query(None, alias="isRead"),
+    is_newest_first: bool = Query(True, alias="isNewestFirst"),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_admin_user)
 ):

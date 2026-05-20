@@ -1,17 +1,21 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:nanoid/nanoid.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
+import 'package:trackyond/core/common/enums/job_action.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
-import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
-import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
-import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
-import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_type.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
-
+import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
+import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
+import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_type.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_messages_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/send_message_usecase.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class JobChatController extends GetxController {
   final GetJobMessagesUseCase _getMessagesUseCase;
@@ -33,6 +37,7 @@ class JobChatController extends GetxController {
     if (messages.isEmpty) return items;
 
     DateTime? lastDate;
+    DateTime? lastHeaderTime;
 
     // Messages are sorted by date from backend (asc)
     for (var message in messages) {
@@ -42,16 +47,36 @@ class JobChatController extends GetxController {
         message.timestamp.day,
       );
 
-      if (lastDate == null || !messageDate.isAtSameMomentAs(lastDate)) {
+      final isNewDate = lastDate == null || !messageDate.isAtSameMomentAs(lastDate);
+      if (isNewDate) {
         items.add(messageDate);
         lastDate = messageDate;
+        items.add(message);
+        items.add(ChatTimeHeader(message.timestamp));
+        lastHeaderTime = message.timestamp;
+      } else {
+        items.add(message);
+        if (lastHeaderTime == null ||
+            message.timestamp.difference(lastHeaderTime).abs() > const Duration(hours: 1)) {
+          items.add(ChatTimeHeader(message.timestamp));
+          lastHeaderTime = message.timestamp;
+        }
       }
-      items.add(message);
     }
     return items;
   }
 
   final RxBool isLoading = false.obs;
+  final RxnString errorMessage = RxnString(null);
+
+  final RxBool isActionLoading = false.obs;
+  final RxnString actionLoadingMessage = RxnString(null);
+  final RxnString loadingActionLabel = RxnString(null);
+
+  Future<void> _setPhase(String message) async {
+    actionLoadingMessage.value = message;
+    await Future.delayed(const Duration(milliseconds: 800));
+  }
 
   String _resolveName(String uid) {
     // Check if it's the worker
@@ -154,10 +179,16 @@ class JobChatController extends GetxController {
 
   Future<void> fetchMessages() async {
     isLoading.value = true;
+    errorMessage.value = null;
     final result = await _getMessagesUseCase(job.jobId);
     result.fold(
-      (failure) => AppSnackbar.destructive(failure.message),
-      (data) => messages.assignAll(data),
+      (failure) {
+        errorMessage.value = failure.message;
+        AppSnackbar.destructive(failure.message);
+      },
+      (data) {
+        messages.assignAll(data);
+      },
     );
     isLoading.value = false;
   }
@@ -169,9 +200,9 @@ class JobChatController extends GetxController {
     messageController.clear();
     
     // Optimistic UI update
-    final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+    final tempId = nanoid();
     final tempMsg = JobChatMessageEntity(
-      id: tempId,
+      uid: tempId,
       localId: tempId,
       jobId: job.jobId,
       senderName: 'Me',
@@ -193,14 +224,14 @@ class JobChatController extends GetxController {
 
     result.fold(
       (failure) {
-        messages.removeWhere((m) => m.id == tempId);
+        messages.removeWhere((m) => m.uid == tempId);
         AppSnackbar.destructive(failure.message);
       },
-      (sentMsg) {
+      (sendResult) {
         // Replace temp message with real one
-        final index = messages.indexWhere((m) => m.id == tempId);
+        final index = messages.indexWhere((m) => m.uid == tempId);
         if (index != -1) {
-          messages[index] = sentMsg;
+          messages[index] = sendResult.message;
         }
       },
     );
@@ -208,7 +239,8 @@ class JobChatController extends GetxController {
 
   void sendMockPhoto() {
     final photoMsg = JobChatMessageEntity(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      uid: nanoid(),
+      localId: nanoid(),
       jobId: job.jobId,
       senderName: 'Me',
       senderId: 'me',
@@ -231,7 +263,8 @@ class JobChatController extends GetxController {
 
     // Activity entry
     final timelineMsg = JobChatMessageEntity(
-      id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
+      uid: nanoid(),
+      localId: nanoid(),
       jobId: job.jobId,
       authorType: 'system',
       senderName: 'System',
@@ -248,98 +281,232 @@ class JobChatController extends GetxController {
     messages.add(timelineMsg);
   }
 
-  void executeAction(String actionLabel) {
-    // Mock action execution
-    JobStatus newStatus = job.status;
-    String timelineText = 'Job status updated to: $actionLabel';
-    bool shouldUpdateStatus = false;
+  Future<void> executeAction(String actionLabel) async {
+    isActionLoading.value = true;
+    loadingActionLabel.value = actionLabel;
 
-    switch (actionLabel) {
-      case 'Start Job':
-        newStatus = JobStatus.inProgress;
-        shouldUpdateStatus = true;
-        timelineText = '🚀 Worker started the job';
-        break;
-      case 'Complete Job':
-        newStatus = JobStatus.completed;
-        shouldUpdateStatus = true;
-        timelineText = '✅ Job completed by worker';
-        break;
-      case 'Cancel Job':
-        newStatus = JobStatus.cancelled;
-        shouldUpdateStatus = true;
-        timelineText = '❌ Job cancelled';
-        break;
-      case 'Reopen Job':
-        newStatus = JobStatus.pending;
-        shouldUpdateStatus = true;
-        timelineText = '🔄 Job reopened';
-        break;
-      case 'Reached':
-        timelineText = '📍 Worker reached the location';
-        break;
-      case 'Take a Break':
-        isOnBreak.value = true;
-        timelineText = '☕ Worker is taking a break';
-        break;
-      case 'Resume':
-        isOnBreak.value = false;
-        timelineText = '🏃 Worker resumed work';
-        break;
-      case 'Send Location':
-        timelineText = '🛰️ Worker shared current location: 23.8103° N, 90.4125° E';
-        break;
-      case 'Ask Location':
-        timelineText = '❓ Owner requested current location';
-        break;
-      case 'Ask Status':
-        timelineText = '❓ Owner requested status update';
-        break;
-      case 'Status with Proofs':
-        timelineText = '📸 Owner requested status update with photo proofs';
-        break;
-    }
+    try {
+      if (actionLabel == 'Reached') {
+        await _setPhase('Checking permissions...');
+        final permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          final requestedPermission = await Geolocator.requestPermission();
+          if (requestedPermission == LocationPermission.denied ||
+              requestedPermission == LocationPermission.deniedForever) {
+            AppSnackbar.warn('Location permission is required to mark reached status.');
+            return;
+          }
+        }
 
-    if (shouldUpdateStatus) {
-      _job.value = JobEntity(
+        final isEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!isEnabled) {
+          AppSnackbar.warn('Please enable your GPS/location services.');
+          return;
+        }
+
+        await _setPhase('Acquiring GPS...');
+        final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+          ),
+        ).timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            throw TimeoutException('Location request timed out. Please check your GPS.');
+          },
+        );
+
+        await _setPhase('Resolving Address...');
+        String address = 'Unknown location';
+        try {
+          List<Placemark> placemarks =
+              await placemarkFromCoordinates(position.latitude, position.longitude);
+          if (placemarks.isNotEmpty) {
+            final place = placemarks[0];
+            address =
+                "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.locality ?? ''}, ${place.postalCode ?? ''}, ${place.country ?? ''}";
+            address = address.replaceAll(RegExp(r',\s*,'), ',').trim();
+          }
+        } catch (e) {
+          debugPrint('Error fetching address: $e');
+        }
+
+        await _setPhase('Syncing with server...');
+
+        final author = Get.find<AuthController>();
+        final profile = await author.profile;
+        final tempLocalId = nanoid();
+
+        final reachedMsg = JobChatMessageEntity(
+          uid: tempLocalId,
+          localId: tempLocalId,
+          jobId: job.jobId,
+          authorType: 'user',
+          senderName: profile?.name ?? 'Worker',
+          senderId: profile?.uid,
+          senderProfileUid: profile?.uid,
+          contents: [
+            JobChatMessageContentEntity(
+              type: JobChatMessageType.activity.value,
+              message: "I'have reached at the location",
+              metadata: {
+                'activity_type': 'reached_location',
+                'latitude': position.latitude,
+                'longitude': position.longitude,
+                'address': address,
+                'workerName': profile?.name ?? 'Worker',
+              },
+            ),
+          ],
+          timestamp: DateTime.now(),
+          isMe: true,
+        );
+
+        final result = await _sendMessageUseCase(SendMessageParams(message: reachedMsg));
+        result.fold(
+          (failure) {
+            AppSnackbar.destructive(failure.message);
+          },
+          (sendResult) {
+            messages.add(sendResult.message);
+
+            // Update local state with updated allowed actions
+            _job.value = JobEntity(
+              jobId: job.jobId,
+              jobTitle: job.jobTitle,
+              customerName: job.customerName,
+              customerPhone: job.customerPhone,
+              customerAddress: job.customerAddress,
+              workerProfileUid: job.workerProfileUid,
+              workerName: job.workerName,
+              workerImage: job.workerImage,
+              createdByProfileUid: job.createdByProfileUid,
+              createdByName: job.createdByName,
+              status: JobStatus.assigned,
+              requirePhotoOnStart: job.requirePhotoOnStart,
+              requirePhotoOnComplete: job.requirePhotoOnComplete,
+              captureLocation: job.captureLocation,
+              createdAt: job.createdAt,
+              assignedAt: job.assignedAt,
+              updatedAt: DateTime.now(),
+              allowedActions: sendResult.allowedActions,
+            );
+            AppSnackbar.success('Action: Reached');
+          },
+        );
+
+        return;
+      }
+
+      // Mock other actions execution
+      JobStatus newStatus = job.status;
+      String timelineText = 'Job status updated to: $actionLabel';
+      bool shouldUpdateStatus = false;
+
+      switch (actionLabel) {
+        case 'Start Job':
+          newStatus = JobStatus.inProgress;
+          shouldUpdateStatus = true;
+          timelineText = '🚀 Worker started the job';
+          break;
+        case 'Complete Job':
+          newStatus = JobStatus.completed;
+          shouldUpdateStatus = true;
+          timelineText = '✅ Job completed by worker';
+          break;
+        case 'Cancel Job':
+          newStatus = JobStatus.cancelled;
+          shouldUpdateStatus = true;
+          timelineText = '❌ Job cancelled';
+          break;
+        case 'Reopen Job':
+          newStatus = JobStatus.pending;
+          shouldUpdateStatus = true;
+          timelineText = '🔄 Job reopened';
+          break;
+        case 'Take a Break':
+          isOnBreak.value = true;
+          timelineText = '☕ Worker is taking a break';
+          break;
+        case 'Resume':
+          isOnBreak.value = false;
+          timelineText = '🏃 Worker resumed work';
+          break;
+        case 'Send Location':
+          timelineText = '🛰️ Worker shared current location: 23.8103° N, 90.4125° E';
+          break;
+        case 'Ask Location':
+          timelineText = '❓ Owner requested current location';
+          break;
+        case 'Ask Status':
+          timelineText = '❓ Owner requested status update';
+          break;
+        case 'Status with Proofs':
+          timelineText = '📸 Owner requested status update with photo proofs';
+          break;
+      }
+
+      if (shouldUpdateStatus) {
+        List<String> newAllowedActions = [];
+        if (newStatus == JobStatus.assigned) {
+          newAllowedActions = [JobAction.startJob.value];
+        } else if (newStatus == JobStatus.inProgress) {
+          newAllowedActions = [
+            JobAction.takeBreak.value,
+            JobAction.sendLocation.value,
+            JobAction.completeJob.value,
+          ];
+        }
+
+        _job.value = JobEntity(
+          jobId: job.jobId,
+          jobTitle: job.jobTitle,
+          customerName: job.customerName,
+          customerPhone: job.customerPhone,
+          customerAddress: job.customerAddress,
+          workerProfileUid: job.workerProfileUid,
+          workerName: job.workerName,
+          workerImage: job.workerImage,
+          createdByProfileUid: job.createdByProfileUid,
+          createdByName: job.createdByName,
+          status: newStatus,
+          requirePhotoOnStart: job.requirePhotoOnStart,
+          requirePhotoOnComplete: job.requirePhotoOnComplete,
+          captureLocation: job.captureLocation,
+          createdAt: job.createdAt,
+          assignedAt: job.assignedAt,
+          updatedAt: DateTime.now(),
+          allowedActions: newAllowedActions,
+        );
+      }
+
+      final timelineMsg = JobChatMessageEntity(
+        uid: nanoid(),
+        localId: nanoid(),
         jobId: job.jobId,
-        jobTitle: job.jobTitle,
-        customerName: job.customerName,
-        customerPhone: job.customerPhone,
-        customerAddress: job.customerAddress,
-        workerProfileUid: job.workerProfileUid,
-        workerName: job.workerName,
-        workerImage: job.workerImage,
-        createdByProfileUid: job.createdByProfileUid,
-        createdByName: job.createdByName,
-        status: newStatus,
-        requirePhotoOnStart: job.requirePhotoOnStart,
-        requirePhotoOnComplete: job.requirePhotoOnComplete,
-        captureLocation: job.captureLocation,
-        createdAt: job.createdAt,
-        assignedAt: job.assignedAt,
-        updatedAt: DateTime.now(),
+        authorType: 'system',
+        senderName: 'System',
+        senderId: 'system',
+        contents: [
+          JobChatMessageContentEntity(
+            type: JobChatMessageType.activity.value,
+            message: timelineText,
+          ),
+        ],
+        timestamp: DateTime.now(),
+        isMe: false,
       );
-    }
+      messages.add(timelineMsg);
 
-    final timelineMsg = JobChatMessageEntity(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      jobId: job.jobId,
-      authorType: 'system',
-      senderName: 'System',
-      senderId: 'system',
-      contents: [
-        JobChatMessageContentEntity(
-          type: JobChatMessageType.activity.value,
-          message: timelineText,
-        ),
-      ],
-      timestamp: DateTime.now(),
-      isMe: false,
-    );
-    messages.add(timelineMsg);
-    
-    AppSnackbar.success('Action: $actionLabel');
+      AppSnackbar.success('Action: $actionLabel');
+    } catch (e) {
+      AppSnackbar.destructive(e.toString());
+    } finally {
+      isActionLoading.value = false;
+      actionLoadingMessage.value = null;
+      loadingActionLabel.value = null;
+    }
   }
 
   void onBack() => Get.back();
@@ -355,20 +522,14 @@ class JobChatController extends GetxController {
   }
 
   List<String> _getWorkerActions() {
-    switch (job.status) {
-      case JobStatus.pending:
-      case JobStatus.assigned:
-        return ['Reached', 'Start Job'];
-      case JobStatus.inProgress:
-        if (isOnBreak.value) {
-          return ['Resume'];
-        }
-        return ['Take a Break', 'Send Location', 'Complete Job'];
-      case JobStatus.completed:
-        return [];
-      case JobStatus.cancelled:
-        return [];
+    if (job.status == JobStatus.inProgress && isOnBreak.value) {
+      return [JobAction.resume.label];
     }
+
+    return job.allowedActions
+        .map((a) => JobAction.fromString(a)?.label)
+        .whereType<String>()
+        .toList();
   }
 
   List<String> _getOwnerActions() {
@@ -384,4 +545,9 @@ class JobChatController extends GetxController {
         return ['Reopen Job'];
     }
   }
+}
+
+class ChatTimeHeader {
+  final DateTime timestamp;
+  const ChatTimeHeader(this.timestamp);
 }

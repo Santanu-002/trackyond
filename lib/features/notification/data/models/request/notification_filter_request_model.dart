@@ -9,8 +9,8 @@ sealed class NotificationFilterRequestModel with _$NotificationFilterRequestMode
   const factory NotificationFilterRequestModel({
     required int limit,
     required int offset,
-    @JsonKey(name: 'is_read') bool? isRead,
-    @JsonKey(name: 'is_newest_first') required bool isNewestFirst,
+    @JsonKey(includeIfNull: false) bool? isRead,
+    required bool isNewestFirst,
   }) = _NotificationFilterRequestModel;
 
   factory NotificationFilterRequestModel.fromEntity(NotificationFilterOptions entity) {

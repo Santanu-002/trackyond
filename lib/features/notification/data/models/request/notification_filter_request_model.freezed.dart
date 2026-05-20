@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$NotificationFilterRequestModel {
 
- int get limit; int get offset;@JsonKey(name: 'is_read') bool? get isRead;@JsonKey(name: 'is_newest_first') bool get isNewestFirst;
+ int get limit; int get offset;@JsonKey(includeIfNull: false) bool? get isRead; bool get isNewestFirst;
 /// Create a copy of NotificationFilterRequestModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $NotificationFilterRequestModelCopyWith<$Res>  {
   factory $NotificationFilterRequestModelCopyWith(NotificationFilterRequestModel value, $Res Function(NotificationFilterRequestModel) _then) = _$NotificationFilterRequestModelCopyWithImpl;
 @useResult
 $Res call({
- int limit, int offset,@JsonKey(name: 'is_read') bool? isRead,@JsonKey(name: 'is_newest_first') bool isNewestFirst
+ int limit, int offset,@JsonKey(includeIfNull: false) bool? isRead, bool isNewestFirst
 });
 
 
@@ -153,7 +153,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int limit,  int offset, @JsonKey(name: 'is_read')  bool? isRead, @JsonKey(name: 'is_newest_first')  bool isNewestFirst)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int limit,  int offset, @JsonKey(includeIfNull: false)  bool? isRead,  bool isNewestFirst)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NotificationFilterRequestModel() when $default != null:
 return $default(_that.limit,_that.offset,_that.isRead,_that.isNewestFirst);case _:
@@ -174,7 +174,7 @@ return $default(_that.limit,_that.offset,_that.isRead,_that.isNewestFirst);case 
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int limit,  int offset, @JsonKey(name: 'is_read')  bool? isRead, @JsonKey(name: 'is_newest_first')  bool isNewestFirst)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int limit,  int offset, @JsonKey(includeIfNull: false)  bool? isRead,  bool isNewestFirst)  $default,) {final _that = this;
 switch (_that) {
 case _NotificationFilterRequestModel():
 return $default(_that.limit,_that.offset,_that.isRead,_that.isNewestFirst);}
@@ -191,7 +191,7 @@ return $default(_that.limit,_that.offset,_that.isRead,_that.isNewestFirst);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int limit,  int offset, @JsonKey(name: 'is_read')  bool? isRead, @JsonKey(name: 'is_newest_first')  bool isNewestFirst)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int limit,  int offset, @JsonKey(includeIfNull: false)  bool? isRead,  bool isNewestFirst)?  $default,) {final _that = this;
 switch (_that) {
 case _NotificationFilterRequestModel() when $default != null:
 return $default(_that.limit,_that.offset,_that.isRead,_that.isNewestFirst);case _:
@@ -206,13 +206,13 @@ return $default(_that.limit,_that.offset,_that.isRead,_that.isNewestFirst);case 
 @JsonSerializable()
 
 class _NotificationFilterRequestModel implements NotificationFilterRequestModel {
-  const _NotificationFilterRequestModel({required this.limit, required this.offset, @JsonKey(name: 'is_read') this.isRead, @JsonKey(name: 'is_newest_first') required this.isNewestFirst});
+  const _NotificationFilterRequestModel({required this.limit, required this.offset, @JsonKey(includeIfNull: false) this.isRead, required this.isNewestFirst});
   factory _NotificationFilterRequestModel.fromJson(Map<String, dynamic> json) => _$NotificationFilterRequestModelFromJson(json);
 
 @override final  int limit;
 @override final  int offset;
-@override@JsonKey(name: 'is_read') final  bool? isRead;
-@override@JsonKey(name: 'is_newest_first') final  bool isNewestFirst;
+@override@JsonKey(includeIfNull: false) final  bool? isRead;
+@override final  bool isNewestFirst;
 
 /// Create a copy of NotificationFilterRequestModel
 /// with the given fields replaced by the non-null parameter values.
@@ -247,7 +247,7 @@ abstract mixin class _$NotificationFilterRequestModelCopyWith<$Res> implements $
   factory _$NotificationFilterRequestModelCopyWith(_NotificationFilterRequestModel value, $Res Function(_NotificationFilterRequestModel) _then) = __$NotificationFilterRequestModelCopyWithImpl;
 @override @useResult
 $Res call({
- int limit, int offset,@JsonKey(name: 'is_read') bool? isRead,@JsonKey(name: 'is_newest_first') bool isNewestFirst
+ int limit, int offset,@JsonKey(includeIfNull: false) bool? isRead, bool isNewestFirst
 });
 
 

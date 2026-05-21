@@ -128,4 +128,5 @@ class _CommonEndpoints {
 
   String download(String path) => '$_root/files/download/$path';
   String jobChatMessages(String jobId) => '$_root/job-chat/$jobId/messages';
+  String jobChatMembers(String jobId) => '$_root/job-chat/$jobId/members';
 }

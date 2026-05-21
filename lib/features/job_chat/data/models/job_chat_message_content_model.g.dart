@@ -13,6 +13,7 @@ _JobChatMessageContentModel _$JobChatMessageContentModelFromJson(
   type: json['type'] as String,
   message: json['message'] as String?,
   metadata: json['metadata'] as Map<String, dynamic>?,
+  actionPerformed: json['actionPerformed'] as String?,
 );
 
 Map<String, dynamic> _$JobChatMessageContentModelToJson(
@@ -22,4 +23,5 @@ Map<String, dynamic> _$JobChatMessageContentModelToJson(
   'type': instance.type,
   'message': instance.message,
   'metadata': instance.metadata,
+  'actionPerformed': instance.actionPerformed,
 };

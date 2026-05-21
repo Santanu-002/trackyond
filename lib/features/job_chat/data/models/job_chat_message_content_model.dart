@@ -11,6 +11,7 @@ sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
     required String type,
     String? message,
     Map<String, dynamic>? metadata,
+    String? actionPerformed,
   }) = _JobChatMessageContentModel;
 
   const JobChatMessageContentModel._();
@@ -23,6 +24,7 @@ sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
       type: type,
       message: message,
       metadata: metadata,
+      actionPerformed: actionPerformed,
     );
   }
 }

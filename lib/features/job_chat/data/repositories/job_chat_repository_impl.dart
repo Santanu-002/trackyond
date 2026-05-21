@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
+import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_remote_datasource.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_content_model.dart';
@@ -44,6 +45,7 @@ class JobChatRepositoryImpl implements IJobChatRepository {
         type: c.type,
         message: c.message,
         metadata: c.metadata,
+        actionPerformed: c.actionPerformed,
       )).toList(),
       createdByAuthorAt: message.timestamp,
       createdAt: message.createdAt,
@@ -76,6 +78,19 @@ class JobChatRepositoryImpl implements IJobChatRepository {
       (data) {
         if (data == null) return Left(ServerFailure('No data returned'));
         return Right(data.toEntity());
+      },
+    );
+  }
+
+  @override
+  Future<Either<AppFailure, List<MemberProfile>>> getChatMembers(String jobId) async {
+    final response = await _remoteDataSource.getChatMembers(jobId: jobId);
+    
+    return response.fold(
+      (error) => Left(ServerFailure(error.message)),
+      (data) {
+        if (data == null) return Left(ServerFailure('No data returned'));
+        return Right(data.map((m) => m.toEntity()).toList());
       },
     );
   }

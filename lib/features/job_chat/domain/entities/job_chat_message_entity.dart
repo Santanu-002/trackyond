@@ -6,8 +6,8 @@ class JobChatMessageEntity extends Equatable {
   final String? localId;
   final String jobId;
   final String authorType; // 'user', 'system'
-  final String? senderName;
-  final String? senderId;
+  final String senderName;
+  final String senderId;
   final String? senderProfileUid;
   
   final List<JobChatMessageContentEntity> contents;
@@ -28,8 +28,8 @@ class JobChatMessageEntity extends Equatable {
     this.localId,
     required this.jobId,
     this.authorType = 'user',
-    this.senderName,
-    this.senderId,
+    required this.senderName,
+    required this.senderId,
     this.senderProfileUid,
     required this.contents,
     required this.timestamp,
@@ -42,6 +42,46 @@ class JobChatMessageEntity extends Equatable {
     this.active = true,
     this.deleted = false,
   });
+
+  JobChatMessageEntity copyWith({
+    String? uid,
+    String? localId,
+    String? jobId,
+    String? authorType,
+    String? senderName,
+    String? senderId,
+    String? senderProfileUid,
+    List<JobChatMessageContentEntity>? contents,
+    DateTime? timestamp,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? seenAt,
+    DateTime? deliveredAt,
+    String? status,
+    bool? isMe,
+    bool? active,
+    bool? deleted,
+  }) {
+    return JobChatMessageEntity(
+      uid: uid ?? this.uid,
+      localId: localId ?? this.localId,
+      jobId: jobId ?? this.jobId,
+      authorType: authorType ?? this.authorType,
+      senderName: senderName ?? this.senderName,
+      senderId: senderId ?? this.senderId,
+      senderProfileUid: senderProfileUid ?? this.senderProfileUid,
+      contents: contents ?? this.contents,
+      timestamp: timestamp ?? this.timestamp,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      seenAt: seenAt ?? this.seenAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      status: status ?? this.status,
+      isMe: isMe ?? this.isMe,
+      active: active ?? this.active,
+      deleted: deleted ?? this.deleted,
+    );
+  }
 
   @override
   List<Object?> get props => [

@@ -103,7 +103,7 @@ class AppBanner extends StatelessWidget {
                           ),
                         ),
                     if (onTap != null && actionLabel != null) ...[
-                      SizedBox(height: AppUIConstants.spacing.space$4),
+                      AppUIConstants.widgets.verticalBox$4,
                       Text(
                         actionLabel!,
                         style: context.textTheme.labelLarge?.copyWith(

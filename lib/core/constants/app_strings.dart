@@ -435,6 +435,8 @@ class WorkerDashboardStrings {
   String completedTime(String time) => '$time • Completed';
 
   String get dayEnded => 'Day Ended';
+
+  String get workDayEnded => 'Work Day Ended';
 }
 
 class WorkerProfileStrings {
@@ -624,4 +626,5 @@ class JobChatStrings {
   String jobSubtitle(String jobId, String status) => 'Job #$jobId • $status';
   String get somethingWentWrong => 'Something went wrong';
   String get retry => 'Retry';
+  String get attendanceRequired => 'You must start your day before performing this action.';
 }

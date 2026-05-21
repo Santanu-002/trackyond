@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, AliasChoices
 from typing import List, Optional, Any
 from datetime import datetime
 from core.responses.models import BaseSchema
@@ -6,7 +6,8 @@ from core.responses.models import BaseSchema
 class JobChatMessageContentBase(BaseSchema):
     type: str # text, image, video, docs, activity
     message: Optional[str] = None
-    metadata: Optional[dict] = None
+    metadata: Optional[dict] = Field(None, validation_alias=AliasChoices("metadata", "metadata_dict"))
+    action_performed: Optional[str] = None
 
 class JobChatMessageContentCreate(JobChatMessageContentBase):
     pass
@@ -15,7 +16,7 @@ class JobChatMessageContentResponse(JobChatMessageContentBase):
     id: int
 
 class JobChatMessageBase(BaseSchema):
-    uid: str
+    uid: Optional[str] = None
     local_id: Optional[str] = None
     job_id: str
     author_type: str = "user"

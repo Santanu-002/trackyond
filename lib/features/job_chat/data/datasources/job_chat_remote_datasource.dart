@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/common/models/job/job_model.dart';
+import 'package:trackyond/core/common/models/member/member_profile_model.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
-
 import 'package:trackyond/features/job_chat/data/models/send_message_response_model.dart';
 
 abstract interface class IJobChatDataSource {
@@ -14,6 +14,7 @@ abstract interface class IJobChatDataSource {
     required String jobId,
     required String status,
   });
+  Future<ApiResponse<List<MemberProfileModel>>> getChatMembers({required String jobId});
 }
 
 class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatDataSource {
@@ -54,6 +55,17 @@ class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatD
         data: {'status': status},
       ),
       (data) => JobModel.fromJson(data as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<List<MemberProfileModel>>> getChatMembers({required String jobId}) async {
+    return performApiRequest(
+      _dio.get(ApiEndpoints.common.jobChatMembers(jobId)),
+      (data) {
+        final list = data as List;
+        return list.map((e) => MemberProfileModel.fromJson(e as Map<String, dynamic>)).toList();
+      },
     );
   }
 }

@@ -11,17 +11,13 @@ class MessageBubble extends StatelessWidget {
 
   const MessageBubble({super.key, required this.message});
 
-  Widget _buildLocationCard(
-    BuildContext context,
-    dynamic content,
-    bool isMe,
-  ) {
+  Widget _buildLocationCard(BuildContext context, dynamic content, bool isMe) {
     final colorScheme = context.theme.colorScheme;
     final textTheme = context.textTheme;
     final metadata = content.metadata ?? {};
     final address = metadata['address'] as String? ?? 'No address acquired';
     final workerName =
-        metadata['workerName'] as String? ?? message.senderName ?? 'Worker';
+        metadata['workerName'] as String? ?? message.senderName;
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -41,10 +37,12 @@ class MessageBubble extends StatelessWidget {
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(AppUIConstants.radius.radius$16),
             topRight: Radius.circular(AppUIConstants.radius.radius$16),
-            bottomLeft:
-                Radius.circular(isMe ? AppUIConstants.radius.radius$16 : 0),
-            bottomRight:
-                Radius.circular(isMe ? 0 : AppUIConstants.radius.radius$16),
+            bottomLeft: Radius.circular(
+              isMe ? AppUIConstants.radius.radius$16 : 0,
+            ),
+            bottomRight: Radius.circular(
+              isMe ? 0 : AppUIConstants.radius.radius$16,
+            ),
           ),
           boxShadow: AppUIConstants.shadows.sm,
         ),
@@ -68,7 +66,7 @@ class MessageBubble extends StatelessWidget {
                       size: 20,
                     ),
                   ),
-                  SizedBox(width: AppUIConstants.spacing.space$8),
+                  AppUIConstants.widgets.horizontalBox$8,
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,13 +85,6 @@ class MessageBubble extends StatelessWidget {
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                  Text(
-                    DateFormat('hh:mm a').format(message.timestamp),
-                    style: textTheme.labelSmall?.copyWith(
-                      fontSize: 10,
-                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -116,8 +107,9 @@ class MessageBubble extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(AppUIConstants.spacing.space$12),
               decoration: BoxDecoration(
-                color:
-                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(
                     isMe ? AppUIConstants.radius.radius$16 : 0,
@@ -127,23 +119,45 @@ class MessageBubble extends StatelessWidget {
                   ),
                 ),
               ),
-              child: Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    AppIcons.jobs.locationPinFilled,
-                    color: colorScheme.primary,
-                    size: 16,
-                  ),
-                  SizedBox(width: AppUIConstants.spacing.space$8),
-                  Expanded(
-                    child: Text(
-                      address,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.3,
+                  Row(
+                    children: [
+                      Icon(
+                        AppIcons.dashboard.clock,
+                        color: colorScheme.primary,
+                        size: 16,
                       ),
-                    ),
+                      AppUIConstants.widgets.horizontalBox$8,
+                      Text(
+                        DateFormat('hh:mm a').format(message.timestamp),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                  AppUIConstants.widgets.verticalBox$4,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        AppIcons.jobs.locationPinFilled,
+                        color: colorScheme.primary,
+                        size: 16,
+                      ),
+                      AppUIConstants.widgets.horizontalBox$8,
+                      Expanded(
+                        child: Text(
+                          address,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -156,9 +170,11 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reachedLocationContentIndex = message.contents.indexWhere((c) =>
-        c.type == 'activity' &&
-        c.metadata?['activity_type'] == 'reached_location');
+    final reachedLocationContentIndex = message.contents.indexWhere(
+      (c) =>
+          c.type == 'activity' &&
+          c.metadata?['activity_type'] == 'reached_location',
+    );
 
     if (reachedLocationContentIndex != -1) {
       final content = message.contents[reachedLocationContentIndex];
@@ -179,12 +195,18 @@ class MessageBubble extends StatelessWidget {
         ),
         padding: EdgeInsets.all(AppUIConstants.spacing.space$8),
         decoration: BoxDecoration(
-          color: isMe ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+          color: isMe
+              ? colorScheme.primary
+              : colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(AppUIConstants.radius.radius$16),
             topRight: Radius.circular(AppUIConstants.radius.radius$16),
-            bottomLeft: Radius.circular(isMe ? AppUIConstants.radius.radius$16 : 0),
-            bottomRight: Radius.circular(isMe ? 0 : AppUIConstants.radius.radius$16),
+            bottomLeft: Radius.circular(
+              isMe ? AppUIConstants.radius.radius$16 : 0,
+            ),
+            bottomRight: Radius.circular(
+              isMe ? 0 : AppUIConstants.radius.radius$16,
+            ),
           ),
           boxShadow: AppUIConstants.shadows.xs,
         ),
@@ -192,49 +214,64 @@ class MessageBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!isMe && message.senderName != null)
+            if (!isMe)
               Padding(
-                padding: EdgeInsets.only(bottom: AppUIConstants.spacing.space$4),
+                padding: EdgeInsets.only(
+                  bottom: AppUIConstants.spacing.space$4,
+                ),
                 child: Text(
-                  message.senderName!,
+                  message.senderName,
                   style: textTheme.labelSmall?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-            ...message.contents.map((content) {
-              if (content.type == 'image') {
-                final url = content.metadata?['url'] ?? '';
-                return Padding(
-                  padding: EdgeInsets.only(bottom: AppUIConstants.spacing.space$4),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$8),
-                    child: CachedNetworkImage(
-                      imageUrl: url,
-                      placeholder: (context, url) => Container(
-                        width: 200,
-                        height: 150,
-                        color: colorScheme.surfaceDim,
-                        child: const Center(child: CircularProgressIndicator()),
+            ...message.contents
+                .map((content) {
+                  if (content.type == 'image') {
+                    final url = content.metadata?['url'] ?? '';
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: AppUIConstants.spacing.space$4,
                       ),
-                      errorWidget: (context, url, error) => const Icon(Icons.error),
-                    ),
-                  ),
-                );
-              } else if (content.type == 'text') {
-                return Padding(
-                  padding: EdgeInsets.only(bottom: AppUIConstants.spacing.space$4),
-                  child: Text(
-                    content.message ?? '',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: isMe ? colorScheme.onPrimary : colorScheme.onSurface,
-                    ),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            }).where((e) => e != const SizedBox.shrink()),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          AppUIConstants.radius.radius$8,
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: url,
+                          placeholder: (context, url) => Container(
+                            width: 200,
+                            height: 150,
+                            color: colorScheme.surfaceDim,
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
+                        ),
+                      ),
+                    );
+                  } else if (content.type == 'text') {
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: AppUIConstants.spacing.space$4,
+                      ),
+                      child: Text(
+                        content.message ?? '',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: isMe
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                })
+                .where((e) => e != const SizedBox.shrink()),
             AppUIConstants.widgets.verticalBox$4,
             Row(
               mainAxisSize: MainAxisSize.min,

@@ -6,6 +6,7 @@ import 'package:trackyond/features/worker/attendance/domain/repositories/attenda
 import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/get_attendance_status_usecase.dart';
+import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
 
 class AttendanceBinding extends Bindings {
   @override
@@ -22,5 +23,15 @@ class AttendanceBinding extends Bindings {
     Get.lazyPut(() => StartAttendanceUseCase(Get.find<IAttendanceRepository>()));
     Get.lazyPut(() => EndAttendanceUseCase(Get.find<IAttendanceRepository>()));
     Get.lazyPut(() => GetAttendanceStatusUseCase(Get.find<IAttendanceRepository>()));
+
+    // Controllers
+    Get.put(
+      AttendanceController(
+        startAttendanceUseCase: Get.find(),
+        endAttendanceUseCase: Get.find(),
+        getAttendanceStatusUseCase: Get.find(),
+      ),
+      permanent: true,
+    );
   }
 }

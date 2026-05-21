@@ -4,6 +4,7 @@ from db import models
 from core.utils.datetime_utils import now_utc
 from core.constants.enums import JobStatus, AttendanceStatus
 from services.serializers import serialize_attendance, serialize_job, serialize_member_profile
+from services.jobs_service import calculate_allowed_actions
 from services.notification_service import get_unread_notification_count
 
 def get_admin_dashboard_data(db: Session, admin_uid: str):
@@ -131,7 +132,10 @@ def get_employee_dashboard_data(db: Session, user_uid: str, profile_uid: str):
         models.Job.status.in_([JobStatus.assigned, JobStatus.in_progress])
     ).order_by(desc(models.Job.assigned_at)).all()
 
-    assigned_jobs = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in active_jobs_results]
+    assigned_jobs = []
+    for j, worker_name, worker_image in active_jobs_results:
+        allowed_actions = calculate_allowed_actions(db, j)
+        assigned_jobs.append(serialize_job(j, worker_name, worker_image, allowed_actions=allowed_actions))
 
     # 3. Get recent jobs (last 10, sorted by assigned_at)
     recent_jobs_results = db.query(
@@ -144,7 +148,10 @@ def get_employee_dashboard_data(db: Session, user_uid: str, profile_uid: str):
         models.Job.worker_profile_uid == active_member.uid
     ).order_by(desc(models.Job.assigned_at)).limit(10).all()
 
-    recent_jobs = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in recent_jobs_results]
+    recent_jobs = []
+    for j, worker_name, worker_image in recent_jobs_results:
+        allowed_actions = calculate_allowed_actions(db, j)
+        recent_jobs.append(serialize_job(j, worker_name, worker_image, allowed_actions=allowed_actions))
 
     # 4. Summary Stats
     def get_counts(start_date=None):

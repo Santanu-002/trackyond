@@ -1,12 +1,12 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
+import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_type.dart';
 import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repository.dart';
 
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
-
 import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
 class MockJobChatRepositoryImpl implements IJobChatRepository {
@@ -49,7 +49,11 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
   @override
   Future<Either<AppFailure, SendMessageResult>> sendMessage(JobChatMessageEntity message) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    return Right(SendMessageResult(message: message, allowedActions: []));
+    return Right(SendMessageResult(
+      message: message, 
+      allowedActions: [],
+      job: null,
+    ));
   }
 
   @override
@@ -57,4 +61,11 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
     await Future.delayed(const Duration(milliseconds: 300));
     return Left(ServerFailure('Mock status update not implemented'));
   }
+
+  @override
+  Future<Either<AppFailure, List<MemberProfile>>> getChatMembers(String jobId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return const Right([]);
+  }
 }
+

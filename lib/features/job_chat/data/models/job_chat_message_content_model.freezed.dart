@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$JobChatMessageContentModel {
 
- int get id; String get type; String? get message; Map<String, dynamic>? get metadata;
+ int get id; String get type; String? get message; Map<String, dynamic>? get metadata; String? get actionPerformed;
 /// Create a copy of JobChatMessageContentModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $JobChatMessageContentModelCopyWith<JobChatMessageContentModel> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobChatMessageContentModel&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.metadata, metadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobChatMessageContentModel&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&(identical(other.actionPerformed, actionPerformed) || other.actionPerformed == actionPerformed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,message,const DeepCollectionEquality().hash(metadata));
+int get hashCode => Object.hash(runtimeType,id,type,message,const DeepCollectionEquality().hash(metadata),actionPerformed);
 
 @override
 String toString() {
-  return 'JobChatMessageContentModel(id: $id, type: $type, message: $message, metadata: $metadata)';
+  return 'JobChatMessageContentModel(id: $id, type: $type, message: $message, metadata: $metadata, actionPerformed: $actionPerformed)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $JobChatMessageContentModelCopyWith<$Res>  {
   factory $JobChatMessageContentModelCopyWith(JobChatMessageContentModel value, $Res Function(JobChatMessageContentModel) _then) = _$JobChatMessageContentModelCopyWithImpl;
 @useResult
 $Res call({
- int id, String type, String? message, Map<String, dynamic>? metadata
+ int id, String type, String? message, Map<String, dynamic>? metadata, String? actionPerformed
 });
 
 
@@ -65,13 +65,14 @@ class _$JobChatMessageContentModelCopyWithImpl<$Res>
 
 /// Create a copy of JobChatMessageContentModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? message = freezed,Object? metadata = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? message = freezed,Object? metadata = freezed,Object? actionPerformed = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,
+as Map<String, dynamic>?,actionPerformed: freezed == actionPerformed ? _self.actionPerformed : actionPerformed // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -153,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String type,  String? message,  Map<String, dynamic>? metadata)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String type,  String? message,  Map<String, dynamic>? metadata,  String? actionPerformed)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JobChatMessageContentModel() when $default != null:
-return $default(_that.id,_that.type,_that.message,_that.metadata);case _:
+return $default(_that.id,_that.type,_that.message,_that.metadata,_that.actionPerformed);case _:
   return orElse();
 
 }
@@ -174,10 +175,10 @@ return $default(_that.id,_that.type,_that.message,_that.metadata);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String type,  String? message,  Map<String, dynamic>? metadata)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String type,  String? message,  Map<String, dynamic>? metadata,  String? actionPerformed)  $default,) {final _that = this;
 switch (_that) {
 case _JobChatMessageContentModel():
-return $default(_that.id,_that.type,_that.message,_that.metadata);}
+return $default(_that.id,_that.type,_that.message,_that.metadata,_that.actionPerformed);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -191,10 +192,10 @@ return $default(_that.id,_that.type,_that.message,_that.metadata);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String type,  String? message,  Map<String, dynamic>? metadata)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String type,  String? message,  Map<String, dynamic>? metadata,  String? actionPerformed)?  $default,) {final _that = this;
 switch (_that) {
 case _JobChatMessageContentModel() when $default != null:
-return $default(_that.id,_that.type,_that.message,_that.metadata);case _:
+return $default(_that.id,_that.type,_that.message,_that.metadata,_that.actionPerformed);case _:
   return null;
 
 }
@@ -206,7 +207,7 @@ return $default(_that.id,_that.type,_that.message,_that.metadata);case _:
 @JsonSerializable()
 
 class _JobChatMessageContentModel extends JobChatMessageContentModel {
-  const _JobChatMessageContentModel({required this.id, required this.type, this.message, final  Map<String, dynamic>? metadata}): _metadata = metadata,super._();
+  const _JobChatMessageContentModel({required this.id, required this.type, this.message, final  Map<String, dynamic>? metadata, this.actionPerformed}): _metadata = metadata,super._();
   factory _JobChatMessageContentModel.fromJson(Map<String, dynamic> json) => _$JobChatMessageContentModelFromJson(json);
 
 @override final  int id;
@@ -221,6 +222,7 @@ class _JobChatMessageContentModel extends JobChatMessageContentModel {
   return EqualUnmodifiableMapView(value);
 }
 
+@override final  String? actionPerformed;
 
 /// Create a copy of JobChatMessageContentModel
 /// with the given fields replaced by the non-null parameter values.
@@ -235,16 +237,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobChatMessageContentModel&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other._metadata, _metadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobChatMessageContentModel&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&(identical(other.actionPerformed, actionPerformed) || other.actionPerformed == actionPerformed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,message,const DeepCollectionEquality().hash(_metadata));
+int get hashCode => Object.hash(runtimeType,id,type,message,const DeepCollectionEquality().hash(_metadata),actionPerformed);
 
 @override
 String toString() {
-  return 'JobChatMessageContentModel(id: $id, type: $type, message: $message, metadata: $metadata)';
+  return 'JobChatMessageContentModel(id: $id, type: $type, message: $message, metadata: $metadata, actionPerformed: $actionPerformed)';
 }
 
 
@@ -255,7 +257,7 @@ abstract mixin class _$JobChatMessageContentModelCopyWith<$Res> implements $JobC
   factory _$JobChatMessageContentModelCopyWith(_JobChatMessageContentModel value, $Res Function(_JobChatMessageContentModel) _then) = __$JobChatMessageContentModelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String type, String? message, Map<String, dynamic>? metadata
+ int id, String type, String? message, Map<String, dynamic>? metadata, String? actionPerformed
 });
 
 
@@ -272,13 +274,14 @@ class __$JobChatMessageContentModelCopyWithImpl<$Res>
 
 /// Create a copy of JobChatMessageContentModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? message = freezed,Object? metadata = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? message = freezed,Object? metadata = freezed,Object? actionPerformed = freezed,}) {
   return _then(_JobChatMessageContentModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,
+as Map<String, dynamic>?,actionPerformed: freezed == actionPerformed ? _self.actionPerformed : actionPerformed // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

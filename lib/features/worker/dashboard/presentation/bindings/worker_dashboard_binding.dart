@@ -1,7 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
-import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/worker/dashboard/data/datasources/job_datasource.dart';
 import 'package:trackyond/features/worker/dashboard/data/datasources/worker_dashboard_remote_data_source.dart';
 import 'package:trackyond/features/worker/dashboard/data/repositories/job_repository_impl.dart';
@@ -22,20 +20,24 @@ class WorkerDashboardBinding extends Bindings {
     );
 
     // Repositories
-    Get.lazyPut<IJobRepository>(() => JobRepositoryImpl(Get.find<IJobDataSource>()));
+    Get.lazyPut<IJobRepository>(
+      () => JobRepositoryImpl(Get.find<IJobDataSource>()),
+    );
     Get.lazyPut<IWorkerDashboardRepository>(
-      () => WorkerDashboardRepositoryImpl(Get.find<IWorkerDashboardRemoteDataSource>()),
+      () => WorkerDashboardRepositoryImpl(
+        Get.find<IWorkerDashboardRemoteDataSource>(),
+      ),
     );
 
     // UseCases
     Get.lazyPut(() => GetAssignedJobsUseCase(Get.find<IJobRepository>()));
-    Get.lazyPut(() => GetWorkerDashboardUseCase(Get.find<IWorkerDashboardRepository>()));
+    Get.lazyPut(
+      () => GetWorkerDashboardUseCase(Get.find<IWorkerDashboardRepository>()),
+    );
 
     // Controllers
     Get.lazyPut(
       () => WorkerDashboardController(
-        startAttendanceUseCase: Get.find<StartAttendanceUseCase>(),
-        endAttendanceUseCase: Get.find<EndAttendanceUseCase>(),
         getWorkerDashboardUseCase: Get.find<GetWorkerDashboardUseCase>(),
       ),
     );

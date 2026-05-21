@@ -171,6 +171,27 @@ class JobChatMessage(Base):
 
     contents = relationship("JobChatMessageContent", back_populates="chat_message", cascade="all, delete-orphan")
 
+class JobActivity(Base):
+    __tablename__ = "job_activities"
+    id = Column(Integer, primary_key=True, index=True)
+    uid = Column(String, unique=True, index=True)
+    job_id = Column(String, ForeignKey("jobs.job_id"), index=True)
+    profile_uid = Column(String, ForeignKey("members.uid"), index=True)
+    
+    # Actor Type: admin, worker, system
+    actor_type = Column(String, nullable=False, default="worker")
+    
+    # Activity Type: created, reached, started, break_started, resumed, completed, etc.
+    activity_type = Column(String, nullable=False)
+    
+    # Optional message or note
+    message = Column(Text, nullable=True)
+    
+    # JSON metadata (GPS, address, etc.)
+    metadata_json = Column(Text, nullable=True)
+    
+    created_at = Column(DateTime, default=now_utc)
+
 class JobChatMessageContent(Base):
     __tablename__ = "job_chat_message_contents"
     id = Column(Integer, primary_key=True, index=True)
@@ -179,8 +200,25 @@ class JobChatMessageContent(Base):
     # Content Type: text, image, video, docs, activity
     type = Column(String, nullable=False)
     message = Column(Text, nullable=True) # Text content or caption
+    metadata_json = Column(Text, nullable=True)
     
-    # Metadata stored as JSON
-    metadata_json = Column(Text, nullable=True) 
-
     chat_message = relationship("JobChatMessage", back_populates="contents")
+
+    @property
+    def metadata_dict(self):
+        import json
+        if self.metadata_json:
+            try:
+                return json.loads(self.metadata_json)
+            except Exception:
+                return None
+        return None
+
+    @metadata_dict.setter
+    def metadata_dict(self, value):
+        import json
+        if value is not None:
+            self.metadata_json = json.dumps(value)
+        else:
+            self.metadata_json = None
+

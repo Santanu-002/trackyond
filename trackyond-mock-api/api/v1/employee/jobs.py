@@ -82,15 +82,9 @@ async def update_job_status(
         raise HTTPException(status_code=code, detail=error)
     
     # Retrieve updated job and serialize it to return updated allowedActions
+    from services.jobs_service import get_job_with_details
     job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
-    worker_member = db.query(models.Member).filter(models.Member.uid == job.worker_profile_uid).first()
-    worker_name = worker_member.name if worker_member else None
-    worker_image = worker_member.image if worker_member else None
-    creator_member = db.query(models.Member).filter(models.Member.uid == job.created_by_profile_uid).first()
-    creator_name = creator_member.name if creator_member else None
-
-    from services.serializers import serialize_job
-    serialized_job = serialize_job(job, worker_name, worker_image, creator_name, db=db)
+    serialized_job = get_job_with_details(db, job)
     
     return GenericResponse(
         success=True,

@@ -23,28 +23,9 @@ def serialize_attendance(attendance: models.Attendance):
         "endAddress": attendance.end_address
     }
 
-def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = None, creator_name: str = None, db = None):
+def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = None, creator_name: str = None, allowed_actions: list = None):
     if not job:
         return None
-
-    allowed_actions = []
-    if job.status == "pending" or job.status == "assigned":
-        has_reached = False
-        if db is not None:
-            # Check if there is a reached_location activity message
-            reached_msg = db.query(models.JobChatMessage).join(models.JobChatMessageContent).filter(
-                models.JobChatMessage.job_id == job.job_id,
-                models.JobChatMessageContent.type == "activity",
-                models.JobChatMessageContent.metadata_json.like('%"activity_type": "reached_location"%')
-            ).first()
-            if reached_msg:
-                has_reached = True
-        
-        if has_reached:
-            allowed_actions = ["start_job_button"]
-        else:
-            allowed_actions = ["reached_button"]
-    # TODO: Implement other buttons (start_job_button, take_break_button, etc.) as we add more job events later
 
     return {
         "jobId": job.job_id,
@@ -57,7 +38,7 @@ def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = 
         "workerImage": worker_image,
         "createdByProfileUid": job.created_by_profile_uid,
         "createdByName": creator_name,
-        "status": job.status,
+        "status": job.status.value if hasattr(job.status, 'value') else job.status,
         "requirePhotoOnStart": job.require_photo_on_start,
         "requirePhotoOnComplete": job.require_photo_on_complete,
         "captureLocation": job.capture_location,
@@ -65,7 +46,7 @@ def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = 
         "assignedAt": to_utc_iso(job.assigned_at) if job.assigned_at else None,
         "updatedAt": to_utc_iso(job.updated_at) if job.updated_at else None,
         "completedAt": to_utc_iso(job.completed_at) if job.completed_at else None,
-        "allowedActions": allowed_actions
+        "allowedActions": allowed_actions or []
     }
 
 def serialize_member_profile(member: models.Member):

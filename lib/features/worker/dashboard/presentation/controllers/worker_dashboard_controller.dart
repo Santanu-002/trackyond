@@ -1,7 +1,7 @@
 import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
@@ -17,34 +17,29 @@ import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
-import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
-import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
+import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/attendance_info_item.dart';
 import 'package:trackyond/features/worker/dashboard/domain/usecases/get_worker_dashboard_use_case.dart';
 import 'package:trackyond/features/worker/settings/presentation/controllers/worker_settings_controller.dart';
 
 class WorkerDashboardController extends GetxController {
-  final StartAttendanceUseCase _startAttendanceUseCase;
-  final EndAttendanceUseCase _endAttendanceUseCase;
   final GetWorkerDashboardUseCase _getWorkerDashboardUseCase;
 
   WorkerDashboardController({
-    required StartAttendanceUseCase startAttendanceUseCase,
-    required EndAttendanceUseCase endAttendanceUseCase,
     required GetWorkerDashboardUseCase getWorkerDashboardUseCase,
-  }) : _startAttendanceUseCase = startAttendanceUseCase,
-       _endAttendanceUseCase = endAttendanceUseCase,
-       _getWorkerDashboardUseCase = getWorkerDashboardUseCase;
+  }) : _getWorkerDashboardUseCase = getWorkerDashboardUseCase;
 
   AppLifecycleListener? _lifecycleListener;
-  Timer? _timer;
 
   final authController = Get.find<AuthController>();
   final settingsController = Get.find<WorkerSettingsController>();
+  final attendanceController = Get.find<AttendanceController>();
 
   // UI Observables
   final title = AppStrings.workerDashboard.title.obs;
-  int get notificationCount => Get.find<NotificationController>().unreadCount.value;
+
+  int get notificationCount =>
+      Get.find<NotificationController>().unreadCount.value;
 
   final workerName = 'Worker'.obs;
   final workerImage = RxnString();
@@ -52,14 +47,23 @@ class WorkerDashboardController extends GetxController {
   final isProfileLoading = false.obs;
   final isDashboardLoading = false.obs;
 
-  // Workday State
-  final attendanceStatus = AttendanceStatus.notStarted.obs;
-  final attendanceInfo = Rxn<AttendanceEntity>();
-  final punchInTime = Rxn<DateTime>();
-  final currentLocation = RxnString();
-  final elapsedTime = '00:00:00'.obs;
-  final isActionLoading = false.obs;
-  final actionLoadingMessage = RxnString();
+  // Workday State (delegated to permanent AttendanceController)
+  Rx<AttendanceStatus> get attendanceStatus =>
+      attendanceController.attendanceStatus;
+
+  Rxn<AttendanceEntity> get attendanceInfo =>
+      attendanceController.attendanceInfo;
+
+  Rxn<DateTime> get punchInTime => attendanceController.punchInTime;
+
+  RxnString get currentLocation => attendanceController.currentLocation;
+
+  RxString get elapsedTime => attendanceController.elapsedTime;
+
+  RxBool get isActionLoading => attendanceController.isActionLoading;
+
+  RxnString get actionLoadingMessage =>
+      attendanceController.actionLoadingMessage;
 
   // Dashboard Data State
   final recentJobs = <JobEntity>[].obs;
@@ -72,15 +76,16 @@ class WorkerDashboardController extends GetxController {
       ? _todayStats.value
       : _overallStats.value;
 
-  // Location Status
-  final isLocationEnabled = false.obs;
-  final locationPermission = LocationPermission.denied.obs;
+  // Location Status (delegated to permanent AttendanceController)
+  RxBool get isLocationEnabled => attendanceController.isLocationEnabled;
+
+  Rx<LocationPermission> get locationPermission =>
+      attendanceController.locationPermission;
 
   @override
   void onInit() {
     super.onInit();
     _initLifecycleListener();
-    _checkAndRequestLocationPermission();
 
     _loadUserInfo();
     _loadStatsFilter();
@@ -109,33 +114,38 @@ class WorkerDashboardController extends GetxController {
     final result = await _getWorkerDashboardUseCase(const NoParams());
 
     result.fold((failure) => AppSnackbar.destructive(failure.message), (data) {
-      // Update Attendance Status
-      attendanceStatus.value = data.attendanceStatus.status;
-      attendanceInfo.value = data.attendanceStatus.attendance;
+      // Update Attendance Status in the permanent AttendanceController
+      attendanceController.attendanceStatus.value =
+          data.attendanceStatus.status;
+      attendanceController.attendanceInfo.value =
+          data.attendanceStatus.attendance;
 
       if (data.attendanceStatus.status == AttendanceStatus.working &&
           data.attendanceStatus.attendance != null) {
-        currentLocation.value = data.attendanceStatus.attendance!.startAddress;
-        startTimer(data.attendanceStatus.attendance!.startAt);
+        attendanceController.currentLocation.value =
+            data.attendanceStatus.attendance!.startAddress;
+        attendanceController.startTimer(
+          data.attendanceStatus.attendance!.startAt,
+        );
       } else if (data.attendanceStatus.status == AttendanceStatus.notStarted) {
-        stopTimer();
-        currentLocation.value = null;
+        attendanceController.stopTimer();
+        attendanceController.currentLocation.value = null;
       }
 
       // Update Jobs and Stats
       recentJobs.assignAll(data.recentJobs);
       _todayStats.value = data.jobCounts.todayStats;
       _overallStats.value = data.jobCounts.overallStats;
-      
+
       // Sync unread notification count
-      Get.find<NotificationController>().unreadCount.value = data.unreadNotificationCount;
+      Get.find<NotificationController>().unreadCount.value =
+          data.unreadNotificationCount;
     });
     isDashboardLoading.value = false;
   }
 
   @override
   void onClose() {
-    _timer?.cancel();
     _lifecycleListener?.dispose();
     super.onClose();
   }
@@ -144,221 +154,15 @@ class WorkerDashboardController extends GetxController {
     _lifecycleListener = AppLifecycleListener(
       onResume: () async {
         await Future.delayed(const Duration(milliseconds: 500));
-
-        _checkAndRequestLocationPermission();
+        // Refresh status through permanent controller
+        attendanceController.fetchAttendanceStatus();
       },
     );
   }
 
-  void _checkAndRequestLocationPermission() async {
-    // 1. Update GPS hardware status first
-    final isEnabled = await Geolocator.isLocationServiceEnabled();
-    isLocationEnabled.value = isEnabled;
+  void startMyDay() => attendanceController.startMyDay();
 
-    // 2. Update permission status
-    final permission = await Geolocator.checkPermission();
-    locationPermission.value = permission;
-
-    if (permission == LocationPermission.denied) {
-      _requestLocationPermission();
-    }
-  }
-
-  Future<void> _requestLocationPermission() async {
-    final permission = await Geolocator.requestPermission();
-    locationPermission.value = permission;
-
-    // Sync hardware status after request as well
-    final isEnabled = await Geolocator.isLocationServiceEnabled();
-    isLocationEnabled.value = isEnabled;
-  }
-
-  Future<void> _setPhase(String message) async {
-    actionLoadingMessage.value = message;
-    await Future.delayed(const Duration(milliseconds: 800));
-  }
-
-  void startMyDay() async {
-    final profile = await Get.find<AuthController>().profile;
-    final profileUid = profile?.uid;
-    if (profileUid == null) return;
-
-    isActionLoading.value = true;
-    await _setPhase(AppStrings.workerDashboard.checkingPermissions);
-
-    try {
-      final permission = await Geolocator.checkPermission();
-      locationPermission.value = permission;
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        _requestLocationPermission();
-        isActionLoading.value = false;
-        actionLoadingMessage.value = null;
-        return;
-      }
-
-      final isEnabled = await Geolocator.isLocationServiceEnabled();
-      isLocationEnabled.value = isEnabled;
-      if (!isEnabled) {
-        AppSnackbar.warn(AppStrings.workerDashboard.locationDisabledMessage);
-        isActionLoading.value = false;
-        actionLoadingMessage.value = null;
-        return;
-      }
-
-      await _setPhase(AppStrings.workerDashboard.acquiringGps);
-      final position =
-          await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.high,
-            ),
-          ).timeout(
-            const Duration(seconds: 10),
-            onTimeout: () {
-              throw TimeoutException(
-                "Location request timed out. Please check your GPS.",
-              );
-            },
-          );
-
-      await _setPhase(AppStrings.workerDashboard.resolvingAddress);
-      final address = await _getAddressFromLatLng(
-        position.latitude,
-        position.longitude,
-      );
-
-      await _setPhase(AppStrings.workerDashboard.syncingWithServer);
-      final result = await _startAttendanceUseCase(
-        StartAttendanceParams(
-          profileUid: profileUid,
-          latitude: position.latitude,
-          longitude: position.longitude,
-          address: address,
-        ),
-      );
-
-      result.fold((failure) => AppSnackbar.destructive(failure.message), (
-        attendance,
-      ) {
-        attendanceStatus.value = AttendanceStatus.working;
-        attendanceInfo.value = attendance;
-        currentLocation.value = attendance.startAddress;
-        startTimer(DateTime.now());
-        AppSnackbar.success(AppStrings.workerDashboard.workDayStarted);
-      });
-    } catch (e) {
-      AppSnackbar.destructive(e.toString());
-    } finally {
-      isActionLoading.value = false;
-      actionLoadingMessage.value = null;
-    }
-  }
-
-  void endMyDay() async {
-    final profile = await Get.find<AuthController>().profile;
-    final profileUid = profile?.uid;
-    if (profileUid == null) return;
-
-    isActionLoading.value = true;
-    await _setPhase(AppStrings.workerDashboard.acquiringGps);
-
-    try {
-      final permission = await Geolocator.checkPermission();
-      locationPermission.value = permission;
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        _requestLocationPermission();
-        isActionLoading.value = false;
-        actionLoadingMessage.value = null;
-        return;
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
-
-      await _setPhase(AppStrings.workerDashboard.resolvingAddress);
-      final address = await _getAddressFromLatLng(
-        position.latitude,
-        position.longitude,
-      );
-
-      await _setPhase(AppStrings.workerDashboard.endingSession);
-      final result = await _endAttendanceUseCase(
-        EndAttendanceParams(
-          profileUid: profileUid,
-          latitude: position.latitude,
-          longitude: position.longitude,
-          address: address,
-        ),
-      );
-
-      result.fold((failure) => AppSnackbar.destructive(failure.message), (
-        attendance,
-      ) {
-        attendanceStatus.value = AttendanceStatus.notStarted;
-        attendanceInfo.value = attendance;
-        stopTimer();
-        currentLocation.value = null;
-      });
-    } catch (e) {
-      AppSnackbar.destructive(e.toString());
-    } finally {
-      isActionLoading.value = false;
-      actionLoadingMessage.value = null;
-    }
-  }
-
-  Future<String?> _getAddressFromLatLng(double lat, double lng) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
-        return "${place.name}, ${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}";
-      }
-    } catch (e) {
-      debugPrint("Error fetching address: $e");
-    }
-    return null;
-  }
-
-  void startTimer(DateTime startTime) {
-    _timer?.cancel();
-
-    // Set initial value
-    punchInTime.value = startTime;
-
-    void tick() {
-      final now = DateTime.now().toUtc();
-      final start = startTime.toUtc();
-      final duration = now.difference(start);
-
-      final totalSeconds = (duration.inMilliseconds / 1000).round();
-      final displaySeconds = totalSeconds < 0 ? 0 : totalSeconds;
-
-      final hours = (displaySeconds ~/ 3600).toString().padLeft(2, '0');
-      final minutes = ((displaySeconds % 3600) ~/ 60).toString().padLeft(
-        2,
-        '0',
-      );
-      final seconds = (displaySeconds % 60).toString().padLeft(2, '0');
-      elapsedTime.value = '$hours:$minutes:$seconds';
-    }
-
-    tick();
-    _timer = Timer.periodic(const Duration(milliseconds: 500), (_) => tick());
-  }
-
-  void stopTimer() {
-    _timer?.cancel();
-    _timer = null;
-    punchInTime.value = null;
-    elapsedTime.value = '00:00:00';
-  }
+  void endMyDay() => attendanceController.endMyDay();
 
   // Getters
   String get greeting {
@@ -409,7 +213,9 @@ class WorkerDashboardController extends GetxController {
     // For a new job assignment, totalAssigned and pending/assigned count increases.
     _todayStats.value = _todayStats.value.copyWith(
       totalAssigned: _todayStats.value.totalAssigned + 1,
-      pending: _todayStats.value.pending + 1, // Assuming new jobs are pending/assigned
+      pending:
+          _todayStats.value.pending +
+          1, // Assuming new jobs are pending/assigned
     );
 
     _overallStats.value = _overallStats.value.copyWith(
@@ -448,5 +254,6 @@ class WorkerDashboardController extends GetxController {
       isActionLoading.value = false;
     }
   }
+
   Future<void> logout() async => await Get.find<AuthController>().logout();
 }

@@ -21,7 +21,7 @@ class JobActionsBar extends GetView<JobChatController> {
               color: context.theme.colorScheme.error,
               size: 20,
             ),
-            const SizedBox(width: 8),
+            AppUIConstants.widgets.horizontalBox$8,
             Text(
               AppStrings.jobChat.somethingWentWrong,
               style: context.textTheme.bodyMedium?.copyWith(
@@ -31,7 +31,7 @@ class JobActionsBar extends GetView<JobChatController> {
             ),
             const Spacer(),
             AppButton.ghost(
-              onPressed: () => controller.fetchMessages(),
+              onPressed: controller.fetchMessages,
               height: 32,
               width: null,
               color: context.theme.colorScheme.error,
@@ -56,10 +56,10 @@ class JobActionsBar extends GetView<JobChatController> {
 
       return Column(
         mainAxisSize: MainAxisSize.min,
-        spacing: AppUIConstants.spacing.space$8,
         children: List.generate(actions.length, (index) {
           final action = actions[index];
-          final isPrimary = action == JobAction.reached.label ||
+          final isPrimary =
+              action == JobAction.reached.label ||
               action == JobAction.startJob.label ||
               action == JobAction.completeJob.label ||
               action == JobAction.resume.label;
@@ -68,15 +68,15 @@ class JobActionsBar extends GetView<JobChatController> {
               ? context.theme.colorScheme.onPrimary
               : context.theme.colorScheme.primary;
 
-          return Obx(() {
-            final isThisActionLoading = controller.isActionLoading.value &&
+          Widget actionWidget = Obx(() {
+            final isThisActionLoading =
+                controller.isActionLoading.value &&
                 controller.loadingActionLabel.value == action;
             final message = controller.actionLoadingMessage.value;
 
             final buttonChild = isThisActionLoading
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: AppUIConstants.spacing.space$12,
                     children: [
                       SizedBox(
                         height: 20,
@@ -86,28 +86,36 @@ class JobActionsBar extends GetView<JobChatController> {
                           color: contentColor,
                         ),
                       ),
+                      AppUIConstants.widgets.horizontalBox$12,
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 300),
-                        transitionBuilder: (Widget child, Animation<double> animation) {
-                          final isEntering = child.key ==
-                              ValueKey(controller.actionLoadingMessage.value);
+                        transitionBuilder:
+                            (Widget child, Animation<double> animation) {
+                              final isEntering =
+                                  child.key ==
+                                  ValueKey(
+                                    controller.actionLoadingMessage.value,
+                                  );
 
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: isEntering
-                                  ? const Offset(0, -0.3)
-                                  : const Offset(0, 0.3),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeOut,
-                            )),
-                            child: FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            ),
-                          );
-                        },
+                              return SlideTransition(
+                                position:
+                                    Tween<Offset>(
+                                      begin: isEntering
+                                          ? const Offset(0, -0.3)
+                                          : const Offset(0, 0.3),
+                                      end: Offset.zero,
+                                    ).animate(
+                                      CurvedAnimation(
+                                        parent: animation,
+                                        curve: Curves.easeOut,
+                                      ),
+                                    ),
+                                child: FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                ),
+                              );
+                            },
                         child: Text(
                           message ?? AppStrings.common.loading,
                           key: ValueKey(message),
@@ -122,13 +130,13 @@ class JobActionsBar extends GetView<JobChatController> {
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: AppUIConstants.spacing.space$4,
                     children: [
                       Icon(
                         _getIconForAction(action),
                         color: contentColor,
                         size: 24,
                       ),
+                      AppUIConstants.widgets.horizontalBox$4,
                       Text(
                         action,
                         style: context.textTheme.labelLarge?.copyWith(
@@ -161,6 +169,16 @@ class JobActionsBar extends GetView<JobChatController> {
                     child: buttonChild,
                   );
           });
+
+          if (index < actions.length - 1) {
+            return Column(
+              children: [
+                actionWidget,
+                AppUIConstants.widgets.verticalBox$8,
+              ],
+            );
+          }
+          return actionWidget;
         }),
       );
     });
@@ -173,7 +191,7 @@ class JobActionsBar extends GetView<JobChatController> {
     if (action == JobAction.resume.label) return AppIcons.common.play;
     if (action == JobAction.takeBreak.label) return AppIcons.jobs.coffee;
     if (action == JobAction.sendLocation.label) return AppIcons.jobs.myLocation;
-    
+
     // Owner/Admin specific actions
     return switch (action) {
       'Cancel Job' => AppIcons.dashboard.cancelled,

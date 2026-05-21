@@ -10,6 +10,76 @@ from services.serializers import serialize_job
 from services.notification_service import create_notification
 from services.job_chat_service import create_system_activity_message
 
+def calculate_allowed_actions(db: Session, job: models.Job) -> list[str]:
+    """
+    Central source of truth for allowed worker actions.
+    Decision is based solely on the latest recorded JobActivity type.
+    Status is only used as a fallback when no activity history exists.
+    """
+    # Get the latest activity for this job
+    latest_activity = db.query(models.JobActivity).filter(
+        models.JobActivity.job_id == job.job_id
+    ).order_by(desc(models.JobActivity.created_at)).first()
+
+    if not latest_activity:
+        # No activity recorded yet — fall back to job status
+        status = str(job.status.value if hasattr(job.status, "value") else job.status).lower()
+        if status in ("pending", "assigned"):
+            return ["reached"]
+        if status == "in_progress":
+            return ["take_break", "send_location", "complete_job"]
+        return []
+
+    activity_type = str(latest_activity.activity_type).lower()
+
+    if activity_type == "created":
+        return ["reached"]
+
+    if activity_type == "reached":
+        actions = ["start_job"]
+        if job.require_photo_on_start:
+            actions.append("capture_photo")
+        return actions
+
+    if activity_type in ("started", "resumed"):
+        actions = ["take_break", "send_location", "complete_job"]
+        if job.require_photo_on_complete:
+            actions.append("capture_photo")
+        return actions
+
+    if activity_type == "completed":
+        return []
+
+    # Unknown activity type — no actions allowed
+    return []
+
+
+def get_job_with_details(db: Session, job: models.Job):
+    """
+    Helper to fetch related member names and serialize a job with allowed actions.
+    """
+    if not job:
+        return None
+
+    worker_name = None
+    worker_image = None
+    creator_name = None
+
+    if job.worker_profile_uid:
+        worker = db.query(models.Member).filter(models.Member.uid == job.worker_profile_uid).first()
+        if worker:
+            worker_name = worker.name
+            worker_image = worker.image
+
+    if job.created_by_profile_uid:
+        creator = db.query(models.Member).filter(models.Member.uid == job.created_by_profile_uid).first()
+        if creator:
+            creator_name = creator.name
+
+    allowed_actions = calculate_allowed_actions(db, job)
+    return serialize_job(job, worker_name, worker_image, creator_name, allowed_actions)
+
+
 def get_admin_jobs(
     db: Session,
     admin_uid: str,
@@ -116,7 +186,10 @@ def get_admin_jobs(
     
     total_pages = (total_count + limit - 1) // limit
 
-    jobs_data = [serialize_job(job, worker_name, worker_image, creator_name) for job, worker_name, worker_image, creator_name in results]
+    jobs_data = []
+    for job, worker_name, worker_image, creator_name in results:
+        allowed_actions = calculate_allowed_actions(db, job)
+        jobs_data.append(serialize_job(job, worker_name, worker_image, creator_name, allowed_actions))
 
     return {
         "totalCount": total_count,
@@ -156,15 +229,22 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
     db.commit()
     db.refresh(new_job)
 
-    worker_name = None
-    worker_image = None
+    # Record creation in Activity History
+    db_activity = models.JobActivity(
+        uid=uuid.uuid4().hex,
+        job_id=new_job.job_id,
+        profile_uid=admin_member.uid,
+        actor_type="admin",
+        activity_type="created",
+        message=f"Job created by {admin_member.name}"
+    )
+    db.add(db_activity)
+    db.commit()
+
     if new_job.worker_profile_uid:
         worker_member = db.query(models.Member).filter(models.Member.uid == new_job.worker_profile_uid).first()
         if worker_member:
-            worker_name = worker_member.name
-            worker_image = worker_member.image
-            
-            serialized_job = serialize_job(new_job, worker_name, worker_image, admin_member.name)
+            serialized_job = get_job_with_details(db, new_job)
             
             # Log job assignment to chat timeline
             create_system_activity_message(
@@ -187,7 +267,7 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
                 }
             )
 
-    return serialized_job, None
+    return get_job_with_details(db, new_job), None
 
 
 def create_mock_job_for_employee(db: Session, user_uid: str):
@@ -215,16 +295,37 @@ def create_mock_job_for_employee(db: Session, user_uid: str):
     db.add(new_job)
     db.commit()
     db.refresh(new_job)
+
+    # Record creation in Activity History
+    db_activity = models.JobActivity(
+        uid=uuid.uuid4().hex,
+        job_id=new_job.job_id,
+        profile_uid=member.uid,
+        actor_type="worker", # Creating it as worker since it's an internal mock
+        activity_type="created",
+        message=f"Mock demo job created by {member.name}"
+    )
+    db.add(db_activity)
     
-    serialized_job = serialize_job(new_job, member.name, member.image, member.name)
+    # Log job creation to chat timeline
+    create_system_activity_message(
+        db=db,
+        job_id=new_job.job_id,
+        text=f"@[profileUid#{member.uid}] created this mock demo job",
+        message_type=ChatMessageType.header
+    )
+    
+    db.commit()
+    
+    serialized_job = get_job_with_details(db, new_job)
     
     # Create notification for worker
     create_notification(
         db=db,
         user_uid=member.user_uid,
         profile_uid=member.uid,
-        title="Job Cancelled",
-        body=f"<b>Job#{new_job.job_id}</b> : {new_job.title}<br>This job has been cancelled.",
+        title="Job Created (Internal)",
+        body=f"<b>Job#{new_job.job_id}</b> : {new_job.title}<br>Internal mock job created.",
         notification_type=NotificationType.system,
         extra_data={
             "job": json.dumps(serialized_job)
@@ -246,11 +347,7 @@ def notify_job_worker(db: Session, job_id: str):
     if not worker_member:
         return False, "Worker profile not found"
     
-    # We might need creator_name here too, but let's assume we can fetch it if needed.
-    creator_member = db.query(models.Member).filter(models.Member.uid == job.created_by_profile_uid).first()
-    creator_name = creator_member.name if creator_member else None
-
-    serialized_job = serialize_job(job, worker_member.name, worker_member.image, creator_name)
+    serialized_job = get_job_with_details(db, job)
     
     create_notification(
         db=db,
@@ -342,7 +439,10 @@ def get_employee_assigned_jobs(
     
     total_pages = (total_count + limit - 1) // limit
 
-    jobs_data = [serialize_job(j, worker_name, worker_image, creator_name) for j, worker_name, worker_image, creator_name in results]
+    jobs_data = []
+    for job, worker_name, worker_image, creator_name in results:
+        allowed_actions = calculate_allowed_actions(db, job)
+        jobs_data.append(serialize_job(job, worker_name, worker_image, creator_name, allowed_actions))
 
     return {
         "totalCount": total_count,
@@ -366,3 +466,10 @@ def update_job_status_for_employee(db: Session, primary_profile_uid: str, job_id
     db.commit()
     
     return True, None, 200
+
+def get_job_by_id(db: Session, job_id: str):
+    """
+    Fetch a single job by its ID with all details and allowed actions.
+    """
+    job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+    return get_job_with_details(db, job)

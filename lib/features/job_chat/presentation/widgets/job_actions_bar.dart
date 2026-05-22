@@ -5,6 +5,7 @@ import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 
 class JobActionsBar extends GetView<JobChatController> {
@@ -57,88 +58,129 @@ class JobActionsBar extends GetView<JobChatController> {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: List.generate(actions.length, (index) {
-          final action = actions[index];
-          final isPrimary =
-              action == JobAction.reached.label ||
-              action == JobAction.startJob.label ||
-              action == JobAction.completeJob.label ||
-              action == JobAction.resume.label;
+          final actionString = actions[index];
+          final jobAction = JobAction.fromString(actionString);
+          
+          if (jobAction == null) return const SizedBox.shrink();
+
+          final isPrimary = jobAction == JobAction.reached ||
+                            jobAction == JobAction.startJob ||
+                            jobAction == JobAction.startJobWithCapturePhoto ||
+                            jobAction == JobAction.completeJob ||
+                            jobAction == JobAction.completeJobWithCapturePhoto;
+
+          Color getActionColor(JobAction action) {
+             if (action == JobAction.completeJob || action == JobAction.completeJobWithCapturePhoto) {
+               return context.theme.colorScheme.completed;
+             }
+             if (action == JobAction.cancelJob) {
+               return context.theme.colorScheme.error;
+             }
+             return context.theme.colorScheme.primary;
+          }
+
+          final baseColor = getActionColor(jobAction);
 
           final contentColor = isPrimary
               ? context.theme.colorScheme.onPrimary
-              : context.theme.colorScheme.primary;
+              : baseColor;
+              
+          final backgroundColor = isPrimary ? baseColor : Colors.transparent;
 
           Widget actionWidget = Obx(() {
             final isThisActionLoading =
                 controller.isActionLoading.value &&
-                controller.loadingActionLabel.value == action;
+                controller.loadingActionLabel.value == actionString;
             final message = controller.actionLoadingMessage.value;
 
-            final buttonChild = isThisActionLoading
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: contentColor,
-                        ),
-                      ),
-                      AppUIConstants.widgets.horizontalBox$12,
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        transitionBuilder:
-                            (Widget child, Animation<double> animation) {
-                              final isEntering =
-                                  child.key ==
-                                  ValueKey(
-                                    controller.actionLoadingMessage.value,
-                                  );
+            final progress = controller.uploadProgress.value;
 
-                              return SlideTransition(
-                                position:
-                                    Tween<Offset>(
-                                      begin: isEntering
-                                          ? const Offset(0, -0.3)
-                                          : const Offset(0, 0.3),
-                                      end: Offset.zero,
-                                    ).animate(
-                                      CurvedAnimation(
-                                        parent: animation,
-                                        curve: Curves.easeOut,
-                                      ),
-                                    ),
-                                child: FadeTransition(
-                                  opacity: animation,
-                                  child: child,
+            final buttonChild = isThisActionLoading
+                ? Padding(
+                    padding: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                transitionBuilder:
+                                    (Widget child, Animation<double> animation) {
+                                      final isEntering =
+                                          child.key ==
+                                          ValueKey(
+                                            controller.actionLoadingMessage.value,
+                                          );
+
+                                      return SlideTransition(
+                                        position:
+                                            Tween<Offset>(
+                                              begin: isEntering
+                                                  ? const Offset(0, -0.3)
+                                                  : const Offset(0, 0.3),
+                                              end: Offset.zero,
+                                            ).animate(
+                                              CurvedAnimation(
+                                                parent: animation,
+                                                curve: Curves.easeOut,
+                                              ),
+                                            ),
+                                        child: FadeTransition(
+                                          opacity: animation,
+                                          child: child,
+                                        ),
+                                      );
+                                    },
+                                child: Text(
+                                  message ?? AppStrings.common.loading,
+                                  key: ValueKey(message),
+                                  style: context.textTheme.labelLarge?.copyWith(
+                                    color: contentColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              );
-                            },
-                        child: Text(
-                          message ?? AppStrings.common.loading,
-                          key: ValueKey(message),
-                          style: context.textTheme.labelLarge?.copyWith(
-                            color: contentColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                              ),
+                              AppUIConstants.widgets.verticalBox$4,
+                              LinearProgressIndicator(
+                                value: progress > 0 ? progress : null,
+                                backgroundColor: contentColor.withValues(alpha: 0.2),
+                                valueColor: AlwaysStoppedAnimation<Color>(contentColor),
+                                minHeight: 4,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
+                        AppUIConstants.widgets.horizontalBox$16,
+                        IconButton(
+                          onPressed: controller.cancelCurrentAction,
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: contentColor,
+                            size: 24,
+                          ),
+                          splashRadius: 20,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        _getIconForAction(action),
+                        _getIconForAction(jobAction),
                         color: contentColor,
                         size: 24,
                       ),
                       AppUIConstants.widgets.horizontalBox$4,
                       Text(
-                        action,
+                        jobAction.label,
                         style: context.textTheme.labelLarge?.copyWith(
                           color: contentColor,
                           fontSize: 16,
@@ -149,23 +191,25 @@ class JobActionsBar extends GetView<JobChatController> {
 
             return isPrimary
                 ? AppButton.filled(
-                    key: ValueKey('action_$action'),
+                    key: ValueKey('action_${jobAction.value}'),
                     shape: AppButtonShape.roundEdge,
                     width: double.infinity,
                     height: 56,
+                    color: backgroundColor,
                     onPressed: isAnyActionLoading
                         ? null
-                        : () => controller.executeAction(action),
+                        : () => controller.executeAction(actionString),
                     child: buttonChild,
                   )
                 : AppButton.outlined(
-                    key: ValueKey('action_$action'),
+                    key: ValueKey('action_${jobAction.value}'),
                     shape: AppButtonShape.roundEdge,
                     width: double.infinity,
                     height: 56,
+                    color: backgroundColor,
                     onPressed: isAnyActionLoading
                         ? null
-                        : () => controller.executeAction(action),
+                        : () => controller.executeAction(actionString),
                     child: buttonChild,
                   );
           });
@@ -184,22 +228,18 @@ class JobActionsBar extends GetView<JobChatController> {
     });
   }
 
-  IconData _getIconForAction(String action) {
-    if (action == JobAction.reached.label) return AppIcons.jobs.reached;
-    if (action == JobAction.startJob.label) return AppIcons.common.play;
-    if (action == JobAction.completeJob.label) return AppIcons.status.success;
-    if (action == JobAction.resume.label) return AppIcons.common.play;
-    if (action == JobAction.takeBreak.label) return AppIcons.jobs.coffee;
-    if (action == JobAction.sendLocation.label) return AppIcons.jobs.myLocation;
-
-    // Owner/Admin specific actions
-    return switch (action) {
-      'Cancel Job' => AppIcons.dashboard.cancelled,
-      'Reopen Job' => AppIcons.common.refresh,
-      'Ask Location' => AppIcons.jobs.locationSearching,
-      'Ask Status' => AppIcons.jobs.statusQuestion,
-      'Status with Proofs' => AppIcons.jobs.cameraOutlined,
-      _ => Icons.star_border_rounded,
+  IconData _getIconForAction(JobAction jobAction) {
+    return switch (jobAction) {
+      JobAction.reached => AppIcons.jobs.reached,
+      JobAction.startJob || JobAction.startJobWithCapturePhoto => AppIcons.common.play,
+      JobAction.completeJob || JobAction.completeJobWithCapturePhoto => AppIcons.status.success,
+      JobAction.takeBreak => AppIcons.jobs.coffee,
+      JobAction.sendLocation => AppIcons.jobs.myLocation,
+      JobAction.cancelJob => AppIcons.dashboard.cancelled,
+      JobAction.reopenJob => AppIcons.common.refresh,
+      JobAction.askLocation => AppIcons.jobs.locationSearching,
+      JobAction.askStatus => AppIcons.jobs.statusQuestion,
+      JobAction.statusWithProofs => AppIcons.jobs.cameraOutlined,
     };
   }
 }

@@ -36,6 +36,15 @@ _JobModel _$JobModelFromJson(Map<String, dynamic> json) => _JobModel(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  lastMessage: json['lastMessage'] as String?,
+  lastMessageAt: json['lastMessageAt'] == null
+      ? null
+      : DateTime.parse(json['lastMessageAt'] as String),
+  lastActivityType: json['lastActivityType'] as String?,
+  lastActivityMessage: json['lastActivityMessage'] as String?,
+  lastActivityAt: json['lastActivityAt'] == null
+      ? null
+      : DateTime.parse(json['lastActivityAt'] as String),
 );
 
 Map<String, dynamic> _$JobModelToJson(_JobModel instance) => <String, dynamic>{
@@ -58,4 +67,9 @@ Map<String, dynamic> _$JobModelToJson(_JobModel instance) => <String, dynamic>{
   'updatedAt': instance.updatedAt?.toIso8601String(),
   'completedAt': instance.completedAt?.toIso8601String(),
   'allowedActions': instance.allowedActions,
+  'lastMessage': instance.lastMessage,
+  'lastMessageAt': instance.lastMessageAt?.toIso8601String(),
+  'lastActivityType': instance.lastActivityType,
+  'lastActivityMessage': instance.lastActivityMessage,
+  'lastActivityAt': instance.lastActivityAt?.toIso8601String(),
 };

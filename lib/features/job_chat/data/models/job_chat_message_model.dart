@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:trackyond/core/utils/json_converters.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_content_model.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 
@@ -19,13 +20,15 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
     String? senderName,
     String? senderId,
 
-    required List<JobChatMessageContentModel> contents,
+    required List<JobChatMessageContentModel> content,
+    @Default('message') String type,
+    Map<String, dynamic>? metadata,
     
-    required DateTime createdByAuthorAt,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    DateTime? seenAt,
-    DateTime? deliveredAt,
+    @DateTimeConverter() required DateTime createdByAuthorAt,
+    @DateTimeNullableConverter() DateTime? createdAt,
+    @DateTimeNullableConverter() DateTime? updatedAt,
+    @DateTimeNullableConverter() DateTime? seenAt,
+    @DateTimeNullableConverter() DateTime? deliveredAt,
     
     @Default('sent') String status,
     @Default(false) bool isMe,
@@ -47,7 +50,9 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
       senderName: senderName ?? 'User',
       senderId: senderId ?? createdByUid ?? 'unknown',
       senderProfileUid: createdByProfileUid,
-      contents: contents.map((e) => e.toEntity()).toList(),
+      content: content.map((e) => e.toEntity()).toList(),
+      type: type,
+      metadata: metadata,
       timestamp: createdByAuthorAt,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -60,3 +65,4 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
     );
   }
 }
+

@@ -8,11 +8,11 @@ import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_co
 import 'package:trackyond/features/job_chat/presentation/widgets/message_bubble.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/message_input.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/timeline_entry.dart';
-import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_type.dart';
+import 'package:trackyond/features/job_chat/domain/entities/chat_item.dart';
+import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/date_chip.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/time_chip.dart';
-import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 
 class JobChatPage extends GetView<JobChatController> {
   const JobChatPage({super.key});
@@ -75,37 +75,68 @@ class JobChatPage extends GetView<JobChatController> {
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
+                  final prevItem = index > 0 ? items[index - 1] : null;
+                  final nextItem = index + 1 < items.length ? items[index + 1] : null;
 
-                  if (item is DateTime) {
-                    return DateChip(date: item);
-                  }
-
-                  if (item is ChatTimeHeader) {
-                    return TimeChip(time: item.timestamp);
-                  }
-
-                  if (item is JobChatMessageEntity) {
-                    final isSystem = item.authorType == 'system' ||
-                        item.contents.any((c) {
-                          final type = JobChatMessageType.fromString(c.type);
-                          if (type == JobChatMessageType.activity &&
-                              c.metadata?['activity_type'] == 'reached_location') {
-                            return false;
-                          }
-                          return type == JobChatMessageType.activity ||
-                              type == JobChatMessageType.header;
-                        });
-
-                    if (isSystem) {
-                      return TimelineEntry(message: item);
+                  bool isSameSender(ChatItem? a, ChatItem? b) {
+                    if (a == null || b == null) return false;
+                    JobChatMessageEntity? getMsg(ChatItem i) {
+                      if (i is ChatMessageBubbleItem) return i.message;
+                      if (i is ChatActivityBubble) return i.message;
+                      return null;
                     }
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: AppUIConstants.spacing.space$4),
-                      child: MessageBubble(message: item),
-                    );
+                    final msgA = getMsg(a);
+                    final msgB = getMsg(b);
+                    if (msgA != null && msgB != null) {
+                      // Activity messages from system don't count towards grouping
+                      if (msgA.authorType == 'system' || msgB.authorType == 'system') return false;
+                      return msgA.senderId == msgB.senderId;
+                    }
+                    return false;
                   }
 
-                  return const SizedBox.shrink();
+                  final bool hasSameSenderAbove = isSameSender(prevItem, item);
+                  final bool hasSameSenderBelow = isSameSender(item, nextItem);
+
+                  // Determine bottom padding based on item relationship
+                  double bottomPadding = AppUIConstants.spacing.space$4;
+
+                  if (item is ChatTimeHeaderItem) {
+                    bottomPadding = AppUIConstants.spacing.space$2;
+                  } else if (item is ChatHeaderMessage) {
+                    if (nextItem is ChatHeaderMessage) {
+                      bottomPadding = 0;
+                    } else {
+                      bottomPadding = AppUIConstants.spacing.space$12;
+                    }
+                  } else if (item is ChatMessageBubbleItem || item is ChatActivityBubble) {
+                    if (hasSameSenderBelow) {
+                      bottomPadding = AppUIConstants.spacing.space$2; // Tighter grouping for same sender
+                    } else if (nextItem is ChatMessageBubbleItem || nextItem is ChatActivityBubble) {
+                      bottomPadding = AppUIConstants.spacing.space$8; // Normal spacing between different senders
+                    } else {
+                      bottomPadding = AppUIConstants.spacing.space$16;
+                    }
+                  }
+
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: bottomPadding),
+                    child: switch (item) {
+                      ChatDateHeader(:final date) => DateChip(date: date),
+                      ChatTimeHeaderItem(:final time) => TimeChip(time: time),
+                      ChatHeaderMessage(:final message) => TimelineEntry(message: message),
+                      ChatActivityBubble(:final message) => MessageBubble(
+                        message: message,
+                        hasSameSenderAbove: hasSameSenderAbove,
+                        hasSameSenderBelow: hasSameSenderBelow,
+                      ),
+                      ChatMessageBubbleItem(:final message) => MessageBubble(
+                        message: message,
+                        hasSameSenderAbove: hasSameSenderAbove,
+                        hasSameSenderBelow: hasSameSenderBelow,
+                      ),
+                    },
+                  );
                 },
               );
             }),

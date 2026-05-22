@@ -27,6 +27,11 @@ sealed class JobModel with _$JobModel {
     DateTime? updatedAt,
     DateTime? completedAt,
     @Default([]) List<String> allowedActions,
+    String? lastMessage,
+    DateTime? lastMessageAt,
+    String? lastActivityType,
+    String? lastActivityMessage,
+    DateTime? lastActivityAt,
   }) = _JobModel;
 
   const JobModel._();
@@ -53,5 +58,10 @@ sealed class JobModel with _$JobModel {
         updatedAt: updatedAt,
         completedAt: completedAt,
         allowedActions: allowedActions,
+        lastMessage: lastMessage,
+        lastMessageAt: lastMessageAt,
+        lastActivityType: lastActivityType,
+        lastActivityMessage: lastActivityMessage,
+        lastActivityAt: lastActivityAt,
       );
 }

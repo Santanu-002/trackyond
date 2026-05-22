@@ -5,8 +5,8 @@ from core.responses.models import BaseSchema
 
 class JobChatMessageContentBase(BaseSchema):
     type: str # text, image, video, docs, activity
-    message: Optional[str] = None
-    metadata: Optional[dict] = Field(None, validation_alias=AliasChoices("metadata", "metadata_dict"))
+    content: Optional[str] = None
+    metadata: Optional[dict] = Field(None, validation_alias=AliasChoices("metadata_dict", "metadata"))
     action_performed: Optional[str] = None
 
 class JobChatMessageContentCreate(JobChatMessageContentBase):
@@ -24,9 +24,11 @@ class JobChatMessageBase(BaseSchema):
     created_by_profile_uid: Optional[str] = None
     status: str = "sent"
     created_by_author_at: datetime
+    type: str = "message" # 'message' or 'activity'
+    metadata: Optional[dict] = Field(None, validation_alias=AliasChoices("metadata_dict", "metadata"))
 
 class JobChatMessageCreate(JobChatMessageBase):
-    contents: List[JobChatMessageContentCreate]
+    content: List[JobChatMessageContentCreate]
 
 class JobChatMessageResponse(JobChatMessageBase):
     created_at: datetime
@@ -35,4 +37,5 @@ class JobChatMessageResponse(JobChatMessageBase):
     delivered_at: Optional[datetime] = None
     active: bool
     deleted: bool
-    contents: List[JobChatMessageContentResponse]
+    content: List[JobChatMessageContentResponse]
+

@@ -8,6 +8,7 @@ import 'package:trackyond/features/worker/dashboard/domain/repositories/i_job_re
 import 'package:trackyond/features/worker/dashboard/domain/repositories/i_worker_dashboard_repository.dart';
 import 'package:trackyond/features/worker/dashboard/domain/usecases/get_assigned_jobs_usecase.dart';
 import 'package:trackyond/features/worker/dashboard/domain/usecases/get_worker_dashboard_use_case.dart';
+import 'package:trackyond/features/worker/dashboard/domain/usecases/listen_job_events_use_case.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/controllers/worker_dashboard_controller.dart';
 
 class WorkerDashboardBinding extends Bindings {
@@ -34,11 +35,13 @@ class WorkerDashboardBinding extends Bindings {
     Get.lazyPut(
       () => GetWorkerDashboardUseCase(Get.find<IWorkerDashboardRepository>()),
     );
+    Get.lazyPut(() => ListenJobEventsUseCase(Get.find()));
 
     // Controllers
     Get.lazyPut(
       () => WorkerDashboardController(
         getWorkerDashboardUseCase: Get.find<GetWorkerDashboardUseCase>(),
+        listenJobEventsUseCase: Get.find<ListenJobEventsUseCase>(),
       ),
     );
   }

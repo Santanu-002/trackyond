@@ -175,7 +175,7 @@ class CreateJobController extends GetxController {
     final params = CreateJobParams(
       title: workController.text.trim(),
       customerName: customerNameController.text.trim(),
-      customerPhone: phoneController.text.trim(),
+      customerPhone: '${AppStrings.common.countryCode}${phoneController.text.trim()}',
       customerAddress: addressController.text.trim(),
       description: null, // Optional, can add a controller for this if needed
       workerProfileUid: selectedWorker.value!.uid,

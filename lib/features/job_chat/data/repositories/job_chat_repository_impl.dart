@@ -30,7 +30,6 @@ class JobChatRepositoryImpl implements IJobChatRepository {
 
   @override
   Future<Either<AppFailure, SendMessageResult>> sendMessage(JobChatMessageEntity message) async {
-    // Map Entity to Model
     final model = JobChatMessageModel(
       uid: message.uid,
       localId: message.localId,
@@ -40,13 +39,15 @@ class JobChatRepositoryImpl implements IJobChatRepository {
       createdByProfileUid: message.senderProfileUid,
       senderName: message.senderName,
       senderId: message.senderId,
-      contents: message.contents.map((c) => JobChatMessageContentModel(
+      content: message.content.map((c) => JobChatMessageContentModel(
         id: 0, // Mock id for new creation, backend generates real one
         type: c.type,
-        message: c.message,
+        content: c.content,
         metadata: c.metadata,
         actionPerformed: c.actionPerformed,
       )).toList(),
+      type: message.type,
+      metadata: message.metadata,
       createdByAuthorAt: message.timestamp,
       createdAt: message.createdAt,
       updatedAt: message.updatedAt,

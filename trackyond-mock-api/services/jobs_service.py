@@ -36,16 +36,16 @@ def calculate_allowed_actions(db: Session, job: models.Job) -> list[str]:
         return ["reached"]
 
     if activity_type == "reached":
-        actions = ["start_job"]
+        action = "start_job"
         if job.require_photo_on_start:
-            actions.append("capture_photo")
-        return actions
+            action += "_with_capture_photo"
+        return [action]
 
     if activity_type in ("started", "resumed"):
-        actions = ["take_break", "send_location", "complete_job"]
+        action = "complete_job"
         if job.require_photo_on_complete:
-            actions.append("capture_photo")
-        return actions
+            action += "_with_capture_photo"
+        return ["take_break", "send_location", action]
 
     if activity_type == "completed":
         return []
@@ -54,12 +54,17 @@ def calculate_allowed_actions(db: Session, job: models.Job) -> list[str]:
     return []
 
 
-def get_job_with_details(db: Session, job: models.Job):
+def get_job_with_details(db: Session, job):
     """
     Helper to fetch related member names and serialize a job with allowed actions.
     """
     if not job:
         return None
+
+    if isinstance(job, models.Job):
+        job_view = db.query(models.JobView).filter(models.JobView.job_id == job.job_id).first()
+        if job_view:
+            job = job_view
 
     worker_name = None
     worker_image = None
@@ -109,15 +114,15 @@ def get_admin_jobs(
     creator_member = aliased(models.Member)
 
     query = db.query(
-        models.Job, 
+        models.JobView, 
         worker_member.name.label("worker_name"),
         worker_member.image.label("worker_image"),
         creator_member.name.label("creator_name")
     ).outerjoin(
-        worker_member, models.Job.worker_profile_uid == worker_member.uid
+        worker_member, models.JobView.worker_profile_uid == worker_member.uid
     ).outerjoin(
-        creator_member, models.Job.created_by_profile_uid == creator_member.uid
-    ).filter(models.Job.company_uid == company_uid)
+        creator_member, models.JobView.created_by_profile_uid == creator_member.uid
+    ).filter(models.JobView.company_uid == company_uid)
 
     filter_clauses = []
 
@@ -129,32 +134,32 @@ def get_admin_jobs(
             except (ValueError, KeyError):
                 continue
         if valid_statuses:
-            filter_clauses.append(models.Job.status.in_(valid_statuses))
+            filter_clauses.append(models.JobView.status.in_(valid_statuses))
 
     if worker_ids:
-        filter_clauses.append(models.Job.worker_profile_uid.in_(worker_ids))
+        filter_clauses.append(models.JobView.worker_profile_uid.in_(worker_ids))
     
     if from_date:
-        filter_clauses.append(models.Job.created_at >= from_date)
+        filter_clauses.append(models.JobView.created_at >= from_date)
     if to_date:
-        filter_clauses.append(models.Job.created_at <= to_date)
+        filter_clauses.append(models.JobView.created_at <= to_date)
     
     if search:
         search_term = f"%{search}%"
         search_clauses = []
         if search_by == "title":
-            search_clauses.append(models.Job.title.ilike(search_term))
+            search_clauses.append(models.JobView.title.ilike(search_term))
         elif search_by == "customer":
-            search_clauses.append(models.Job.customer_name.ilike(search_term))
-            search_clauses.append(models.Job.customer_phone.ilike(search_term))
+            search_clauses.append(models.JobView.customer_name.ilike(search_term))
+            search_clauses.append(models.JobView.customer_phone.ilike(search_term))
         elif search_by == "address":
-            search_clauses.append(models.Job.customer_address.ilike(search_term))
+            search_clauses.append(models.JobView.customer_address.ilike(search_term))
         elif search_by == "worker":
             search_clauses.append(models.Member.name.ilike(search_term))
         else: # "all"
-            search_clauses.append(models.Job.title.ilike(search_term))
-            search_clauses.append(models.Job.customer_name.ilike(search_term))
-            search_clauses.append(models.Job.customer_address.ilike(search_term))
+            search_clauses.append(models.JobView.title.ilike(search_term))
+            search_clauses.append(models.JobView.customer_name.ilike(search_term))
+            search_clauses.append(models.JobView.customer_address.ilike(search_term))
             search_clauses.append(models.Member.name.ilike(search_term))
         
         filter_clauses.append(or_(*search_clauses))
@@ -166,15 +171,15 @@ def get_admin_jobs(
             query = query.filter(and_(*filter_clauses))
     
     order_map = {
-        "createdAt": models.Job.created_at,
-        "assignedAt": models.Job.assigned_at,
-        "jobTitle": models.Job.title,
-        "status": models.Job.status,
-        "customerName": models.Job.customer_name,
+        "createdAt": models.JobView.created_at,
+        "assignedAt": models.JobView.assigned_at,
+        "jobTitle": models.JobView.title,
+        "status": models.JobView.status,
+        "customerName": models.JobView.customer_name,
         "workerName": models.Member.name,
     }
     
-    sort_column = order_map.get(order_by, models.Job.assigned_at)
+    sort_column = order_map.get(order_by, models.JobView.assigned_at)
     
     if order.lower() == "asc":
         query = query.order_by(asc(sort_column))
@@ -222,9 +227,6 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
         capture_location=job_data.get("captureLocation", True)
     )
     
-    if new_job.worker_profile_uid:
-        new_job.assigned_at = now_utc()
-
     db.add(new_job)
     db.commit()
     db.refresh(new_job)
@@ -280,13 +282,12 @@ def create_mock_job_for_employee(db: Session, user_uid: str):
         job_id=uuid.uuid4().hex[:10].upper(),
         title=f"Mock Demo Job {now_utc().second}",
         customer_name="Demo Customer",
-        customer_phone="0000000000",
+        customer_phone="+910000000000",
         customer_address="123 Test Street, Mock City",
         worker_profile_uid=member.uid,
         company_uid=member.company_uid,
         created_by=user_uid,
         status=JobStatus.assigned,
-        assigned_at=now_utc(),
         require_photo_on_start=False,
         require_photo_on_complete=False,
         capture_location=False
@@ -386,48 +387,48 @@ def get_employee_assigned_jobs(
     creator_member = aliased(models.Member)
 
     query = db.query(
-        models.Job,
+        models.JobView,
         worker_member.name.label("worker_name"),
         worker_member.image.label("worker_image"),
         creator_member.name.label("creator_name")
     ).outerjoin(
-        worker_member, models.Job.worker_profile_uid == worker_member.uid
+        worker_member, models.JobView.worker_profile_uid == worker_member.uid
     ).outerjoin(
-        creator_member, models.Job.created_by_profile_uid == creator_member.uid
-    ).filter(models.Job.worker_profile_uid == member.uid)
+        creator_member, models.JobView.created_by_profile_uid == creator_member.uid
+    ).filter(models.JobView.worker_profile_uid == member.uid)
 
     if status:
-        query = query.filter(models.Job.status.in_(status))
+        query = query.filter(models.JobView.status.in_(status))
 
     if from_date:
-        query = query.filter(models.Job.created_at >= from_date)
+        query = query.filter(models.JobView.created_at >= from_date)
     if to_date:
-        query = query.filter(models.Job.created_at <= to_date)
+        query = query.filter(models.JobView.created_at <= to_date)
     
     if search:
         search_term = f"%{search}%"
         if search_by == "title":
-            query = query.filter(models.Job.title.ilike(search_term))
+            query = query.filter(models.JobView.title.ilike(search_term))
         elif search_by == "customer":
             query = query.filter(
-                (models.Job.customer_name.ilike(search_term)) |
-                (models.Job.customer_phone.ilike(search_term))
+                (models.JobView.customer_name.ilike(search_term)) |
+                (models.JobView.customer_phone.ilike(search_term))
             )
         elif search_by == "address":
-            query = query.filter(models.Job.customer_address.ilike(search_term))
+            query = query.filter(models.JobView.customer_address.ilike(search_term))
         else: # "all"
             query = query.filter(
-                (models.Job.title.ilike(search_term)) | 
-                (models.Job.customer_name.ilike(search_term)) |
-                (models.Job.customer_address.ilike(search_term))
+                (models.JobView.title.ilike(search_term)) | 
+                (models.JobView.customer_name.ilike(search_term)) |
+                (models.JobView.customer_address.ilike(search_term))
             )
 
     order_map = {
-        "createdAt": models.Job.created_at,
-        "jobTitle": models.Job.title,
-        "status": models.Job.status,
+        "createdAt": models.JobView.created_at,
+        "jobTitle": models.JobView.title,
+        "status": models.JobView.status,
     }
-    sort_column = order_map.get(order_by, models.Job.created_at)
+    sort_column = order_map.get(order_by, models.JobView.created_at)
     
     if order.lower() == "asc":
         query = query.order_by(asc(sort_column))
@@ -463,6 +464,42 @@ def update_job_status_for_employee(db: Session, primary_profile_uid: str, job_id
         return False, "Not authorized to update this job", 403
 
     job.status = status
+
+    # Log matching activity to ensure view-computed timing fields work correctly
+    if status == JobStatus.in_progress:
+        exists = db.query(models.JobActivity).filter(
+            models.JobActivity.job_id == job_id,
+            models.JobActivity.activity_type == "started"
+        ).first()
+        if not exists:
+            db_activity = models.JobActivity(
+                uid=uuid.uuid4().hex,
+                job_id=job_id,
+                profile_uid=primary_profile_uid,
+                actor_type="worker",
+                activity_type="started",
+                message="Job started",
+                created_at=now_utc()
+            )
+            db.add(db_activity)
+            
+    elif status == JobStatus.completed:
+        exists = db.query(models.JobActivity).filter(
+            models.JobActivity.job_id == job_id,
+            models.JobActivity.activity_type == "completed"
+        ).first()
+        if not exists:
+            db_activity = models.JobActivity(
+                uid=uuid.uuid4().hex,
+                job_id=job_id,
+                profile_uid=primary_profile_uid,
+                actor_type="worker",
+                activity_type="completed",
+                message="Job completed",
+                created_at=now_utc()
+            )
+            db.add(db_activity)
+
     db.commit()
     
     return True, None, 200
@@ -471,5 +508,5 @@ def get_job_by_id(db: Session, job_id: str):
     """
     Fetch a single job by its ID with all details and allowed actions.
     """
-    job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+    job = db.query(models.JobView).filter(models.JobView.job_id == job_id).first()
     return get_job_with_details(db, job)

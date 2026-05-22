@@ -176,7 +176,7 @@ class AppTheme {
     final border = OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
       borderSide: BorderSide(
-        color: colors.outline.withValues(alpha: 0.2),
+        color: colors.onSurfaceVariant.withValues(alpha: 0.2),
         width: 1,
       ),
     );

@@ -9,7 +9,7 @@ sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
   const factory JobChatMessageContentModel({
     required int id,
     required String type,
-    String? message,
+    String? content,
     Map<String, dynamic>? metadata,
     String? actionPerformed,
   }) = _JobChatMessageContentModel;
@@ -22,9 +22,10 @@ sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
   JobChatMessageContentEntity toEntity() {
     return JobChatMessageContentEntity(
       type: type,
-      message: message,
+      content: content,
       metadata: metadata,
       actionPerformed: actionPerformed,
     );
   }
 }
+

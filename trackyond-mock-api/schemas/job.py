@@ -1,25 +1,25 @@
-from pydantic import BaseModel
-from typing import Optional, List
+from core.responses.models import BaseSchema
+from typing import Optional
 from datetime import datetime
+from pydantic import Field
+from schemas.common import PHONE_REGEX
 
-class JobBase(BaseModel):
+class JobBase(BaseSchema):
     title: str
-    customerName: str
-    customerPhone: str
-    customerAddress: Optional[str] = None
-    workerProfileUid: Optional[str] = None
-    requirePhotoOnStart: bool = False
-    requirePhotoOnComplete: bool = False
-    captureLocation: bool = True
+    customer_name: str
+    customer_phone: str = Field(..., pattern=PHONE_REGEX)
+    customer_address: Optional[str] = None
+    worker_profile_uid: Optional[str] = None
+    require_photo_on_start: bool = False
+    require_photo_on_complete: bool = False
+    capture_location: bool = True
 
 class JobCreate(JobBase):
     pass
 
 class JobResponse(JobBase):
-    jobId: str
+    job_id: str
     status: str
-    createdAt: str
-    assignedAt: Optional[str] = None
+    created_at: datetime
 
-    class Config:
-        from_attributes = True
+

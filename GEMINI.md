@@ -1,5 +1,19 @@
 # Trackyond Project Guidelines & Architecture
 
+## 🧠 Core Engineering Principles
+All code written for Trackyond must adhere to the following foundational rules:
+- **DRY (Don't Repeat Yourself)**: Eliminate duplicated logic by extracting shared utilities and modules.
+- **Separation of Concerns**: Each module should handle one distinct responsibility.
+- **Single Responsibility Principle (SRP)**: Every class, module, function, or file should have exactly one reason to change.
+- **Clear Abstractions & Contracts**: Expose intent through small, stable interfaces and hide implementation details.
+- **Low Coupling, High Cohesion**: Keep modules self-contained and minimize cross-dependencies.
+- **Scalability & Statelessness**: Design components to scale horizontally and prefer stateless services when possible.
+- **Observability & Testability**: Build in logging, metrics, tracing, and ensure components can be unit/integration tested.
+- **KISS (Keep It Simple, Stupid)**: Keep solutions as simple as possible.
+- **YAGNI (You Aren't Gonna Need It)**: Avoid speculative complexity or over-engineering.
+
+---
+
 This document serves as the source of truth for the Trackyond workspace, covering both the Flutter client and the Python FastAPI server.
 
 ## 📱 Client (Flutter)

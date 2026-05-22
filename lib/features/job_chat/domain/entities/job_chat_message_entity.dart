@@ -10,7 +10,9 @@ class JobChatMessageEntity extends Equatable {
   final String senderId;
   final String? senderProfileUid;
   
-  final List<JobChatMessageContentEntity> contents;
+  final List<JobChatMessageContentEntity> content;
+  final String type; // 'message', 'activity'
+  final Map<String, dynamic>? metadata;
   
   final DateTime timestamp;
   final DateTime? createdAt;
@@ -31,7 +33,9 @@ class JobChatMessageEntity extends Equatable {
     required this.senderName,
     required this.senderId,
     this.senderProfileUid,
-    required this.contents,
+    required this.content,
+    this.type = 'message',
+    this.metadata,
     required this.timestamp,
     this.createdAt,
     this.updatedAt,
@@ -51,7 +55,9 @@ class JobChatMessageEntity extends Equatable {
     String? senderName,
     String? senderId,
     String? senderProfileUid,
-    List<JobChatMessageContentEntity>? contents,
+    List<JobChatMessageContentEntity>? content,
+    String? type,
+    Map<String, dynamic>? metadata,
     DateTime? timestamp,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -70,7 +76,9 @@ class JobChatMessageEntity extends Equatable {
       senderName: senderName ?? this.senderName,
       senderId: senderId ?? this.senderId,
       senderProfileUid: senderProfileUid ?? this.senderProfileUid,
-      contents: contents ?? this.contents,
+      content: content ?? this.content,
+      type: type ?? this.type,
+      metadata: metadata ?? this.metadata,
       timestamp: timestamp ?? this.timestamp,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -92,7 +100,9 @@ class JobChatMessageEntity extends Equatable {
         senderName,
         senderId,
         senderProfileUid,
-        contents,
+        content,
+        type,
+        metadata,
         timestamp,
         createdAt,
         updatedAt,
@@ -104,3 +114,4 @@ class JobChatMessageEntity extends Equatable {
         deleted,
       ];
 }
+

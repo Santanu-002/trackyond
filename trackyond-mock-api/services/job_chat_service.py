@@ -19,6 +19,7 @@ def get_job_messages(db: Session, job_id: str):
     return messages
 
 def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMessageCreate):
+    print("DEBUG: message_data.created_by_author_at =", message_data.created_by_author_at, type(message_data.created_by_author_at), "tzinfo =", getattr(message_data.created_by_author_at, "tzinfo", None))
     db_message = models.JobChatMessage(
         uid=uuid.uuid4().hex,
         local_id=message_data.local_id,
@@ -27,88 +28,65 @@ def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMe
         created_by_uid=message_data.created_by_uid,
         created_by_profile_uid=message_data.created_by_profile_uid,
         status=message_data.status,
-        created_by_author_at=message_data.created_by_author_at
+        created_by_author_at=message_data.created_by_author_at,
+        type=message_data.type
     )
+    if hasattr(message_data, "metadata") and message_data.metadata is not None:
+        db_message.metadata_dict = message_data.metadata
 
     db.add(db_message)
     db.flush()
 
-    for content in message_data.contents:
+    for content in message_data.content:
         db_content = models.JobChatMessageContent(
             message_uid=db_message.uid,
             type=content.type,
-            message=content.message
+            content=content.content
         )
         if hasattr(content, "metadata") and content.metadata is not None:
             db_content.metadata_dict = content.metadata
         db.add(db_content)
 
-        # Only process activity actions when explicitly provided via actionPerformed
-        action = (content.action_performed or "").lower().strip() if content.type == "activity" else ""
+    # Process activity action if the message type is activity
+    if db_message.type == "activity":
+        activity_type_meta = (db_message.metadata_dict or {}).get("activity_type")
+        if activity_type_meta:
+            # Map activity_type_meta -> (db_activity_type, job_status_update)
+            activity_map = {
+                "reached_location": ("reached", None),
+                "started_job": ("started", JobStatus.in_progress),
+                "completed_job": ("completed", JobStatus.completed),
+                "take_break": ("take_break", None),
+                "send_location": ("send_location", None),
+            }
+            if activity_type_meta in activity_map:
+                db_activity_type, job_status_update = activity_map[activity_type_meta]
+                
+                # Update job status
+                job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+                if job:
+                    if job_status_update:
+                        job.status = job_status_update
+                    job.updated_at = now_utc()
+                
+                # Extract first content's text for activity message, if any
+                first_text = ""
+                if message_data.content:
+                    first_text = message_data.content[0].content or ""
 
-        if not action:
-            continue
-
-        # Map action keyword -> (activity_type, job status transition)
-        action_map = {
-            "reached": ("reached", None),
-            "start_job": ("started", JobStatus.in_progress),
-            "complete_job": ("completed", JobStatus.completed),
-        }
-
-        if action not in action_map:
-            continue
-
-        activity_type, job_status_update = action_map[action]
-
-        job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
-        if job:
-            if job_status_update:
-                job.status = job_status_update
-                if job_status_update == JobStatus.in_progress and not job.started_at:
-                    job.started_at = now_utc()
-                if job_status_update == JobStatus.completed and not job.completed_at:
-                    job.completed_at = now_utc()
-            job.updated_at = now_utc()
-
-        # Record in Activity History
-        import json
-        db_activity = models.JobActivity(
-            uid=uuid.uuid4().hex,
-            job_id=job_id,
-            profile_uid=message_data.created_by_profile_uid,
-            actor_type=message_data.author_type,
-            activity_type=activity_type,
-            message=content.message,
-            metadata_json=json.dumps(content.metadata) if hasattr(content, "metadata") and content.metadata is not None else None
-        )
-        db.add(db_activity)
-
-        # Add a system timeline bubble so the chat shows the activity entry
-        timeline_uid = uuid.uuid4().hex
-        timeline_msg = models.JobChatMessage(
-            uid=timeline_uid,
-            job_id=job_id,
-            author_type="system",
-            status="sent",
-            created_by_author_at=now_utc()
-        )
-        db.add(timeline_msg)
-        db.flush()
-
-        timeline_labels = {
-            "reached": f"@[profileUid#{message_data.created_by_profile_uid}] has reached the job site",
-            "started": f"@[profileUid#{message_data.created_by_profile_uid}] has started the job",
-            "completed": f"@[profileUid#{message_data.created_by_profile_uid}] has completed the job",
-        }
-        timeline_text = timeline_labels.get(activity_type, f"Activity recorded: {activity_type}")
-
-        db_timeline_content = models.JobChatMessageContent(
-            message_uid=timeline_uid,
-            type=ChatMessageType.activity.value,
-            message=timeline_text
-        )
-        db.add(db_timeline_content)
+                # Record in Activity History
+                db_activity = models.JobActivity(
+                    uid=uuid.uuid4().hex,
+                    job_id=job_id,
+                    profile_uid=message_data.created_by_profile_uid,
+                    actor_type=message_data.author_type,
+                    activity_type=db_activity_type,
+                    message=first_text,
+                    lat=db_message.metadata_dict.get('latitude') if db_message.metadata_dict else None,
+                    lon=db_message.metadata_dict.get('longitude') if db_message.metadata_dict else None,
+                    address=db_message.metadata_dict.get('address') if db_message.metadata_dict else None
+                )
+                db.add(db_activity)
 
     db.commit()
     db.refresh(db_message)
@@ -123,6 +101,7 @@ def create_system_activity_message(db: Session, job_id: str, text: str, message_
         job_id=job_id,
         author_type="system",
         status="sent",
+        type="activity",
         created_by_author_at=now_utc()
     )
     
@@ -132,7 +111,7 @@ def create_system_activity_message(db: Session, job_id: str, text: str, message_
     db_content = models.JobChatMessageContent(
         message_uid=db_message.uid,
         type=message_type.value,
-        message=text
+        content=text
     )
     db.add(db_content)
     

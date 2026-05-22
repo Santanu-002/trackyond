@@ -65,14 +65,14 @@ def get_admin_attendance_logs(
     }, None
 
 def start_employee_attendance(db: Session, req: MarkAttendanceRequest):
-    member = db.query(models.Member).filter(models.Member.uid == req.profileUid).first()
+    member = db.query(models.Member).filter(models.Member.uid == req.profile_uid).first()
     if not member:
         return None, strings.member_not_found
     
     today_start = now_utc().replace(hour=0, minute=0, second=0, microsecond=0)
     
     stale_sessions = db.query(models.Attendance).filter(
-        models.Attendance.profile_uid == req.profileUid,
+        models.Attendance.profile_uid == req.profile_uid,
         models.Attendance.status == AttendanceStatus.working,
         models.Attendance.created_at < today_start
     ).all()
@@ -86,7 +86,7 @@ def start_employee_attendance(db: Session, req: MarkAttendanceRequest):
         db.commit()
 
     active_session = db.query(models.Attendance).filter(
-        models.Attendance.profile_uid == req.profileUid,
+        models.Attendance.profile_uid == req.profile_uid,
         models.Attendance.status == AttendanceStatus.working,
         models.Attendance.created_at >= today_start
     ).first()
@@ -95,7 +95,7 @@ def start_employee_attendance(db: Session, req: MarkAttendanceRequest):
         return None, "Attendance already marked for start today"
 
     attendance = models.Attendance(
-        profile_uid=req.profileUid,
+        profile_uid=req.profile_uid,
         user_uid=member.user_uid,
         company_uid=member.company_uid,
         start_latitude=req.latitude,
@@ -114,7 +114,7 @@ def start_employee_attendance(db: Session, req: MarkAttendanceRequest):
 def end_employee_attendance(db: Session, req: MarkAttendanceRequest):
     attendance = db.query(models.Attendance).filter(
         models.Attendance.status == AttendanceStatus.working,
-        models.Attendance.profile_uid == req.profileUid
+        models.Attendance.profile_uid == req.profile_uid
     ).order_by(models.Attendance.start_at.desc()).first()
 
     if not attendance:

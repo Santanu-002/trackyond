@@ -1,12 +1,13 @@
 import uuid
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy.orm import Session
 from db import models
 from core.constants.enums import NotificationStatus, UserRole, NotificationType
 from typing import Optional, List, Dict, Any
 from firebase_admin import messaging
 from services.serializers import serialize_notification
+from core.utils.datetime_utils import to_utc_iso, now_utc
 
 def upsert_admin_fcm_token(db: Session, admin_uid: str, device_id: str, fcm_token: str, platform: Optional[str] = None, app_version: Optional[str] = None):
     """
@@ -62,7 +63,7 @@ def upsert_fcm_token(
         models.FCMToken.device_id == device_id
     ).first()
 
-    now = datetime.now(timezone.utc)
+    now = now_utc()
     if token_record:
         token_record.fcm_token = fcm_token
         token_record.user_role = user_role
@@ -101,7 +102,7 @@ def deactivate_fcm_token(db: Session, user_uid: str, device_id: str):
 
     if token_record:
         token_record.is_active = False
-        token_record.updated_at = datetime.now(timezone.utc)
+        token_record.updated_at = now_utc()
         db.commit()
         return True
     return False
@@ -121,7 +122,7 @@ def build_notification_payload(
         "type": notification_type.value if isinstance(notification_type, NotificationType) else notification_type,
         "title": title,
         "body": body,
-        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "createdAt": to_utc_iso(),
     }
     if extra_data:
         payload.update(extra_data)
@@ -139,7 +140,7 @@ def create_notification(
     """
     Creates a notification record and sends FCM push.
     """
-    now = datetime.now(timezone.utc)
+    now = now_utc()
     title = title or "Notification"
     
     # Generate unique ID for this notification
@@ -236,7 +237,7 @@ def mark_all_notifications_as_seen(db: Session, user_uid: str):
     """
     Marks all unseen notifications as seen.
     """
-    now = datetime.now(timezone.utc)
+    now = now_utc()
     db.query(models.Notification).filter(
         models.Notification.user_uid == user_uid,
         models.Notification.seen == False,
@@ -255,7 +256,7 @@ def bulk_update_notifications_status(db: Session, user_uid: str, notification_id
     """
     Updates the status (read, seen) for a list of notifications.
     """
-    now = datetime.now(timezone.utc)
+    now = now_utc()
     update_data = {"status": status, "updated_at": now}
     
     if status == NotificationStatus.read:
@@ -275,7 +276,7 @@ def bulk_delete_notifications(db: Session, user_uid: str, notification_ids: List
     """
     Soft deletes a list of notifications.
     """
-    now = datetime.now(timezone.utc)
+    now = now_utc()
     member = db.query(models.Member).filter(models.Member.user_uid == user_uid).first()
     deleted_by_uid = member.uid if member else None
 
@@ -308,7 +309,7 @@ def update_notification_status(db: Session, notification_id: str, status: Notifi
     """
     notification = db.query(models.Notification).filter(models.Notification.notification_id == notification_id).first()
     if notification:
-        now = datetime.now(timezone.utc)
+        now = now_utc()
         notification.status = status
         notification.updated_at = now
         if status == NotificationStatus.delivered:

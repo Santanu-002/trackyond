@@ -20,10 +20,11 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
         authorType: 'system',
         senderName: 'System',
         senderId: 'system',
-        contents: [
+        type: 'activity',
+        content: [
           JobChatMessageContentEntity(
             type: JobChatMessageType.activity.value,
-            message: 'Job created by Admin',
+            content: 'Job created by Admin',
           ),
         ],
         timestamp: DateTime.now().subtract(const Duration(days: 1)),
@@ -34,10 +35,11 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
         jobId: jobId,
         senderName: 'John Doe',
         senderId: 'worker_1',
-        contents: [
+        type: 'message',
+        content: [
           JobChatMessageContentEntity(
             type: JobChatMessageType.text.value,
-            message: 'Hello, I am on my way.',
+            content: 'Hello, I am on my way.',
           ),
         ],
         timestamp: DateTime.now().subtract(const Duration(hours: 2)),

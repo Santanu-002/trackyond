@@ -16,25 +16,29 @@ _JobChatMessageModel _$JobChatMessageModelFromJson(Map<String, dynamic> json) =>
       createdByProfileUid: json['createdByProfileUid'] as String?,
       senderName: json['senderName'] as String?,
       senderId: json['senderId'] as String?,
-      contents: (json['contents'] as List<dynamic>)
+      content: (json['content'] as List<dynamic>)
           .map(
             (e) =>
                 JobChatMessageContentModel.fromJson(e as Map<String, dynamic>),
           )
           .toList(),
-      createdByAuthorAt: DateTime.parse(json['createdByAuthorAt'] as String),
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
-          ? null
-          : DateTime.parse(json['updatedAt'] as String),
-      seenAt: json['seenAt'] == null
-          ? null
-          : DateTime.parse(json['seenAt'] as String),
-      deliveredAt: json['deliveredAt'] == null
-          ? null
-          : DateTime.parse(json['deliveredAt'] as String),
+      type: json['type'] as String? ?? 'message',
+      metadata: json['metadata'] as Map<String, dynamic>?,
+      createdByAuthorAt: const DateTimeConverter().fromJson(
+        json['createdByAuthorAt'] as String,
+      ),
+      createdAt: const DateTimeNullableConverter().fromJson(
+        json['createdAt'] as String?,
+      ),
+      updatedAt: const DateTimeNullableConverter().fromJson(
+        json['updatedAt'] as String?,
+      ),
+      seenAt: const DateTimeNullableConverter().fromJson(
+        json['seenAt'] as String?,
+      ),
+      deliveredAt: const DateTimeNullableConverter().fromJson(
+        json['deliveredAt'] as String?,
+      ),
       status: json['status'] as String? ?? 'sent',
       isMe: json['isMe'] as bool? ?? false,
       active: json['active'] as bool? ?? true,
@@ -52,12 +56,16 @@ Map<String, dynamic> _$JobChatMessageModelToJson(
   'createdByProfileUid': instance.createdByProfileUid,
   'senderName': instance.senderName,
   'senderId': instance.senderId,
-  'contents': instance.contents,
-  'createdByAuthorAt': instance.createdByAuthorAt.toIso8601String(),
-  'createdAt': instance.createdAt?.toIso8601String(),
-  'updatedAt': instance.updatedAt?.toIso8601String(),
-  'seenAt': instance.seenAt?.toIso8601String(),
-  'deliveredAt': instance.deliveredAt?.toIso8601String(),
+  'content': instance.content,
+  'type': instance.type,
+  'metadata': instance.metadata,
+  'createdByAuthorAt': const DateTimeConverter().toJson(
+    instance.createdByAuthorAt,
+  ),
+  'createdAt': const DateTimeNullableConverter().toJson(instance.createdAt),
+  'updatedAt': const DateTimeNullableConverter().toJson(instance.updatedAt),
+  'seenAt': const DateTimeNullableConverter().toJson(instance.seenAt),
+  'deliveredAt': const DateTimeNullableConverter().toJson(instance.deliveredAt),
   'status': instance.status,
   'isMe': instance.isMe,
   'active': instance.active,

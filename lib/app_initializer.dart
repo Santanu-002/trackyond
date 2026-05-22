@@ -11,6 +11,8 @@ import 'package:trackyond/core/services/device_header/device_info_service.dart';
 import 'package:trackyond/core/services/device_header/platform_info_service.dart';
 import 'package:trackyond/core/services/notification/fcm_token_service.dart';
 import 'package:trackyond/core/services/notification/notification_service.dart';
+import 'package:trackyond/core/common/repositories/i_event_bus_repository.dart';
+import 'package:trackyond/core/common/repositories/event_bus_repository_impl.dart';
 import 'package:trackyond/core/services/token/token_service.dart';
 import 'package:trackyond/core/services/token/token_service_impl.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
@@ -44,6 +46,9 @@ class AppInitializer {
 
   static Future<void> _initServices() async {
     debugPrint('INIT: Initializing services');
+    Get.put<IEventBusRepository>(EventBusRepositoryImpl(), permanent: true);
+    debugPrint('INIT: EventBusRepository initialized');
+
     Get.put<TokenService>(TokenServiceImpl(Get.find()), permanent: true);
     debugPrint('INIT: TokenService initialized');
 

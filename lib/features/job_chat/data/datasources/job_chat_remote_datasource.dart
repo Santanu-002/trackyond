@@ -35,10 +35,11 @@ class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatD
 
   @override
   Future<ApiResponse<SendMessageResponseModel>> sendMessage({required JobChatMessageModel message}) async {
+    final payload = message.toJson();
     return performApiRequest(
       _dio.post(
         ApiEndpoints.common.jobChatMessages(message.jobId),
-        data: message.toJson(),
+        data: payload,
       ),
       (data) => SendMessageResponseModel.fromJson(data as Map<String, dynamic>),
     );

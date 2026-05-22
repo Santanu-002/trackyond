@@ -19,15 +19,20 @@ import 'package:trackyond/features/auth/presentation/controllers/auth_controller
 import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/attendance_info_item.dart';
+import 'package:trackyond/core/common/events/job_event.dart';
 import 'package:trackyond/features/worker/dashboard/domain/usecases/get_worker_dashboard_use_case.dart';
+import 'package:trackyond/features/worker/dashboard/domain/usecases/listen_job_events_use_case.dart';
 import 'package:trackyond/features/worker/settings/presentation/controllers/worker_settings_controller.dart';
 
 class WorkerDashboardController extends GetxController {
   final GetWorkerDashboardUseCase _getWorkerDashboardUseCase;
+  final ListenJobEventsUseCase _listenJobEventsUseCase;
 
   WorkerDashboardController({
     required GetWorkerDashboardUseCase getWorkerDashboardUseCase,
-  }) : _getWorkerDashboardUseCase = getWorkerDashboardUseCase;
+    required ListenJobEventsUseCase listenJobEventsUseCase,
+  }) : _getWorkerDashboardUseCase = getWorkerDashboardUseCase,
+       _listenJobEventsUseCase = listenJobEventsUseCase;
 
   AppLifecycleListener? _lifecycleListener;
 
@@ -82,6 +87,8 @@ class WorkerDashboardController extends GetxController {
   Rx<LocationPermission> get locationPermission =>
       attendanceController.locationPermission;
 
+  StreamSubscription<JobEvent>? _jobEventsSubscription;
+
   @override
   void onInit() {
     super.onInit();
@@ -90,6 +97,42 @@ class WorkerDashboardController extends GetxController {
     _loadUserInfo();
     _loadStatsFilter();
     fetchDashboardData();
+    _listenToJobEvents();
+  }
+
+  Future<void> _listenToJobEvents() async {
+    final result = await _listenJobEventsUseCase(const NoParams());
+    result.fold(
+      (failure) => debugPrint('Error listening to job events: ${failure.message}'),
+      (stream) {
+        _jobEventsSubscription = stream.listen((event) {
+          switch (event) {
+            case JobUpdatedEvent(:final job):
+              onJobUpdated(job);
+            case JobDeletedEvent(:final jobId):
+              onJobDeleted(jobId);
+          }
+        });
+      },
+    );
+  }
+
+  void onJobUpdated(JobEntity updatedJob) {
+    final index = recentJobs.indexWhere((j) => j.jobId == updatedJob.jobId);
+    if (index != -1) {
+      recentJobs[index] = updatedJob;
+    } else {
+      recentJobs.insert(0, updatedJob);
+      if (recentJobs.length > 5) {
+        recentJobs.removeLast();
+      }
+    }
+    fetchDashboardData(silent: true);
+  }
+
+  void onJobDeleted(String jobId) {
+    recentJobs.removeWhere((j) => j.jobId == jobId);
+    fetchDashboardData(silent: true);
   }
 
   Future<void> _loadStatsFilter() async {
@@ -109,11 +152,17 @@ class WorkerDashboardController extends GetxController {
     isProfileLoading.value = false;
   }
 
-  Future<void> fetchDashboardData() async {
-    isDashboardLoading.value = true;
+  Future<void> fetchDashboardData({bool silent = false}) async {
+    if (!silent) {
+      isDashboardLoading.value = true;
+    }
     final result = await _getWorkerDashboardUseCase(const NoParams());
 
-    result.fold((failure) => AppSnackbar.destructive(failure.message), (data) {
+    result.fold((failure) {
+      if (!silent) {
+        AppSnackbar.destructive(failure.message);
+      }
+    }, (data) {
       // Update Attendance Status in the permanent AttendanceController
       attendanceController.attendanceStatus.value =
           data.attendanceStatus.status;
@@ -141,11 +190,14 @@ class WorkerDashboardController extends GetxController {
       Get.find<NotificationController>().unreadCount.value =
           data.unreadNotificationCount;
     });
-    isDashboardLoading.value = false;
+    if (!silent) {
+      isDashboardLoading.value = false;
+    }
   }
 
   @override
   void onClose() {
+    _jobEventsSubscription?.cancel();
     _lifecycleListener?.dispose();
     super.onClose();
   }

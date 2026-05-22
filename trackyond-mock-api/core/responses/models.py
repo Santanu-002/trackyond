@@ -1,6 +1,8 @@
-from pydantic import BaseModel, ConfigDict
+from datetime import datetime
+from pydantic import BaseModel, ConfigDict, field_serializer
 from pydantic.alias_generators import to_camel
 from typing import Any, Optional
+from core.utils.datetime_utils import to_utc_iso
 
 class BaseSchema(BaseModel):
     model_config = ConfigDict(
@@ -9,6 +11,12 @@ class BaseSchema(BaseModel):
         from_attributes=True,
         serialize_by_alias=True
     )
+
+    @field_serializer('*', check_fields=False)
+    def serialize_datetime(self, val: Any) -> Any:
+        if isinstance(val, datetime):
+            return to_utc_iso(val)
+        return val
 
 class GenericResponse(BaseSchema):
     success: bool

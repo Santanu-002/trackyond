@@ -21,6 +21,11 @@ class JobEntity extends Equatable {
   final DateTime? updatedAt;
   final DateTime? completedAt;
   final List<String> allowedActions;
+  final String? lastMessage;
+  final DateTime? lastMessageAt;
+  final String? lastActivityType;
+  final String? lastActivityMessage;
+  final DateTime? lastActivityAt;
 
   const JobEntity({
     required this.jobId,
@@ -42,6 +47,11 @@ class JobEntity extends Equatable {
     this.updatedAt,
     this.completedAt,
     this.allowedActions = const [],
+    this.lastMessage,
+    this.lastMessageAt,
+    this.lastActivityType,
+    this.lastActivityMessage,
+    this.lastActivityAt,
   });
 
   @override
@@ -65,5 +75,10 @@ class JobEntity extends Equatable {
         updatedAt,
         completedAt,
         allowedActions,
+        lastMessage,
+        lastMessageAt,
+        lastActivityType,
+        lastActivityMessage,
+        lastActivityAt,
       ];
 }

@@ -37,37 +37,37 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
     
     # 2. Job Statistics
     def get_admin_counts(start_date=None):
-        base_query = db.query(models.Job).filter(models.Job.company_uid == company_uid)
+        base_query = db.query(models.JobView).filter(models.JobView.company_uid == company_uid)
         if start_date:
             return {
-                "pending": base_query.filter(models.Job.status.in_([JobStatus.pending, JobStatus.assigned]), models.Job.created_at >= start_date).count(),
-                "inProgress": base_query.filter(models.Job.status == JobStatus.in_progress, models.Job.created_at >= start_date).count(),
-                "completed": base_query.filter(models.Job.status == JobStatus.completed, models.Job.completed_at >= start_date).count(),
-                "cancelled": base_query.filter(models.Job.status == JobStatus.cancelled, models.Job.updated_at >= start_date).count(),
+                "pending": base_query.filter(models.JobView.status.in_([JobStatus.pending, JobStatus.assigned]), models.JobView.created_at >= start_date).count(),
+                "inProgress": base_query.filter(models.JobView.status == JobStatus.in_progress, models.JobView.created_at >= start_date).count(),
+                "completed": base_query.filter(models.JobView.status == JobStatus.completed, models.JobView.completed_at >= start_date).count(),
+                "cancelled": base_query.filter(models.JobView.status == JobStatus.cancelled, models.JobView.updated_at >= start_date).count(),
             }
         else:
             return {
-                "pending": base_query.filter(models.Job.status.in_([JobStatus.pending, JobStatus.assigned])).count(),
-                "inProgress": base_query.filter(models.Job.status == JobStatus.in_progress).count(),
-                "completed": base_query.filter(models.Job.status == JobStatus.completed).count(),
-                "cancelled": base_query.filter(models.Job.status == JobStatus.cancelled).count(),
+                "pending": base_query.filter(models.JobView.status.in_([JobStatus.pending, JobStatus.assigned])).count(),
+                "inProgress": base_query.filter(models.JobView.status == JobStatus.in_progress).count(),
+                "completed": base_query.filter(models.JobView.status == JobStatus.completed).count(),
+                "cancelled": base_query.filter(models.JobView.status == JobStatus.cancelled).count(),
             }
 
     # 3. Recent Jobs (last 10)
     recent_jobs_results = db.query(
-        models.Job,
+        models.JobView,
         models.Member.name.label("worker_name"),
         models.Member.image.label("worker_image")
     ).outerjoin(
-        models.Member, models.Job.worker_profile_uid == models.Member.uid
+        models.Member, models.JobView.worker_profile_uid == models.Member.uid
     ).filter(
-        models.Job.company_uid == company_uid
-    ).order_by(desc(models.Job.created_at)).limit(10).all()
+        models.JobView.company_uid == company_uid
+    ).order_by(desc(models.JobView.created_at)).limit(10).all()
 
     recent_jobs = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in recent_jobs_results]
     
     # 4. Chart Data (Jobs by status)
-    all_jobs = db.query(models.Job).filter(models.Job.company_uid == company_uid).all()
+    all_jobs = db.query(models.JobView).filter(models.JobView.company_uid == company_uid).all()
     
     chart_data = {"pending": 0, "inProgress": 0, "completed": 0, "cancelled": 0}
     status_map = {
@@ -122,15 +122,15 @@ def get_employee_dashboard_data(db: Session, user_uid: str, profile_uid: str):
 
     # 2. Get assigned and in-progress jobs
     active_jobs_results = db.query(
-        models.Job,
+        models.JobView,
         models.Member.name.label("worker_name"),
         models.Member.image.label("worker_image")
     ).outerjoin(
-        models.Member, models.Job.worker_profile_uid == models.Member.uid
+        models.Member, models.JobView.worker_profile_uid == models.Member.uid
     ).filter(
-        models.Job.worker_profile_uid == active_member.uid,
-        models.Job.status.in_([JobStatus.assigned, JobStatus.in_progress])
-    ).order_by(desc(models.Job.assigned_at)).all()
+        models.JobView.worker_profile_uid == active_member.uid,
+        models.JobView.status.in_([JobStatus.assigned, JobStatus.in_progress])
+    ).order_by(desc(models.JobView.assigned_at)).all()
 
     assigned_jobs = []
     for j, worker_name, worker_image in active_jobs_results:
@@ -139,14 +139,14 @@ def get_employee_dashboard_data(db: Session, user_uid: str, profile_uid: str):
 
     # 3. Get recent jobs (last 10, sorted by assigned_at)
     recent_jobs_results = db.query(
-        models.Job,
+        models.JobView,
         models.Member.name.label("worker_name"),
         models.Member.image.label("worker_image")
     ).outerjoin(
-        models.Member, models.Job.worker_profile_uid == models.Member.uid
+        models.Member, models.JobView.worker_profile_uid == models.Member.uid
     ).filter(
-        models.Job.worker_profile_uid == active_member.uid
-    ).order_by(desc(models.Job.assigned_at)).limit(10).all()
+        models.JobView.worker_profile_uid == active_member.uid
+    ).order_by(desc(models.JobView.assigned_at)).limit(10).all()
 
     recent_jobs = []
     for j, worker_name, worker_image in recent_jobs_results:
@@ -155,24 +155,24 @@ def get_employee_dashboard_data(db: Session, user_uid: str, profile_uid: str):
 
     # 4. Summary Stats
     def get_counts(start_date=None):
-        base_query = db.query(models.Job).filter(models.Job.worker_profile_uid == active_member.uid)
+        base_query = db.query(models.JobView).filter(models.JobView.worker_profile_uid == active_member.uid)
         if start_date:
             return {
-                "pending": base_query.filter(models.Job.status == JobStatus.assigned, models.Job.assigned_at >= start_date).count(),
-                "inProgress": base_query.filter(models.Job.status == JobStatus.in_progress, models.Job.assigned_at >= start_date).count(),
-                "completed": base_query.filter(models.Job.status == JobStatus.completed, models.Job.completed_at >= today_start).count(),
-                "cancelled": base_query.filter(models.Job.status == JobStatus.cancelled, models.Job.updated_at >= today_start).count(),
-                "completedToday": base_query.filter(models.Job.status == JobStatus.completed, models.Job.completed_at >= today_start).count(),
-                "totalAssigned": base_query.filter(models.Job.status.in_([JobStatus.assigned, JobStatus.in_progress]), models.Job.assigned_at >= start_date).count()
+                "pending": base_query.filter(models.JobView.status == JobStatus.assigned, models.JobView.assigned_at >= start_date).count(),
+                "inProgress": base_query.filter(models.JobView.status == JobStatus.in_progress, models.JobView.assigned_at >= start_date).count(),
+                "completed": base_query.filter(models.JobView.status == JobStatus.completed, models.JobView.completed_at >= today_start).count(),
+                "cancelled": base_query.filter(models.JobView.status == JobStatus.cancelled, models.JobView.updated_at >= today_start).count(),
+                "completedToday": base_query.filter(models.JobView.status == JobStatus.completed, models.JobView.completed_at >= today_start).count(),
+                "totalAssigned": base_query.filter(models.JobView.status.in_([JobStatus.assigned, JobStatus.in_progress]), models.JobView.assigned_at >= start_date).count()
             }
         else:
             return {
-                "pending": base_query.filter(models.Job.status == JobStatus.assigned).count(),
-                "inProgress": base_query.filter(models.Job.status == JobStatus.in_progress).count(),
-                "completed": base_query.filter(models.Job.status == JobStatus.completed).count(),
-                "cancelled": base_query.filter(models.Job.status == JobStatus.cancelled).count(),
-                "completedToday": base_query.filter(models.Job.status == JobStatus.completed, models.Job.completed_at >= today_start).count(),
-                "totalAssigned": base_query.filter(models.Job.status.in_([JobStatus.assigned, JobStatus.in_progress])).count()
+                "pending": base_query.filter(models.JobView.status == JobStatus.assigned).count(),
+                "inProgress": base_query.filter(models.JobView.status == JobStatus.in_progress).count(),
+                "completed": base_query.filter(models.JobView.status == JobStatus.completed).count(),
+                "cancelled": base_query.filter(models.JobView.status == JobStatus.cancelled).count(),
+                "completedToday": base_query.filter(models.JobView.status == JobStatus.completed, models.JobView.completed_at >= today_start).count(),
+                "totalAssigned": base_query.filter(models.JobView.status.in_([JobStatus.assigned, JobStatus.in_progress])).count()
             }
 
     return {

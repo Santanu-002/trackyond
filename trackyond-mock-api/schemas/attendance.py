@@ -1,28 +1,26 @@
-from pydantic import BaseModel
+from core.responses.models import BaseSchema
 from typing import Optional
 from datetime import datetime
 
-class MarkAttendanceRequest(BaseModel):
-    profileUid: str
+class MarkAttendanceRequest(BaseSchema):
+    profile_uid: str
     latitude: float
     longitude: float
     address: Optional[str] = None
 
-class AttendanceResponse(BaseModel):
+class AttendanceResponse(BaseSchema):
     id: int
-    profileUid: str
-    userUid: str
-    companyUid: str
-    startAt: datetime
-    endAt: Optional[datetime] = None
-    startLatitude: float
-    startLongitude: float
-    endLatitude: Optional[float] = None
-    endLongitude: Optional[float] = None
-    workHours: Optional[float] = None
-    startAddress: Optional[str] = None
-    endAddress: Optional[str] = None
+    profile_uid: str
+    user_uid: str
+    company_uid: str
+    start_at: datetime
+    end_at: Optional[datetime] = None
+    start_latitude: float
+    start_longitude: float
+    end_latitude: Optional[float] = None
+    end_longitude: Optional[float] = None
+    work_hours: Optional[float] = None
+    start_address: Optional[str] = None
+    end_address: Optional[str] = None
     status: str
 
-    class Config:
-        from_attributes = True

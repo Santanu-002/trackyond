@@ -16,7 +16,6 @@ class TimeChip extends StatelessWidget {
 
     return Center(
       child: Container(
-        margin: EdgeInsets.only(bottom: AppUIConstants.spacing.space$4),
         padding: EdgeInsets.symmetric(
           horizontal: AppUIConstants.spacing.space$8,
           vertical: AppUIConstants.spacing.space$2,

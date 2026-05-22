@@ -27,6 +27,11 @@ def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = 
     if not job:
         return None
 
+    assigned_at = getattr(job, "assigned_at", None)
+    started_at = getattr(job, "started_at", None)
+    completed_at = getattr(job, "completed_at", None)
+    updated_at = getattr(job, "updated_at", None)
+
     return {
         "jobId": job.job_id,
         "jobTitle": job.title,
@@ -43,11 +48,18 @@ def serialize_job(job: models.Job, worker_name: str = None, worker_image: str = 
         "requirePhotoOnComplete": job.require_photo_on_complete,
         "captureLocation": job.capture_location,
         "createdAt": to_utc_iso(job.created_at),
-        "assignedAt": to_utc_iso(job.assigned_at) if job.assigned_at else None,
-        "updatedAt": to_utc_iso(job.updated_at) if job.updated_at else None,
-        "completedAt": to_utc_iso(job.completed_at) if job.completed_at else None,
+        "assignedAt": to_utc_iso(assigned_at) if assigned_at else None,
+        "startedAt": to_utc_iso(started_at) if started_at else None,
+        "updatedAt": to_utc_iso(updated_at) if updated_at else None,
+        "completedAt": to_utc_iso(completed_at) if completed_at else None,
+        "lastMessage": getattr(job, "last_message", None),
+        "lastMessageAt": to_utc_iso(job.last_message_at) if getattr(job, "last_message_at", None) else None,
+        "lastActivityType": getattr(job, "last_activity_type", None),
+        "lastActivityMessage": getattr(job, "last_activity_message", None),
+        "lastActivityAt": to_utc_iso(job.last_activity_at) if getattr(job, "last_activity_at", None) else None,
         "allowedActions": allowed_actions or []
     }
+
 
 def serialize_member_profile(member: models.Member):
     if not member:

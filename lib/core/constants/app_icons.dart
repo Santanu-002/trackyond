@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AppIcons {
@@ -95,6 +96,9 @@ class _CommonIcons {
   IconData get calendarRange => Icons.date_range_rounded;
   IconData get checkCircle => Icons.check_circle_rounded;
   IconData get refresh => Icons.refresh_rounded;
+
+  IconData get send => CupertinoIcons.paperplane_fill;
+  IconData get attachment => CupertinoIcons.paperclip;
 }
 
 class _DashboardIcons {

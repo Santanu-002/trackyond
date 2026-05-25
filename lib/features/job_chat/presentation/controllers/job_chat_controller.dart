@@ -83,6 +83,9 @@ class JobChatController extends GetxController {
 
       final isSystemActivity =
           message.authorType == 'system' &&
+          !message.content.any((c) =>
+              JobChatMessageType.fromString(c.type) ==
+              JobChatMessageType.header) &&
           (message.type == 'activity' ||
            message.content.any((c) {
              final type = JobChatMessageType.fromString(c.type);

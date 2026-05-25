@@ -248,6 +248,7 @@ class JobChatMessageContent(Base):
     __tablename__ = "job_chat_message_contents"
     id = Column(Integer, primary_key=True, index=True)
     message_uid = Column(String, ForeignKey("job_chat_messages.uid"))
+    type = Column(String, nullable=False)
     
     content = Column(Text, nullable=True) # Content text/url or caption
     metadata_json = Column(Text, nullable=True)

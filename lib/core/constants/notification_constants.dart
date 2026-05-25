@@ -11,7 +11,7 @@ class NotificationConstants {
 class NotificationDataKeys {
   const NotificationDataKeys();
 
-  String get fullJobData => 'fullJobData';
+  String get job => 'job';
   String get id => 'id';
   String get notificationId => 'notificationId';
   String get notificationIds => 'notificationIds';
@@ -31,6 +31,7 @@ class NotificationTypes {
   const NotificationTypes();
 
   String get jobAssigned => 'jobAssigned';
+  String get jobChatMessage => 'jobChatMessage';
 }
 
 class NotificationStorageKeys {

@@ -12,6 +12,9 @@ import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/notification_constants.dart';
+import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/emit_chat_message_received_use_case.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/notification/domain/entities/notification_entity.dart';
 import 'package:trackyond/features/notification/domain/entities/notification_filter_options.dart';
 import 'package:trackyond/features/notification/domain/usecases/delete_fcm_token_usecase.dart';
@@ -31,6 +34,7 @@ class NotificationController extends GetxController {
   final UpdateNotificationsStatusUseCase _updateNotificationsStatusUseCase;
   final DeleteNotificationsUseCase _deleteNotificationsUseCase;
   final RetryFailedAcksUseCase _retryFailedAcksUseCase;
+  final EmitChatMessageReceivedUseCase _emitChatMessageReceivedUseCase;
 
   NotificationController({
     required SyncFcmTokenUseCase syncFcmTokenUseCase,
@@ -40,13 +44,15 @@ class NotificationController extends GetxController {
     required UpdateNotificationsStatusUseCase updateNotificationsStatusUseCase,
     required DeleteNotificationsUseCase deleteNotificationsUseCase,
     required RetryFailedAcksUseCase retryFailedAcksUseCase,
+    required EmitChatMessageReceivedUseCase emitChatMessageReceivedUseCase,
   })  : _syncFcmTokenUseCase = syncFcmTokenUseCase,
         _deleteFcmTokenUseCase = deleteFcmTokenUseCase,
         _showLocalNotificationUseCase = showLocalNotificationUseCase,
         _getNotificationsUseCase = getNotificationsUseCase,
         _updateNotificationsStatusUseCase = updateNotificationsStatusUseCase,
         _deleteNotificationsUseCase = deleteNotificationsUseCase,
-        _retryFailedAcksUseCase = retryFailedAcksUseCase;
+        _retryFailedAcksUseCase = retryFailedAcksUseCase,
+        _emitChatMessageReceivedUseCase = emitChatMessageReceivedUseCase;
 
   final _lock = Lock();
   StreamSubscription<String>? _tokenRefreshSubscription;
@@ -229,6 +235,22 @@ class NotificationController extends GetxController {
   // ---------------------------------------------------------------------------
 
   void handleNotificationClick(Map<String, dynamic> data) {
+    final type = data[NotificationConstants.dataKeys.type];
+    if (type == NotificationConstants.types.jobChatMessage) {
+      try {
+        final jobDataStr = data[NotificationConstants.dataKeys.job];
+        if (jobDataStr != null) {
+          final jobJson = jsonDecode(jobDataStr);
+          final jobModel = JobModel.fromJson(jobJson);
+          final jobEntity = jobModel.toEntity();
+          Get.toNamed(AppRoutes.common.jobChat, arguments: jobEntity);
+          return;
+        }
+      } catch (e) {
+        debugPrint('Error handling chat notification click: $e');
+      }
+    }
+
     final notificationId =
         data[NotificationConstants.dataKeys.notificationId];
     if (notificationId != null) {
@@ -257,6 +279,42 @@ class NotificationController extends GetxController {
     final notification = message.notification;
     final data = message.data;
 
+    final type = data[NotificationConstants.dataKeys.type];
+    if (type == NotificationConstants.types.jobChatMessage) {
+      final messageJsonStr = data['message'];
+      if (messageJsonStr != null) {
+        try {
+          final messageJson = jsonDecode(messageJsonStr);
+          final messageModel = JobChatMessageModel.fromJson(messageJson);
+          final messageEntity = messageModel.toEntity();
+
+          bool isChatOpen = false;
+          if (Get.isRegistered<JobChatController>()) {
+            final chatController = Get.find<JobChatController>();
+            if (chatController.job.jobId == messageEntity.jobId) {
+              isChatOpen = true;
+              _emitChatMessageReceivedUseCase(messageEntity);
+            }
+          }
+
+          if (isChatOpen) {
+            // Suppress notification if the chat is open
+            return;
+          }
+        } catch (e) {
+          debugPrint('Error parsing foreground chat message: $e');
+        }
+      }
+
+      // If we are not on the chat page, show the local notification
+      final title = notification?.title ?? 'New Message';
+      final body = notification?.body ?? '';
+      _showLocalNotificationUseCase(
+        ShowLocalNotificationParams(title: title, body: body, payload: data),
+      );
+      return;
+    }
+
     unreadCount.value++;
     _updateAppBadge();
 
@@ -273,10 +331,10 @@ class NotificationController extends GetxController {
     if (data[NotificationConstants.dataKeys.type] ==
         NotificationConstants.types.jobAssigned) {
       try {
-        final fullJobDataStr =
-            data[NotificationConstants.dataKeys.fullJobData];
-        if (fullJobDataStr != null) {
-          final jobJson = jsonDecode(fullJobDataStr);
+        final jobDataStr =
+            data[NotificationConstants.dataKeys.job];
+        if (jobDataStr != null) {
+          final jobJson = jsonDecode(jobDataStr);
           final jobModel = JobModel.fromJson(jobJson);
           final jobEntity = jobModel.toEntity();
 

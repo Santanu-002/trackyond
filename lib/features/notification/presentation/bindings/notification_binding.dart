@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/repositories/i_event_bus_repository.dart';
 import 'package:trackyond/core/services/notification/fcm_token_service.dart';
 import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/emit_chat_message_received_use_case.dart';
 import 'package:trackyond/features/notification/data/datasources/notification_data_source.dart';
 import 'package:trackyond/features/notification/data/repositories/notification_repository_impl.dart';
 import 'package:trackyond/features/notification/domain/repositories/i_notification_repository.dart';
@@ -67,6 +69,10 @@ class NotificationBinding extends Bindings {
       () => RetryFailedAcksUseCase(Get.find<INotificationRepository>()),
     );
 
+    Get.lazyPut<EmitChatMessageReceivedUseCase>(
+      () => EmitChatMessageReceivedUseCase(Get.find<IEventBusRepository>()),
+    );
+
     Get.put<NotificationController>(
       NotificationController(
         syncFcmTokenUseCase: Get.find(),
@@ -76,6 +82,7 @@ class NotificationBinding extends Bindings {
         updateNotificationsStatusUseCase: Get.find(),
         deleteNotificationsUseCase: Get.find(),
         retryFailedAcksUseCase: Get.find(),
+        emitChatMessageReceivedUseCase: Get.find(),
       ),
     );
   }

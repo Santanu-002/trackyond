@@ -324,3 +324,99 @@ def update_notification_status(db: Session, notification_id: str, status: Notifi
         db.commit()
         return True
     return False
+
+def send_job_chat_notification(
+    db: Session,
+    job: models.Job,
+    sender_user: models.User,
+    message: models.JobChatMessage,
+    message_serialized: dict
+):
+    """
+    Sends an FCM push notification to the recipient of a job chat message.
+    """
+    # 1. Determine sender name
+    sender_member = db.query(models.Member).filter(
+        models.Member.user_uid == sender_user.uid
+    ).first()
+    sender_name = sender_member.name if sender_member else "Someone"
+
+    # 2. Determine recipient user_uid
+    recipient_user_uid = None
+    if sender_user.uid == job.created_by:
+        # Sender is the owner/creator, recipient is the worker
+        worker_member = db.query(models.Member).filter(
+            models.Member.uid == job.worker_profile_uid
+        ).first()
+        if worker_member:
+            recipient_user_uid = worker_member.user_uid
+    else:
+        # Sender is the worker, recipient is the creator/admin
+        recipient_user_uid = job.created_by
+
+    if not recipient_user_uid:
+        print(f"DEBUG: No recipient found for job chat message {message.uid}")
+        return
+
+    # 3. Fetch active FCM tokens for the recipient
+    tokens = db.query(models.FCMToken).filter(
+        models.FCMToken.user_uid == recipient_user_uid,
+        models.FCMToken.is_active == True
+    ).all()
+    
+    fcm_tokens = [t.fcm_token for t in tokens]
+    if not fcm_tokens:
+        print(f"DEBUG: No active FCM tokens for recipient {recipient_user_uid}")
+        return
+
+    # 4. Construct title and body
+    title = f"New message from {sender_name}"
+    
+    # Get message body text
+    body = "Sent an attachment"
+    if message.content:
+        # Find first text content
+        text_content = next((c.content for c in message.content if c.type == "text"), None)
+        if text_content:
+            body = text_content
+        else:
+            # If no text, check if there is other content types
+            first_content = message.content[0]
+            if first_content.type == "image":
+                body = "Sent a photo"
+            elif first_content.type == "activity":
+                body = first_content.content or "Performed an action"
+            elif first_content.type == "video":
+                body = "Sent a video"
+            elif first_content.type == "docs":
+                body = "Sent a document"
+
+    # 5. Get full job details serialized for the notification payload
+    from services.jobs_service import get_job_with_details
+    serialized_job = get_job_with_details(db, job)
+
+    # Construct the custom data payload
+    fcm_data = {
+        "type": "jobChatMessage",
+        "jobId": str(job.job_id),
+        "message": json.dumps(message_serialized),
+        "job": json.dumps(serialized_job),
+        "clickAction": "FLUTTER_NOTIFICATION_CLICK",
+    }
+
+    # FCM payload
+    message_payload = messaging.MulticastMessage(
+        notification=messaging.Notification(
+            title=title,
+            body=body,
+        ),
+        data=fcm_data,
+        tokens=fcm_tokens,
+    )
+
+    try:
+        response = messaging.send_each_for_multicast(message_payload)
+        print(f"DEBUG: Sent job chat message FCM notification. Success count: {response.success_count}, Failure count: {response.failure_count}")
+    except Exception as e:
+        print(f"Error sending FCM: {e}")
+

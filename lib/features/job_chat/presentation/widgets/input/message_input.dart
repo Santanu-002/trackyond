@@ -5,7 +5,7 @@ import 'package:trackyond/core/common/widgets/text_field/app_text_field.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/job_actions_bar.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/job_actions_bar.dart';
 
 class MessageInput extends GetView<JobChatController> {
   const MessageInput({super.key});

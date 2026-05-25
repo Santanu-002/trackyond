@@ -1,7 +1,8 @@
 class ApiEndpoints {
-  // static const String baseUrl = 'http://192.168.1.34:8000/api/v1';
+  static const String baseUrl = 'http://192.168.1.2:8000/api/v1';
+  static const String googleMapsApiKey = 'AIzaSyAvEMWvGiWP7TI37WzJ7LOo3NNUjw9grgk';
 
-  static const String baseUrl = 'http://10.102.78.67:8000/api/v1';
+  // static const String baseUrl = 'http://10.102.78.67:8000/api/v1';
 
   static const admin = _AdminEndpoints();
   static const employee = _EmployeeEndpoints();
@@ -64,7 +65,9 @@ class _AdminEndpoints {
 
   // Notifications
   String get notifications => '$_root/notifications';
+
   String get notificationsStatus => '$_root/notifications/status';
+
   String get notificationsFcmToken => '$_root/notifications/fcm-token';
 
   // Attendance
@@ -87,6 +90,7 @@ class _EmployeeEndpoints {
 
   // Profiles
   String get profile => '$_root/profiles/me';
+
   String get profiles => '$_root/profiles';
 
   String get profilesSwitch => '$_root/profiles/switch';
@@ -114,7 +118,9 @@ class _EmployeeEndpoints {
 
   // Notifications
   String get notifications => '$_root/notifications';
+
   String get notificationsStatus => '$_root/notifications/status';
+
   String get notificationsFcmToken => '$_root/notifications/fcm-token';
 }
 
@@ -127,7 +133,10 @@ class _CommonEndpoints {
   static const String _root = '/common';
 
   String get upload => '$_root/files/upload';
+
   String download(String path) => '$_root/files/download/$path';
+
   String jobChatMessages(String jobId) => '$_root/job-chat/$jobId/messages';
+
   String jobChatMembers(String jobId) => '$_root/job-chat/$jobId/members';
 }

@@ -15,6 +15,7 @@ class AttendanceAction extends GetView<WorkerDashboardController> {
     return Obx(() {
       final status = controller.attendanceStatus.value;
       final isWorking = status == AttendanceStatus.working;
+      final onPrimary = context.theme.colorScheme.onPrimary;
 
       return AppButton.filled(
         onPressed: controller.isActionLoading.value
@@ -35,7 +36,7 @@ class AttendanceAction extends GetView<WorkerDashboardController> {
                   width: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: context.theme.colorScheme.onPrimary,
+                    color: onPrimary,
                   ),
                 ),
                 AnimatedSwitcher(
@@ -64,7 +65,7 @@ class AttendanceAction extends GetView<WorkerDashboardController> {
                     message ?? AppStrings.common.loading,
                     key: ValueKey(message),
                     style: context.textTheme.labelLarge?.copyWith(
-                      color: context.theme.colorScheme.onPrimary,
+                      color: onPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -80,7 +81,7 @@ class AttendanceAction extends GetView<WorkerDashboardController> {
             children: [
               Icon(
                 isWorking ? AppIcons.common.stop : AppIcons.common.play,
-                color: context.theme.colorScheme.onPrimary,
+                color: onPrimary,
                 size: 24,
               ),
               Text(
@@ -88,7 +89,7 @@ class AttendanceAction extends GetView<WorkerDashboardController> {
                     ? AppStrings.workerDashboard.endMyDay
                     : AppStrings.workerDashboard.startMyDay,
                 style: context.textTheme.labelLarge?.copyWith(
-                  color: context.theme.colorScheme.onPrimary,
+                  color: onPrimary,
                   fontSize: 16,
                 ),
               ),

@@ -72,5 +72,11 @@
 	<string>This app needs access to location when in the background to track attendance.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs access to location to track attendance.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to capture photos as proof of work when starting or completing jobs.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photo library access to upload photos as proof of work when starting or completing jobs.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access to record videos for job status updates.</string>
 </dict>
 </plist>

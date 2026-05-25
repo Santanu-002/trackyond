@@ -627,4 +627,22 @@ class JobChatStrings {
   String get somethingWentWrong => 'Something went wrong';
   String get retry => 'Retry';
   String get attendanceRequired => 'You must start your day before performing this action.';
+  
+  String get activityJobAssigned => 'Job Assigned';
+  String get activityReachedSite => 'Reached Site';
+  String get activityJobStarted => 'Job Started';
+  String get activityJobCompleted => 'Job Completed';
+  String get activityOnBreak => 'On Break';
+  String get activityBreakEnded => 'Break Ended';
+  String breakDuration(String duration) => 'Break Duration: $duration';
+  String get activityLocationShared => 'Location Shared';
+  String get activityLocationRequested => 'Location Requested';
+  String get activityStatusRequested => 'Status Requested';
+  String get activityStatusProofsRequested => 'Status & Proofs Requested';
+  String get activityJobCancelled => 'Job Cancelled';
+  String get activityJobReopened => 'Job Reopened';
+  String get activityUpdate => 'Activity Update';
+  String get activityDefaultReached => "I've reached the location";
+  String get viewOnGoogleMaps => 'View on Google Maps';
+  String get activityDefaultMessage => 'Performed action';
 }

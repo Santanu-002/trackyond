@@ -10,6 +10,7 @@ import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/job/job_summary_stats.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/enums/stats_filter.dart';
+import 'package:trackyond/core/common/events/job_event.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
@@ -19,7 +20,6 @@ import 'package:trackyond/features/auth/presentation/controllers/auth_controller
 import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/attendance_info_item.dart';
-import 'package:trackyond/core/common/events/job_event.dart';
 import 'package:trackyond/features/worker/dashboard/domain/usecases/get_worker_dashboard_use_case.dart';
 import 'package:trackyond/features/worker/dashboard/domain/usecases/listen_job_events_use_case.dart';
 import 'package:trackyond/features/worker/settings/presentation/controllers/worker_settings_controller.dart';
@@ -103,7 +103,8 @@ class WorkerDashboardController extends GetxController {
   Future<void> _listenToJobEvents() async {
     final result = await _listenJobEventsUseCase(const NoParams());
     result.fold(
-      (failure) => debugPrint('Error listening to job events: ${failure.message}'),
+      (failure) =>
+          debugPrint('Error listening to job events: ${failure.message}'),
       (stream) {
         _jobEventsSubscription = stream.listen((event) {
           switch (event) {
@@ -158,38 +159,42 @@ class WorkerDashboardController extends GetxController {
     }
     final result = await _getWorkerDashboardUseCase(const NoParams());
 
-    result.fold((failure) {
-      if (!silent) {
-        AppSnackbar.destructive(failure.message);
-      }
-    }, (data) {
-      // Update Attendance Status in the permanent AttendanceController
-      attendanceController.attendanceStatus.value =
-          data.attendanceStatus.status;
-      attendanceController.attendanceInfo.value =
-          data.attendanceStatus.attendance;
+    result.fold(
+      (failure) {
+        if (!silent) {
+          AppSnackbar.destructive(failure.message);
+        }
+      },
+      (data) {
+        // Update Attendance Status in the permanent AttendanceController
+        attendanceController.attendanceStatus.value =
+            data.attendanceStatus.status;
+        attendanceController.attendanceInfo.value =
+            data.attendanceStatus.attendance;
 
-      if (data.attendanceStatus.status == AttendanceStatus.working &&
-          data.attendanceStatus.attendance != null) {
-        attendanceController.currentLocation.value =
-            data.attendanceStatus.attendance!.startAddress;
-        attendanceController.startTimer(
-          data.attendanceStatus.attendance!.startAt,
-        );
-      } else if (data.attendanceStatus.status == AttendanceStatus.notStarted) {
-        attendanceController.stopTimer();
-        attendanceController.currentLocation.value = null;
-      }
+        if (data.attendanceStatus.status == AttendanceStatus.working &&
+            data.attendanceStatus.attendance != null) {
+          attendanceController.currentLocation.value =
+              data.attendanceStatus.attendance!.startAddress;
+          attendanceController.startTimer(
+            data.attendanceStatus.attendance!.startAt,
+          );
+        } else if (data.attendanceStatus.status ==
+            AttendanceStatus.notStarted) {
+          attendanceController.stopTimer();
+          attendanceController.currentLocation.value = null;
+        }
 
-      // Update Jobs and Stats
-      recentJobs.assignAll(data.recentJobs);
-      _todayStats.value = data.jobCounts.todayStats;
-      _overallStats.value = data.jobCounts.overallStats;
+        // Update Jobs and Stats
+        recentJobs.assignAll(data.recentJobs);
+        _todayStats.value = data.jobCounts.todayStats;
+        _overallStats.value = data.jobCounts.overallStats;
 
-      // Sync unread notification count
-      Get.find<NotificationController>().unreadCount.value =
-          data.unreadNotificationCount;
-    });
+        // Sync unread notification count
+        Get.find<NotificationController>().unreadCount.value =
+            data.unreadNotificationCount;
+      },
+    );
     if (!silent) {
       isDashboardLoading.value = false;
     }

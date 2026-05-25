@@ -41,11 +41,14 @@ def calculate_allowed_actions(db: Session, job: models.Job) -> list[str]:
             action += "_with_capture_photo"
         return [action]
 
-    if activity_type in ("started", "resumed"):
+    if activity_type in ("started", "resumed", "break_out"):
         action = "complete_job"
         if job.require_photo_on_complete:
             action += "_with_capture_photo"
         return ["take_break", "send_location", action]
+
+    if activity_type == "take_break":
+        return ["break_out"]
 
     if activity_type == "completed":
         return []
@@ -253,7 +256,15 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
                 db=db,
                 job_id=new_job.job_id,
                 text=f"@[profileUid#{admin_member.uid}] created this job and assigned to @[profileUid#{new_job.worker_profile_uid}]",
-                message_type=ChatMessageType.header
+                message_type=ChatMessageType.activity,
+                created_by_uid=admin_member.user_uid,
+                created_by_profile_uid=admin_member.uid,
+                metadata={
+                    "activity_type": "job_created",
+                    "address": new_job.customer_address or "-",
+                    "assigned_time": new_job.created_at.isoformat() if new_job.created_at else "-",
+                    "workerName": admin_member.name,
+                }
             )
             
             # Create notification for worker
@@ -313,7 +324,15 @@ def create_mock_job_for_employee(db: Session, user_uid: str):
         db=db,
         job_id=new_job.job_id,
         text=f"@[profileUid#{member.uid}] created this mock demo job",
-        message_type=ChatMessageType.header
+        message_type=ChatMessageType.activity,
+        created_by_uid=member.user_uid,
+        created_by_profile_uid=member.uid,
+        metadata={
+            "activity_type": "job_created",
+            "address": new_job.customer_address or "-",
+            "assigned_time": new_job.created_at.isoformat() if new_job.created_at else "-",
+            "workerName": member.name,
+        }
     )
     
     db.commit()

@@ -29,6 +29,9 @@ class _AppButtonContent extends StatelessWidget {
         ),
       );
     }
+    if (child != null && leading == null) {
+      return child!;
+    }
     if (child != null || leading != null) {
       return Row(
         mainAxisSize: MainAxisSize.min,

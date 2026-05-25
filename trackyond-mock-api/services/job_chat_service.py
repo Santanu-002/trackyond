@@ -57,6 +57,7 @@ def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMe
                 "started_job": ("started", JobStatus.in_progress),
                 "completed_job": ("completed", JobStatus.completed),
                 "take_break": ("take_break", None),
+                "break_out": ("break_out", None),
                 "send_location": ("send_location", None),
             }
             if activity_type_meta in activity_map:
@@ -92,7 +93,15 @@ def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMe
     db.refresh(db_message)
     return db_message
 
-def create_system_activity_message(db: Session, job_id: str, text: str, message_type: ChatMessageType = ChatMessageType.activity):
+def create_system_activity_message(
+    db: Session, 
+    job_id: str, 
+    text: str, 
+    message_type: ChatMessageType = ChatMessageType.activity,
+    created_by_uid: str = None,
+    created_by_profile_uid: str = None,
+    metadata: dict = None
+):
     """Utility to create automated timeline activity messages"""
     message_uid = uuid.uuid4().hex
     
@@ -100,10 +109,14 @@ def create_system_activity_message(db: Session, job_id: str, text: str, message_
         uid=message_uid,
         job_id=job_id,
         author_type="system",
+        created_by_uid=created_by_uid,
+        created_by_profile_uid=created_by_profile_uid,
         status="sent",
         type="activity",
         created_by_author_at=now_utc()
     )
+    if metadata:
+        db_message.metadata_dict = metadata
     
     db.add(db_message)
     db.flush()
@@ -161,11 +174,19 @@ def send_job_message(db: Session, job_id: str, message_data: schemas.JobChatMess
     serialized_job = get_job_with_details(db, job) if job else {}
     allowed_actions = serialized_job.get("allowedActions", []) if serialized_job else []
     
+    if job:
+        try:
+            from services.notification_service import send_job_chat_notification
+            send_job_chat_notification(db, job, current_user, message, message_serialized)
+        except Exception as e:
+            print(f"Error triggering job chat notification: {e}")
+
     return {
         "message": message_serialized,
         "allowedActions": allowed_actions,
         "job": serialized_job
     }
+
 
 def get_job_chat_members(db: Session, job_id: str) -> list:
     """Gets member profiles associated with a job chat (assigner and assignee)."""

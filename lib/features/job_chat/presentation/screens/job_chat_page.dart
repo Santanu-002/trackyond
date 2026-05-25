@@ -5,14 +5,14 @@ import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/message_bubble.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/message_input.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/timeline_entry.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/message_bubble.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/message_input.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/chips/timeline_entry.dart';
 import 'package:trackyond/features/job_chat/domain/entities/chat_item.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/date_chip.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/time_chip.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/chips/date_chip.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/chips/time_chip.dart';
 
 class JobChatPage extends GetView<JobChatController> {
   const JobChatPage({super.key});
@@ -71,6 +71,8 @@ class JobChatPage extends GetView<JobChatController> {
               return ScrollablePositionedList.builder(
                 itemScrollController: controller.itemScrollController,
                 itemPositionsListener: controller.itemPositionsListener,
+                initialScrollIndex: 0,
+                reverse: true,
                 padding: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$16),
                 itemCount: items.length,
                 itemBuilder: (context, index) {
@@ -95,16 +97,19 @@ class JobChatPage extends GetView<JobChatController> {
                     return false;
                   }
 
-                  final bool hasSameSenderAbove = isSameSender(prevItem, item);
-                  final bool hasSameSenderBelow = isSameSender(item, nextItem);
+                  // In a reversed list:
+                  // nextItem (index + 1) is chronologically older (above)
+                  // prevItem (index - 1) is chronologically newer (below)
+                  final bool hasSameSenderAbove = isSameSender(nextItem, item);
+                  final bool hasSameSenderBelow = isSameSender(item, prevItem);
 
-                  // Determine bottom padding based on item relationship
+                  // Determine bottom padding based on item relationship (which is spacing towards index - 1, visually below)
                   double bottomPadding = AppUIConstants.spacing.space$4;
 
                   if (item is ChatTimeHeaderItem) {
                     bottomPadding = AppUIConstants.spacing.space$2;
                   } else if (item is ChatHeaderMessage) {
-                    if (nextItem is ChatHeaderMessage) {
+                    if (prevItem is ChatHeaderMessage) {
                       bottomPadding = 0;
                     } else {
                       bottomPadding = AppUIConstants.spacing.space$12;
@@ -112,7 +117,7 @@ class JobChatPage extends GetView<JobChatController> {
                   } else if (item is ChatMessageBubbleItem || item is ChatActivityBubble) {
                     if (hasSameSenderBelow) {
                       bottomPadding = AppUIConstants.spacing.space$2; // Tighter grouping for same sender
-                    } else if (nextItem is ChatMessageBubbleItem || nextItem is ChatActivityBubble) {
+                    } else if (prevItem is ChatMessageBubbleItem || prevItem is ChatActivityBubble) {
                       bottomPadding = AppUIConstants.spacing.space$8; // Normal spacing between different senders
                     } else {
                       bottomPadding = AppUIConstants.spacing.space$16;

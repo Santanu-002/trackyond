@@ -14,3 +14,5 @@ class JobDeletedEvent extends JobEvent {
   final String jobId;
   const JobDeletedEvent(this.jobId);
 }
+
+

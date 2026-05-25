@@ -20,6 +20,7 @@ import 'package:trackyond/features/worker/attendance/domain/usecases/get_attenda
 import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
 import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_use_case.dart';
 
 class JobChatBinding extends Bindings {
   @override
@@ -45,6 +46,7 @@ class JobChatBinding extends Bindings {
     Get.lazyPut(() => UpdateJobStatusUseCase(Get.find()));
     Get.lazyPut(() => GetJobChatMembersUseCase(Get.find()));
     Get.lazyPut(() => EmitJobUpdateUseCase(Get.find()));
+    Get.lazyPut(() => ListenChatEventsUseCase(Get.find()));
 
     // ── Attendance dependencies (needed for worker attendance check) ───
     if (!Get.isRegistered<AttendanceController>()) {
@@ -68,12 +70,12 @@ class JobChatBinding extends Bindings {
         Get.lazyPut(() => GetAttendanceStatusUseCase(Get.find<IAttendanceRepository>()));
       }
       Get.put(
-        AttendanceController(
-          startAttendanceUseCase: Get.find(),
-          endAttendanceUseCase: Get.find(),
-          getAttendanceStatusUseCase: Get.find(),
-        ),
-        permanent: true,
+          AttendanceController(
+            startAttendanceUseCase: Get.find(),
+            endAttendanceUseCase: Get.find(),
+            getAttendanceStatusUseCase: Get.find(),
+          ),
+          permanent: true,
       );
     }
 
@@ -85,6 +87,7 @@ class JobChatBinding extends Bindings {
         getChatMembersUseCase: Get.find(),
         emitJobUpdateUseCase: Get.find(),
         uploadFileUseCase: Get.find(),
+        listenChatEventsUseCase: Get.find(),
       ),
     );
   }

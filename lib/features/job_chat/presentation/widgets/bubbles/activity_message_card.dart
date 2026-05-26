@@ -255,12 +255,14 @@ class ActivityMessageCard extends StatelessWidget {
         ? colorScheme.onPrimary.withValues(alpha: 0.15)
         : colorScheme.primary.withValues(alpha: 0.1);
 
-    final double maxBubbleWidth =
-        (MediaQuery.of(context).size.width * 0.82).clamp(300.0, 400.0);
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double maxBubbleWidth = isMe
+        ? (screenWidth - 64).clamp(260.0, 400.0)
+        : (screenWidth - 84).clamp(260.0, 400.0);
 
     final bubbleWidget = Container(
       constraints: BoxConstraints(
-        minWidth: 300,
+        minWidth: 260,
         maxWidth: maxBubbleWidth,
       ),
       decoration: BoxDecoration(

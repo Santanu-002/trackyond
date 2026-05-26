@@ -54,7 +54,10 @@ class MessageBubble extends StatelessWidget {
     final senderName = chatController.getSenderName(message);
     final senderImage = chatController.getSenderImage(message);
 
-    final double maxBubbleWidth = MediaQuery.of(context).size.width * 0.75;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double maxBubbleWidth = isMe
+        ? (screenWidth - 64).clamp(260.0, 400.0)
+        : (screenWidth - 84).clamp(260.0, 400.0);
 
     final double softRadius = AppUIConstants.radius.radius$16;
     final double hardRadius = 2.0; // Slightly rounded hard edge

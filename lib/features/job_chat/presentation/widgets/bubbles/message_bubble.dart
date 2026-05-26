@@ -54,7 +54,7 @@ class MessageBubble extends StatelessWidget {
     final senderName = chatController.getSenderName(message);
     final senderImage = chatController.getSenderImage(message);
 
-    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenWidth = context.width;
     final double maxBubbleWidth = isMe
         ? (screenWidth - 64).clamp(260.0, 400.0)
         : (screenWidth - 84).clamp(260.0, 400.0);

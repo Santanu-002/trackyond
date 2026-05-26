@@ -257,12 +257,12 @@ class ActivityMessageCard extends StatelessWidget {
 
     final double screenWidth = context.width;
     final double maxBubbleWidth = isMe
-        ? (screenWidth - 64).clamp(260.0, 400.0)
-        : (screenWidth - 84).clamp(260.0, 400.0);
+        ? (screenWidth - 72).clamp(250.0, 340.0)
+        : (screenWidth - 92).clamp(250.0, 340.0);
 
     final bubbleWidget = Container(
       constraints: BoxConstraints(
-        minWidth: 260,
+        minWidth: 250,
         maxWidth: maxBubbleWidth,
       ),
       decoration: BoxDecoration(

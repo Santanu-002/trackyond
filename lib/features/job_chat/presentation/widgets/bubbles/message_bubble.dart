@@ -56,8 +56,8 @@ class MessageBubble extends StatelessWidget {
 
     final double screenWidth = context.width;
     final double maxBubbleWidth = isMe
-        ? (screenWidth - 64).clamp(260.0, 400.0)
-        : (screenWidth - 84).clamp(260.0, 400.0);
+        ? (screenWidth - 72).clamp(250.0, 340.0)
+        : (screenWidth - 92).clamp(250.0, 340.0);
 
     final double softRadius = AppUIConstants.radius.radius$16;
     final double hardRadius = 2.0; // Slightly rounded hard edge

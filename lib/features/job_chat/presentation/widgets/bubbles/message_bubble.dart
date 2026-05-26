@@ -54,6 +54,8 @@ class MessageBubble extends StatelessWidget {
     final senderName = chatController.getSenderName(message);
     final senderImage = chatController.getSenderImage(message);
 
+    final double maxBubbleWidth = MediaQuery.of(context).size.width * 0.75;
+
     final double softRadius = AppUIConstants.radius.radius$16;
     final double hardRadius = 2.0; // Slightly rounded hard edge
 
@@ -450,6 +452,7 @@ class MessageBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Container(
+              constraints: BoxConstraints(maxWidth: maxBubbleWidth),
               margin: EdgeInsets.only(
                 left: AppUIConstants.spacing.space$48,
                 right: 0,
@@ -509,6 +512,7 @@ class MessageBubble extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
+                      constraints: BoxConstraints(maxWidth: maxBubbleWidth),
                       margin: EdgeInsets.zero,
                       padding: EdgeInsets.zero,
                       decoration: BoxDecoration(

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'job_chat_message_content_entity.dart';
+import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 
 class JobChatMessageEntity extends Equatable {
   final String uid;

@@ -1,6 +1,5 @@
 class ApiEndpoints {
   static const String baseUrl = 'http://192.168.1.2:8000/api/v1';
-  static const String googleMapsApiKey = 'AIzaSyAvEMWvGiWP7TI37WzJ7LOo3NNUjw9grgk';
 
   // static const String baseUrl = 'http://10.102.78.67:8000/api/v1';
 

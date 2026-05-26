@@ -5,8 +5,9 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 
 class DateChip extends StatelessWidget {
   final DateTime date;
+  final EdgeInsetsGeometry? margin;
 
-  const DateChip({super.key, required this.date});
+  const DateChip({super.key, required this.date, this.margin});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +16,7 @@ class DateChip extends StatelessWidget {
 
     return Center(
       child: Container(
-        margin: EdgeInsets.only(
+        margin: margin ?? EdgeInsets.only(
           top: AppUIConstants.spacing.space$16,
           bottom: AppUIConstants.spacing.space$8,
         ),
@@ -24,7 +25,7 @@ class DateChip extends StatelessWidget {
           vertical: AppUIConstants.spacing.space$4,
         ),
         decoration: BoxDecoration(
-          color: colorScheme.primary,
+          color: colorScheme.tertiaryContainer,
           borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$8),
         ),
         child: Text(

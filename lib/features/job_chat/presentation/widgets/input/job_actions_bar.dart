@@ -14,6 +14,9 @@ class JobActionsBar extends GetView<JobChatController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      if (controller.replyingToMessage.value != null) {
+        return const SizedBox.shrink();
+      }
       if (controller.errorMessage.value != null) {
         return Row(
           children: [
@@ -52,238 +55,252 @@ class JobActionsBar extends GetView<JobChatController> {
       final actions = controller.availableActions;
       if (actions.isEmpty) return const SizedBox.shrink();
 
-      final isLoading = controller.isActionLoading.value;
-      final isAnyActionLoading = isLoading;
+      final List<String> mainActions = [];
+      final List<String> secondaryActions = [];
+
+      for (final actionString in actions) {
+        final jobAction = JobAction.fromString(actionString);
+        if (jobAction == null) continue;
+        if (_isMainAction(jobAction)) {
+          mainActions.add(actionString);
+        } else {
+          secondaryActions.add(actionString);
+        }
+      }
+
+      // Group secondary actions into pairs for the 2x2 grid, leaving the last odd child full width.
+      final List<List<String>> secondaryChunks = [];
+      for (int i = 0; i < secondaryActions.length; i += 2) {
+        if (i + 1 < secondaryActions.length) {
+          secondaryChunks.add([secondaryActions[i], secondaryActions[i + 1]]);
+        } else {
+          secondaryChunks.add([secondaryActions[i]]);
+        }
+      }
 
       return Column(
         mainAxisSize: MainAxisSize.min,
-        children: List.generate(actions.length, (index) {
-          final actionString = actions[index];
-          final jobAction = JobAction.fromString(actionString);
-          
-          if (jobAction == null) return const SizedBox.shrink();
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (secondaryActions.isNotEmpty) ...[
+            ...List.generate(secondaryChunks.length, (rowIndex) {
+              final chunk = secondaryChunks[rowIndex];
+              final isLastRow = rowIndex == secondaryChunks.length - 1;
 
-          final isPrimary = jobAction == JobAction.reached ||
-                            jobAction == JobAction.startJob ||
-                            jobAction == JobAction.startJobWithCapturePhoto ||
-                            jobAction == JobAction.completeJob ||
-                            jobAction == JobAction.completeJobWithCapturePhoto;
+              Widget rowChild;
+              if (chunk.length == 2) {
+                rowChild = Row(
+                  children: [
+                    Expanded(child: _buildActionButton(context, chunk[0], isMain: false)),
+                    AppUIConstants.widgets.horizontalBox$8,
+                    Expanded(child: _buildActionButton(context, chunk[1], isMain: false)),
+                  ],
+                );
+              } else {
+                rowChild = _buildActionButton(context, chunk[0], isMain: false);
+              }
 
-          Color getActionColor(JobAction action) {
-             if (action == JobAction.completeJob || action == JobAction.completeJobWithCapturePhoto) {
-               return context.theme.colorScheme.completed;
-             }
-             if (action == JobAction.cancelJob) {
-               return context.theme.colorScheme.error;
-             }
-             if (action == JobAction.takeBreak || action == JobAction.breakOut) {
-               return context.theme.colorScheme.pending;
-             }
-             return context.theme.colorScheme.primary;
-          }
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: isLastRow ? 0 : AppUIConstants.spacing.space$8,
+                ),
+                child: rowChild,
+              );
+            }),
+          ],
+          if (secondaryActions.isNotEmpty && mainActions.isNotEmpty)
+            AppUIConstants.widgets.verticalBox$8,
+          if (mainActions.isNotEmpty) ...[
+            ...List.generate(mainActions.length, (index) {
+              final actionString = mainActions[index];
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index == mainActions.length - 1 ? 0 : AppUIConstants.spacing.space$8,
+                ),
+                child: _buildActionButton(context, actionString, isMain: true),
+              );
+            }),
+          ],
+        ],
+      );
+    });
+  }
 
-          final baseColor = getActionColor(jobAction);
+  bool _isMainAction(JobAction action) {
+    return action == JobAction.reached ||
+        action == JobAction.startJob ||
+        action == JobAction.startJobWithCapturePhoto ||
+        action == JobAction.completeJob ||
+        action == JobAction.completeJobWithCapturePhoto ||
+        action == JobAction.cancelJob ||
+        action == JobAction.reopenJob;
+  }
 
-          final contentColor = isPrimary
-              ? context.theme.colorScheme.onPrimary
-              : baseColor;
+  Widget _buildActionButton(BuildContext context, String actionString, {required bool isMain}) {
+    final colorScheme = context.theme.colorScheme;
+    final jobAction = JobAction.fromString(actionString);
+    if (jobAction == null) return const SizedBox.shrink();
 
-          Widget actionWidget = Obx(() {
-            final isThisActionLoading =
-                controller.isActionLoading.value &&
-                controller.loadingActionLabel.value == actionString;
-            final message = controller.actionLoadingMessage.value;
+    final isPrimary = jobAction == JobAction.reached ||
+                      jobAction == JobAction.startJob ||
+                      jobAction == JobAction.startJobWithCapturePhoto ||
+                      jobAction == JobAction.completeJob ||
+                      jobAction == JobAction.completeJobWithCapturePhoto ||
+                      jobAction == JobAction.cancelJob;
 
-            final progress = controller.uploadProgress.value;
+    Color getActionColor(JobAction action) {
+       if (action == JobAction.completeJob || action == JobAction.completeJobWithCapturePhoto) {
+         return context.theme.colorScheme.completed;
+       }
+       if (action == JobAction.cancelJob) {
+         return context.theme.colorScheme.error;
+       }
+       if (action == JobAction.takeBreak || action == JobAction.breakOut) {
+         return context.theme.colorScheme.pending;
+       }
+       return context.theme.colorScheme.primary;
+    }
 
-            final isUploading = isThisActionLoading &&
-                (message == 'Uploading photo...' || progress > 0);
+    final baseColor = getActionColor(jobAction);
+    final contentColor = isPrimary ? colorScheme.onPrimary : baseColor;
+    final isAnyActionLoading = controller.isActionLoading.value;
 
-            final buttonChild = isThisActionLoading
-                ? (isUploading
-                    ? Padding(
-                        padding: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$16),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 300),
-                                    transitionBuilder:
-                                        (Widget child, Animation<double> animation) {
-                                          final isEntering =
-                                              child.key ==
-                                              ValueKey(
-                                                controller.actionLoadingMessage.value,
-                                              );
+    return Obx(() {
+      final isThisActionLoading =
+          controller.isActionLoading.value &&
+          controller.loadingActionLabel.value == actionString;
+      final message = controller.actionLoadingMessage.value;
+      final progress = controller.uploadProgress.value;
+      final isUploading = isThisActionLoading &&
+          (message == 'Uploading photo...' || progress > 0);
 
-                                          return SlideTransition(
-                                            position:
-                                                Tween<Offset>(
-                                                  begin: isEntering
-                                                      ? const Offset(0, -0.3)
-                                                      : const Offset(0, 0.3),
-                                                  end: Offset.zero,
-                                                ).animate(
-                                                  CurvedAnimation(
-                                                    parent: animation,
-                                                    curve: Curves.easeOut,
-                                                    // ignore: avoid_redundant_argument_values
-                                                  ),
-                                                ),
-                                            child: FadeTransition(
-                                              opacity: animation,
-                                              child: child,
-                                            ),
-                                          );
-                                        },
-                                    child: Text(
-                                      message ?? AppStrings.common.loading,
-                                      key: ValueKey(message),
-                                      style: context.textTheme.labelLarge?.copyWith(
-                                        color: contentColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  AppUIConstants.widgets.verticalBox$4,
-                                  LinearProgressIndicator(
-                                    value: progress > 0 ? progress : null,
-                                    backgroundColor: contentColor.withValues(alpha: 0.2),
-                                    valueColor: AlwaysStoppedAnimation<Color>(contentColor),
-                                    minHeight: 4,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            AppUIConstants.widgets.horizontalBox$16,
-                            IconButton(
-                              onPressed: controller.cancelCurrentAction,
-                              icon: Icon(
-                                Icons.close_rounded,
-                                color: contentColor,
-                                size: 24,
-                              ),
-                              splashRadius: 20,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: AppUIConstants.spacing.space$12,
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: contentColor,
-                            ),
-                          ),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder:
-                                (Widget child, Animation<double> animation) {
-                                  final isEntering =
-                                      child.key ==
-                                      ValueKey(
-                                        controller.actionLoadingMessage.value,
-                                      );
-
-                                  return SlideTransition(
-                                    position:
-                                        Tween<Offset>(
-                                          begin: isEntering
-                                              ? const Offset(0, -0.3)
-                                              : const Offset(0, 0.3),
-                                          end: Offset.zero,
-                                        ).animate(
-                                          CurvedAnimation(
-                                            parent: animation,
-                                            curve: Curves.easeOut,
-                                          ),
-                                        ),
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                            child: Text(
-                              message ?? AppStrings.common.loading,
-                              key: ValueKey(message),
-                              style: context.textTheme.labelLarge?.copyWith(
-                                color: contentColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ))
-                : Row(
+      Widget buttonChild;
+      if (isThisActionLoading) {
+        if (isUploading) {
+          buttonChild = Padding(
+            padding: EdgeInsets.symmetric(horizontal: isMain ? AppUIConstants.spacing.space$16 : 4.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        _getIconForAction(jobAction),
-                        color: contentColor,
-                        size: 24,
-                      ),
-                      AppUIConstants.widgets.horizontalBox$4,
                       Text(
-                        jobAction.label,
+                        message ?? AppStrings.common.loading,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: context.textTheme.labelLarge?.copyWith(
                           color: contentColor,
-                          fontSize: 16,
+                          fontSize: isMain ? 14 : 9,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
+                      const SizedBox(height: 2.0),
+                      LinearProgressIndicator(
+                        value: progress > 0 ? progress : null,
+                        backgroundColor: contentColor.withValues(alpha: 0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(contentColor),
+                        minHeight: 2,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ],
-                  );
-
-            return isPrimary
-                ? AppButton.filled(
-                    key: ValueKey('action_${jobAction.value}'),
-                    shape: AppButtonShape.roundEdge,
-                    width: double.infinity,
-                    height: 56,
-                    color: baseColor,
-                    onPressed: isAnyActionLoading
-                        ? null
-                        : () => controller.executeAction(actionString),
-                    child: buttonChild,
-                  )
-                : AppButton.outlined(
-                    key: ValueKey('action_${jobAction.value}'),
-                    shape: AppButtonShape.roundEdge,
-                    width: double.infinity,
-                    height: 56,
-                    color: baseColor,
-                    onPressed: isAnyActionLoading
-                        ? null
-                        : () => controller.executeAction(actionString),
-                    child: buttonChild,
-                  );
-          });
-
-          if (index < actions.length - 1) {
-            return Column(
-              children: [
-                actionWidget,
-                AppUIConstants.widgets.verticalBox$8,
+                  ),
+                ),
+                const SizedBox(width: 4), // tight spacer for cancel button
+                IconButton(
+                  onPressed: controller.cancelCurrentAction,
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: contentColor,
+                    size: isMain ? 20 : 14,
+                  ),
+                  splashRadius: 16,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
               ],
+            ),
+          );
+        } else {
+          buttonChild = Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: isMain ? 20 : 14,
+                width: isMain ? 20 : 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: contentColor,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  message ?? AppStrings.common.loading,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textTheme.labelLarge?.copyWith(
+                    color: contentColor,
+                    fontSize: isMain ? 15 : 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+      } else {
+        buttonChild = Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _getIconForAction(jobAction),
+              color: contentColor,
+              size: isMain ? 22 : 16,
+            ),
+            const SizedBox(width: 4), // tight icon-label gap
+            Flexible(
+              child: Text(
+                jobAction.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.textTheme.labelLarge?.copyWith(
+                  color: contentColor,
+                  fontSize: isMain ? 15 : 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+
+      return isPrimary
+          ? AppButton.filled(
+              key: ValueKey('action_${jobAction.value}'),
+              shape: AppButtonShape.roundEdge,
+              width: double.infinity,
+              height: isMain ? 48 : 40,
+              color: baseColor,
+              onPressed: isAnyActionLoading
+                  ? null
+                  : () => controller.executeAction(actionString),
+              child: buttonChild,
+            )
+          : AppButton.outlined(
+              key: ValueKey('action_${jobAction.value}'),
+              shape: AppButtonShape.roundEdge,
+              width: double.infinity,
+              height: isMain ? 48 : 40,
+              color: baseColor,
+              onPressed: isAnyActionLoading
+                  ? null
+                  : () => controller.executeAction(actionString),
+              child: buttonChild,
             );
-          }
-          return actionWidget;
-        }),
-      );
     });
   }
 

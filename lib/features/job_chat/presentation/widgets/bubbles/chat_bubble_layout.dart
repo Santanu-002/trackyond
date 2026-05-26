@@ -29,6 +29,38 @@ class RenderChatBubbleLayout extends RenderBox
   }
 
   @override
+  double computeMinIntrinsicWidth(double height) {
+    final textChild = firstChild!;
+    final timeChild = lastChild!;
+    return max(
+      textChild.getMinIntrinsicWidth(height),
+      timeChild.getMinIntrinsicWidth(height),
+    );
+  }
+
+  @override
+  double computeMaxIntrinsicWidth(double height) {
+    final textChild = firstChild!;
+    final timeChild = lastChild!;
+    final spacing = 8.0;
+    return textChild.getMaxIntrinsicWidth(height) + spacing + timeChild.getMaxIntrinsicWidth(height);
+  }
+
+  @override
+  double computeMinIntrinsicHeight(double width) {
+    final textChild = firstChild!;
+    final timeChild = lastChild!;
+    return textChild.getMinIntrinsicHeight(width) + timeChild.getMinIntrinsicHeight(width);
+  }
+
+  @override
+  double computeMaxIntrinsicHeight(double width) {
+    final textChild = firstChild!;
+    final timeChild = lastChild!;
+    return textChild.getMaxIntrinsicHeight(width) + timeChild.getMaxIntrinsicHeight(width);
+  }
+
+  @override
   void performLayout() {
     final textChild = firstChild!;
     final timeChild = lastChild!;
@@ -51,11 +83,6 @@ class RenderChatBubbleLayout extends RenderBox
     final textSize = textChild.size;
     final timeSize = timeChild.size;
 
-    // 3. Determine if they fit on the same line
-    // We need to know the width of the last line of text.
-    // Since we don't have direct access to internal text layout easily without
-    // casting to RenderParagraph or similar, we'll try a common heuristic.
-    
     double lastLineWidth = textSize.width;
 
     if (textChild is RenderParagraph) {
@@ -73,41 +100,39 @@ class RenderChatBubbleLayout extends RenderBox
       }
     }
 
-    final double width;
-    final double height;
-
-    final spacing = 8.0; // Space between text and time
+    final spacing = 8.0;
+    
+    double width;
+    double height;
+    bool sameLine = false;
 
     if (lastLineWidth + spacing + timeSize.width <= constraints.maxWidth && textSize.width >= lastLineWidth) {
-      // Fits on the same line if the total width doesn't exceed constraints
-      // and we account for the fact that the bubble width might be larger than last line
       width = max(textSize.width, lastLineWidth + spacing + timeSize.width);
       height = textSize.height;
-      
-      final textParentData = textChild.parentData as ChatBubbleLayoutParentData;
-      textParentData.offset = Offset.zero;
-
-      final timeParentData = timeChild.parentData as ChatBubbleLayoutParentData;
-      timeParentData.offset = Offset(
-        width - timeSize.width,
-        height - timeSize.height,
-      );
+      sameLine = true;
     } else {
-      // Doesn't fit, move to new line
       width = max(textSize.width, timeSize.width);
       height = textSize.height + timeSize.height;
+    }
 
-      final textParentData = textChild.parentData as ChatBubbleLayoutParentData;
-      textParentData.offset = Offset.zero;
+    // Determine final size based on constraints
+    size = constraints.constrain(Size(width, height));
 
-      final timeParentData = timeChild.parentData as ChatBubbleLayoutParentData;
+    final textParentData = textChild.parentData as ChatBubbleLayoutParentData;
+    textParentData.offset = Offset.zero;
+
+    final timeParentData = timeChild.parentData as ChatBubbleLayoutParentData;
+    if (sameLine) {
       timeParentData.offset = Offset(
-        width - timeSize.width,
+        size.width - timeSize.width,
+        size.height - timeSize.height,
+      );
+    } else {
+      timeParentData.offset = Offset(
+        size.width - timeSize.width,
         textSize.height,
       );
     }
-
-    size = constraints.constrain(Size(width, height));
   }
 
   @override

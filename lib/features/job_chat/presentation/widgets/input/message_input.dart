@@ -6,6 +6,7 @@ import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/job_actions_bar.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/reply_preview_bar.dart';
 
 class MessageInput extends GetView<JobChatController> {
   const MessageInput({super.key});
@@ -32,8 +33,15 @@ class MessageInput extends GetView<JobChatController> {
           const JobActionsBar(),
           Obx(() {
             final actions = controller.availableActions;
-            if (actions.isEmpty) return const SizedBox.shrink();
+            final isReplying = controller.replyingToMessage.value != null;
+            if (actions.isEmpty || isReplying) return const SizedBox.shrink();
             return AppUIConstants.widgets.verticalBox$8;
+          }),
+          Obx(() {
+            if (controller.replyingToMessage.value == null) {
+              return const SizedBox.shrink();
+            }
+            return const ReplyPreviewBar();
           }),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -87,17 +95,29 @@ class MessageInput extends GetView<JobChatController> {
                 }),
               ),
               AppUIConstants.widgets.horizontalBox$8,
-              AppButton.icon(
-                icon: Icon(
-                  AppIcons.common.send,
-                  size: 22,
-                ),
-                onPressed: controller.sendMessage,
-                size: 48,
-                borderRadius: 100,
-                color: colorScheme.primary,
-                iconColor: colorScheme.onPrimary,
-              ),
+              Obx(() {
+                final isSending = controller.isMessageSending.value;
+                return AppButton.icon(
+                  icon: isSending
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.onPrimary,
+                          ),
+                        )
+                      : Icon(
+                          AppIcons.common.send,
+                          size: 22,
+                        ),
+                  onPressed: isSending ? () {} : controller.sendMessage,
+                  size: 48,
+                  borderRadius: 100,
+                  color: colorScheme.primary,
+                  iconColor: colorScheme.onPrimary,
+                );
+              }),
             ],
           ),
         ],

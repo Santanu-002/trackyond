@@ -4,7 +4,8 @@ enum JobChatMessageType {
   video('video'),
   docs('docs'),
   activity('activity'),
-  header('header');
+  header('header'),
+  referReply('refer/reply');
 
   final String value;
   const JobChatMessageType(this.value);

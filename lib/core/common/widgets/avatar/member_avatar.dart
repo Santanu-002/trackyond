@@ -11,6 +11,7 @@ class MemberAvatar extends StatelessWidget {
   final String name;
   final String? image;
   final double? radius;
+  final IconData? icon;
   final VoidCallback? onPressed;
 
   const MemberAvatar({
@@ -18,6 +19,7 @@ class MemberAvatar extends StatelessWidget {
     required this.name,
     this.image,
     this.radius,
+    this.icon,
     this.onPressed,
   });
 
@@ -38,27 +40,38 @@ class MemberAvatar extends StatelessWidget {
       }
     }
 
+    Widget avatarChild;
+    if (icon != null) {
+      avatarChild = Icon(
+        icon,
+        color: context.theme.colorScheme.onPrimary,
+        size: avatarRadius * 1.2,
+      );
+    } else if (localFile == null && imageUrl != null) {
+      avatarChild = ClipRRect(
+        borderRadius: BorderRadius.circular(avatarRadius),
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
+          fit: BoxFit.cover,
+          width: avatarRadius * 2,
+          height: avatarRadius * 2,
+          placeholder: (context, url) =>
+              _buildPlaceholder(context, avatarColor, avatarRadius),
+          errorWidget: (context, url, error) =>
+              _buildPlaceholder(context, avatarColor, avatarRadius),
+        ),
+      );
+    } else if (localFile == null) {
+      avatarChild = _buildPlaceholder(context, avatarColor, avatarRadius);
+    } else {
+      avatarChild = const SizedBox.shrink();
+    }
+
     Widget avatar = CircleAvatar(
       radius: avatarRadius,
       backgroundColor: avatarColor,
       backgroundImage: localFile != null ? FileImage(localFile) : null,
-      child: localFile == null && imageUrl != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(avatarRadius),
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                width: avatarRadius * 2,
-                height: avatarRadius * 2,
-                placeholder: (context, url) =>
-                    _buildPlaceholder(context, avatarColor, avatarRadius),
-                errorWidget: (context, url, error) =>
-                    _buildPlaceholder(context, avatarColor, avatarRadius),
-              ),
-            )
-          : (localFile == null
-                ? _buildPlaceholder(context, avatarColor, avatarRadius)
-                : null),
+      child: avatarChild,
     );
 
     if (onPressed != null) {

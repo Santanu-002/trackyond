@@ -645,4 +645,6 @@ class JobChatStrings {
   String get activityDefaultReached => "I've reached the location";
   String get viewOnGoogleMaps => 'View on Google Maps';
   String get activityDefaultMessage => 'Performed action';
+  String get selected => 'selected';
+  String get messagesCopied => 'Messages copied to clipboard';
 }

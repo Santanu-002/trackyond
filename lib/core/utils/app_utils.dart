@@ -73,35 +73,4 @@ class AppUtils {
   static String getGoogleMapsUrl(double latitude, double longitude) {
     return 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
   }
-
-  /// Generates a Google Maps Static Map image URL for the given [latitude] and [longitude].
-  /// Note: Requires an API key to work.
-  static String getStaticMapUrl({
-    required double latitude,
-    required double longitude,
-    int zoom = 15,
-    int width = 600,
-    int height = 300,
-    String? apiKey,
-  }) {
-    final baseUrl = 'maps.googleapis.com';
-    final path = '/maps/api/staticmap';
-    
-    final markerParams = 'color:red|label:S|$latitude,$longitude';
-    
-    final queryParameters = {
-      'center': '$latitude,$longitude',
-      'zoom': zoom.toString(),
-      'size': '${width}x${height}',
-      'scale': '2',
-      'markers': markerParams,
-    };
-
-    if (apiKey != null && apiKey.isNotEmpty) {
-      queryParameters['key'] = apiKey;
-    }
-
-    final uri = Uri.https(baseUrl, path, queryParameters);
-    return uri.toString();
-  }
 }

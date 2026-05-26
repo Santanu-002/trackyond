@@ -18,15 +18,18 @@ class BubbleTimeAndStatus extends StatelessWidget {
     final colorScheme = context.theme.colorScheme;
     final textTheme = context.textTheme;
 
+    final diff = DateTime.now().difference(timestamp);
+    final timeString = diff.inMinutes < 1 ? 'Just now' : DateFormat('hh:mm a').format(timestamp);
+
     return Transform.translate(
       offset: const Offset(4, 4),
       child: Padding(
-        padding: const EdgeInsets.only(left: 12),
+        padding: EdgeInsets.only(left: AppUIConstants.spacing.space$12),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              DateFormat('hh:mm a').format(timestamp),
+              timeString,
               style: textTheme.labelSmall?.copyWith(
                 fontSize: 10,
                 color: isMe

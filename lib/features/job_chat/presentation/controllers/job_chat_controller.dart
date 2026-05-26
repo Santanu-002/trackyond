@@ -6,6 +6,7 @@ import 'package:mime/mime.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -63,6 +64,56 @@ class JobChatController extends GetxController {
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
 
+  final Rxn<DateTime> floatingDate = Rxn<DateTime>();
+  final RxBool isFloatingDateVisible = false.obs;
+  Timer? _floatingDateTimer;
+
+  void onScrollInteraction() {
+    if (flattenedItems.isEmpty) return;
+    
+    final positions = itemPositionsListener.itemPositions.value;
+    if (positions.isNotEmpty) {
+      // If the oldest item (top of chat) is visible, hide the floating header
+      final isTopVisible = positions.any((p) => p.index == flattenedItems.length - 1);
+      if (isTopVisible) {
+        isFloatingDateVisible.value = false;
+        _floatingDateTimer?.cancel();
+        return;
+      }
+
+      // items are reversed, so index 0 is bottom. The top-most visible item has the highest index among visible items
+      final topMostItemPosition = positions.reduce((max, position) => position.index > max.index ? position : max);
+      
+      final index = topMostItemPosition.index;
+      if (index >= 0 && index < flattenedItems.length) {
+        final topItem = flattenedItems[index];
+        DateTime? newDate;
+        
+        if (topItem is ChatDateHeader) {
+          newDate = topItem.date;
+        } else if (topItem is ChatMessageBubbleItem) {
+          newDate = topItem.message.timestamp;
+        } else if (topItem is ChatActivityBubble) {
+          newDate = topItem.message.timestamp;
+        } else if (topItem is ChatTimeHeaderItem) {
+          newDate = topItem.time;
+        } else if (topItem is ChatHeaderMessage) {
+          newDate = topItem.message.timestamp;
+        }
+
+        if (newDate != null) {
+          floatingDate.value = DateTime(newDate.year, newDate.month, newDate.day);
+        }
+      }
+    }
+
+    isFloatingDateVisible.value = true;
+    _floatingDateTimer?.cancel();
+    _floatingDateTimer = Timer(const Duration(seconds: 3), () {
+      isFloatingDateVisible.value = false;
+    });
+  }
+
   void scrollToLast({bool animate = false}) {
     if (!itemScrollController.isAttached) return;
     if (flattenedItems.isEmpty) return;
@@ -84,6 +135,13 @@ class JobChatController extends GetxController {
   final RxnString _currentUserUid = RxnString(null);
   final RxnString _currentUserName = RxnString(null);
   StreamSubscription<ChatEvent>? _chatEventsSubscription;
+
+  String? get currentUserId => _currentUserUid.value;
+
+  final Rxn<JobChatMessageEntity> replyingToMessage = Rxn<JobChatMessageEntity>();
+  final RxString highlightedMessageUid = ''.obs;
+  final RxBool isSelectionMode = false.obs;
+  final RxSet<String> selectedMessageUids = <String>{}.obs;
 
   List<ChatItem> get flattenedItems {
     final List<ChatItem> items = [];
@@ -183,9 +241,11 @@ class JobChatController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxnString errorMessage = RxnString(null);
 
+  final RxBool isMessageSending = false.obs;
   final RxBool isActionLoading = false.obs;
   final RxnString actionLoadingMessage = RxnString(null);
   final RxnString loadingActionLabel = RxnString(null);
+  final RxnString loadingActionMessageUid = RxnString(null);
 
   CancelToken? _cancelToken;
   final RxBool isActionCancelled = false.obs;
@@ -197,7 +257,64 @@ class JobChatController extends GetxController {
     isActionLoading.value = false;
     actionLoadingMessage.value = null;
     loadingActionLabel.value = null;
+    loadingActionMessageUid.value = null;
     uploadProgress.value = 0.0;
+  }
+
+  void setReplyingTo(JobChatMessageEntity message) {
+    replyingToMessage.value = message;
+    focusNode.requestFocus();
+  }
+
+  void cancelReply() {
+    replyingToMessage.value = null;
+  }
+
+  bool isAskLocationFulfilled(DateTime askTime) {
+    return messages.any((m) => 
+        m.timestamp.isAfter(askTime) && 
+        m.isMe && 
+        m.type == 'activity' && 
+        (m.metadata?['activity_type'] == 'send_location' || m.metadata?['activity_type'] == 'reached_location')
+    );
+  }
+
+  bool isAskStatusFulfilled(DateTime askTime) {
+    return messages.any((m) => 
+        m.timestamp.isAfter(askTime) && 
+        m.isMe && 
+        m.content.any((c) => c.type == 'refer/reply' && (c.metadata?['activityType'] == 'ask_status' || c.metadata?['activityType'] == 'ask_status_proofs'))
+    );
+  }
+
+  void scrollToMessage(String uid) {
+    final index = flattenedItems.indexWhere((item) {
+      if (item is ChatMessageBubbleItem && item.message.uid == uid) return true;
+      if (item is ChatActivityBubble && item.message.uid == uid) return true;
+      return false;
+    });
+    if (index != -1) {
+      itemScrollController.scrollTo(
+        index: index,
+        duration: const Duration(milliseconds: 300),
+        alignment: 0.4,
+        curve: Curves.easeInOut,
+      );
+      // Trigger highlight after scroll completes
+      Future.delayed(const Duration(milliseconds: 350), () {
+        _triggerHighlight(uid);
+      });
+    }
+  }
+
+  void _triggerHighlight(String uid) {
+    highlightedMessageUid.value = uid;
+    // Clear after 2.0s (the widget fades over 1.5s; extra 0.5s buffer)
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (highlightedMessageUid.value == uid) {
+        highlightedMessageUid.value = '';
+      }
+    });
   }
 
   Future<void> _setPhase(String message) async {
@@ -492,50 +609,123 @@ class JobChatController extends GetxController {
       }
     }
 
-    messageController.clear();
+    final repliedMsg = replyingToMessage.value;
+    replyingToMessage.value = null;
 
-    // Optimistic UI update
-    final tempId = nanoid();
-    final tempMsg = JobChatMessageEntity(
-      uid: tempId,
-      localId: tempId,
-      jobId: job.jobId,
-      senderName: _currentUserName.value!,
-      senderId: _currentUserUid.value!,
-      senderProfileUid: _currentUserProfileUid.value,
-      content: [
+    isMessageSending.value = true;
+    Map<String, dynamic> locationData = {};
+
+    try {
+      if (userRole == UserRole.worker && repliedMsg != null && repliedMsg.type == 'activity') {
+        final activityType = repliedMsg.metadata?['activity_type'] as String? ?? '';
+        if (activityType == 'ask_status' || activityType == 'ask_status_proofs' || activityType == 'ask_location') {
+          // For status requests, attach location silently in background
+          try {
+            // We reuse the same acquire logic but without specific phase UI messages for the bar
+            // (The user just sees the send button spinner)
+            locationData = await _acquireLocationAndAddress();
+          } catch (e) {
+            debugPrint('Background location fetch failed: $e');
+            // We continue sending the message even if location fails, 
+            // but we might want to warn the user if it was strictly required.
+          }
+        }
+      }
+
+      messageController.clear();
+
+      // Optimistic UI update
+      final tempId = nanoid();
+      final List<JobChatMessageContentEntity> contentList = [];
+
+      if (repliedMsg != null) {
+        String originalText = '';
+        String? imageUrl;
+
+        final firstImage =
+            repliedMsg.content.firstWhereOrNull((c) => c.type == 'image');
+        if (firstImage != null) {
+          imageUrl = firstImage.metadata?['url'] as String?;
+          originalText = firstImage.content ?? 'Photo';
+        } else {
+          final textContent = repliedMsg.content.firstWhereOrNull(
+            (c) => c.type == 'text' || c.type == 'activity',
+          );
+          originalText = textContent?.content ?? '';
+        }
+
+        contentList.add(
+          JobChatMessageContentEntity(
+            type: JobChatMessageType.referReply.value,
+            content: originalText,
+            metadata: {
+              'messageUid': repliedMsg.uid,
+              'senderName': repliedMsg.senderName,
+              'senderId': repliedMsg.senderId,
+              'type': repliedMsg.type,
+              'imageUrl': imageUrl,
+              if (repliedMsg.type == 'activity') ...{
+                'activityType': repliedMsg.metadata?['activity_type'] ?? '',
+                'address': repliedMsg.metadata?['address'] ?? '',
+              }
+            },
+          ),
+        );
+      }
+
+      contentList.add(
         JobChatMessageContentEntity(
           type: JobChatMessageType.text.value,
           content: text,
         ),
-      ],
-      timestamp: DateTime.now(),
-      isMe: true,
-    );
-    messages.add(tempMsg);
-    scrollToLast(animate: true);
+      );
 
-    final result = await _sendMessageUseCase(
-      SendMessageParams(message: tempMsg),
-    );
+      final isActivityReply = locationData.isNotEmpty;
+      final finalMetadata = {
+        ...locationData,
+        if (isActivityReply) 'activity_type': 'send_status',
+      };
 
-    result.fold(
-      (failure) {
-        messages.removeWhere((m) => m.uid == tempId);
-        AppSnackbar.destructive(failure.message);
-      },
-      (sendResult) {
-        // Replace temp message with real one
-        final index = messages.indexWhere((m) => m.uid == tempId);
-        if (index != -1) {
-          messages[index] = sendResult.message.copyWith(isMe: true);
-        }
-        if (sendResult.job != null) {
-          _job.value = sendResult.job!;
-          _emitJobUpdateUseCase(sendResult.job!);
-        }
-      },
-    );
+      final tempMsg = JobChatMessageEntity(
+        uid: tempId,
+        localId: tempId,
+        jobId: job.jobId,
+        senderName: _currentUserName.value!,
+        senderId: _currentUserUid.value!,
+        senderProfileUid: _currentUserProfileUid.value,
+        content: contentList,
+        timestamp: DateTime.now(),
+        type: isActivityReply ? 'activity' : 'message',
+        metadata: finalMetadata.isNotEmpty ? finalMetadata : null,
+        isMe: true,
+      );
+      messages.add(tempMsg);
+      scrollToLast(animate: true);
+
+      final result = await _sendMessageUseCase(
+        SendMessageParams(message: tempMsg),
+      );
+
+      result.fold(
+        (failure) {
+          messages.removeWhere((m) => m.uid == tempId);
+          AppSnackbar.destructive(failure.message);
+        },
+        (sendResult) {
+          // Replace temp message with real one
+          final index = messages.indexWhere((m) => m.uid == tempId);
+          if (index != -1) {
+            messages[index] = sendResult.message.copyWith(isMe: true);
+          }
+          if (sendResult.job != null) {
+            _job.value = sendResult.job!;
+            _emitJobUpdateUseCase(sendResult.job!);
+          }
+        },
+      );
+    } finally {
+      isMessageSending.value = false;
+    }
   }
 
   void sendMockPhoto() {
@@ -640,7 +830,7 @@ class JobChatController extends GetxController {
     };
   }
 
-  Future<void> executeAction(String actionString) async {
+  Future<void> executeAction(String actionString, {String? messageUid}) async {
     if (userRole == UserRole.worker) {
       if (Get.isRegistered<AttendanceController>()) {
         final attendanceController = Get.find<AttendanceController>();
@@ -666,6 +856,7 @@ class JobChatController extends GetxController {
       uploadProgress.value = 0.0;
       isActionLoading.value = true;
       loadingActionLabel.value = actionString;
+      loadingActionMessageUid.value = messageUid;
 
       final jobAction = JobAction.fromString(actionString);
 
@@ -757,7 +948,17 @@ class JobChatController extends GetxController {
       }
 
       // 2. Now acquire location (either after successful photo upload, or directly if it's a normal action)
-      final locationData = await _acquireLocationAndAddress();
+      Map<String, dynamic> locationData = {};
+      final bool requiresLocation = jobAction != JobAction.askLocation &&
+                                    jobAction != JobAction.askStatus &&
+                                    jobAction != JobAction.statusWithProofs &&
+                                    jobAction != JobAction.cancelJob &&
+                                    jobAction != JobAction.reopenJob;
+      
+      if (requiresLocation) {
+        locationData = await _acquireLocationAndAddress();
+      }
+      
       if (isActionCancelled.value) return;
 
       switch (jobAction) {
@@ -772,6 +973,9 @@ class JobChatController extends GetxController {
         case JobAction.takeBreak:
         case JobAction.breakOut:
         case JobAction.sendLocation:
+        case JobAction.askLocation:
+        case JobAction.askStatus:
+        case JobAction.statusWithProofs:
           if (isActionCancelled.value) return;
           await _setPhase('Syncing with server...');
 
@@ -804,6 +1008,18 @@ class JobChatController extends GetxController {
             case JobAction.sendLocation:
               activityMessage = "Here is my current location";
               activityType = 'send_location';
+              break;
+            case JobAction.askLocation:
+              activityMessage = "Please share your current location.";
+              activityType = 'ask_location';
+              break;
+            case JobAction.askStatus:
+              activityMessage = "Please provide a status update on your current progress.";
+              activityType = 'ask_status';
+              break;
+            case JobAction.statusWithProofs:
+              activityMessage = "Please share a status update with photo proofs.";
+              activityType = 'ask_status_proofs';
               break;
             case _:
               activityMessage = "Performed action";
@@ -879,6 +1095,68 @@ class JobChatController extends GetxController {
   }
 
   void onBack() => Get.back();
+
+  void enterSelectionMode(String messageUid) {
+    isSelectionMode.value = true;
+    selectedMessageUids.add(messageUid);
+    HapticFeedback.mediumImpact();
+  }
+
+  void toggleSelection(String messageUid) {
+    if (selectedMessageUids.contains(messageUid)) {
+      selectedMessageUids.remove(messageUid);
+      if (selectedMessageUids.isEmpty) {
+        exitSelectionMode();
+      }
+    } else {
+      selectedMessageUids.add(messageUid);
+    }
+  }
+
+  void exitSelectionMode() {
+    selectedMessageUids.clear();
+    isSelectionMode.value = false;
+  }
+
+  Future<void> copySelectedMessagesText() async {
+    if (selectedMessageUids.isEmpty) return;
+
+    final List<String> formattedMessages = [];
+    for (final message in messages) {
+      if (selectedMessageUids.contains(message.uid)) {
+        final senderName = getSenderName(message);
+        final year = message.timestamp.year.toString();
+        final month = message.timestamp.month.toString().padLeft(2, '0');
+        final day = message.timestamp.day.toString().padLeft(2, '0');
+        final hour = message.timestamp.hour.toString().padLeft(2, '0');
+        final minute = message.timestamp.minute.toString().padLeft(2, '0');
+        final timeStr = '$day/$month/$year $hour:$minute';
+
+        final List<String> contentParts = [];
+        for (final c in message.content) {
+          if (c.type == 'text') {
+            final textVal = c.content;
+            if (textVal != null && textVal.isNotEmpty) {
+              contentParts.add(parseMentions(textVal));
+            }
+          }
+        }
+        final textContents = contentParts.join(' ');
+
+        if (textContents.isNotEmpty) {
+          formattedMessages.add('[$timeStr] [$senderName]: $textContents');
+        }
+      }
+    }
+
+    if (formattedMessages.isNotEmpty) {
+      final copyText = formattedMessages.join('\n');
+      await Clipboard.setData(ClipboardData(text: copyText));
+      AppSnackbar.success(AppStrings.jobChat.messagesCopied);
+    }
+
+    exitSelectionMode();
+  }
 
   String _formatFileSize(int bytes) {
     if (bytes < 1024) return '$bytes B';

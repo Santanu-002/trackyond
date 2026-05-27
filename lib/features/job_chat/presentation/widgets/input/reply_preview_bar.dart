@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -29,14 +30,14 @@ class ReplyPreviewBar extends GetView<JobChatController> {
           senderName = controller.getSenderName(replyMsg);
           if (senderName == 'System') {
             final activityType =
-                replyMsg.metadata?['activity_type'] as String? ?? '';
+                JobActivityType.fromString(replyMsg.metadata?['activity_type']);
             final isOwnerAction =
-                activityType == 'ask_location' ||
-                activityType == 'ask_status' ||
-                activityType == 'ask_status_proofs' ||
-                activityType == 'cancel_job' ||
-                activityType == 'reopen_job' ||
-                activityType == 'job_created';
+                activityType == JobActivityType.askLocation ||
+                activityType == JobActivityType.askStatus ||
+                activityType == JobActivityType.askStatusProofs ||
+                activityType == JobActivityType.cancelJob ||
+                activityType == JobActivityType.reopenJob ||
+                activityType == JobActivityType.jobCreated;
             senderName = isOwnerAction
                 ? (controller.job.createdByName ?? 'Admin')
                 : (controller.job.workerName ?? 'Worker');
@@ -87,56 +88,56 @@ class ReplyPreviewBar extends GetView<JobChatController> {
 
       if (isActivity) {
         final activityType =
-            replyMsg.metadata?['activity_type'] as String? ?? '';
+            JobActivityType.fromString(replyMsg.metadata?['activity_type']);
 
         String activityTitle;
         IconData activityIcon;
         switch (activityType) {
-          case 'job_created':
+          case JobActivityType.jobCreated:
             activityTitle = AppStrings.jobChat.activityJobAssigned;
             activityIcon = AppIcons.jobs.work;
             break;
-          case 'reached_location':
+          case JobActivityType.reachedLocation:
             activityTitle = AppStrings.jobChat.activityReachedSite;
             activityIcon = AppIcons.jobs.checkIn;
             break;
-          case 'started_job':
+          case JobActivityType.startedJob:
             activityTitle = AppStrings.jobChat.activityJobStarted;
             activityIcon = AppIcons.common.play;
             break;
-          case 'completed_job':
+          case JobActivityType.completedJob:
             activityTitle = AppStrings.jobChat.activityJobCompleted;
             activityIcon = AppIcons.status.success;
             break;
-          case 'take_break':
+          case JobActivityType.takeBreak:
             activityTitle = AppStrings.jobChat.activityOnBreak;
             activityIcon = AppIcons.jobs.coffee;
             break;
-          case 'break_out':
+          case JobActivityType.breakOut:
             activityTitle = AppStrings.jobChat.activityBreakEnded;
             activityIcon = AppIcons.common.play;
             break;
-          case 'send_location':
+          case JobActivityType.sendLocation:
             activityTitle = AppStrings.jobChat.activityLocationShared;
             activityIcon = AppIcons.jobs.myLocation;
             break;
-          case 'ask_location':
+          case JobActivityType.askLocation:
             activityTitle = AppStrings.jobChat.activityLocationRequested;
             activityIcon = AppIcons.jobs.locationSearching;
             break;
-          case 'ask_status':
+          case JobActivityType.askStatus:
             activityTitle = AppStrings.jobChat.activityStatusRequested;
             activityIcon = AppIcons.jobs.statusQuestion;
             break;
-          case 'ask_status_proofs':
+          case JobActivityType.askStatusProofs:
             activityTitle = AppStrings.jobChat.activityStatusProofsRequested;
             activityIcon = AppIcons.jobs.cameraOutlined;
             break;
-          case 'cancel_job':
+          case JobActivityType.cancelJob:
             activityTitle = AppStrings.jobChat.activityJobCancelled;
             activityIcon = AppIcons.dashboard.cancelled;
             break;
-          case 'reopen_job':
+          case JobActivityType.reopenJob:
             activityTitle = AppStrings.jobChat.activityJobReopened;
             activityIcon = AppIcons.common.refresh;
             break;

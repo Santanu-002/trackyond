@@ -19,6 +19,7 @@ import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/enums/job_action.dart';
+import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
@@ -271,20 +272,22 @@ class JobChatController extends GetxController {
   }
 
   bool isAskLocationFulfilled(DateTime askTime) {
-    return messages.any((m) => 
-        m.timestamp.isAfter(askTime) && 
-        m.isMe && 
-        m.type == 'activity' && 
-        (m.metadata?['activity_type'] == 'send_location' || m.metadata?['activity_type'] == 'reached_location')
-    );
+    return messages.any((m) {
+      if (!m.timestamp.isAfter(askTime) || !m.isMe || m.type != 'activity') return false;
+      final type = JobActivityType.fromString(m.metadata?['activity_type']);
+      return type == JobActivityType.sendLocation || type == JobActivityType.reachedLocation;
+    });
   }
 
   bool isAskStatusFulfilled(DateTime askTime) {
-    return messages.any((m) => 
-        m.timestamp.isAfter(askTime) && 
-        m.isMe && 
-        m.content.any((c) => c.type == 'refer/reply' && (c.metadata?['activityType'] == 'ask_status' || c.metadata?['activityType'] == 'ask_status_proofs'))
-    );
+    return messages.any((m) {
+      if (!m.timestamp.isAfter(askTime) || !m.isMe) return false;
+      return m.content.any((c) {
+        if (c.type != 'refer/reply') return false;
+        final type = JobActivityType.fromString(c.metadata?['activityType']);
+        return type == JobActivityType.askStatus || type == JobActivityType.askStatusProofs;
+      });
+    });
   }
 
   void scrollToMessage(String uid) {
@@ -617,8 +620,10 @@ class JobChatController extends GetxController {
 
     try {
       if (userRole == UserRole.worker && repliedMsg != null && repliedMsg.type == 'activity') {
-        final activityType = repliedMsg.metadata?['activity_type'] as String? ?? '';
-        if (activityType == 'ask_status' || activityType == 'ask_status_proofs' || activityType == 'ask_location') {
+        final activityType = JobActivityType.fromString(repliedMsg.metadata?['activity_type']);
+        if (activityType == JobActivityType.askStatus || 
+            activityType == JobActivityType.askStatusProofs || 
+            activityType == JobActivityType.askLocation) {
           // For status requests, attach location silently in background
           try {
             // We reuse the same acquire logic but without specific phase UI messages for the bar
@@ -683,7 +688,7 @@ class JobChatController extends GetxController {
       final isActivityReply = locationData.isNotEmpty;
       final finalMetadata = {
         ...locationData,
-        if (isActivityReply) 'activity_type': 'send_status',
+        if (isActivityReply) 'activity_type': JobActivityType.sendStatus.value,
       };
 
       final tempMsg = JobChatMessageEntity(
@@ -980,50 +985,50 @@ class JobChatController extends GetxController {
           await _setPhase('Syncing with server...');
 
           String activityMessage = '';
-          String activityType = '';
+          JobActivityType activityType = JobActivityType.unknown;
 
           switch (jobAction) {
             case JobAction.startJob:
             case JobAction.startJobWithCapturePhoto:
               activityMessage = "I have started the job";
-              activityType = 'started_job';
+              activityType = JobActivityType.startedJob;
               break;
             case JobAction.completeJob:
             case JobAction.completeJobWithCapturePhoto:
               activityMessage = "I have completed the job";
-              activityType = 'completed_job';
+              activityType = JobActivityType.completedJob;
               break;
             case JobAction.reached:
               activityMessage = "I've reached the location";
-              activityType = 'reached_location';
+              activityType = JobActivityType.reachedLocation;
               break;
             case JobAction.takeBreak:
               activityMessage = "I am taking a break";
-              activityType = 'take_break';
+              activityType = JobActivityType.takeBreak;
               break;
             case JobAction.breakOut:
               activityMessage = "I am resuming work";
-              activityType = 'break_out';
+              activityType = JobActivityType.breakOut;
               break;
             case JobAction.sendLocation:
               activityMessage = "Here is my current location";
-              activityType = 'send_location';
+              activityType = JobActivityType.sendLocation;
               break;
             case JobAction.askLocation:
               activityMessage = "Please share your current location.";
-              activityType = 'ask_location';
+              activityType = JobActivityType.askLocation;
               break;
             case JobAction.askStatus:
               activityMessage = "Please provide a status update on your current progress.";
-              activityType = 'ask_status';
+              activityType = JobActivityType.askStatus;
               break;
             case JobAction.statusWithProofs:
               activityMessage = "Please share a status update with photo proofs.";
-              activityType = 'ask_status_proofs';
+              activityType = JobActivityType.askStatusProofs;
               break;
             case _:
               activityMessage = "Performed action";
-              activityType = 'unknown';
+              activityType = JobActivityType.unknown;
               break;
           }
 
@@ -1045,7 +1050,7 @@ class JobChatController extends GetxController {
           }
 
           final messageMetadata = {
-            'activity_type': activityType,
+            'activity_type': activityType.value,
             'workerName': _currentUserName.value!,
             ...locationData,
           };

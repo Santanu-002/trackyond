@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:trackyond/core/common/enums/job_action.dart';
+import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
@@ -36,20 +37,20 @@ class ActivityMessageCard extends StatelessWidget {
     final metadata = message.metadata ?? {};
     final rawAddress = metadata['address'] as String? ?? '';
     final address = rawAddress.trim().isEmpty ? '-' : rawAddress;
-    final activityType = metadata['activity_type'] as String? ?? '';
+    final activityType = JobActivityType.fromString(metadata['activity_type']);
 
     final chatController = Get.find<JobChatController>();
     final senderName = chatController.getSenderName(message);
     final senderImage = chatController.getSenderImage(message);
 
     Duration? breakDuration;
-    if (activityType == 'break_out') {
+    if (activityType == JobActivityType.breakOut) {
       DateTime? takeBreakTime;
       for (final msg in chatController.messages) {
         if (msg.timestamp.isBefore(message.timestamp)) {
           final isTakeBreak =
               msg.type == 'activity' &&
-              msg.metadata?['activity_type'] == 'take_break';
+              JobActivityType.fromString(msg.metadata?['activity_type']) == JobActivityType.takeBreak;
           if (isTakeBreak) {
             if (takeBreakTime == null || msg.timestamp.isAfter(takeBreakTime)) {
               takeBreakTime = msg.timestamp;
@@ -81,51 +82,51 @@ class ActivityMessageCard extends StatelessWidget {
     final IconData cardIcon;
 
     switch (activityType) {
-      case 'job_created':
+      case JobActivityType.jobCreated:
         cardTitle = AppStrings.jobChat.activityJobAssigned;
         cardIcon = AppIcons.jobs.work;
         break;
-      case 'reached_location':
+      case JobActivityType.reachedLocation:
         cardTitle = AppStrings.jobChat.activityReachedSite;
         cardIcon = AppIcons.jobs.checkIn;
         break;
-      case 'started_job':
+      case JobActivityType.startedJob:
         cardTitle = AppStrings.jobChat.activityJobStarted;
         cardIcon = AppIcons.common.play;
         break;
-      case 'completed_job':
+      case JobActivityType.completedJob:
         cardTitle = AppStrings.jobChat.activityJobCompleted;
         cardIcon = AppIcons.status.success;
         break;
-      case 'take_break':
+      case JobActivityType.takeBreak:
         cardTitle = AppStrings.jobChat.activityOnBreak;
         cardIcon = AppIcons.jobs.coffee;
         break;
-      case 'break_out':
+      case JobActivityType.breakOut:
         cardTitle = AppStrings.jobChat.activityBreakEnded;
         cardIcon = AppIcons.common.play;
         break;
-      case 'send_location':
+      case JobActivityType.sendLocation:
         cardTitle = AppStrings.jobChat.activityLocationShared;
         cardIcon = AppIcons.jobs.myLocation;
         break;
-      case 'ask_location':
+      case JobActivityType.askLocation:
         cardTitle = AppStrings.jobChat.activityLocationRequested;
         cardIcon = AppIcons.jobs.locationSearching;
         break;
-      case 'ask_status':
+      case JobActivityType.askStatus:
         cardTitle = AppStrings.jobChat.activityStatusRequested;
         cardIcon = AppIcons.jobs.statusQuestion;
         break;
-      case 'ask_status_proofs':
+      case JobActivityType.askStatusProofs:
         cardTitle = AppStrings.jobChat.activityStatusProofsRequested;
         cardIcon = AppIcons.jobs.cameraOutlined;
         break;
-      case 'cancel_job':
+      case JobActivityType.cancelJob:
         cardTitle = AppStrings.jobChat.activityJobCancelled;
         cardIcon = AppIcons.dashboard.cancelled;
         break;
-      case 'reopen_job':
+      case JobActivityType.reopenJob:
         cardTitle = AppStrings.jobChat.activityJobReopened;
         cardIcon = AppIcons.common.refresh;
         break;
@@ -176,8 +177,8 @@ class ActivityMessageCard extends StatelessWidget {
     final latitude = metadata['latitude'] as double?;
     final longitude = metadata['longitude'] as double?;
     final isLocationActivity =
-        (activityType == 'send_location' ||
-            activityType == 'reached_location') &&
+        (activityType == JobActivityType.sendLocation ||
+            activityType == JobActivityType.reachedLocation) &&
         latitude != null &&
         longitude != null;
 
@@ -307,59 +308,59 @@ class ActivityMessageCard extends StatelessWidget {
 
               Widget replyBodyWidget;
               if (replyType == 'activity') {
-                final String rActivityType =
-                    metadata['activityType'] as String? ?? '';
+                final rActivityType =
+                    JobActivityType.fromString(metadata['activityType']);
                 IconData rActivityIcon;
                 String rActivityTitle;
 
                 switch (rActivityType) {
-                  case 'job_created':
+                  case JobActivityType.jobCreated:
                     rActivityTitle = AppStrings.jobChat.activityJobAssigned;
                     rActivityIcon = AppIcons.jobs.work;
                     break;
-                  case 'reached_location':
+                  case JobActivityType.reachedLocation:
                     rActivityTitle = AppStrings.jobChat.activityReachedSite;
                     rActivityIcon = AppIcons.jobs.checkIn;
                     break;
-                  case 'started_job':
+                  case JobActivityType.startedJob:
                     rActivityTitle = AppStrings.jobChat.activityJobStarted;
                     rActivityIcon = AppIcons.common.play;
                     break;
-                  case 'completed_job':
+                  case JobActivityType.completedJob:
                     rActivityTitle = AppStrings.jobChat.activityJobCompleted;
                     rActivityIcon = AppIcons.status.success;
                     break;
-                  case 'take_break':
+                  case JobActivityType.takeBreak:
                     rActivityTitle = AppStrings.jobChat.activityOnBreak;
                     rActivityIcon = AppIcons.jobs.coffee;
                     break;
-                  case 'break_out':
+                  case JobActivityType.breakOut:
                     rActivityTitle = AppStrings.jobChat.activityBreakEnded;
                     rActivityIcon = AppIcons.common.play;
                     break;
-                  case 'send_location':
+                  case JobActivityType.sendLocation:
                     rActivityTitle = AppStrings.jobChat.activityLocationShared;
                     rActivityIcon = AppIcons.jobs.myLocation;
                     break;
-                  case 'ask_location':
+                  case JobActivityType.askLocation:
                     rActivityTitle =
                         AppStrings.jobChat.activityLocationRequested;
                     rActivityIcon = AppIcons.jobs.locationSearching;
                     break;
-                  case 'ask_status':
+                  case JobActivityType.askStatus:
                     rActivityTitle = AppStrings.jobChat.activityStatusRequested;
                     rActivityIcon = AppIcons.jobs.statusQuestion;
                     break;
-                  case 'ask_status_proofs':
+                  case JobActivityType.askStatusProofs:
                     rActivityTitle =
                         AppStrings.jobChat.activityStatusProofsRequested;
                     rActivityIcon = AppIcons.jobs.cameraOutlined;
                     break;
-                  case 'cancel_job':
+                  case JobActivityType.cancelJob:
                     rActivityTitle = AppStrings.jobChat.activityJobCancelled;
                     rActivityIcon = AppIcons.dashboard.cancelled;
                     break;
-                  case 'reopen_job':
+                  case JobActivityType.reopenJob:
                     rActivityTitle = AppStrings.jobChat.activityJobReopened;
                     rActivityIcon = AppIcons.common.refresh;
                     break;
@@ -523,9 +524,9 @@ class ActivityMessageCard extends StatelessWidget {
               ),
             ),
             AppUIConstants.widgets.verticalBox$8,
-            if (activityType != 'ask_location' &&
-                activityType != 'ask_status' &&
-                activityType != 'ask_status_proofs')
+            if (activityType != JobActivityType.askLocation &&
+                activityType != JobActivityType.askStatus &&
+                activityType != JobActivityType.askStatusProofs)
               Padding(
                 padding: EdgeInsets.fromLTRB(
                   AppUIConstants.spacing.space$12,
@@ -601,7 +602,7 @@ class ActivityMessageCard extends StatelessWidget {
                   ),
                 ),
               ),
-            ] else if (activityType == 'ask_location' &&
+            ] else if (activityType == JobActivityType.askLocation &&
                 !isMe &&
                 chatController.userRole == UserRole.worker) ...[
               Obx(() {
@@ -687,8 +688,8 @@ class ActivityMessageCard extends StatelessWidget {
                   ],
                 );
               }),
-            ] else if ((activityType == 'ask_status' ||
-                    activityType == 'ask_status_proofs') &&
+            ] else if ((activityType == JobActivityType.askStatus ||
+                    activityType == JobActivityType.askStatusProofs) &&
                 !isMe &&
                 chatController.userRole == UserRole.worker) ...[
               Obx(() {

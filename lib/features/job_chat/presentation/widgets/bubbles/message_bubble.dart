@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
@@ -56,8 +57,8 @@ class MessageBubble extends StatelessWidget {
 
     final double screenWidth = context.width;
     final double maxBubbleWidth = isMe
-        ? (screenWidth - 100).clamp(220.0, 275.0)
-        : (screenWidth - 120).clamp(220.0, 275.0);
+        ? (screenWidth - 84).clamp(240.0, 310.0)
+        : (screenWidth - 104).clamp(240.0, 310.0);
 
     final double softRadius = AppUIConstants.radius.radius$16;
     final double hardRadius = 2.0; // Slightly rounded hard edge
@@ -110,59 +111,61 @@ class MessageBubble extends StatelessWidget {
 
           Widget replyBodyWidget;
           if (replyType == 'activity') {
-            final activityType = metadata['activityType'] as String? ?? '';
+            final activityType = JobActivityType.fromString(metadata['activityType']);
             String activityTitle = 'Activity Update';
             IconData activityIcon = Icons.info_outline;
 
             switch (activityType) {
-              case 'job_created':
+              case JobActivityType.jobCreated:
                 activityTitle = AppStrings.jobChat.activityJobAssigned;
                 activityIcon = AppIcons.jobs.work;
                 break;
-              case 'reached_location':
+              case JobActivityType.reachedLocation:
                 activityTitle = AppStrings.jobChat.activityReachedSite;
                 activityIcon = AppIcons.jobs.checkIn;
                 break;
-              case 'started_job':
+              case JobActivityType.startedJob:
                 activityTitle = AppStrings.jobChat.activityJobStarted;
                 activityIcon = AppIcons.common.play;
                 break;
-              case 'completed_job':
+              case JobActivityType.completedJob:
                 activityTitle = AppStrings.jobChat.activityJobCompleted;
                 activityIcon = AppIcons.status.success;
                 break;
-              case 'take_break':
+              case JobActivityType.takeBreak:
                 activityTitle = AppStrings.jobChat.activityOnBreak;
                 activityIcon = AppIcons.jobs.coffee;
                 break;
-              case 'break_out':
+              case JobActivityType.breakOut:
                 activityTitle = AppStrings.jobChat.activityBreakEnded;
                 activityIcon = AppIcons.common.play;
                 break;
-              case 'send_location':
+              case JobActivityType.sendLocation:
                 activityTitle = AppStrings.jobChat.activityLocationShared;
                 activityIcon = AppIcons.jobs.myLocation;
                 break;
-              case 'ask_location':
+              case JobActivityType.askLocation:
                 activityTitle = AppStrings.jobChat.activityLocationRequested;
                 activityIcon = AppIcons.jobs.locationSearching;
                 break;
-              case 'ask_status':
+              case JobActivityType.askStatus:
                 activityTitle = AppStrings.jobChat.activityStatusRequested;
                 activityIcon = AppIcons.jobs.statusQuestion;
                 break;
-              case 'ask_status_proofs':
+              case JobActivityType.askStatusProofs:
                 activityTitle =
                     AppStrings.jobChat.activityStatusProofsRequested;
                 activityIcon = AppIcons.jobs.cameraOutlined;
                 break;
-              case 'cancel_job':
+              case JobActivityType.cancelJob:
                 activityTitle = AppStrings.jobChat.activityJobCancelled;
                 activityIcon = AppIcons.dashboard.cancelled;
                 break;
-              case 'reopen_job':
+              case JobActivityType.reopenJob:
                 activityTitle = AppStrings.jobChat.activityJobReopened;
                 activityIcon = AppIcons.common.refresh;
+                break;
+              default:
                 break;
             }
             replyBodyWidget = Row(

@@ -302,7 +302,16 @@ class ActivityMessageCard extends StatelessWidget {
 
               final metadata = replyContent.metadata ?? {};
               final replyToUid = metadata['messageUid'] as String? ?? '';
-              final displayName = metadata['senderName'] as String? ?? 'User';
+              final replySenderId = metadata['senderId'] as String? ?? '';
+              final replySenderProfileUid = metadata['senderProfileUid'] as String?;
+              final replySenderName = metadata['senderName'] as String? ?? '';
+              final resolvedSenderName = chatController.resolveMemberName(
+                replySenderId.isEmpty ? null : replySenderId,
+                replySenderProfileUid,
+                replySenderName,
+              );
+              final replyToMe = replySenderId == chatController.currentUserId;
+              final displayName = replyToMe ? 'You' : resolvedSenderName;
               final replyImageUrl = metadata['imageUrl'] as String?;
               final String replyType = metadata['type'] as String? ?? 'message';
 
@@ -382,11 +391,11 @@ class ActivityMessageCard extends StatelessWidget {
                     AppUIConstants.widgets.horizontalBox$4,
                     Text(
                       rActivityTitle,
-                      style: textTheme.labelSmall?.copyWith(
+                      style: textTheme.bodySmall?.copyWith(
                         color: isMe
                             ? colorScheme.onPrimary.withValues(alpha: 0.7)
                             : colorScheme.onSurfaceVariant,
-                        fontSize: 10,
+                        fontSize: 12,
                       ),
                     ),
                   ],
@@ -397,6 +406,7 @@ class ActivityMessageCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
                     color: isMe
                         ? colorScheme.onPrimary.withValues(alpha: 0.7)
                         : colorScheme.onSurfaceVariant,
@@ -452,8 +462,9 @@ class ActivityMessageCard extends StatelessWidget {
                               children: [
                                 Text(
                                   displayName,
-                                  style: textTheme.labelSmall?.copyWith(
+                                  style: textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 13,
                                     color: isMe
                                         ? colorScheme.onPrimary
                                         : colorScheme.primary,
@@ -688,8 +699,7 @@ class ActivityMessageCard extends StatelessWidget {
                   ],
                 );
               }),
-            ] else if ((activityType == JobActivityType.askStatus ||
-                    activityType == JobActivityType.askStatusProofs) &&
+            ] else if (activityType == JobActivityType.askStatus &&
                 !isMe &&
                 chatController.userRole == UserRole.worker) ...[
               Obx(() {
@@ -728,6 +738,57 @@ class ActivityMessageCard extends StatelessWidget {
                             AppUIConstants.widgets.horizontalBox$8,
                             Text(
                               "Send Update",
+                              style: textTheme.labelLarge?.copyWith(
+                                color: btnColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ] else if (activityType == JobActivityType.askStatusProofs &&
+                !isMe &&
+                chatController.userRole == UserRole.worker) ...[
+              Obx(() {
+                final _ = chatController.messages.length;
+                final isFulfilled = chatController.isAskStatusFulfilled(
+                  message.timestamp,
+                );
+                final btnColor = isFulfilled
+                    ? colorScheme.onSurfaceVariant
+                    : primaryThemeColor;
+
+                return Column(
+                  children: [
+                    Divider(
+                      height: 1,
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+                    GestureDetector(
+                      onTap: isFulfilled
+                          ? null
+                          : () => chatController.openCameraForStatusProof(message),
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          vertical: AppUIConstants.spacing.space$12,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.camera_alt_rounded,
+                              color: btnColor,
+                              size: 18,
+                            ),
+                            AppUIConstants.widgets.horizontalBox$8,
+                            Text(
+                              "Open Camera",
                               style: textTheme.labelLarge?.copyWith(
                                 color: btnColor,
                                 fontWeight: FontWeight.bold,

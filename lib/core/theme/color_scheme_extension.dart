@@ -25,6 +25,10 @@ extension ColorSchemeExtension on ColorScheme {
   Color get shimmerHighlight => brightness == Brightness.light
       ? AppColors.light.shimmerHighlight
       : AppColors.dark.shimmerHighlight;
+
+  Color get black => brightness == Brightness.light
+      ? AppColors.light.black
+      : AppColors.dark.black;
 }
 extension BuildContextThemeExtension on BuildContext {
   ColorScheme get colorScheme => Theme.of(this).colorScheme;

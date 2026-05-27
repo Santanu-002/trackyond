@@ -21,6 +21,7 @@ import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/enums/job_action.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
+import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -282,11 +283,22 @@ class JobChatController extends GetxController {
   bool isAskStatusFulfilled(DateTime askTime) {
     return messages.any((m) {
       if (!m.timestamp.isAfter(askTime) || !m.isMe) return false;
-      return m.content.any((c) {
+      
+      final hasReply = m.content.any((c) {
         if (c.type != 'refer/reply') return false;
         final type = JobActivityType.fromString(c.metadata?['activityType']);
         return type == JobActivityType.askStatus || type == JobActivityType.askStatusProofs;
       });
+      if (hasReply) return true;
+
+      if (m.type == 'activity') {
+        final activityType = JobActivityType.fromString(m.metadata?['activity_type']);
+        final hasImage = m.content.any((c) => c.type == 'image');
+        if (activityType == JobActivityType.sendStatus && hasImage) {
+          return true;
+        }
+      }
+      return false;
     });
   }
 
@@ -398,6 +410,28 @@ class JobChatController extends GetxController {
     }
 
     return null;
+  }
+
+  String resolveMemberName(String? senderId, String? senderProfileUid, String fallbackName) {
+    if (senderProfileUid != null) {
+      final member = chatMembers.firstWhereOrNull((m) => m.uid == senderProfileUid);
+      if (member != null) {
+        return member.name;
+      }
+      if (senderProfileUid == job.workerProfileUid) {
+        return job.workerName ?? 'Worker';
+      }
+      if (senderProfileUid == job.createdByProfileUid) {
+        return job.createdByName ?? 'Admin';
+      }
+    }
+    if (senderId != null) {
+      final member = chatMembers.firstWhereOrNull((m) => m.userUid == senderId);
+      if (member != null) {
+        return member.name;
+      }
+    }
+    return fallbackName;
   }
 
   String parseMentions(String? text) {
@@ -665,8 +699,9 @@ class JobChatController extends GetxController {
             content: originalText,
             metadata: {
               'messageUid': repliedMsg.uid,
-              'senderName': repliedMsg.senderName,
+              'senderName': getSenderName(repliedMsg),
               'senderId': repliedMsg.senderId,
+              'senderProfileUid': repliedMsg.senderProfileUid,
               'type': repliedMsg.type,
               'imageUrl': imageUrl,
               if (repliedMsg.type == 'activity') ...{
@@ -783,7 +818,7 @@ class JobChatController extends GetxController {
   }
 
   Future<Map<String, dynamic>> _acquireLocationAndAddress() async {
-    await _setPhase('Checking permissions...');
+    await _setPhase(AppStrings.jobChat.checkingPermissions);
     final permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
@@ -799,7 +834,7 @@ class JobChatController extends GetxController {
       throw Exception('Please enable your GPS/location services.');
     }
 
-    await _setPhase('Acquiring GPS...');
+    await _setPhase(AppStrings.jobChat.acquiringGPS);
     final position =
         await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
@@ -811,7 +846,7 @@ class JobChatController extends GetxController {
               throw TimeoutException('Location request timed out.'),
         );
 
-    await _setPhase('Resolving Address...');
+    await _setPhase(AppStrings.jobChat.resolvingAddress);
     String address = 'Unknown location';
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -881,7 +916,7 @@ class JobChatController extends GetxController {
 
       // 1. If it is a photo action, perform capture and upload first!
       if (isPhotoAction) {
-        await _setPhase('Waiting for photo...');
+        await _setPhase(AppStrings.jobChat.waitingForPhoto);
         final picker = ImagePicker();
         final XFile? image = await picker.pickImage(
           source: ImageSource.camera,
@@ -890,12 +925,12 @@ class JobChatController extends GetxController {
 
         if (image == null) {
           cancelCurrentAction();
-          AppSnackbar.info('Photo is required for this action.');
+          AppSnackbar.info(AppStrings.jobChat.photoRequired);
           return;
         }
 
         if (isActionCancelled.value) return;
-        await _setPhase('Processing photo...');
+        await _setPhase(AppStrings.jobChat.processingPhoto);
         final File file = File(image.path);
         final uploadPath = job.jobId;
 
@@ -910,7 +945,7 @@ class JobChatController extends GetxController {
         final imgHeight = frame.image.height;
 
         if (isActionCancelled.value) return;
-        await _setPhase('Uploading photo...');
+        await _setPhase(AppStrings.jobChat.uploadingPhoto);
 
         final uploadResult = await _uploadFileUseCase(
           UploadFileParams(
@@ -1096,6 +1131,207 @@ class JobChatController extends GetxController {
       isActionLoading.value = false;
       actionLoadingMessage.value = null;
       loadingActionLabel.value = null;
+    }
+  }
+
+  Future<void> openCameraForStatusProof(JobChatMessageEntity requestMessage) async {
+    if (userRole == UserRole.worker) {
+      if (Get.isRegistered<AttendanceController>()) {
+        final attendanceController = Get.find<AttendanceController>();
+        if (attendanceController.attendanceStatus.value !=
+            AttendanceStatus.working) {
+          AppSnackbar.warn(AppStrings.jobChat.attendanceRequired);
+          return;
+        }
+      } else {
+        AppSnackbar.warn(AppStrings.jobChat.attendanceRequired);
+        return;
+      }
+    }
+
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+
+    if (image == null) {
+      return;
+    }
+
+    navigateToMediaPreview(image.path, requestMessage);
+  }
+
+  void navigateToMediaPreview(String imagePath, JobChatMessageEntity requestMessage) {
+    Get.toNamed(
+      AppRoutes.common.mediaPreview,
+      arguments: {
+        'imagePath': imagePath,
+        'requestMessage': requestMessage,
+      },
+    );
+  }
+
+  Future<bool> sendMediaStatusProof({
+    required String imagePath,
+    required String caption,
+    required JobChatMessageEntity requestMessage,
+  }) async {
+    try {
+      _cancelToken = CancelToken();
+      isActionCancelled.value = false;
+      uploadProgress.value = 0.0;
+      isActionLoading.value = true;
+      loadingActionLabel.value = 'send_status_proof';
+
+      // 1. Process photo & upload
+      actionLoadingMessage.value = AppStrings.jobChat.processingPhoto;
+      final File file = File(imagePath);
+      final uploadPath = job.jobId;
+
+      final fileSize = await file.length();
+      final fileName = file.path.split('/').last;
+      final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
+
+      final bytes = await file.readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      final imgWidth = frame.image.width;
+      final imgHeight = frame.image.height;
+
+      if (isActionCancelled.value) return false;
+      actionLoadingMessage.value = AppStrings.jobChat.uploadingPhoto;
+
+      final uploadResult = await _uploadFileUseCase(
+        UploadFileParams(
+          file: file,
+          path: uploadPath,
+          cancelToken: _cancelToken,
+          onSendProgress: (int sent, int total) {
+            if (total > 0) {
+              uploadProgress.value = sent / total;
+            }
+          },
+        ),
+      );
+
+      if (isActionCancelled.value) return false;
+
+      String? uploadedPhotoPath;
+      Map<String, dynamic>? photoMetadata;
+      bool uploadSuccess = false;
+      String uploadError = '';
+
+      uploadResult.fold(
+        (failure) {
+          uploadError = failure.message;
+        },
+        (path) {
+          uploadSuccess = true;
+          uploadedPhotoPath = path;
+          photoMetadata = {
+            'url': ApiEndpoints.common.download(path),
+            'path': path,
+            'fileMetadata': {
+              'fileName': fileName,
+              'size': _formatFileSize(fileSize),
+              'mimeType': mimeType,
+              'imageMetadata': {
+                'width': imgWidth,
+                'height': imgHeight,
+              },
+              'videoMetaData': null,
+              'docMetaData': null,
+            }
+          };
+        },
+      );
+
+      if (!uploadSuccess) {
+        throw Exception(uploadError.isNotEmpty ? uploadError : 'Failed to upload photo.');
+      }
+
+      // 2. Acquire Location
+      if (isActionCancelled.value) return false;
+      final locationData = await _acquireLocationAndAddress();
+
+      if (isActionCancelled.value) return false;
+      actionLoadingMessage.value = AppStrings.jobChat.syncingWithServer;
+
+      // 3. Prepare content and send activity message
+      final List<JobChatMessageContentEntity> content = [];
+      
+      content.add(
+        JobChatMessageContentEntity(
+          type: JobChatMessageType.text.value,
+          content: caption.isNotEmpty ? caption : AppStrings.jobChat.statusProofDefaultCaption,
+        ),
+      );
+
+      if (uploadedPhotoPath != null) {
+        content.add(
+          JobChatMessageContentEntity(
+            type: JobChatMessageType.image.value,
+            content: uploadedPhotoPath,
+            metadata: photoMetadata,
+          ),
+        );
+      }
+
+      final messageMetadata = {
+        'activity_type': JobActivityType.sendStatus.value,
+        'workerName': _currentUserName.value!,
+        ...locationData,
+      };
+
+      final tempLocalId = nanoid();
+      final activityMsg = JobChatMessageEntity(
+        uid: tempLocalId,
+        localId: tempLocalId,
+        jobId: job.jobId,
+        authorType: 'user',
+        senderName: _currentUserName.value!,
+        senderId: _currentUserUid.value!,
+        senderProfileUid: _currentUserProfileUid.value,
+        content: content,
+        type: 'activity',
+        metadata: messageMetadata,
+        timestamp: DateTime.now(),
+        isMe: true,
+      );
+
+      final result = await _sendMessageUseCase(
+        SendMessageParams(message: activityMsg),
+      );
+
+      bool sendSuccess = false;
+      result.fold(
+        (failure) {
+          AppSnackbar.destructive(failure.message);
+        },
+        (sendResult) {
+          sendSuccess = true;
+          messages.add(sendResult.message.copyWith(isMe: true));
+          scrollToLast(animate: true);
+          if (sendResult.job != null) {
+            _job.value = sendResult.job!;
+            _emitJobUpdateUseCase(sendResult.job!);
+          }
+          AppSnackbar.success(AppStrings.jobChat.statusUpdateSuccess);
+        },
+      );
+
+      return sendSuccess;
+    } catch (e) {
+      if (!isActionCancelled.value) {
+        AppSnackbar.destructive(e.toString());
+      }
+      return false;
+    } finally {
+      isActionLoading.value = false;
+      actionLoadingMessage.value = null;
+      loadingActionLabel.value = null;
+      uploadProgress.value = 0.0;
     }
   }
 

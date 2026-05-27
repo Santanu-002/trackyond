@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/widgets/button/app_button.dart';
-import 'package:trackyond/core/common/widgets/text_field/app_text_field.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/job_actions_bar.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/reply_preview_bar.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/chat_input_field.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/chat_send_button.dart';
 
 class MessageInput extends GetView<JobChatController> {
   const MessageInput({super.key});
@@ -47,75 +47,26 @@ class MessageInput extends GetView<JobChatController> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
-                child: Obx(() {
-                  final isFocused = controller.hasFocus.value;
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: isFocused
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
-                        width: isFocused ? 2 : 1,
-                      ),
+                child: ChatInputField(
+                  controller: controller.messageController,
+                  focusNode: controller.focusNode,
+                  hintText: 'Type a message...',
+                  suffix: IconButton(
+                    icon: Icon(
+                      AppIcons.common.attachment,
+                      color: colorScheme.primary,
+                      size: 20,
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: AppTextField(
-                            controller: controller.messageController,
-                            focusNode: controller.focusNode,
-                            hintText: 'Type a message...',
-                            textStyle: context.textTheme.bodyMedium,
-                            hintStyle: context.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide.none,
-                            maxLines: 5,
-                            minLines: 1,
-                            keyboardType: TextInputType.multiline,
-                            textInputAction: TextInputAction.newline,
-                            filled: false,
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            AppIcons.common.attachment,
-                            color: colorScheme.primary,
-                            size: 20,
-                          ),
-                          onPressed: controller.sendMockPhoto,
-                        ),
-                      ],
-                    ),
-                  );
-                }),
+                    onPressed: controller.sendMockPhoto,
+                  ),
+                ),
               ),
               AppUIConstants.widgets.horizontalBox$8,
               Obx(() {
                 final isSending = controller.isMessageSending.value;
-                return AppButton.icon(
-                  icon: isSending
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.onPrimary,
-                          ),
-                        )
-                      : Icon(
-                          AppIcons.common.send,
-                          size: 22,
-                        ),
-                  onPressed: isSending ? () {} : controller.sendMessage,
-                  size: 48,
-                  borderRadius: 100,
-                  color: colorScheme.primary,
-                  iconColor: colorScheme.onPrimary,
+                return ChatSendButton(
+                  onPressed: controller.sendMessage,
+                  isLoading: isSending,
                 );
               }),
             ],

@@ -647,4 +647,18 @@ class JobChatStrings {
   String get activityDefaultMessage => 'Performed action';
   String get selected => 'selected';
   String get messagesCopied => 'Messages copied to clipboard';
+  String get addCaptionHint => 'Add a caption...';
+  String get jobIdPrefix => 'Job #';
+  String uploadingPhotoProgress(String percentage) => 'Uploading Photo: $percentage%';
+  String get sendingUpdate => 'Sending update...';
+  String get processingPhoto => 'Processing photo...';
+  String get uploadingPhoto => 'Uploading photo...';
+  String get checkingPermissions => 'Checking permissions...';
+  String get acquiringGPS => 'Acquiring GPS...';
+  String get resolvingAddress => 'Resolving Address...';
+  String get syncingWithServer => 'Syncing with server...';
+  String get statusProofDefaultCaption => 'Uploaded a status update with photo proof.';
+  String get statusUpdateSuccess => 'Status update sent successfully.';
+  String get photoRequired => 'Photo is required for this action.';
+  String get waitingForPhoto => 'Waiting for photo...';
 }

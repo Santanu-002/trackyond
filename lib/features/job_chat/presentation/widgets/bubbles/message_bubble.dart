@@ -102,12 +102,18 @@ class MessageBubble extends StatelessWidget {
           final metadata = replyContent.metadata ?? {};
           final replyToUid = metadata['messageUid'] as String? ?? '';
           final replySenderId = metadata['senderId'] as String? ?? '';
+          final replySenderProfileUid = metadata['senderProfileUid'] as String?;
           final replySenderName = metadata['senderName'] as String? ?? '';
           final replyType = metadata['type'] as String? ?? 'message';
           final replyImageUrl = metadata['imageUrl'] as String?;
 
+          final resolvedSenderName = chatController.resolveMemberName(
+            replySenderId.isEmpty ? null : replySenderId,
+            replySenderProfileUid,
+            replySenderName,
+          );
           final replyToMe = replySenderId == chatController.currentUserId;
-          final displayName = replyToMe ? 'You' : replySenderName;
+          final displayName = replyToMe ? 'You' : resolvedSenderName;
 
           Widget replyBodyWidget;
           if (replyType == 'activity') {
@@ -185,6 +191,7 @@ class MessageBubble extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.bodySmall?.copyWith(
+                      fontSize: 12,
                       color: isMe
                           ? colorScheme.onPrimary.withValues(alpha: 0.8)
                           : colorScheme.onSurfaceVariant,
@@ -208,6 +215,7 @@ class MessageBubble extends StatelessWidget {
                 Text(
                   'Photo',
                   style: textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
                     color: isMe
                         ? colorScheme.onPrimary.withValues(alpha: 0.8)
                         : colorScheme.onSurfaceVariant,
@@ -221,6 +229,7 @@ class MessageBubble extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: textTheme.bodySmall?.copyWith(
+                fontSize: 12,
                 color: isMe
                     ? colorScheme.onPrimary.withValues(alpha: 0.8)
                     : colorScheme.onSurfaceVariant,
@@ -277,8 +286,9 @@ class MessageBubble extends StatelessWidget {
                             children: [
                               Text(
                                 displayName,
-                                style: textTheme.labelSmall?.copyWith(
+                                style: textTheme.bodySmall?.copyWith(
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 13,
                                   color: isMe
                                       ? colorScheme.onPrimary
                                       : colorScheme.primary,

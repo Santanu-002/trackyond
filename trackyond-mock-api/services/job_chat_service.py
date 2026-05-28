@@ -10,13 +10,31 @@ from core.utils.datetime_utils import now_utc
 from core.constants.enums import ChatMessageType, JobStatus
 from services.serializers import serialize_job, serialize_member_profile
 
-def get_job_messages(db: Session, job_id: str):
-    messages = db.query(models.JobChatMessage).filter(
+def get_job_messages(db: Session, job_id: str, limit: int = None, offset: int = None, search: str = None, message_type: str = None):
+    query = db.query(models.JobChatMessage).filter(
         models.JobChatMessage.job_id == job_id,
         models.JobChatMessage.active == True
-    ).order_by(asc(models.JobChatMessage.created_at)).all()
-    
-    return messages
+    )
+
+    if message_type:
+        query = query.filter(models.JobChatMessage.type == message_type)
+
+    if search:
+        query = query.filter(models.JobChatMessage.content.any(
+            models.JobChatMessageContent.content.ilike(f"%{search}%")
+        ))
+
+    if limit is not None or offset is not None:
+        query = query.order_by(desc(models.JobChatMessage.created_at))
+        if offset is not None:
+            query = query.offset(offset)
+        if limit is not None:
+            query = query.limit(limit)
+        messages = query.all()
+        messages.reverse()
+        return messages
+    else:
+        return query.order_by(asc(models.JobChatMessage.created_at)).all()
 
 def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMessageCreate):
     print("DEBUG: message_data.created_by_author_at =", message_data.created_by_author_at, type(message_data.created_by_author_at), "tzinfo =", getattr(message_data.created_by_author_at, "tzinfo", None))

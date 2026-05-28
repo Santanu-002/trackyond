@@ -116,7 +116,10 @@ class JobChatPage extends GetView<JobChatController> {
                           itemPositionsListener: controller.itemPositionsListener,
                           initialScrollIndex: 0,
                           reverse: true,
-                          padding: EdgeInsets.symmetric(vertical: AppUIConstants.spacing.space$8),
+                          padding: EdgeInsets.only(
+                            top: AppUIConstants.spacing.space$8,
+                            bottom: 0,
+                          ),
                           itemCount: items.length,
                           itemBuilder: (context, index) {
                             final item = items[index];
@@ -165,7 +168,15 @@ class JobChatPage extends GetView<JobChatController> {
                             return Padding(
                               padding: EdgeInsets.only(bottom: bottomPadding),
                               child: switch (item) {
-                                ChatDateHeader(:final date) => DateChip(date: date),
+                                ChatDateHeader(:final date) => DateChip(
+                                  date: date,
+                                  margin: index == items.length - 1
+                                      ? EdgeInsets.only(
+                                          top: AppUIConstants.spacing.space$4,
+                                          bottom: AppUIConstants.spacing.space$8,
+                                        )
+                                      : null,
+                                ),
                                 ChatTimeHeaderItem(:final time) => TimeChip(time: time),
                                 ChatHeaderMessage(:final message) => Padding(
                                   padding: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$16),

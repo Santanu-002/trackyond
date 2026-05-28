@@ -3,6 +3,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:mime/mime.dart';
+import 'package:blurhash_dart/blurhash_dart.dart';
+import 'package:image/image.dart' as img;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +41,7 @@ import 'package:trackyond/features/worker/attendance/presentation/controllers/at
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/events/chat_event.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_use_case.dart';
+import 'package:trackyond/features/job_chat/domain/entities/message_query_options.dart';
 
 class JobChatController extends GetxController {
   final GetJobMessagesUseCase _getMessagesUseCase;
@@ -62,6 +65,10 @@ class JobChatController extends GetxController {
        _uploadFileUseCase = uploadFileUseCase,
        _listenChatEventsUseCase = listenChatEventsUseCase;
 
+  final RxBool isLoadingMore = false.obs;
+  final RxBool hasMoreMessages = true.obs;
+  static const int _messageLimit = 20;
+
   final ItemScrollController itemScrollController = ItemScrollController();
   final ItemPositionsListener itemPositionsListener =
       ItemPositionsListener.create();
@@ -75,6 +82,15 @@ class JobChatController extends GetxController {
     
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isNotEmpty) {
+      // items are reversed, so index 0 is bottom. The top-most visible item has the highest index among visible items
+      final topMostItemPosition = positions.reduce((max, position) => position.index > max.index ? position : max);
+      final highestIndex = topMostItemPosition.index;
+
+      // Trigger lazy load if we are close to the top of the visible list (oldest messages)
+      if (highestIndex >= flattenedItems.length - 3 && !isLoadingMore.value && hasMoreMessages.value) {
+        loadMoreMessages();
+      }
+
       // If the oldest item (top of chat) is visible, hide the floating header
       final isTopVisible = positions.any((p) => p.index == flattenedItems.length - 1);
       if (isTopVisible) {
@@ -83,10 +99,7 @@ class JobChatController extends GetxController {
         return;
       }
 
-      // items are reversed, so index 0 is bottom. The top-most visible item has the highest index among visible items
-      final topMostItemPosition = positions.reduce((max, position) => position.index > max.index ? position : max);
-      
-      final index = topMostItemPosition.index;
+      final index = highestIndex;
       if (index >= 0 && index < flattenedItems.length) {
         final topItem = flattenedItems[index];
         DateTime? newDate;
@@ -268,6 +281,8 @@ class JobChatController extends GetxController {
     focusNode.requestFocus();
   }
 
+
+
   void cancelReply() {
     replyingToMessage.value = null;
   }
@@ -280,22 +295,42 @@ class JobChatController extends GetxController {
     });
   }
 
-  bool isAskStatusFulfilled(DateTime askTime) {
+  bool isAskStatusFulfilled(JobChatMessageEntity requestMessage) {
+    final reqType = JobActivityType.fromString(requestMessage.metadata?['activity_type']);
+
     return messages.any((m) {
-      if (!m.timestamp.isAfter(askTime) || !m.isMe) return false;
+      if (!m.timestamp.isAfter(requestMessage.timestamp) || !m.isMe) return false;
       
       final hasReply = m.content.any((c) {
-        if (c.type != 'refer/reply') return false;
-        final type = JobActivityType.fromString(c.metadata?['activityType']);
-        return type == JobActivityType.askStatus || type == JobActivityType.askStatusProofs;
+        if (c.type != 'refer/reply' && c.type != 'reply') return false;
+        final repliedMsgUid = c.metadata?['messageUid'] as String?;
+        return repliedMsgUid == requestMessage.uid;
       });
-      if (hasReply) return true;
+
+      if (hasReply) {
+        if (reqType == JobActivityType.askStatusProofs) {
+          // For status with proofs, the reply itself must be an activity message of type sendStatus
+          if (m.type == 'activity') {
+            final activityType = JobActivityType.fromString(m.metadata?['activity_type']);
+            if (activityType == JobActivityType.sendStatus) {
+              return true;
+            }
+          }
+          return false;
+        }
+        // For regular status requested, any reply counts as fulfilling it
+        return true;
+      }
 
       if (m.type == 'activity') {
         final activityType = JobActivityType.fromString(m.metadata?['activity_type']);
         final hasImage = m.content.any((c) => c.type == 'image');
-        if (activityType == JobActivityType.sendStatus && hasImage) {
-          return true;
+        if (activityType == JobActivityType.sendStatus) {
+          if (reqType == JobActivityType.askStatusProofs) {
+            return hasImage;
+          } else if (reqType == JobActivityType.askStatus) {
+            return true;
+          }
         }
       }
       return false;
@@ -597,6 +632,7 @@ class JobChatController extends GetxController {
 
   Future<void> fetchMessages() async {
     errorMessage.value = null;
+    hasMoreMessages.value = true;
 
     final membersResult = await _getChatMembersUseCase(job.jobId);
     membersResult.fold(
@@ -607,18 +643,66 @@ class JobChatController extends GetxController {
       },
     );
 
-    final result = await _getMessagesUseCase(job.jobId);
+    final result = await _getMessagesUseCase(
+      GetJobMessagesParams(
+        jobId: job.jobId,
+        options: const MessageQueryOptions(
+          limit: _messageLimit,
+          offset: 0,
+        ),
+      ),
+    );
     result.fold(
       (failure) {
         errorMessage.value = failure.message;
         AppSnackbar.destructive(failure.message);
       },
       (data) {
+        if (data.length < _messageLimit) {
+          hasMoreMessages.value = false;
+        }
         final updatedMessages = data.map((m) {
           final isMe = m.senderId == _currentUserUid.value;
           return m.copyWith(isMe: isMe);
         }).toList();
         messages.assignAll(updatedMessages);
+      },
+    );
+  }
+
+  Future<void> loadMoreMessages() async {
+    if (isLoadingMore.value || !hasMoreMessages.value) return;
+
+    isLoadingMore.value = true;
+    final currentOffset = messages.length;
+
+    final result = await _getMessagesUseCase(
+      GetJobMessagesParams(
+        jobId: job.jobId,
+        options: MessageQueryOptions(
+          limit: _messageLimit,
+          offset: currentOffset,
+        ),
+      ),
+    );
+
+    result.fold(
+      (failure) {
+        debugPrint('Error loading more messages: ${failure.message}');
+        isLoadingMore.value = false;
+      },
+      (data) {
+        if (data.length < _messageLimit) {
+          hasMoreMessages.value = false;
+        }
+
+        final updatedMessages = data.map((m) {
+          final isMe = m.senderId == _currentUserUid.value;
+          return m.copyWith(isMe: isMe);
+        }).toList();
+
+        messages.insertAll(0, updatedMessages);
+        isLoadingMore.value = false;
       },
     );
   }
@@ -647,7 +731,6 @@ class JobChatController extends GetxController {
     }
 
     final repliedMsg = replyingToMessage.value;
-    replyingToMessage.value = null;
 
     isMessageSending.value = true;
     Map<String, dynamic> locationData = {};
@@ -655,9 +738,7 @@ class JobChatController extends GetxController {
     try {
       if (userRole == UserRole.worker && repliedMsg != null && repliedMsg.type == 'activity') {
         final activityType = JobActivityType.fromString(repliedMsg.metadata?['activity_type']);
-        if (activityType == JobActivityType.askStatus || 
-            activityType == JobActivityType.askStatusProofs || 
-            activityType == JobActivityType.askLocation) {
+        if (activityType == JobActivityType.askStatus) {
           // For status requests, attach location silently in background
           try {
             // We reuse the same acquire logic but without specific phase UI messages for the bar
@@ -671,7 +752,6 @@ class JobChatController extends GetxController {
         }
       }
 
-      messageController.clear();
 
       // Optimistic UI update
       final tempId = nanoid();
@@ -680,11 +760,13 @@ class JobChatController extends GetxController {
       if (repliedMsg != null) {
         String originalText = '';
         String? imageUrl;
-
-        final firstImage =
-            repliedMsg.content.firstWhereOrNull((c) => c.type == 'image');
+        String? blurHash;
+        final imageContents =
+            repliedMsg.content.where((c) => c.type == 'image').toList();
+        final firstImage = imageContents.firstOrNull;
         if (firstImage != null) {
           imageUrl = firstImage.metadata?['url'] as String?;
+          blurHash = firstImage.metadata?['blurHash'] as String?;
           originalText = firstImage.content ?? 'Photo';
         } else {
           final textContent = repliedMsg.content.firstWhereOrNull(
@@ -704,6 +786,10 @@ class JobChatController extends GetxController {
               'senderProfileUid': repliedMsg.senderProfileUid,
               'type': repliedMsg.type,
               'imageUrl': imageUrl,
+              'blurHash': blurHash,
+              'remainingImageCount': imageContents.length > 1
+                  ? (imageContents.length - 1)
+                  : null,
               if (repliedMsg.type == 'activity') ...{
                 'activityType': repliedMsg.metadata?['activity_type'] ?? '',
                 'address': repliedMsg.metadata?['address'] ?? '',
@@ -752,6 +838,8 @@ class JobChatController extends GetxController {
           AppSnackbar.destructive(failure.message);
         },
         (sendResult) {
+          messageController.clear();
+          replyingToMessage.value = null;
           // Replace temp message with real one
           final index = messages.indexWhere((m) => m.uid == tempId);
           if (index != -1) {
@@ -787,6 +875,7 @@ class JobChatController extends GetxController {
             'width': 400,
             'height': 300,
             'mimeType': 'image/jpeg',
+            'blurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
           },
         ),
       ],
@@ -815,6 +904,25 @@ class JobChatController extends GetxController {
     );
     messages.add(timelineMsg);
     scrollToLast(animate: true);
+  }
+
+  Future<String?> _computeAndPrintBlurHash(String imagePath) async {
+    try {
+      final File file = File(imagePath);
+      final bytes = await file.readAsBytes();
+      final decodedImage = img.decodeImage(bytes);
+      if (decodedImage != null) {
+        // Resize to 100px width to speed up encoding significantly and save memory/CPU
+        final resized = img.copyResize(decodedImage, width: 100);
+        final blurHashObj = BlurHash.encode(resized, numCompX: 4, numCompY: 3);
+        final blurHash = blurHashObj.hash;
+        debugPrint('\nBlurHash:\n$blurHash\nFor path: $imagePath\n');
+        return blurHash;
+      }
+    } catch (e) {
+      debugPrint('Error computing blurhash: $e');
+    }
+    return null;
   }
 
   Future<Map<String, dynamic>> _acquireLocationAndAddress() async {
@@ -944,6 +1052,8 @@ class JobChatController extends GetxController {
         final imgWidth = frame.image.width;
         final imgHeight = frame.image.height;
 
+        final String? calculatedBlurHash = await _computeAndPrintBlurHash(image.path);
+
         if (isActionCancelled.value) return;
         await _setPhase(AppStrings.jobChat.uploadingPhoto);
 
@@ -970,6 +1080,7 @@ class JobChatController extends GetxController {
             photoMetadata = {
               'url': ApiEndpoints.common.download(path),
               'path': path,
+              'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
               'fileMetadata': {
                 'fileName': fileName,
                 'size': _formatFileSize(fileSize),
@@ -1173,7 +1284,7 @@ class JobChatController extends GetxController {
   }
 
   Future<bool> sendMediaStatusProof({
-    required String imagePath,
+    required List<String> imagePaths,
     required String caption,
     required JobChatMessageEntity requestMessage,
   }) async {
@@ -1184,81 +1295,7 @@ class JobChatController extends GetxController {
       isActionLoading.value = true;
       loadingActionLabel.value = 'send_status_proof';
 
-      // 1. Process photo & upload
-      actionLoadingMessage.value = AppStrings.jobChat.processingPhoto;
-      final File file = File(imagePath);
-      final uploadPath = job.jobId;
-
-      final fileSize = await file.length();
-      final fileName = file.path.split('/').last;
-      final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
-
-      final bytes = await file.readAsBytes();
-      final codec = await ui.instantiateImageCodec(bytes);
-      final frame = await codec.getNextFrame();
-      final imgWidth = frame.image.width;
-      final imgHeight = frame.image.height;
-
-      if (isActionCancelled.value) return false;
-      actionLoadingMessage.value = AppStrings.jobChat.uploadingPhoto;
-
-      final uploadResult = await _uploadFileUseCase(
-        UploadFileParams(
-          file: file,
-          path: uploadPath,
-          cancelToken: _cancelToken,
-          onSendProgress: (int sent, int total) {
-            if (total > 0) {
-              uploadProgress.value = sent / total;
-            }
-          },
-        ),
-      );
-
-      if (isActionCancelled.value) return false;
-
-      String? uploadedPhotoPath;
-      Map<String, dynamic>? photoMetadata;
-      bool uploadSuccess = false;
-      String uploadError = '';
-
-      uploadResult.fold(
-        (failure) {
-          uploadError = failure.message;
-        },
-        (path) {
-          uploadSuccess = true;
-          uploadedPhotoPath = path;
-          photoMetadata = {
-            'url': ApiEndpoints.common.download(path),
-            'path': path,
-            'fileMetadata': {
-              'fileName': fileName,
-              'size': _formatFileSize(fileSize),
-              'mimeType': mimeType,
-              'imageMetadata': {
-                'width': imgWidth,
-                'height': imgHeight,
-              },
-              'videoMetaData': null,
-              'docMetaData': null,
-            }
-          };
-        },
-      );
-
-      if (!uploadSuccess) {
-        throw Exception(uploadError.isNotEmpty ? uploadError : 'Failed to upload photo.');
-      }
-
-      // 2. Acquire Location
-      if (isActionCancelled.value) return false;
-      final locationData = await _acquireLocationAndAddress();
-
-      if (isActionCancelled.value) return false;
-      actionLoadingMessage.value = AppStrings.jobChat.syncingWithServer;
-
-      // 3. Prepare content and send activity message
+      // 1. Process photos & upload
       final List<JobChatMessageContentEntity> content = [];
       
       content.add(
@@ -1268,19 +1305,93 @@ class JobChatController extends GetxController {
         ),
       );
 
-      if (uploadedPhotoPath != null) {
-        content.add(
-          JobChatMessageContentEntity(
-            type: JobChatMessageType.image.value,
-            content: uploadedPhotoPath,
-            metadata: photoMetadata,
+      for (int i = 0; i < imagePaths.length; i++) {
+        final imagePath = imagePaths[i];
+        actionLoadingMessage.value = '${AppStrings.jobChat.processingPhoto} (${i + 1}/${imagePaths.length})';
+        final File file = File(imagePath);
+        final uploadPath = job.jobId;
+
+        final fileSize = await file.length();
+        final fileName = file.path.split('/').last;
+        final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
+
+        final bytes = await file.readAsBytes();
+        final codec = await ui.instantiateImageCodec(bytes);
+        final frame = await codec.getNextFrame();
+        final imgWidth = frame.image.width;
+        final imgHeight = frame.image.height;
+
+        final String? calculatedBlurHash = await _computeAndPrintBlurHash(imagePath);
+
+        if (isActionCancelled.value) return false;
+        actionLoadingMessage.value = '${AppStrings.jobChat.uploadingPhoto} (${i + 1}/${imagePaths.length})';
+
+        final uploadResult = await _uploadFileUseCase(
+          UploadFileParams(
+            file: file,
+            path: uploadPath,
+            cancelToken: _cancelToken,
+            onSendProgress: (int sent, int total) {
+              if (total > 0) {
+                uploadProgress.value = sent / total;
+              }
+            },
           ),
         );
+
+        if (isActionCancelled.value) return false;
+
+        bool uploadSuccess = false;
+        String uploadError = '';
+
+        uploadResult.fold(
+          (failure) {
+            uploadError = failure.message;
+          },
+          (path) {
+            uploadSuccess = true;
+            final photoMetadata = {
+              'url': ApiEndpoints.common.download(path),
+              'path': path,
+              'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+              'fileMetadata': {
+                'fileName': fileName,
+                'size': _formatFileSize(fileSize),
+                'mimeType': mimeType,
+                'imageMetadata': {
+                  'width': imgWidth,
+                  'height': imgHeight,
+                },
+                'videoMetaData': null,
+                'docMetaData': null,
+              }
+            };
+            content.add(
+              JobChatMessageContentEntity(
+                type: JobChatMessageType.image.value,
+                content: path,
+                metadata: photoMetadata,
+              ),
+            );
+          },
+        );
+
+        if (!uploadSuccess) {
+          throw Exception(uploadError.isNotEmpty ? uploadError : 'Failed to upload photo.');
+        }
       }
+
+      // 2. Acquire Location
+      if (isActionCancelled.value) return false;
+      final locationData = await _acquireLocationAndAddress();
+
+      if (isActionCancelled.value) return false;
+      actionLoadingMessage.value = AppStrings.jobChat.syncingWithServer;
 
       final messageMetadata = {
         'activity_type': JobActivityType.sendStatus.value,
         'workerName': _currentUserName.value!,
+        'requestMessageUid': requestMessage.uid,
         ...locationData,
       };
 

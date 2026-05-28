@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
-import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
@@ -10,6 +9,8 @@ import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_ent
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activity_message_card.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/bubble_time_and_status.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_image_grid/chat_image_grid.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/reply_image_thumbnail.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_bubble_layout.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -95,7 +96,7 @@ class MessageBubble extends StatelessWidget {
         final List<Widget> children = [];
 
         final replyContent = message.content.firstWhereOrNull(
-          (c) => c.type == 'refer/reply',
+          (c) => c.type == 'refer/reply' || c.type == 'reply',
         );
 
         if (replyContent != null) {
@@ -263,19 +264,13 @@ class MessageBubble extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (replyImageUrl != null) ...[
-                          Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: AppImage(
-                                imageUrl: replyImageUrl,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                          ReplyImageThumbnail(
+                            imageUrl: replyImageUrl,
+                            blurHash: metadata['blurHash'] as String? ??
+                                metadata['blur_hash'] as String?,
+                            remainingCount: metadata['remainingImageCount'] as int? ?? 0,
+                            size: 30.0,
+                            borderRadius: 2.0,
                           ),
                           AppUIConstants.widgets.horizontalBox$8,
                         ],
@@ -308,113 +303,73 @@ class MessageBubble extends StatelessWidget {
           );
         }
 
-        for (int i = 0; i < validContents.length; i++) {
-          final content = validContents[i];
-          final isLast = i == validContents.length - 1;
+        final imageContents = validContents.where((c) => c.type == 'image').toList();
+        final textContents = validContents.where((c) => c.type != 'image').toList();
 
-          if (content.type == 'image') {
-            final url = content.metadata?['url'] ?? '';
-            final fileMetadata =
-                content.metadata?['fileMetadata'] as Map<String, dynamic>?;
-            final imageMetadata =
-                fileMetadata?['imageMetadata'] as Map<String, dynamic>?;
-            final width =
-                (imageMetadata?['width'] ?? content.metadata?['width']) as num?;
-            final height =
-                (imageMetadata?['height'] ?? content.metadata?['height'])
-                    as num?;
-
-            Widget imgWidget = AppImage(
-              imageUrl: url,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                width: 200,
-                height: 150,
-                color: colorScheme.surfaceDim,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: isMe ? colorScheme.onPrimary : colorScheme.primary,
-                    strokeWidth: 2,
-                  ),
-                ),
+        if (imageContents.isNotEmpty) {
+          final double topPad = (replyContent == null) ? 6.0 : 4.0;
+          final isLast = textContents.isEmpty;
+          final double bottomPad = isLast ? 6.0 : 4.0;
+          children.add(
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppUIConstants.spacing.space$4,
+                topPad,
+                AppUIConstants.spacing.space$4,
+                bottomPad,
               ),
-              errorWidget: (context, url, error) => Container(
-                width: 200,
-                height: 150,
-                color: colorScheme.surfaceDim,
-                child: const Center(child: Icon(Icons.error_outline)),
-              ),
-            );
-
-            if (width != null && height != null && height > 0) {
-              double calculatedAspectRatio = width / height;
-              if (calculatedAspectRatio < 0.8) {
-                calculatedAspectRatio = 0.8;
-              }
-              imgWidget = SizedBox(
+              child: ChatImageGrid(
+                message: message,
+                imageContents: imageContents,
+                isMe: isMe,
                 width: 240,
-                child: AspectRatio(
-                  aspectRatio: calculatedAspectRatio,
-                  child: imgWidget,
-                ),
-              );
-            } else {
-              imgWidget = SizedBox(width: 200, height: 150, child: imgWidget);
-            }
+              ),
+            ),
+          );
+        }
 
-            final double topPad = (i == 0 && replyContent == null) ? 6.0 : 4.0;
-            final double bottomPad = isLast ? 6.0 : 4.0;
+        for (int i = 0; i < textContents.length; i++) {
+          final content = textContents[i];
+          final isLast = i == textContents.length - 1;
+
+          final textWidget = RichText(
+            text: TextSpan(
+              children: chatController.parseMentionsToSpans(
+                content.content ?? '',
+                textTheme.bodyMedium?.copyWith(
+                  color: isMe ? colorScheme.onPrimary : colorScheme.onSurface,
+                ),
+                textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isMe ? colorScheme.onPrimary : colorScheme.primary,
+                ),
+              ),
+            ),
+          );
+
+          final double topPad = (i == 0 && imageContents.isEmpty && replyContent == null) ? 8.0 : 4.0;
+          final double bottomPad = isLast ? 8.0 : 4.0;
+
+          if (isLast) {
             children.add(
               Padding(
-                padding: EdgeInsets.fromLTRB(6.0, topPad, 6.0, bottomPad),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    AppUIConstants.radius.radius$8,
+                padding: EdgeInsets.fromLTRB(8.0, topPad, 12.0, bottomPad),
+                child: ChatBubbleLayout(
+                  text: textWidget,
+                  time: BubbleTimeAndStatus(
+                    timestamp: message.timestamp,
+                    isMe: isMe,
                   ),
-                  child: imgWidget,
                 ),
               ),
             );
           } else {
-            final textWidget = RichText(
-              text: TextSpan(
-                children: chatController.parseMentionsToSpans(
-                  content.content ?? '',
-                  textTheme.bodyMedium?.copyWith(
-                    color: isMe ? colorScheme.onPrimary : colorScheme.onSurface,
-                  ),
-                  textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isMe ? colorScheme.onPrimary : colorScheme.primary,
-                  ),
-                ),
+            children.add(
+              Padding(
+                padding: EdgeInsets.fromLTRB(8.0, topPad, 12.0, bottomPad),
+                child: textWidget,
               ),
             );
-
-            final double topPad = (i == 0 && replyContent == null) ? 8.0 : 4.0;
-            final double bottomPad = isLast ? 8.0 : 4.0;
-
-            if (isLast) {
-              children.add(
-                Padding(
-                  padding: EdgeInsets.fromLTRB(8.0, topPad, 12.0, bottomPad),
-                  child: ChatBubbleLayout(
-                    text: textWidget,
-                    time: BubbleTimeAndStatus(
-                      timestamp: message.timestamp,
-                      isMe: isMe,
-                    ),
-                  ),
-                ),
-              );
-            } else {
-              children.add(
-                Padding(
-                  padding: EdgeInsets.fromLTRB(8.0, topPad, 12.0, bottomPad),
-                  child: textWidget,
-                ),
-              );
-            }
           }
         }
 

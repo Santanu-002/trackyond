@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:trackyond/core/common/enums/job_action.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
-import 'package:trackyond/core/common/widgets/image/app_image.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/reply_image_thumbnail.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -12,6 +12,7 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_image_grid/chat_image_grid.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activity_meta_row.dart';
 
 class ActivityMessageCard extends StatelessWidget {
@@ -182,61 +183,15 @@ class ActivityMessageCard extends StatelessWidget {
         latitude != null &&
         longitude != null;
 
-    final imageContentIndex = message.content.indexWhere(
-      (c) => c.type == 'image',
-    );
-    final imageContent = imageContentIndex != -1
-        ? message.content[imageContentIndex]
-        : null;
+    final imageContents = message.content.where((c) => c.type == 'image').toList();
     Widget? imageWidget;
 
-    if (imageContent != null) {
-      final url = imageContent.metadata?['url'] as String? ?? '';
-      final fileMetadata =
-          imageContent.metadata?['fileMetadata'] as Map<String, dynamic>?;
-      final imageMetadata =
-          fileMetadata?['imageMetadata'] as Map<String, dynamic>?;
-      final width = imageMetadata?['width'] as num?;
-      final height = imageMetadata?['height'] as num?;
-
-      if (url.isNotEmpty) {
-        Widget cachedImage = AppImage(
-          imageUrl: url,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          placeholder: (context, url) => Container(
-            color: colorScheme.surfaceDim,
-            child: Center(
-              child: CircularProgressIndicator(
-                color: colorScheme.primary,
-                strokeWidth: 2,
-              ),
-            ),
-          ),
-          errorWidget: (context, url, error) => Container(
-            height: 150,
-            color: colorScheme.surfaceDim,
-            child: const Center(child: Icon(Icons.error_outline)),
-          ),
-        );
-
-        if (width != null && height != null && height > 0) {
-          double calculatedAspectRatio = width / height;
-          if (calculatedAspectRatio < 0.8) {
-            calculatedAspectRatio = 0.8;
-          }
-          imageWidget = AspectRatio(
-            aspectRatio: calculatedAspectRatio,
-            child: cachedImage,
-          );
-        } else {
-          imageWidget = SizedBox(
-            height: 180,
-            width: double.infinity,
-            child: cachedImage,
-          );
-        }
-      }
+    if (imageContents.isNotEmpty) {
+      imageWidget = ChatImageGrid(
+        message: message,
+        imageContents: imageContents,
+        isMe: isMe,
+      );
     }
 
     // Color theme overrides based on isMe to match normal bubble look
@@ -285,18 +240,23 @@ class ActivityMessageCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (imageWidget != null) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(topLeftRadius),
-                  topRight: Radius.circular(topRightRadius),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppUIConstants.spacing.space$4,
+                  AppUIConstants.spacing.space$4,
+                  AppUIConstants.spacing.space$4,
+                  AppUIConstants.spacing.space$4,
                 ),
-                child: imageWidget,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16 - 2.0),
+                  child: imageWidget,
+                ),
               ),
             ],
             // --- REPLY PREVIEW START ---
             () {
               final replyContent = message.content.firstWhereOrNull(
-                (c) => c.type == 'refer/reply',
+                (c) => c.type == 'refer/reply' || c.type == 'reply',
               );
               if (replyContent == null) return const SizedBox.shrink();
 
@@ -439,19 +399,13 @@ class ActivityMessageCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (replyImageUrl != null) ...[
-                            Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(2),
-                                child: AppImage(
-                                  imageUrl: replyImageUrl,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
+                            ReplyImageThumbnail(
+                              imageUrl: replyImageUrl,
+                              blurHash: metadata['blurHash'] as String? ??
+                                  metadata['blur_hash'] as String?,
+                              remainingCount: metadata['remainingImageCount'] as int? ?? 0,
+                              size: 30.0,
+                              borderRadius: 2.0,
                             ),
                             AppUIConstants.widgets.horizontalBox$8,
                           ],
@@ -705,7 +659,7 @@ class ActivityMessageCard extends StatelessWidget {
               Obx(() {
                 final _ = chatController.messages.length;
                 final isFulfilled = chatController.isAskStatusFulfilled(
-                  message.timestamp,
+                  message,
                 );
                 final btnColor = isFulfilled
                     ? colorScheme.onSurfaceVariant
@@ -756,7 +710,7 @@ class ActivityMessageCard extends StatelessWidget {
               Obx(() {
                 final _ = chatController.messages.length;
                 final isFulfilled = chatController.isAskStatusFulfilled(
-                  message.timestamp,
+                  message,
                 );
                 final btnColor = isFulfilled
                     ? colorScheme.onSurfaceVariant

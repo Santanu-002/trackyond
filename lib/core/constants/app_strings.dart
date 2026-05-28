@@ -661,4 +661,27 @@ class JobChatStrings {
   String get statusUpdateSuccess => 'Status update sent successfully.';
   String get photoRequired => 'Photo is required for this action.';
   String get waitingForPhoto => 'Waiting for photo...';
+  
+  // Cropping & Media Preview Strings
+  String get cropImageSuccess => 'Image cropped successfully!';
+  String get cropImageFailed => 'Failed to crop image. Please try again.';
+  String get cropOriginalFileNotFound => 'Original file does not exist.';
+  String get cropDecodeFailed => 'Failed to decode image.';
+  String get cropProcessing => 'Processing Image...';
+  String get cropSending => 'Sending Media...';
+  String get cropActionFlip => 'Flip';
+  String get cropActionRotateLeft => 'Left';
+  String get cropActionRotateRight => 'Right';
+  String get cropPresetOriginal => 'Original';
+  String get cropPresetFree => 'Free';
+  String get cropImageDeleted => 'Image removed from preview.';
+  
+  // Image Viewer Strings
+  String get reply => 'Reply';
+  String get saveImageSuccess => 'Image saved to Downloads folder!';
+  String get saveImageFailed => 'Failed to download image.';
+  String get saveDirectoryNotFound => 'Failed to find storage directory.';
+  String get shareImageFailed => 'Failed to share: Image data could not be fetched.';
+  String get shareError => 'Error sharing image: ';
+  String get saveError => 'Error saving image: ';
 }

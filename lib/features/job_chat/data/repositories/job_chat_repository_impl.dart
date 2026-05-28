@@ -10,14 +10,24 @@ import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repos
 
 import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
+import 'package:trackyond/features/job_chat/domain/entities/message_query_options.dart';
+import 'package:trackyond/features/job_chat/data/models/message_query_options_model.dart';
+
 class JobChatRepositoryImpl implements IJobChatRepository {
   final IJobChatDataSource _remoteDataSource;
 
   JobChatRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<AppFailure, List<JobChatMessageEntity>>> getMessages(String jobId) async {
-    final response = await _remoteDataSource.getMessages(jobId: jobId);
+  Future<Either<AppFailure, List<JobChatMessageEntity>>> getMessages(
+    String jobId, {
+    MessageQueryOptions? options,
+  }) async {
+    final optionsModel = options != null ? MessageQueryOptionsModel.fromEntity(options) : null;
+    final response = await _remoteDataSource.getMessages(
+      jobId: jobId,
+      options: optionsModel,
+    );
     
     return response.fold(
       (error) => Left(ServerFailure(error.message)),

@@ -43,6 +43,8 @@ class AppIconButton extends StatelessWidget {
       style: IconButton.styleFrom(
         backgroundColor: effectiveBgColor,
         foregroundColor: effectiveIconColor,
+        disabledBackgroundColor: effectiveBgColor,
+        disabledForegroundColor: effectiveIconColor,
         minimumSize: Size(size, size),
         fixedSize: Size(size, size),
         padding: EdgeInsets.zero,

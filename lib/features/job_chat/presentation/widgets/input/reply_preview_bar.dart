@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
-import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/reply_image_thumbnail.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 
 class ReplyPreviewBar extends GetView<JobChatController> {
@@ -53,11 +53,13 @@ class ReplyPreviewBar extends GetView<JobChatController> {
 
       // Check if it has an image
       String? imageUrl;
-      final imageContent = replyMsg.content.firstWhereOrNull(
-        (c) => c.type == 'image',
-      );
-      if (imageContent != null) {
-        imageUrl = imageContent.metadata?['url'] as String?;
+      String? blurHash;
+      final imageContents =
+          replyMsg.content.where((c) => c.type == 'image').toList();
+      final firstImage = imageContents.firstOrNull;
+      if (firstImage != null) {
+        imageUrl = firstImage.metadata?['url'] as String?;
+        blurHash = firstImage.metadata?['blurHash'] as String?;
       }
 
       final isActivity = replyMsg.type == 'activity';
@@ -68,20 +70,13 @@ class ReplyPreviewBar extends GetView<JobChatController> {
       if (imageUrl != null) {
         leadingImage = Padding(
           padding: EdgeInsets.only(right: AppUIConstants.spacing.space$8),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(
-                AppUIConstants.radius.radius$4,
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(
-                AppUIConstants.radius.radius$4,
-              ),
-              child: AppImage(imageUrl: imageUrl, fit: BoxFit.cover),
-            ),
+          child: ReplyImageThumbnail(
+            imageUrl: imageUrl,
+            blurHash: blurHash,
+            remainingCount:
+                imageContents.length > 1 ? (imageContents.length - 1) : 0,
+            size: 40.0,
+            borderRadius: AppUIConstants.radius.radius$4,
           ),
         );
       }

@@ -7,8 +7,13 @@ import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
 import 'package:trackyond/features/job_chat/data/models/send_message_response_model.dart';
 
+import 'package:trackyond/features/job_chat/data/models/message_query_options_model.dart';
+
 abstract interface class IJobChatDataSource {
-  Future<ApiResponse<List<JobChatMessageModel>>> getMessages({required String jobId});
+  Future<ApiResponse<List<JobChatMessageModel>>> getMessages({
+    required String jobId,
+    MessageQueryOptionsModel? options,
+  });
   Future<ApiResponse<SendMessageResponseModel>> sendMessage({required JobChatMessageModel message});
   Future<ApiResponse<JobModel>> updateJobStatus({
     required String jobId,
@@ -23,9 +28,15 @@ class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatD
   JobChatRemoteDataSourceImpl(this._dio);
 
   @override
-  Future<ApiResponse<List<JobChatMessageModel>>> getMessages({required String jobId}) async {
+  Future<ApiResponse<List<JobChatMessageModel>>> getMessages({
+    required String jobId,
+    MessageQueryOptionsModel? options,
+  }) async {
     return performApiRequest(
-      _dio.get(ApiEndpoints.common.jobChatMessages(jobId)),
+      _dio.get(
+        ApiEndpoints.common.jobChatMessages(jobId),
+        queryParameters: options?.toQueryParams(),
+      ),
       (data) {
         final list = data as List;
         return list.map((e) => JobChatMessageModel.fromJson(e as Map<String, dynamic>)).toList();

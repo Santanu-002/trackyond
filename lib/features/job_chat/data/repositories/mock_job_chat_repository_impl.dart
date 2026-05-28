@@ -9,9 +9,14 @@ import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repos
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
+import 'package:trackyond/features/job_chat/domain/entities/message_query_options.dart';
+
 class MockJobChatRepositoryImpl implements IJobChatRepository {
   @override
-  Future<Either<AppFailure, List<JobChatMessageEntity>>> getMessages(String jobId) async {
+  Future<Either<AppFailure, List<JobChatMessageEntity>>> getMessages(
+    String jobId, {
+    MessageQueryOptions? options,
+  }) async {
     await Future.delayed(const Duration(milliseconds: 500));
     return Right([
       JobChatMessageEntity(

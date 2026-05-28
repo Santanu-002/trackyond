@@ -12,13 +12,19 @@ router = APIRouter(prefix="/job-chat", tags=["Job Chat"])
 @router.get("/{job_id}/messages", response_model=GenericResponse)
 async def get_messages(
     job_id: str,
+    limit: int = None,
+    offset: int = None,
+    search: str = None,
+    type: str = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
     """
-    Get all messages for a specific job chat.
+    Get all messages for a specific job chat with optional pagination and filters.
     """
-    messages = job_chat_service.get_job_messages(db, job_id)
+    messages = job_chat_service.get_job_messages(
+        db, job_id, limit=limit, offset=offset, search=search, message_type=type
+    )
     messages_data = [schemas.JobChatMessageResponse.model_validate(m).model_dump(by_alias=True) for m in messages]
     return GenericResponse(success=True, message="Messages fetched successfully", data=messages_data)
 

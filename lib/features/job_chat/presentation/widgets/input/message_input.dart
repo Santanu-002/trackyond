@@ -22,11 +22,10 @@ class MessageInput extends GetView<JobChatController> {
           AppUIConstants.spacing.space$16,
           AppUIConstants.spacing.space$8,
           AppUIConstants.spacing.space$16,
-          AppUIConstants.spacing.space$16 + context.mediaQueryPadding.bottom,
+          AppUIConstants.spacing.space$8 + context.mediaQueryPadding.bottom,
         ),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
-          boxShadow: AppUIConstants.shadows.sm,
+          color: context.theme.scaffoldBackgroundColor,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -53,6 +52,7 @@ class MessageInput extends GetView<JobChatController> {
                     controller: controller.messageController,
                     focusNode: controller.focusNode,
                     hintText: 'Type a message...',
+                    backgroundColor: context.theme.scaffoldBackgroundColor,
                     suffix: Obx(() {
                       final isOpen = controller.showAttachmentMenu.value;
                       return IconButton(

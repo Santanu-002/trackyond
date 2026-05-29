@@ -11,6 +11,8 @@ import 'package:trackyond/features/job_chat/presentation/bindings/job_chat_bindi
 import 'package:trackyond/features/job_chat/presentation/screens/job_chat_page.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/media_preview_page.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/media_viewer_page.dart';
+import 'package:trackyond/features/camera/presentation/bindings/camera_binding.dart';
+import 'package:trackyond/features/camera/presentation/screens/camera_page.dart';
 import 'package:trackyond/features/notification/presentation/bindings/notification_binding.dart';
 import 'package:trackyond/features/notification/presentation/bindings/notifications_page_binding.dart';
 import 'package:trackyond/features/notification/presentation/pages/notification_details_page.dart';
@@ -76,6 +78,11 @@ class AppPages {
       opaque: false,
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 200),
+    ),
+    GetPage(
+      name: AppRoutes.common.camera,
+      binding: CameraBinding(),
+      page: () => const CameraPage(),
     ),
   ];
 

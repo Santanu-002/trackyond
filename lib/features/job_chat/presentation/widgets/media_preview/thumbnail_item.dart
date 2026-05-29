@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
-class ThumbnailItem extends StatelessWidget {
+class ThumbnailItem extends StatefulWidget {
   final int index;
   final String path;
   final bool isActive;
@@ -22,9 +24,90 @@ class ThumbnailItem extends StatelessWidget {
   });
 
   @override
+  State<ThumbnailItem> createState() => _ThumbnailItemState();
+}
+
+class _ThumbnailItemState extends State<ThumbnailItem> {
+  String? _thumbnailPath;
+  bool _isGenerating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _generateThumbnailIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(covariant ThumbnailItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.path != widget.path) {
+      _generateThumbnailIfNeeded();
+    }
+  }
+
+  Future<void> _generateThumbnailIfNeeded() async {
+    final ext = widget.path.split('.').last.toLowerCase();
+    final isVideo = ext == 'mp4' ||
+        ext == 'mov' ||
+        ext == 'avi' ||
+        ext == 'mkv' ||
+        ext == 'webm' ||
+        ext == '3gp';
+
+    if (!isVideo) {
+      if (mounted) {
+        setState(() {
+          _thumbnailPath = null;
+        });
+      }
+      return;
+    }
+
+    if (_isGenerating) return;
+
+    if (mounted) {
+      setState(() {
+        _isGenerating = true;
+      });
+    }
+
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final thumbPath = await VideoThumbnail.thumbnailFile(
+        video: widget.path,
+        thumbnailPath: tempDir.path,
+        imageFormat: ImageFormat.JPEG,
+        maxHeight: 128,
+        quality: 75,
+      );
+      if (mounted) {
+        setState(() {
+          _thumbnailPath = thumbPath;
+          _isGenerating = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error generating thumbnail: $e');
+      if (mounted) {
+        setState(() {
+          _isGenerating = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final ext = widget.path.split('.').last.toLowerCase();
+    final isVideo = ext == 'mp4' ||
+        ext == 'mov' ||
+        ext == 'avi' ||
+        ext == 'mkv' ||
+        ext == 'webm' ||
+        ext == '3gp';
+
     return GestureDetector(
-      onTap: isLoading ? null : onTap,
+      onTap: widget.isLoading ? null : widget.onTap,
       child: Container(
         width: 56,
         height: 56,
@@ -36,7 +119,7 @@ class ThumbnailItem extends StatelessWidget {
             AppUIConstants.radius.radius$12,
           ),
           border: Border.all(
-            color: isActive ? colorScheme.primary : Colors.transparent,
+            color: widget.isActive ? widget.colorScheme.primary : Colors.transparent,
             width: 2,
           ),
         ),
@@ -47,13 +130,31 @@ class ThumbnailItem extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.file(
-                File(path),
-                fit: BoxFit.cover,
-              ),
-              if (!isActive)
+              if (isVideo) ...[
+                if (_thumbnailPath != null)
+                  Image.file(
+                    File(_thumbnailPath!),
+                    fit: BoxFit.cover,
+                  )
+                else
+                  Container(
+                    color: widget.colorScheme.surfaceContainerHighest,
+                  ),
+                const Center(
+                  child: Icon(
+                    Icons.play_circle_outline_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              ] else
+                Image.file(
+                  File(widget.path),
+                  fit: BoxFit.cover,
+                ),
+              if (!widget.isActive)
                 Container(
-                  color: colorScheme.black.withValues(alpha: 0.5),
+                  color: widget.colorScheme.black.withValues(alpha: 0.5),
                 ),
             ],
           ),

@@ -22,6 +22,7 @@ import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/a
 import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/aspect_preset_button.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/edit_action_button.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/thumbnail_item.dart';
+import 'package:video_player/video_player.dart';
 
 class MediaPreviewPage extends StatefulWidget {
   const MediaPreviewPage({super.key});
@@ -32,6 +33,42 @@ class MediaPreviewPage extends StatefulWidget {
 
 class _MediaPreviewPageState extends State<MediaPreviewPage>
     with TickerProviderStateMixin {
+  final Map<int, VideoPlayerController> _videoControllers = {};
+
+  bool _isVideoPath(String path) {
+    final ext = path.split('.').last.toLowerCase();
+    return ext == 'mp4' ||
+        ext == 'mov' ||
+        ext == 'avi' ||
+        ext == 'mkv' ||
+        ext == 'webm' ||
+        ext == '3gp';
+  }
+
+  void _initVideoController(int index) {
+    final path = mediaPaths[index];
+    if (!_isVideoPath(path)) return;
+    if (_videoControllers.containsKey(index)) return;
+
+    final controller = VideoPlayerController.file(File(path));
+    _videoControllers[index] = controller;
+
+    controller.initialize().then((_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    controller.setLooping(false);
+    controller.addListener(() {
+      if (controller.value.isInitialized &&
+          controller.value.position >= controller.value.duration) {
+        controller.seekTo(Duration.zero);
+        controller.pause();
+      }
+    });
+  }
+  bool _isVideoMode = false;
   late final List<String> mediaPaths;
   late final List<String> _originalPaths;
   late final TextEditingController captionController;
@@ -86,6 +123,14 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
+
+    if (mediaPaths.isNotEmpty) {
+      _isVideoMode = _isVideoPath(mediaPaths.first);
+      final initialPath = mediaPaths[_currentIndex];
+      if (_isVideoPath(initialPath)) {
+        _initVideoController(_currentIndex);
+      }
+    }
   }
 
   @override
@@ -96,33 +141,77 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
     for (final ctrl in _editorControllers) {
       ctrl.dispose();
     }
+    for (final ctrl in _videoControllers.values) {
+      ctrl.dispose();
+    }
     _doubleTapAnimationController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickMoreImage() async {
+  Future<void> _pickMoreMedia() async {
     final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
-    );
+    if (_isVideoMode) {
+      final List<XFile> selectedFiles = await picker.pickMultipleMedia();
+      final videos = selectedFiles.where((file) => _isVideoPath(file.path)).toList();
 
-    if (image != null && mounted) {
-      setState(() {
-        mediaPaths.add(image.path);
-        _originalPaths.add(image.path);
-        _editorControllers.add(ImageEditorController());
-        _editorKeys.add(GlobalKey<ExtendedImageEditorState>());
-        _aspectRatios.add(null);
-        _aspectRatioLabels.add(AppStrings.jobChat.cropPresetFree);
-        _savedHistoryIndices.add(0);
-        _currentIndex = mediaPaths.length - 1;
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_pageController.hasClients) {
-          _pageController.jumpToPage(_currentIndex);
-        }
-      });
+      if (videos.isNotEmpty && mounted) {
+        _videoControllers[_currentIndex]?.pause();
+
+        final oldLength = mediaPaths.length;
+        setState(() {
+          final newPaths = videos.map((v) => v.path).toList();
+          mediaPaths.addAll(newPaths);
+          _originalPaths.addAll(newPaths);
+
+          for (int i = 0; i < newPaths.length; i++) {
+            _editorControllers.add(ImageEditorController());
+            _editorKeys.add(GlobalKey<ExtendedImageEditorState>());
+            _aspectRatios.add(null);
+            _aspectRatioLabels.add(AppStrings.jobChat.cropPresetFree);
+            _savedHistoryIndices.add(0);
+          }
+
+          _currentIndex = oldLength;
+        });
+
+        // Initialize the first newly added video controller if needed
+        _initVideoController(oldLength);
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(oldLength);
+          }
+        });
+      }
+    } else {
+      final List<XFile> images = await picker.pickMultiImage(
+        imageQuality: 80,
+      );
+
+      if (images.isNotEmpty && mounted) {
+        final oldLength = mediaPaths.length;
+        setState(() {
+          final newPaths = images.map((img) => img.path).toList();
+          mediaPaths.addAll(newPaths);
+          _originalPaths.addAll(newPaths);
+
+          for (int i = 0; i < newPaths.length; i++) {
+            _editorControllers.add(ImageEditorController());
+            _editorKeys.add(GlobalKey<ExtendedImageEditorState>());
+            _aspectRatios.add(null);
+            _aspectRatioLabels.add(AppStrings.jobChat.cropPresetFree);
+            _savedHistoryIndices.add(0);
+          }
+
+          _currentIndex = oldLength;
+        });
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(oldLength);
+          }
+        });
+      }
     }
   }
 
@@ -135,18 +224,26 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
 
     focusNode.unfocus();
     debugPrint(
-      'Send clicked with ${mediaPaths.length} photos and caption: ${captionController.text}',
+      'Send clicked with ${mediaPaths.length} items and caption: ${captionController.text}',
     );
 
     final args = Get.arguments as Map<String, dynamic>;
-    final requestMessage = args['requestMessage'] as JobChatMessageEntity;
+    final requestMessage = args['requestMessage'] as JobChatMessageEntity?;
     final controller = Get.find<JobChatController>();
 
-    final success = await controller.sendMediaStatusProof(
-      imagePaths: mediaPaths,
-      caption: captionController.text,
-      requestMessage: requestMessage,
-    );
+    bool success = false;
+    if (requestMessage != null) {
+      success = await controller.sendMediaStatusProof(
+        imagePaths: mediaPaths,
+        caption: captionController.text,
+        requestMessage: requestMessage,
+      );
+    } else {
+      success = await controller.sendGeneralMedia(
+        paths: mediaPaths,
+        caption: captionController.text,
+      );
+    }
 
     if (mounted) {
       setState(() {
@@ -281,6 +378,22 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
     final activeIndex = _currentIndex;
     _editorControllers[activeIndex].dispose();
 
+    if (_videoControllers.containsKey(activeIndex)) {
+      _videoControllers[activeIndex]?.dispose();
+      _videoControllers.remove(activeIndex);
+    }
+
+    final Map<int, VideoPlayerController> shiftedControllers = {};
+    _videoControllers.forEach((key, ctrl) {
+      if (key < activeIndex) {
+        shiftedControllers[key] = ctrl;
+      } else if (key > activeIndex) {
+        shiftedControllers[key - 1] = ctrl;
+      }
+    });
+    _videoControllers.clear();
+    _videoControllers.addAll(shiftedControllers);
+
     setState(() {
       mediaPaths.removeAt(activeIndex);
       _originalPaths.removeAt(activeIndex);
@@ -343,10 +456,32 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                   setState(() {
                     _currentIndex = index;
                   });
+                  _videoControllers.forEach((key, ctrl) {
+                    if (key != index) {
+                      ctrl.pause();
+                    }
+                  });
+                  if (_isVideoPath(mediaPaths[index])) {
+                    _initVideoController(index);
+                  }
                 },
                 itemBuilder: (context, index) {
                   final path = mediaPaths[index];
                   final file = File(path);
+
+                  if (_isVideoPath(path)) {
+                    _initVideoController(index);
+                    final videoCtrl = _videoControllers[index];
+                    if (videoCtrl == null) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      );
+                    }
+                    return _VideoPreviewWidget(controller: videoCtrl);
+                  }
 
                   if (_isCropping && index == _currentIndex) {
                     return ExtendedImage.file(
@@ -457,7 +592,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                                   return AddMoreButton(
                                     isLoading: _isLoading,
                                     colorScheme: colorScheme,
-                                    onTap: _pickMoreImage,
+                                    onTap: _pickMoreMedia,
                                   );
                                 }
                                 return ThumbnailItem(
@@ -635,12 +770,14 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                                 ),
                                 iconColor: colorScheme.onError,
                               ),
-                              AppUIConstants.widgets.horizontalBox$8,
-                              ChatActionButton(
-                                icon: const Icon(Icons.crop_rounded, size: 24),
-                                onPressed: _onCrop,
-                                disabled: _isLoading,
-                              ),
+                              if (mediaPaths.isNotEmpty && !_isVideoPath(mediaPaths[_currentIndex])) ...[
+                                AppUIConstants.widgets.horizontalBox$8,
+                                ChatActionButton(
+                                  icon: const Icon(Icons.crop_rounded, size: 24),
+                                  onPressed: _onCrop,
+                                  disabled: _isLoading,
+                                ),
+                              ],
                             ],
                           ),
                       ],
@@ -935,4 +1072,135 @@ Uint8List _processImageCrop(_ImageCropParams params) {
 
   // Save the cropped image
   return img.encodeJpg(processedImage, quality: 90);
+}
+
+class _VideoPreviewWidget extends StatefulWidget {
+  final VideoPlayerController controller;
+
+  const _VideoPreviewWidget({required this.controller});
+
+  @override
+  State<_VideoPreviewWidget> createState() => _VideoPreviewWidgetState();
+}
+
+class _VideoPreviewWidgetState extends State<_VideoPreviewWidget> {
+  bool _showControls = true;
+  Timer? _controlsTimer;
+  VoidCallback? _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _startControlsTimer();
+    _listener = () {
+      if (mounted) {
+        setState(() {});
+      }
+    };
+    widget.controller.addListener(_listener!);
+  }
+
+  @override
+  void didUpdateWidget(covariant _VideoPreviewWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_listener!);
+      widget.controller.addListener(_listener!);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controlsTimer?.cancel();
+    if (_listener != null) {
+      widget.controller.removeListener(_listener!);
+    }
+    super.dispose();
+  }
+
+  void _startControlsTimer() {
+    _controlsTimer?.cancel();
+    _controlsTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _showControls = false;
+        });
+      }
+    });
+  }
+
+  void _togglePlay() {
+    setState(() {
+      if (widget.controller.value.isPlaying) {
+        widget.controller.pause();
+        _showControls = true;
+      } else {
+        widget.controller.play();
+        _startControlsTimer();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.controller.value.isInitialized) {
+      return const Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 3,
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+      );
+    }
+
+    final showOverlay = _showControls || !widget.controller.value.isPlaying;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _showControls = !_showControls;
+          if (_showControls && widget.controller.value.isPlaying) {
+            _startControlsTimer();
+          }
+        });
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Center(
+            child: AspectRatio(
+              aspectRatio: widget.controller.value.aspectRatio,
+              child: VideoPlayer(widget.controller),
+            ),
+          ),
+          AnimatedOpacity(
+            opacity: showOverlay ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 250),
+            child: IgnorePointer(
+              ignoring: !showOverlay,
+              child: Center(
+                child: GestureDetector(
+                  onTap: _togglePlay,
+                  child: Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      widget.controller.value.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

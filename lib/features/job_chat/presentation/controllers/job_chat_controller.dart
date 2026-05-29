@@ -1042,13 +1042,14 @@ class JobChatController extends GetxController {
       // 1. If it is a photo action, perform capture and upload first!
       if (isPhotoAction) {
         await _setPhase(AppStrings.jobChat.waitingForPhoto);
-        final picker = ImagePicker();
-        final XFile? image = await picker.pickImage(
-          source: ImageSource.camera,
-          imageQuality: 80,
-        );
-
-        if (image == null) {
+        final result = await Get.toNamed(AppRoutes.common.camera) as Map<String, dynamic>?;
+        if (result == null) {
+          cancelCurrentAction();
+          AppSnackbar.info(AppStrings.jobChat.photoRequired);
+          return;
+        }
+        final String? imagePath = result['path'] as String?;
+        if (imagePath == null) {
           cancelCurrentAction();
           AppSnackbar.info(AppStrings.jobChat.photoRequired);
           return;
@@ -1056,7 +1057,7 @@ class JobChatController extends GetxController {
 
         if (isActionCancelled.value) return;
         await _setPhase(AppStrings.jobChat.processingPhoto);
-        final File file = File(image.path);
+        final File file = File(imagePath);
         final uploadPath = job.jobId;
 
         final fileSize = await file.length();
@@ -1069,7 +1070,7 @@ class JobChatController extends GetxController {
         final imgWidth = frame.image.width;
         final imgHeight = frame.image.height;
 
-        final String? calculatedBlurHash = await _computeAndPrintBlurHash(image.path);
+        final String? calculatedBlurHash = await _computeAndPrintBlurHash(imagePath);
 
         if (isActionCancelled.value) return;
         await _setPhase(AppStrings.jobChat.uploadingPhoto);
@@ -1277,24 +1278,25 @@ class JobChatController extends GetxController {
       }
     }
 
-    final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
-    );
+    final result = await Get.toNamed(AppRoutes.common.camera) as Map<String, dynamic>?;
+    if (result == null) return;
 
-    if (image == null) {
-      return;
-    }
+    final String? imagePath = result['path'] as String?;
+    if (imagePath == null) return;
 
-    navigateToMediaPreview(image.path, requestMessage);
+    navigateToMediaPreview(imagePath: imagePath, requestMessage: requestMessage);
   }
 
-  void navigateToMediaPreview(String imagePath, JobChatMessageEntity requestMessage) {
+  void navigateToMediaPreview({
+    String? imagePath,
+    List<String>? imagePaths,
+    JobChatMessageEntity? requestMessage,
+  }) {
     Get.toNamed(
       AppRoutes.common.mediaPreview,
       arguments: {
-        'imagePath': imagePath,
+        'imagePath':? imagePath,
+        'imagePaths':? imagePaths,
         'requestMessage': requestMessage,
       },
     );
@@ -1463,6 +1465,231 @@ class JobChatController extends GetxController {
     }
   }
 
+  bool _isVideoPath(String path) {
+    final ext = path.split('.').last.toLowerCase();
+    return ext == 'mp4' ||
+        ext == 'mov' ||
+        ext == 'avi' ||
+        ext == 'mkv' ||
+        ext == 'webm' ||
+        ext == '3gp';
+  }
+
+  Future<bool> sendGeneralMedia({
+    required List<String> paths,
+    required String caption,
+  }) async {
+    try {
+      _cancelToken = CancelToken();
+      isActionCancelled.value = false;
+      uploadProgress.value = 0.0;
+      isActionLoading.value = true;
+      loadingActionLabel.value = 'send_general_media';
+
+      final List<JobChatMessageContentEntity> content = [];
+
+      // If there is a caption, add it as a text content item first
+      if (caption.trim().isNotEmpty) {
+        content.add(
+          JobChatMessageContentEntity(
+            type: JobChatMessageType.text.value,
+            content: caption.trim(),
+          ),
+        );
+      }
+
+      for (int i = 0; i < paths.length; i++) {
+        final path = paths[i];
+        final isVideo = _isVideoPath(path);
+
+        actionLoadingMessage.value = isVideo
+            ? '${AppStrings.jobChat.processingVideo} (${i + 1}/${paths.length})'
+            : '${AppStrings.jobChat.processingPhoto} (${i + 1}/${paths.length})';
+
+        final File file = File(path);
+        final uploadPath = job.jobId;
+        final fileSize = await file.length();
+        final fileName = file.path.split('/').last;
+
+        if (isActionCancelled.value) return false;
+
+        if (isVideo) {
+          final mimeType = lookupMimeType(path) ?? 'video/mp4';
+          actionLoadingMessage.value = '${AppStrings.jobChat.uploadingVideo} (${i + 1}/${paths.length})';
+
+          final uploadResult = await _uploadFileUseCase(
+            UploadFileParams(
+              file: file,
+              path: uploadPath,
+              cancelToken: _cancelToken,
+              onSendProgress: (int sent, int total) {
+                if (total > 0) {
+                  uploadProgress.value = sent / total;
+                }
+              },
+            ),
+          );
+
+          if (isActionCancelled.value) return false;
+
+          bool uploadSuccess = false;
+          String uploadError = '';
+
+          uploadResult.fold(
+            (failure) {
+              uploadError = failure.message;
+            },
+            (uploadedPath) {
+              uploadSuccess = true;
+              final videoMetadata = {
+                'url': ApiEndpoints.common.download(uploadedPath),
+                'path': uploadedPath,
+                'fileMetadata': {
+                  'fileName': fileName,
+                  'size': _formatFileSize(fileSize),
+                  'mimeType': mimeType,
+                  'videoMetaData': {
+                    'duration': '0:00',
+                  },
+                }
+              };
+              content.add(
+                JobChatMessageContentEntity(
+                  type: JobChatMessageType.video.value,
+                  content: uploadedPath,
+                  metadata: videoMetadata,
+                ),
+              );
+            },
+          );
+
+          if (!uploadSuccess) {
+            throw Exception(uploadError.isNotEmpty ? uploadError : 'Failed to upload video.');
+          }
+        } else {
+          final mimeType = lookupMimeType(path) ?? 'image/jpeg';
+          final bytes = await file.readAsBytes();
+          final codec = await ui.instantiateImageCodec(bytes);
+          final frame = await codec.getNextFrame();
+          final imgWidth = frame.image.width;
+          final imgHeight = frame.image.height;
+          final String? calculatedBlurHash = await _computeAndPrintBlurHash(path);
+
+          actionLoadingMessage.value = '${AppStrings.jobChat.uploadingPhoto} (${i + 1}/${paths.length})';
+
+          final uploadResult = await _uploadFileUseCase(
+            UploadFileParams(
+              file: file,
+              path: uploadPath,
+              cancelToken: _cancelToken,
+              onSendProgress: (int sent, int total) {
+                if (total > 0) {
+                  uploadProgress.value = sent / total;
+                }
+              },
+            ),
+          );
+
+          if (isActionCancelled.value) return false;
+
+          bool uploadSuccess = false;
+          String uploadError = '';
+
+          uploadResult.fold(
+            (failure) {
+              uploadError = failure.message;
+            },
+            (uploadedPath) {
+              uploadSuccess = true;
+              final photoMetadata = {
+                'url': ApiEndpoints.common.download(uploadedPath),
+                'path': uploadedPath,
+                'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+                'fileMetadata': {
+                  'fileName': fileName,
+                  'size': _formatFileSize(fileSize),
+                  'mimeType': mimeType,
+                  'imageMetadata': {
+                    'width': imgWidth,
+                    'height': imgHeight,
+                  },
+                  'videoMetaData': null,
+                  'docMetaData': null,
+                }
+              };
+              content.add(
+                JobChatMessageContentEntity(
+                  type: JobChatMessageType.image.value,
+                  content: uploadedPath,
+                  metadata: photoMetadata,
+                ),
+              );
+            },
+          );
+
+          if (!uploadSuccess) {
+            throw Exception(uploadError.isNotEmpty ? uploadError : 'Failed to upload photo.');
+          }
+        }
+      }
+
+      if (isActionCancelled.value) return false;
+
+      if (_currentUserUid.value == null || _currentUserName.value == null) {
+        throw Exception('User authentication data missing.');
+      }
+
+      final tempLocalId = nanoid(10);
+      final tempMsg = JobChatMessageEntity(
+        uid: '',
+        localId: tempLocalId,
+        jobId: job.jobId,
+        senderName: _currentUserName.value!,
+        senderId: _currentUserUid.value!,
+        senderProfileUid: _currentUserProfileUid.value,
+        content: content,
+        timestamp: DateTime.now(),
+        type: 'message',
+        isMe: true,
+      );
+
+      messages.add(tempMsg);
+      scrollToLast(animate: true);
+
+      final result = await _sendMessageUseCase(
+        SendMessageParams(message: tempMsg),
+      );
+
+      bool sendSuccess = false;
+      result.fold(
+        (failure) {
+          messages.removeWhere((m) => m.localId == tempLocalId);
+          AppSnackbar.destructive(failure.message);
+        },
+        (sendResult) {
+          sendSuccess = true;
+          final index = messages.indexWhere((m) => m.localId == tempLocalId);
+          if (index != -1) {
+            messages[index] = sendResult.message.copyWith(isMe: true);
+          }
+          if (sendResult.job != null) {
+            _job.value = sendResult.job!;
+            _emitJobUpdateUseCase(sendResult.job!);
+          }
+        },
+      );
+
+      return sendSuccess;
+    } catch (e) {
+      AppSnackbar.destructive(e.toString());
+      return false;
+    } finally {
+      isActionLoading.value = false;
+      actionLoadingMessage.value = null;
+      loadingActionLabel.value = null;
+    }
+  }
+
   void onBack() => Get.back();
 
   void enterSelectionMode(String messageUid) {
@@ -1626,179 +1853,10 @@ class JobChatController extends GetxController {
     }
   }
 
-  Future<void> attachFromCamera() async {
-    showAttachmentMenu.value = false;
-    final picker = ImagePicker();
+  Future<void> sendCapturedVideo(String videoPath) async {
     try {
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-      );
-      if (image == null) return;
-      
       isMessageSending.value = true;
-      final file = File(image.path);
-      final fileSize = await file.length();
-      final fileName = file.path.split('/').last;
-      final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
-      
-      final bytes = await file.readAsBytes();
-      final codec = await ui.instantiateImageCodec(bytes);
-      final frame = await codec.getNextFrame();
-      final imgWidth = frame.image.width;
-      final imgHeight = frame.image.height;
-      final calculatedBlurHash = await _computeAndPrintBlurHash(image.path);
-
-      final uploadResult = await _uploadFileUseCase(
-        UploadFileParams(
-          file: file,
-          path: job.jobId,
-        ),
-      );
-
-      await uploadResult.fold(
-        (failure) async {
-          debugPrint('Upload failed, falling back to mock: ${failure.message}');
-          await sendAttachmentMessage(
-            type: JobChatMessageType.image,
-            contentText: fileName,
-            mediaUrl: 'https://picsum.photos/800/600',
-            metadata: {
-              'url': 'https://picsum.photos/800/600',
-              'blurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
-              'fileMetadata': {
-                'fileName': fileName,
-                'size': _formatFileSize(fileSize),
-                'mimeType': mimeType,
-                'imageMetadata': {
-                  'width': imgWidth,
-                  'height': imgHeight,
-                },
-              }
-            },
-          );
-        },
-        (path) async {
-          await sendAttachmentMessage(
-            type: JobChatMessageType.image,
-            contentText: path,
-            mediaUrl: ApiEndpoints.common.download(path),
-            metadata: {
-              'url': ApiEndpoints.common.download(path),
-              'path': path,
-              'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
-              'fileMetadata': {
-                'fileName': fileName,
-                'size': _formatFileSize(fileSize),
-                'mimeType': mimeType,
-                'imageMetadata': {
-                  'width': imgWidth,
-                  'height': imgHeight,
-                },
-              }
-            },
-          );
-        },
-      );
-    } catch (e) {
-      AppSnackbar.destructive('Error capturing photo: $e');
-    } finally {
-      isMessageSending.value = false;
-    }
-  }
-
-  Future<void> attachFromGallery() async {
-    showAttachmentMenu.value = false;
-    final picker = ImagePicker();
-    try {
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80,
-      );
-      if (image == null) return;
-      
-      isMessageSending.value = true;
-      final file = File(image.path);
-      final fileSize = await file.length();
-      final fileName = file.path.split('/').last;
-      final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
-      
-      final bytes = await file.readAsBytes();
-      final codec = await ui.instantiateImageCodec(bytes);
-      final frame = await codec.getNextFrame();
-      final imgWidth = frame.image.width;
-      final imgHeight = frame.image.height;
-      final calculatedBlurHash = await _computeAndPrintBlurHash(image.path);
-
-      final uploadResult = await _uploadFileUseCase(
-        UploadFileParams(
-          file: file,
-          path: job.jobId,
-        ),
-      );
-
-      await uploadResult.fold(
-        (failure) async {
-          debugPrint('Upload failed, falling back to mock: ${failure.message}');
-          await sendAttachmentMessage(
-            type: JobChatMessageType.image,
-            contentText: fileName,
-            mediaUrl: 'https://picsum.photos/800/600',
-            metadata: {
-              'url': 'https://picsum.photos/800/600',
-              'blurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
-              'fileMetadata': {
-                'fileName': fileName,
-                'size': _formatFileSize(fileSize),
-                'mimeType': mimeType,
-                'imageMetadata': {
-                  'width': imgWidth,
-                  'height': imgHeight,
-                },
-              }
-            },
-          );
-        },
-        (path) async {
-          await sendAttachmentMessage(
-            type: JobChatMessageType.image,
-            contentText: path,
-            mediaUrl: ApiEndpoints.common.download(path),
-            metadata: {
-              'url': ApiEndpoints.common.download(path),
-              'path': path,
-              'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
-              'fileMetadata': {
-                'fileName': fileName,
-                'size': _formatFileSize(fileSize),
-                'mimeType': mimeType,
-                'imageMetadata': {
-                  'width': imgWidth,
-                  'height': imgHeight,
-                },
-              }
-            },
-          );
-        },
-      );
-    } catch (e) {
-      AppSnackbar.destructive('Error picking photo: $e');
-    } finally {
-      isMessageSending.value = false;
-    }
-  }
-
-  Future<void> attachVideo() async {
-    showAttachmentMenu.value = false;
-    final picker = ImagePicker();
-    try {
-      final XFile? video = await picker.pickVideo(
-        source: ImageSource.gallery,
-      );
-      if (video == null) return;
-      
-      isMessageSending.value = true;
-      final file = File(video.path);
+      final file = File(videoPath);
       final fileSize = await file.length();
       final fileName = file.path.split('/').last;
       final mimeType = lookupMimeType(file.path) ?? 'video/mp4';
@@ -1824,7 +1882,7 @@ class JobChatController extends GetxController {
                 'size': _formatFileSize(fileSize),
                 'mimeType': mimeType,
                 'videoMetaData': {
-                  'duration': '0:15',
+                  'duration': '0:00',
                 },
               }
             },
@@ -1851,9 +1909,57 @@ class JobChatController extends GetxController {
         },
       );
     } catch (e) {
-      AppSnackbar.destructive('Error picking video: $e');
+      AppSnackbar.destructive('Error sending captured video: $e');
     } finally {
       isMessageSending.value = false;
+    }
+  }
+
+  Future<void> attachFromCamera() async {
+    showAttachmentMenu.value = false;
+    try {
+      final result = await Get.toNamed(AppRoutes.common.camera) as Map<String, dynamic>?;
+      if (result == null) return;
+
+      final String? imagePath = result['path'] as String?;
+      if (imagePath == null) return;
+
+      navigateToMediaPreview(imagePath: imagePath, requestMessage: null);
+    } catch (e) {
+      AppSnackbar.destructive('Error navigating to preview: $e');
+    }
+  }
+
+  Future<void> attachFromGallery() async {
+    showAttachmentMenu.value = false;
+    final picker = ImagePicker();
+    try {
+      final List<XFile> images = await picker.pickMultiImage(
+        imageQuality: 80,
+      );
+      if (images.isEmpty) return;
+
+      final imagePaths = images.map((img) => img.path).toList();
+      navigateToMediaPreview(imagePaths: imagePaths, requestMessage: null);
+    } catch (e) {
+      AppSnackbar.destructive('Error picking photo: $e');
+    }
+  }
+
+  Future<void> attachVideo() async {
+    showAttachmentMenu.value = false;
+    final picker = ImagePicker();
+    try {
+      final List<XFile> selectedFiles = await picker.pickMultipleMedia();
+      final videoPaths = selectedFiles
+          .where((file) => _isVideoPath(file.path))
+          .map((file) => file.path)
+          .toList();
+      if (videoPaths.isEmpty) return;
+
+      navigateToMediaPreview(imagePaths: videoPaths, requestMessage: null);
+    } catch (e) {
+      AppSnackbar.destructive('Error picking video: $e');
     }
   }
 

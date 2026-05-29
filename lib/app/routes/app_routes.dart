@@ -51,4 +51,5 @@ class _CommonRoutes {
   String get jobChat => '/job-chat';
   String get mediaPreview => '/media-preview';
   String get mediaViewer => '/media-viewer';
+  String get camera => '/camera';
 }

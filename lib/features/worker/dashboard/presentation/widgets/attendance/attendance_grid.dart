@@ -23,7 +23,7 @@ class AttendanceGrid extends GetView<WorkerDashboardController> {
             return SizeTransition(
               sizeFactor: animation,
               axis: Axis.vertical,
-              axisAlignment: -1.0,
+              alignment: Alignment.topCenter,
               child: FadeTransition(opacity: animation, child: child),
             );
           },

@@ -18,7 +18,7 @@ class WorkingStatusChip extends StatelessWidget {
           child: SizeTransition(
             sizeFactor: animation,
             axis: Axis.vertical,
-            axisAlignment: -1.0,
+            alignment: Alignment.topCenter,
             child: child,
           ),
         );

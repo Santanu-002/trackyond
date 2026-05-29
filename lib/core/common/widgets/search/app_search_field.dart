@@ -64,7 +64,7 @@ class AppSearchField extends StatelessWidget {
                 FocusScope.of(context).unfocus();
               },
             ),
-          if (trailing != null) ...trailing!,
+          ...?trailing,
         ],
         elevation: WidgetStateProperty.all(0),
         shape: borderRadius != null

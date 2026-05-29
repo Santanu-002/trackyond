@@ -96,7 +96,7 @@ class AppSearchBar<T> extends StatelessWidget {
             },
           ),
         ],
-        if (extraTrailing != null) ...extraTrailing!,
+        ...?extraTrailing,
       ],
     );
   }

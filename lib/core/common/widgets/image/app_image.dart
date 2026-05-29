@@ -89,7 +89,11 @@ class AppImage extends StatelessWidget {
                       ),
                     ],
                   )
-              : OctoPlaceholder.circularProgressIndicator(),
+              : (context) => const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  ),
       errorBuilder: errorWidget != null
           ? (context, error, stackTrace) => errorWidget!(context, fullUrl, error)
           : decodedHashProvider != null

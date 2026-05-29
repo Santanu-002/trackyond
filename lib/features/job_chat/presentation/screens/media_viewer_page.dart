@@ -146,8 +146,17 @@ class _MediaViewerPageState extends State<MediaViewerPage>
       if (data != null) {
         Directory? dir;
         if (Platform.isAndroid) {
-          dir = Directory('/storage/emulated/0/Download');
-          if (!await dir.exists()) {
+          final downloadDir = Directory('/storage/emulated/0/Download');
+          if (await downloadDir.exists()) {
+            try {
+              final testFile = File('${downloadDir.path}/.test_write');
+              await testFile.writeAsString('test');
+              await testFile.delete();
+              dir = downloadDir;
+            } catch (_) {
+              dir = await getExternalStorageDirectory();
+            }
+          } else {
             dir = await getExternalStorageDirectory();
           }
         } else {

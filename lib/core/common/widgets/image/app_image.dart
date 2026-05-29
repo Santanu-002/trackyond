@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
@@ -34,15 +35,63 @@ class AppImage extends StatelessWidget {
     return '${ApiEndpoints.baseUrl}${ApiEndpoints.common.download(pathOrUrl)}';
   }
 
+  static Widget buildPlaceholder({
+    required String? blurHash,
+    BoxFit fit = BoxFit.cover,
+    Widget? child,
+  }) {
+    if (blurHash != null && blurHash.isNotEmpty) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          BlurHash(
+            hash: blurHash,
+            imageFit: fit,
+          ),
+          if (child != null) Center(child: child),
+        ],
+      );
+    }
+    return child != null ? Center(child: child) : const SizedBox.shrink();
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (imageUrl.isEmpty) {
+      return errorWidget?.call(context, imageUrl, 'Empty URL') ??
+          const Center(child: Icon(Icons.error_outline));
+    }
+
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        fit: fit,
+        width: width,
+        height: height,
+        errorBuilder: errorWidget != null
+            ? (context, error, stackTrace) => errorWidget!(context, imageUrl, error)
+            : (context, error, stackTrace) => const Center(child: Icon(Icons.error_outline)),
+      );
+    }
+
+    final localFile = File(imageUrl);
+    if (localFile.existsSync()) {
+      return Image.file(
+        localFile,
+        fit: fit,
+        width: width,
+        height: height,
+        errorBuilder: errorWidget != null
+            ? (context, error, stackTrace) => errorWidget!(context, imageUrl, error)
+            : (context, error, stackTrace) => const Center(child: Icon(Icons.error_outline)),
+      );
+    }
+
     final fullUrl = getFullUrl(imageUrl);
     if (fullUrl.isEmpty) {
       return errorWidget?.call(context, imageUrl, 'Empty URL') ??
           const Center(child: Icon(Icons.error_outline));
     }
-
-    final hasBlurHash = blurHash != null && blurHash!.isNotEmpty;
 
     return CachedNetworkImage(
       imageUrl: fullUrl,
@@ -51,44 +100,18 @@ class AppImage extends StatelessWidget {
       height: height,
       placeholder: placeholder != null
           ? (context, url) => placeholder!(context, url)
-          : hasBlurHash
-              ? (context, url) => Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      BlurHash(
-                        hash: blurHash!,
-                        imageFit: fit,
-                      ),
-                      const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    ],
-                  )
-              : (context, url) => const Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
-                  ),
+          : (context, url) => buildPlaceholder(
+                blurHash: blurHash,
+                fit: fit,
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              ),
       errorWidget: errorWidget != null
           ? (context, url, error) => errorWidget!(context, url, error)
-          : hasBlurHash
-              ? (context, url, error) => Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      BlurHash(
-                        hash: blurHash!,
-                        imageFit: fit,
-                      ),
-                      const Center(
-                        child: Icon(Icons.error_outline),
-                      ),
-                    ],
-                  )
-              : (context, url, error) => const Center(
-                    child: Icon(Icons.error_outline),
-                  ),
+          : (context, url, error) => buildPlaceholder(
+                blurHash: blurHash,
+                fit: fit,
+                child: const Icon(Icons.error_outline),
+              ),
     );
   }
 }

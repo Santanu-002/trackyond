@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:intl/intl.dart';
@@ -281,46 +280,18 @@ class _MediaViewerPageState extends State<MediaViewerPage>
                       loadStateChanged: (ExtendedImageState state) {
                         switch (state.extendedImageLoadState) {
                           case LoadState.loading:
-                            if (blurHash != null && blurHash.isNotEmpty) {
-                              return Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  BlurHash(
-                                    hash: blurHash,
-                                    imageFit: BoxFit.contain,
-                                  ),
-                                  const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                ],
-                              );
-                            }
-                            return const Center(
-                              child: CircularProgressIndicator(),
+                            return AppImage.buildPlaceholder(
+                              blurHash: blurHash,
+                              fit: BoxFit.contain,
+                              child: const CircularProgressIndicator(),
                             );
                           case LoadState.completed:
                             return null;
                           case LoadState.failed:
-                            if (blurHash != null && blurHash.isNotEmpty) {
-                              return Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  BlurHash(
-                                    hash: blurHash,
-                                    imageFit: BoxFit.contain,
-                                  ),
-                                  const Center(
-                                    child: Icon(
-                                      Icons.error_outline,
-                                      color: Colors.white,
-                                      size: 30,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-                            return const Center(
-                              child: Icon(
+                            return AppImage.buildPlaceholder(
+                              blurHash: blurHash,
+                              fit: BoxFit.contain,
+                              child: const Icon(
                                 Icons.error_outline,
                                 color: Colors.white,
                                 size: 30,

@@ -59,7 +59,7 @@ class AttachmentMenu extends GetView<JobChatController> {
     final colorScheme = context.theme.colorScheme;
 
     return Container(
-      margin: EdgeInsets.only(bottom: AppUIConstants.spacing.space$8),
+      margin: EdgeInsets.only(bottom: AppUIConstants.spacing.space$4),
       padding: EdgeInsets.symmetric(
         horizontal: AppUIConstants.spacing.space$12,
         vertical: AppUIConstants.spacing.space$12,

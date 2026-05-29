@@ -252,7 +252,7 @@ class JobChatPage extends GetView<JobChatController> {
                     showWhenUnlinked: false,
                     targetAnchor: Alignment.topCenter,
                     followerAnchor: Alignment.bottomCenter,
-                    offset: Offset(0, -AppUIConstants.spacing.space$8),
+                    offset: Offset(0, -AppUIConstants.spacing.space$4),
                     child: IgnorePointer(
                       ignoring: !isOpen,
                       child: AnimatedOpacity(
@@ -260,6 +260,7 @@ class JobChatPage extends GetView<JobChatController> {
                         opacity: isOpen ? 1.0 : 0.0,
                         curve: Curves.easeInOut,
                         child: AnimatedScale(
+                          alignment: Alignment.bottomCenter,
                           duration: const Duration(milliseconds: 250),
                           scale: isOpen ? 1.0 : 0.85,
                           curve: Curves.easeOutBack,

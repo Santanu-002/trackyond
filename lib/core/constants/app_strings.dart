@@ -20,6 +20,7 @@ class AppStrings {
   static const jobDetails = JobDetailsStrings();
   static const notifications = NotificationsStrings();
   static const jobChat = JobChatStrings();
+  static const camera = CameraStrings();
 }
 
 class NotificationsStrings {
@@ -653,6 +654,8 @@ class JobChatStrings {
   String get sendingUpdate => 'Sending update...';
   String get processingPhoto => 'Processing photo...';
   String get uploadingPhoto => 'Uploading photo...';
+  String get processingVideo => 'Processing video...';
+  String get uploadingVideo => 'Uploading video...';
   String get checkingPermissions => 'Checking permissions...';
   String get acquiringGPS => 'Acquiring GPS...';
   String get resolvingAddress => 'Resolving Address...';
@@ -684,4 +687,14 @@ class JobChatStrings {
   String get shareImageFailed => 'Failed to share: Image data could not be fetched.';
   String get shareError => 'Error sharing image: ';
   String get saveError => 'Error saving image: ';
+}
+
+class CameraStrings {
+  const CameraStrings();
+
+  String get noCameraFound => 'No camera found on this device';
+  String get failedToAccessCameras => 'Failed to access cameras';
+  String get failedToStartCamera => 'Failed to start camera preview';
+  String get failedToSetFlashMode => 'Failed to change flash mode';
+  String get failedToCapturePhoto => 'Failed to capture photo';
 }

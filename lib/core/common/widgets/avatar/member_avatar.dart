@@ -70,6 +70,9 @@ class MemberAvatar extends StatelessWidget {
         child: OctoImage.fromSet(
           fit: BoxFit.cover,
           image: imageProvider,
+          fadeInDuration: Duration.zero,
+          fadeOutDuration: Duration.zero,
+          gaplessPlayback: true,
           octoSet: OctoSet.circleAvatar(
             backgroundColor: avatarColor,
             text: fallbackText,

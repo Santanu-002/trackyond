@@ -86,6 +86,9 @@ class AppImage extends StatelessWidget {
       fit: fit,
       width: width,
       height: height,
+      fadeInDuration: Duration.zero,
+      fadeOutDuration: Duration.zero,
+      gaplessPlayback: true,
       placeholderBuilder: placeholder != null
           ? (context) => placeholder!(context, imageUrl)
           : (blurHash != null && blurHash!.isNotEmpty)

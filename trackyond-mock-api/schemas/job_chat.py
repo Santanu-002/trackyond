@@ -4,7 +4,7 @@ from datetime import datetime
 from core.responses.models import BaseSchema
 
 class JobChatMessageContentBase(BaseSchema):
-    type: str # text, image, video, docs, activity
+    type: str # text, image, video, docs, activity, reply
     content: Optional[str] = None
     metadata: Optional[dict] = Field(None, validation_alias=AliasChoices("metadata_dict", "metadata"))
     action_performed: Optional[str] = None

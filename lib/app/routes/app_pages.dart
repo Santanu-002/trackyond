@@ -10,7 +10,7 @@ import 'package:trackyond/features/auth/presentation/screens/verify_otp_page.dar
 import 'package:trackyond/features/job_chat/presentation/bindings/job_chat_binding.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/job_chat_page.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/media_preview_page.dart';
-import 'package:trackyond/features/job_chat/presentation/screens/chat_image_viewer_page.dart';
+import 'package:trackyond/features/job_chat/presentation/screens/media_viewer_page.dart';
 import 'package:trackyond/features/notification/presentation/bindings/notification_binding.dart';
 import 'package:trackyond/features/notification/presentation/bindings/notifications_page_binding.dart';
 import 'package:trackyond/features/notification/presentation/pages/notification_details_page.dart';
@@ -71,8 +71,8 @@ class AppPages {
       page: () => const MediaPreviewPage(),
     ),
     GetPage(
-      name: AppRoutes.common.imageViewer,
-      page: () => const ChatImageViewerPage(),
+      name: AppRoutes.common.mediaViewer,
+      page: () => const MediaViewerPage(),
       opaque: false,
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 200),

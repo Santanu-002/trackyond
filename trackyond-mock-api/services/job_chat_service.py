@@ -38,9 +38,13 @@ def get_job_messages(db: Session, job_id: str, limit: int = None, offset: int = 
 
 def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMessageCreate):
     print("DEBUG: message_data.created_by_author_at =", message_data.created_by_author_at, type(message_data.created_by_author_at), "tzinfo =", getattr(message_data.created_by_author_at, "tzinfo", None))
+    is_system = message_data.author_type == "system"
+    msg_uid = message_data.uid if (is_system and message_data.uid) else uuid.uuid4().hex
+    msg_local_id = msg_uid if is_system else message_data.local_id
+
     db_message = models.JobChatMessage(
-        uid=uuid.uuid4().hex,
-        local_id=message_data.local_id,
+        uid=msg_uid,
+        local_id=msg_local_id,
         job_id=job_id,
         author_type=message_data.author_type,
         created_by_uid=message_data.created_by_uid,
@@ -125,6 +129,7 @@ def create_system_activity_message(
     
     db_message = models.JobChatMessage(
         uid=message_uid,
+        local_id=message_uid,
         job_id=job_id,
         author_type="system",
         created_by_uid=created_by_uid,

@@ -28,6 +28,13 @@ class LightColors {
   final Color ghostBorder = const Color(0xFFC3C6D7); // outline-variant
   final Color black = const Color(0xFF000000);
 
+  // Attachment Menu
+  final Color attachmentCamera = const Color(0xFFEF5350);
+  final Color attachmentImage = const Color(0xFFAB47BC);
+  final Color attachmentVideo = const Color(0xFFFFA726);
+  final Color attachmentDocs = const Color(0xFF42A5F5);
+  final Color attachmentPdf = const Color(0xFFFF7043);
+
   // Shimmer
   final Color shimmerBase = const Color(0xFFE0E0E0); // Colors.grey[300]
   final Color shimmerHighlight = const Color(0xFFF5F5F5); // Colors.grey[100]
@@ -58,6 +65,13 @@ class DarkColors {
   final Color cancelled = const Color(0xFFB00020);
   final Color ghostBorder = const Color(0xFFC3C6D7);
   final Color black = const Color(0xFF000000);
+
+  // Attachment Menu
+  final Color attachmentCamera = const Color(0xFFEF5350);
+  final Color attachmentImage = const Color(0xFFAB47BC);
+  final Color attachmentVideo = const Color(0xFFFFA726);
+  final Color attachmentDocs = const Color(0xFF42A5F5);
+  final Color attachmentPdf = const Color(0xFFFF7043);
 
   final Color shimmerBase = const Color(0xFF424242); // Colors.grey[800]
   final Color shimmerHighlight = const Color(0xFF616161); // Colors.grey[700]

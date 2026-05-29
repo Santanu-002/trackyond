@@ -74,3 +74,4 @@ class ChatMessageType(str, Enum):
     docs = "docs"
     activity = "activity"
     header = "header"
+    reply = "reply"

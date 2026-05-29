@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
-import 'package:trackyond/features/job_chat/presentation/screens/chat_image_viewer_page.dart';
+import 'package:trackyond/features/job_chat/presentation/screens/media_viewer_page.dart';
 
 class ChatImageGridItem extends StatelessWidget {
   final int index;
@@ -68,7 +68,7 @@ class ChatImageGridItem extends StatelessWidget {
         Navigator.push(
           context,
           TransparentPageRoute(
-            builder: (context) => const ChatImageViewerPage(),
+            builder: (context) => const MediaViewerPage(),
             settings: RouteSettings(arguments: routeArgs),
           ),
         );

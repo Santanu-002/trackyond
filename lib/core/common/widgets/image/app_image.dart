@@ -1,9 +1,6 @@
-import 'dart:typed_data';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
-import 'package:octo_image/octo_image.dart';
-import 'package:blurhash_dart/blurhash_dart.dart';
-import 'package:image/image.dart' as img;
+import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
 class AppImage extends StatelessWidget {
@@ -26,25 +23,6 @@ class AppImage extends StatelessWidget {
     this.errorWidget,
   });
 
-  static final Map<String, MemoryImage> _blurHashCache = {};
-
-  static MemoryImage? getBlurHashProvider(String hash) {
-    if (_blurHashCache.containsKey(hash)) {
-      return _blurHashCache[hash];
-    }
-    try {
-      final blurHashObj = BlurHash.decode(hash);
-      final decodedImage = blurHashObj.toImage(32, 32);
-      final pngBytes = Uint8List.fromList(img.encodePng(decodedImage));
-      final memoryImage = MemoryImage(pngBytes);
-      _blurHashCache[hash] = memoryImage;
-      return memoryImage;
-    } catch (e) {
-      debugPrint('Error decoding blurhash: $e');
-      return null;
-    }
-  }
-
   static String getFullUrl(String? pathOrUrl) {
     if (pathOrUrl == null || pathOrUrl.isEmpty) return '';
     if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
@@ -64,48 +42,64 @@ class AppImage extends StatelessWidget {
           const Center(child: Icon(Icons.error_outline));
     }
 
-    final MemoryImage? decodedHashProvider =
-        (blurHash != null && blurHash!.isNotEmpty) ? getBlurHashProvider(blurHash!) : null;
-
-    return OctoImage(
-      image: CachedNetworkImageProvider(fullUrl),
+    return ExtendedImage.network(
+      fullUrl,
       fit: fit,
       width: width,
       height: height,
-      placeholderBuilder: placeholder != null
-          ? (context) => placeholder!(context, fullUrl)
-          : decodedHashProvider != null
-              ? (context) => Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image(
-                        image: decodedHashProvider,
-                        fit: fit,
-                      ),
-                      const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      ),
-                    ],
-                  )
-              : OctoPlaceholder.circularProgressIndicator(),
-      errorBuilder: errorWidget != null
-          ? (context, error, stackTrace) => errorWidget!(context, fullUrl, error)
-          : decodedHashProvider != null
-              ? (context, error, stackTrace) => Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image(
-                        image: decodedHashProvider,
-                        fit: fit,
-                      ),
-                      const Center(
-                        child: Icon(Icons.error_outline),
-                      ),
-                    ],
-                  )
-              : OctoError.icon(),
+      cache: true,
+      loadStateChanged: (ExtendedImageState state) {
+        switch (state.extendedImageLoadState) {
+          case LoadState.loading:
+            if (placeholder != null) {
+              return placeholder!(context, fullUrl);
+            }
+            if (blurHash != null && blurHash!.isNotEmpty) {
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  BlurHash(
+                    hash: blurHash!,
+                    imageFit: fit,
+                  ),
+                  const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  ),
+                ],
+              );
+            }
+            return const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
+            );
+
+          case LoadState.completed:
+            return null;
+
+          case LoadState.failed:
+            if (errorWidget != null) {
+              return errorWidget!(context, fullUrl, state.lastException);
+            }
+            if (blurHash != null && blurHash!.isNotEmpty) {
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  BlurHash(
+                    hash: blurHash!,
+                    imageFit: fit,
+                  ),
+                  const Center(
+                    child: Icon(Icons.error_outline),
+                  ),
+                ],
+              );
+            }
+            return const Center(child: Icon(Icons.error_outline));
+        }
+      },
     );
   }
 }

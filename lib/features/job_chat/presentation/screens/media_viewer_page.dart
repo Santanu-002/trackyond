@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:trackyond/core/common/widgets/button/app_icon_button.dart';
+import 'package:trackyond/core/common/widgets/button/chat_action_button.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
@@ -17,14 +17,14 @@ import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 
-class ChatImageViewerPage extends StatefulWidget {
-  const ChatImageViewerPage({super.key});
+class MediaViewerPage extends StatefulWidget {
+  const MediaViewerPage({super.key});
 
   @override
-  State<ChatImageViewerPage> createState() => _ChatImageViewerPageState();
+  State<MediaViewerPage> createState() => _MediaViewerPageState();
 }
 
-class _ChatImageViewerPageState extends State<ChatImageViewerPage>
+class _MediaViewerPageState extends State<MediaViewerPage>
     with SingleTickerProviderStateMixin {
   static const _mediaScannerChannel = MethodChannel('media_scanner_channel');
   
@@ -219,6 +219,14 @@ class _ChatImageViewerPageState extends State<ChatImageViewerPage>
         body: ExtendedImageSlidePage(
           slideAxis: SlideAxis.both,
           slideType: SlideType.onlyImage,
+          slidePageBackgroundHandler: (Offset offset, Size pageSize) {
+            return defaultSlidePageBackgroundHandler(
+              offset: offset,
+              pageSize: pageSize,
+              color: context.theme.colorScheme.black,
+              pageGestureAxis: SlideAxis.both,
+            );
+          },
           onSlidingPage: (state) {
             final sliding = state.isSliding;
             if (sliding != _isSliding) {
@@ -251,7 +259,7 @@ class _ChatImageViewerPageState extends State<ChatImageViewerPage>
                     final url = AppImage.getFullUrl(imageUrls[index]);
                     
                     return ExtendedImage(
-                      image: CachedNetworkImageProvider(url),
+                      image: ExtendedNetworkImageProvider(url, cache: true),
                       fit: BoxFit.contain,
                       mode: ExtendedImageMode.gesture,
                       enableSlideOutPage: true,
@@ -336,15 +344,12 @@ class _ChatImageViewerPageState extends State<ChatImageViewerPage>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             // Back Button
-                            AppIconButton(
+                            ChatActionButton(
                               icon: const Icon(
                                   Icons.arrow_back_ios_new_rounded,
                                   size: 20,
                                 ),
                               onPressed: () => Navigator.of(context).pop(),
-                              size: 40,
-                              backgroundColor: Colors.black.withValues(alpha: 0.5),
-                              iconColor: Colors.white,
                             ),
 
                             // Title/Page Counter
@@ -372,7 +377,7 @@ class _ChatImageViewerPageState extends State<ChatImageViewerPage>
                               const SizedBox.shrink(),
 
                             // Share / Action button
-                            AppIconButton(
+                            ChatActionButton(
                               icon: _isSharing
                                   ? const SizedBox(
                                       width: 18,
@@ -389,9 +394,6 @@ class _ChatImageViewerPageState extends State<ChatImageViewerPage>
                               onPressed: _isSharing
                                   ? null
                                   : () => _shareImage(imageUrls[_currentIndex]),
-                              size: 40,
-                              backgroundColor: Colors.black.withValues(alpha: 0.5),
-                              iconColor: Colors.white,
                             ),
                           ],
                         ),

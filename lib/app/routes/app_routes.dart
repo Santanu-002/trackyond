@@ -50,5 +50,5 @@ class _CommonRoutes {
   String get notificationDetails => '/notification-details';
   String get jobChat => '/job-chat';
   String get mediaPreview => '/media-preview';
-  String get imageViewer => '/image-viewer';
+  String get mediaViewer => '/media-viewer';
 }

@@ -256,7 +256,7 @@ class ActivityMessageCard extends StatelessWidget {
             // --- REPLY PREVIEW START ---
             () {
               final replyContent = message.content.firstWhereOrNull(
-                (c) => c.type == 'refer/reply' || c.type == 'reply',
+                (c) => c.type == 'reply',
               );
               if (replyContent == null) return const SizedBox.shrink();
 

@@ -302,7 +302,7 @@ class JobChatController extends GetxController {
       if (!m.timestamp.isAfter(requestMessage.timestamp) || !m.isMe) return false;
       
       final hasReply = m.content.any((c) {
-        if (c.type != 'refer/reply' && c.type != 'reply') return false;
+        if (c.type != 'reply') return false;
         final repliedMsgUid = c.metadata?['messageUid'] as String?;
         return repliedMsgUid == requestMessage.uid;
       });
@@ -545,6 +545,15 @@ class JobChatController extends GetxController {
   final messageController = TextEditingController();
   final focusNode = FocusNode();
   final RxBool hasFocus = false.obs;
+  final RxBool showAttachmentMenu = false.obs;
+  final layerLink = LayerLink();
+
+  void toggleAttachmentMenu() {
+    showAttachmentMenu.value = !showAttachmentMenu.value;
+    if (showAttachmentMenu.value) {
+      focusNode.unfocus();
+    }
+  }
 
   late final Rx<JobEntity> _job;
 
@@ -562,6 +571,7 @@ class JobChatController extends GetxController {
     focusNode.addListener(() {
       hasFocus.value = focusNode.hasFocus;
       if (focusNode.hasFocus) {
+        showAttachmentMenu.value = false;
         Future.delayed(const Duration(milliseconds: 150), () {
           scrollToLast(animate: true);
         });
@@ -754,7 +764,7 @@ class JobChatController extends GetxController {
 
 
       // Optimistic UI update
-      final tempId = nanoid();
+      final tempLocalId = nanoid(10);
       final List<JobChatMessageContentEntity> contentList = [];
 
       if (repliedMsg != null) {
@@ -777,7 +787,7 @@ class JobChatController extends GetxController {
 
         contentList.add(
           JobChatMessageContentEntity(
-            type: JobChatMessageType.referReply.value,
+            type: JobChatMessageType.reply.value,
             content: originalText,
             metadata: {
               'messageUid': repliedMsg.uid,
@@ -813,8 +823,8 @@ class JobChatController extends GetxController {
       };
 
       final tempMsg = JobChatMessageEntity(
-        uid: tempId,
-        localId: tempId,
+        uid: '',
+        localId: tempLocalId,
         jobId: job.jobId,
         senderName: _currentUserName.value!,
         senderId: _currentUserUid.value!,
@@ -834,14 +844,14 @@ class JobChatController extends GetxController {
 
       result.fold(
         (failure) {
-          messages.removeWhere((m) => m.uid == tempId);
+          messages.removeWhere((m) => m.localId == tempLocalId);
           AppSnackbar.destructive(failure.message);
         },
         (sendResult) {
           messageController.clear();
           replyingToMessage.value = null;
           // Replace temp message with real one
-          final index = messages.indexWhere((m) => m.uid == tempId);
+          final index = messages.indexWhere((m) => m.localId == tempLocalId);
           if (index != -1) {
             messages[index] = sendResult.message.copyWith(isMe: true);
           }
@@ -860,8 +870,8 @@ class JobChatController extends GetxController {
     if (_currentUserUid.value == null || _currentUserName.value == null) return;
 
     final photoMsg = JobChatMessageEntity(
-      uid: nanoid(),
-      localId: nanoid(),
+      uid: '',
+      localId: nanoid(10),
       jobId: job.jobId,
       senderName: _currentUserName.value!,
       senderId: _currentUserUid.value!,
@@ -885,9 +895,10 @@ class JobChatController extends GetxController {
     messages.add(photoMsg);
 
     // Activity entry
+    final timelineId = nanoid(10);
     final timelineMsg = JobChatMessageEntity(
-      uid: nanoid(),
-      localId: nanoid(),
+      uid: timelineId,
+      localId: timelineId,
       jobId: job.jobId,
       authorType: 'system',
       senderName: 'System',
@@ -1016,7 +1027,7 @@ class JobChatController extends GetxController {
 
       String? uploadedPhotoPath;
       Map<String, dynamic>? photoMetadata;
-      final tempLocalId = nanoid();
+      final tempLocalId = nanoid(10);
       final List<JobChatMessageContentEntity> content = [];
 
       final isPhotoAction = jobAction == JobAction.startJobWithCapturePhoto ||
@@ -1202,7 +1213,7 @@ class JobChatController extends GetxController {
           };
 
           final activityMsg = JobChatMessageEntity(
-            uid: tempLocalId,
+            uid: '',
             localId: tempLocalId,
             jobId: job.jobId,
             authorType: 'user',
@@ -1395,9 +1406,9 @@ class JobChatController extends GetxController {
         ...locationData,
       };
 
-      final tempLocalId = nanoid();
+      final tempLocalId = nanoid(10);
       final activityMsg = JobChatMessageEntity(
-        uid: tempLocalId,
+        uid: '',
         localId: tempLocalId,
         jobId: job.jobId,
         authorType: 'user',
@@ -1544,6 +1555,354 @@ class JobChatController extends GetxController {
       case JobStatus.cancelled:
         return [JobAction.reopenJob.value];
     }
+  }
+
+  Future<void> sendAttachmentMessage({
+    required JobChatMessageType type,
+    required String contentText,
+    required String mediaUrl,
+    required Map<String, dynamic> metadata,
+  }) async {
+    if (_currentUserUid.value == null || _currentUserName.value == null) return;
+    
+    isMessageSending.value = true;
+    final tempLocalId = nanoid(10);
+    try {
+      final List<JobChatMessageContentEntity> contentList = [
+        JobChatMessageContentEntity(
+          type: type.value,
+          content: contentText,
+          metadata: metadata,
+        ),
+      ];
+
+      final tempMsg = JobChatMessageEntity(
+        uid: '',
+        localId: tempLocalId,
+        jobId: job.jobId,
+        senderName: _currentUserName.value!,
+        senderId: _currentUserUid.value!,
+        senderProfileUid: _currentUserProfileUid.value,
+        content: contentList,
+        timestamp: DateTime.now(),
+        type: 'message',
+        isMe: true,
+      );
+
+      messages.add(tempMsg);
+      scrollToLast(animate: true);
+
+      final result = await _sendMessageUseCase(
+        SendMessageParams(message: tempMsg),
+      );
+
+      result.fold(
+        (failure) {
+          messages.removeWhere((m) => m.localId == tempLocalId);
+          AppSnackbar.destructive(failure.message);
+        },
+        (sendResult) {
+          final index = messages.indexWhere((m) => m.localId == tempLocalId);
+          if (index != -1) {
+            messages[index] = sendResult.message.copyWith(isMe: true);
+          }
+          if (sendResult.job != null) {
+            _job.value = sendResult.job!;
+            _emitJobUpdateUseCase(sendResult.job!);
+          }
+        },
+      );
+    } catch (e) {
+      messages.removeWhere((m) => m.localId == tempLocalId);
+      AppSnackbar.destructive(e.toString());
+    } finally {
+      isMessageSending.value = false;
+    }
+  }
+
+  Future<void> attachFromCamera() async {
+    showAttachmentMenu.value = false;
+    final picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+      if (image == null) return;
+      
+      isMessageSending.value = true;
+      final file = File(image.path);
+      final fileSize = await file.length();
+      final fileName = file.path.split('/').last;
+      final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
+      
+      final bytes = await file.readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      final imgWidth = frame.image.width;
+      final imgHeight = frame.image.height;
+      final calculatedBlurHash = await _computeAndPrintBlurHash(image.path);
+
+      final uploadResult = await _uploadFileUseCase(
+        UploadFileParams(
+          file: file,
+          path: job.jobId,
+        ),
+      );
+
+      await uploadResult.fold(
+        (failure) async {
+          debugPrint('Upload failed, falling back to mock: ${failure.message}');
+          await sendAttachmentMessage(
+            type: JobChatMessageType.image,
+            contentText: fileName,
+            mediaUrl: 'https://picsum.photos/800/600',
+            metadata: {
+              'url': 'https://picsum.photos/800/600',
+              'blurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+              'fileMetadata': {
+                'fileName': fileName,
+                'size': _formatFileSize(fileSize),
+                'mimeType': mimeType,
+                'imageMetadata': {
+                  'width': imgWidth,
+                  'height': imgHeight,
+                },
+              }
+            },
+          );
+        },
+        (path) async {
+          await sendAttachmentMessage(
+            type: JobChatMessageType.image,
+            contentText: path,
+            mediaUrl: ApiEndpoints.common.download(path),
+            metadata: {
+              'url': ApiEndpoints.common.download(path),
+              'path': path,
+              'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+              'fileMetadata': {
+                'fileName': fileName,
+                'size': _formatFileSize(fileSize),
+                'mimeType': mimeType,
+                'imageMetadata': {
+                  'width': imgWidth,
+                  'height': imgHeight,
+                },
+              }
+            },
+          );
+        },
+      );
+    } catch (e) {
+      AppSnackbar.destructive('Error capturing photo: $e');
+    } finally {
+      isMessageSending.value = false;
+    }
+  }
+
+  Future<void> attachFromGallery() async {
+    showAttachmentMenu.value = false;
+    final picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      if (image == null) return;
+      
+      isMessageSending.value = true;
+      final file = File(image.path);
+      final fileSize = await file.length();
+      final fileName = file.path.split('/').last;
+      final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
+      
+      final bytes = await file.readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      final imgWidth = frame.image.width;
+      final imgHeight = frame.image.height;
+      final calculatedBlurHash = await _computeAndPrintBlurHash(image.path);
+
+      final uploadResult = await _uploadFileUseCase(
+        UploadFileParams(
+          file: file,
+          path: job.jobId,
+        ),
+      );
+
+      await uploadResult.fold(
+        (failure) async {
+          debugPrint('Upload failed, falling back to mock: ${failure.message}');
+          await sendAttachmentMessage(
+            type: JobChatMessageType.image,
+            contentText: fileName,
+            mediaUrl: 'https://picsum.photos/800/600',
+            metadata: {
+              'url': 'https://picsum.photos/800/600',
+              'blurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+              'fileMetadata': {
+                'fileName': fileName,
+                'size': _formatFileSize(fileSize),
+                'mimeType': mimeType,
+                'imageMetadata': {
+                  'width': imgWidth,
+                  'height': imgHeight,
+                },
+              }
+            },
+          );
+        },
+        (path) async {
+          await sendAttachmentMessage(
+            type: JobChatMessageType.image,
+            contentText: path,
+            mediaUrl: ApiEndpoints.common.download(path),
+            metadata: {
+              'url': ApiEndpoints.common.download(path),
+              'path': path,
+              'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+              'fileMetadata': {
+                'fileName': fileName,
+                'size': _formatFileSize(fileSize),
+                'mimeType': mimeType,
+                'imageMetadata': {
+                  'width': imgWidth,
+                  'height': imgHeight,
+                },
+              }
+            },
+          );
+        },
+      );
+    } catch (e) {
+      AppSnackbar.destructive('Error picking photo: $e');
+    } finally {
+      isMessageSending.value = false;
+    }
+  }
+
+  Future<void> attachVideo() async {
+    showAttachmentMenu.value = false;
+    final picker = ImagePicker();
+    try {
+      final XFile? video = await picker.pickVideo(
+        source: ImageSource.gallery,
+      );
+      if (video == null) return;
+      
+      isMessageSending.value = true;
+      final file = File(video.path);
+      final fileSize = await file.length();
+      final fileName = file.path.split('/').last;
+      final mimeType = lookupMimeType(file.path) ?? 'video/mp4';
+
+      final uploadResult = await _uploadFileUseCase(
+        UploadFileParams(
+          file: file,
+          path: job.jobId,
+        ),
+      );
+
+      await uploadResult.fold(
+        (failure) async {
+          debugPrint('Upload failed, falling back to mock video: ${failure.message}');
+          await sendAttachmentMessage(
+            type: JobChatMessageType.video,
+            contentText: fileName,
+            mediaUrl: 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+            metadata: {
+              'url': 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+              'fileMetadata': {
+                'fileName': fileName,
+                'size': _formatFileSize(fileSize),
+                'mimeType': mimeType,
+                'videoMetaData': {
+                  'duration': '0:15',
+                },
+              }
+            },
+          );
+        },
+        (path) async {
+          await sendAttachmentMessage(
+            type: JobChatMessageType.video,
+            contentText: path,
+            mediaUrl: ApiEndpoints.common.download(path),
+            metadata: {
+              'url': ApiEndpoints.common.download(path),
+              'path': path,
+              'fileMetadata': {
+                'fileName': fileName,
+                'size': _formatFileSize(fileSize),
+                'mimeType': mimeType,
+                'videoMetaData': {
+                  'duration': '0:00',
+                },
+              }
+            },
+          );
+        },
+      );
+    } catch (e) {
+      AppSnackbar.destructive('Error picking video: $e');
+    } finally {
+      isMessageSending.value = false;
+    }
+  }
+
+  Future<void> attachDocument() async {
+    showAttachmentMenu.value = false;
+    isMessageSending.value = true;
+    
+    await Future.delayed(const Duration(milliseconds: 600));
+    
+    final fileName = 'Project_Specification_${DateTime.now().millisecondsSinceEpoch % 10000}.docx';
+    final fileSize = 1540 * 1024;
+    
+    await sendAttachmentMessage(
+      type: JobChatMessageType.docs,
+      contentText: fileName,
+      mediaUrl: 'https://example.com/docs/$fileName',
+      metadata: {
+        'url': 'https://example.com/docs/$fileName',
+        'fileMetadata': {
+          'fileName': fileName,
+          'size': _formatFileSize(fileSize),
+          'mimeType': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'docMetaData': {
+            'pageCount': 12,
+          }
+        }
+      },
+    );
+  }
+
+  Future<void> attachPdf() async {
+    showAttachmentMenu.value = false;
+    isMessageSending.value = true;
+    
+    await Future.delayed(const Duration(milliseconds: 600));
+    
+    final fileName = 'Invoice_May_2026_${DateTime.now().millisecondsSinceEpoch % 10000}.pdf';
+    final fileSize = 750 * 1024;
+    
+    await sendAttachmentMessage(
+      type: JobChatMessageType.docs,
+      contentText: fileName,
+      mediaUrl: 'https://example.com/docs/$fileName',
+      metadata: {
+        'url': 'https://example.com/docs/$fileName',
+        'fileMetadata': {
+          'fileName': fileName,
+          'size': _formatFileSize(fileSize),
+          'mimeType': 'application/pdf',
+          'docMetaData': {
+            'pageCount': 3,
+          }
+        }
+      },
+    );
   }
 
   Future<void> openMap(double latitude, double longitude) async {

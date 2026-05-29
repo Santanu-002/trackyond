@@ -29,6 +29,26 @@ extension ColorSchemeExtension on ColorScheme {
   Color get black => brightness == Brightness.light
       ? AppColors.light.black
       : AppColors.dark.black;
+
+  Color get attachmentCamera => brightness == Brightness.light
+      ? AppColors.light.attachmentCamera
+      : AppColors.dark.attachmentCamera;
+
+  Color get attachmentImage => brightness == Brightness.light
+      ? AppColors.light.attachmentImage
+      : AppColors.dark.attachmentImage;
+
+  Color get attachmentVideo => brightness == Brightness.light
+      ? AppColors.light.attachmentVideo
+      : AppColors.dark.attachmentVideo;
+
+  Color get attachmentDocs => brightness == Brightness.light
+      ? AppColors.light.attachmentDocs
+      : AppColors.dark.attachmentDocs;
+
+  Color get attachmentPdf => brightness == Brightness.light
+      ? AppColors.light.attachmentPdf
+      : AppColors.dark.attachmentPdf;
 }
 extension BuildContextThemeExtension on BuildContext {
   ColorScheme get colorScheme => Theme.of(this).colorScheme;

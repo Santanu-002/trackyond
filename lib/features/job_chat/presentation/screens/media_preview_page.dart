@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
-import 'package:trackyond/core/common/widgets/button/app_icon_button.dart';
+import 'package:trackyond/core/common/widgets/button/chat_action_button.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
@@ -578,7 +578,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        AppIconButton(
+                        ChatActionButton(
                           icon: Icon(
                             _isCropping
                                 ? Icons.arrow_back_ios_new_rounded
@@ -594,49 +594,28 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                                     Get.back();
                                   }
                                 },
-                          size: 40,
-                          backgroundColor: colorScheme.outlineVariant
-                              .withValues(alpha: 0.2),
-                          iconColor: colorScheme.onPrimary,
                         ),
                         if (_isCropping)
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              AppIconButton(
+                              ChatActionButton(
                                 icon: const Icon(Icons.undo_rounded, size: 24),
                                 onPressed: (_isLoading || !canUndo)
                                     ? null
                                     : _onUndo,
-                                size: 40,
-                                backgroundColor: colorScheme.outlineVariant
-                                    .withValues(alpha: 0.2),
-                                iconColor: canUndo
-                                    ? colorScheme.onPrimary
-                                    : colorScheme.onPrimary.withValues(
-                                        alpha: 0.35,
-                                      ),
                               ),
                               AppUIConstants.widgets.horizontalBox$8,
-                              AppIconButton(
+                              ChatActionButton(
                                 icon: const Icon(Icons.redo_rounded, size: 24),
                                 onPressed: (_isLoading || !canRedo)
                                     ? null
                                     : _onRedo,
-                                size: 40,
-                                backgroundColor: colorScheme.outlineVariant
-                                    .withValues(alpha: 0.2),
-                                iconColor: canRedo
-                                    ? colorScheme.onPrimary
-                                    : colorScheme.onPrimary.withValues(
-                                        alpha: 0.35,
-                                      ),
                               ),
                               AppUIConstants.widgets.horizontalBox$8,
-                              AppIconButton(
+                              ChatActionButton(
                                 icon: const Icon(Icons.check_rounded, size: 24),
                                 onPressed: _isLoading ? null : _onDoneCrop,
-                                size: 40,
                                 backgroundColor: Colors.green,
                                 iconColor: Colors.white,
                               ),
@@ -646,7 +625,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              AppIconButton(
+                              ChatActionButton(
                                 icon: const Icon(
                                   Icons.delete_outline_rounded,
                                   size: 24,
@@ -654,20 +633,15 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                                 onPressed: _isLoading
                                     ? null
                                     : _deleteCurrentImage,
-                                size: 40,
                                 backgroundColor: colorScheme.error.withValues(
                                   alpha: 0.8,
                                 ),
                                 iconColor: colorScheme.onError,
                               ),
                               AppUIConstants.widgets.horizontalBox$8,
-                              AppIconButton(
+                              ChatActionButton(
                                 icon: const Icon(Icons.crop_rounded, size: 24),
                                 onPressed: _isLoading ? null : _onCrop,
-                                size: 40,
-                                backgroundColor: colorScheme.outlineVariant
-                                    .withValues(alpha: 0.2),
-                                iconColor: colorScheme.onPrimary,
                               ),
                             ],
                           ),

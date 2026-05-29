@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
@@ -50,15 +50,22 @@ class MemberAvatar extends StatelessWidget {
     } else if (localFile == null && imageUrl != null) {
       avatarChild = ClipRRect(
         borderRadius: BorderRadius.circular(avatarRadius),
-        child: CachedNetworkImage(
-          imageUrl: imageUrl,
+        child: ExtendedImage.network(
+          imageUrl,
           fit: BoxFit.cover,
           width: avatarRadius * 2,
           height: avatarRadius * 2,
-          placeholder: (context, url) =>
-              _buildPlaceholder(context, avatarColor, avatarRadius),
-          errorWidget: (context, url, error) =>
-              _buildPlaceholder(context, avatarColor, avatarRadius),
+          cache: true,
+          loadStateChanged: (ExtendedImageState state) {
+            switch (state.extendedImageLoadState) {
+              case LoadState.loading:
+                return _buildPlaceholder(context, avatarColor, avatarRadius);
+              case LoadState.completed:
+                return null;
+              case LoadState.failed:
+                return _buildPlaceholder(context, avatarColor, avatarRadius);
+            }
+          },
         ),
       );
     } else if (localFile == null) {

@@ -15,63 +15,69 @@ class MessageInput extends GetView<JobChatController> {
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        AppUIConstants.spacing.space$16,
-        AppUIConstants.spacing.space$8,
-        AppUIConstants.spacing.space$16,
-        AppUIConstants.spacing.space$16 + context.mediaQueryPadding.bottom,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        boxShadow: AppUIConstants.shadows.sm,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const JobActionsBar(),
-          Obx(() {
-            final actions = controller.availableActions;
-            final isReplying = controller.replyingToMessage.value != null;
-            if (actions.isEmpty || isReplying) return const SizedBox.shrink();
-            return AppUIConstants.widgets.verticalBox$8;
-          }),
-          Obx(() {
-            if (controller.replyingToMessage.value == null) {
-              return const SizedBox.shrink();
-            }
-            return const ReplyPreviewBar();
-          }),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: ChatInputField(
-                  controller: controller.messageController,
-                  focusNode: controller.focusNode,
-                  hintText: 'Type a message...',
-                  suffix: IconButton(
-                    icon: Icon(
-                      AppIcons.common.attachment,
-                      color: colorScheme.primary,
-                      size: 20,
-                    ),
-                    onPressed: controller.sendMockPhoto,
+    return CompositedTransformTarget(
+      link: controller.layerLink,
+      child: Container(
+        padding: EdgeInsets.fromLTRB(
+          AppUIConstants.spacing.space$16,
+          AppUIConstants.spacing.space$8,
+          AppUIConstants.spacing.space$16,
+          AppUIConstants.spacing.space$16 + context.mediaQueryPadding.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          boxShadow: AppUIConstants.shadows.sm,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const JobActionsBar(),
+            Obx(() {
+              final actions = controller.availableActions;
+              final isReplying = controller.replyingToMessage.value != null;
+              if (actions.isEmpty || isReplying) return const SizedBox.shrink();
+              return AppUIConstants.widgets.verticalBox$8;
+            }),
+            Obx(() {
+              if (controller.replyingToMessage.value == null) {
+                return const SizedBox.shrink();
+              }
+              return const ReplyPreviewBar();
+            }),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: ChatInputField(
+                    controller: controller.messageController,
+                    focusNode: controller.focusNode,
+                    hintText: 'Type a message...',
+                    suffix: Obx(() {
+                      final isOpen = controller.showAttachmentMenu.value;
+                      return IconButton(
+                        icon: Icon(
+                          AppIcons.common.attachment,
+                          color: isOpen ? colorScheme.secondary : colorScheme.primary,
+                          size: 20,
+                        ),
+                        onPressed: controller.toggleAttachmentMenu,
+                      );
+                    }),
                   ),
                 ),
-              ),
-              AppUIConstants.widgets.horizontalBox$8,
-              Obx(() {
-                final isSending = controller.isMessageSending.value;
-                return ChatSendButton(
-                  onPressed: controller.sendMessage,
-                  isLoading: isSending,
-                );
-              }),
-            ],
-          ),
-        ],
+                AppUIConstants.widgets.horizontalBox$8,
+                Obx(() {
+                  final isSending = controller.isMessageSending.value;
+                  return ChatSendButton(
+                    onPressed: controller.sendMessage,
+                    isLoading: isSending,
+                  );
+                }),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

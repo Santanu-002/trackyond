@@ -272,6 +272,27 @@ class _MediaViewerPageState extends State<MediaViewerPage>
                       fit: BoxFit.contain,
                       mode: ExtendedImageMode.gesture,
                       enableSlideOutPage: true,
+                      loadStateChanged: (ExtendedImageState state) {
+                        switch (state.extendedImageLoadState) {
+                          case LoadState.loading:
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            );
+                          case LoadState.completed:
+                            return null;
+                          case LoadState.failed:
+                            return const Center(
+                              child: Icon(
+                                Icons.error_outline,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                            );
+                        }
+                      },
                       initGestureConfigHandler: (state) {
                         return GestureConfig(
                           minScale: 1.0,

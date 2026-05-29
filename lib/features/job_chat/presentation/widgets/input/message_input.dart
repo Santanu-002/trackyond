@@ -24,8 +24,8 @@ class MessageInput extends GetView<JobChatController> {
           AppUIConstants.spacing.space$16,
           AppUIConstants.spacing.space$8 + context.mediaQueryPadding.bottom,
         ),
-        decoration: BoxDecoration(
-          color: context.theme.scaffoldBackgroundColor,
+        decoration: const BoxDecoration(
+          color: Colors.transparent,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

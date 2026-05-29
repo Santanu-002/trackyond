@@ -363,9 +363,9 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                           initCropRectType: InitCropRectType.imageRect,
                           cropAspectRatio: _aspectRatios[index],
                           controller: _editorControllers[index],
-                          lineColor: Colors.white.withValues(alpha: 0.5),
+                          lineColor: colorScheme.onSurface.withValues(alpha: 0.5),
                           editorMaskColorHandler: (context, pointerDown) =>
-                              Colors.black.withValues(
+                              colorScheme.black.withValues(
                                 alpha: pointerDown ? 0.3 : 0.65,
                               ),
                         );
@@ -578,22 +578,21 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        ChatActionButton(
+                         ChatActionButton(
                           icon: Icon(
                             _isCropping
                                 ? Icons.arrow_back_ios_new_rounded
                                 : Icons.close_rounded,
                             size: 24,
                           ),
-                          onPressed: _isLoading
-                              ? null
-                              : () {
-                                  if (_isCropping) {
-                                    _cancelCrop();
-                                  } else {
-                                    Get.back();
-                                  }
-                                },
+                          onPressed: () {
+                            if (_isCropping) {
+                              _cancelCrop();
+                            } else {
+                              Get.back();
+                            }
+                          },
+                          disabled: _isLoading,
                         ),
                         if (_isCropping)
                           Row(
@@ -601,23 +600,22 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                             children: [
                               ChatActionButton(
                                 icon: const Icon(Icons.undo_rounded, size: 24),
-                                onPressed: (_isLoading || !canUndo)
-                                    ? null
-                                    : _onUndo,
+                                onPressed: _onUndo,
+                                disabled: _isLoading || !canUndo,
                               ),
                               AppUIConstants.widgets.horizontalBox$8,
                               ChatActionButton(
                                 icon: const Icon(Icons.redo_rounded, size: 24),
-                                onPressed: (_isLoading || !canRedo)
-                                    ? null
-                                    : _onRedo,
+                                onPressed: _onRedo,
+                                disabled: _isLoading || !canRedo,
                               ),
                               AppUIConstants.widgets.horizontalBox$8,
                               ChatActionButton(
                                 icon: const Icon(Icons.check_rounded, size: 24),
-                                onPressed: _isLoading ? null : _onDoneCrop,
-                                backgroundColor: Colors.green,
-                                iconColor: Colors.white,
+                                onPressed: _onDoneCrop,
+                                disabled: _isLoading,
+                                backgroundColor: colorScheme.completed,
+                                iconColor: colorScheme.onPrimary,
                               ),
                             ],
                           )
@@ -630,9 +628,8 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                                   Icons.delete_outline_rounded,
                                   size: 24,
                                 ),
-                                onPressed: _isLoading
-                                    ? null
-                                    : _deleteCurrentImage,
+                                onPressed: _deleteCurrentImage,
+                                disabled: _isLoading,
                                 backgroundColor: colorScheme.error.withValues(
                                   alpha: 0.8,
                                 ),
@@ -641,7 +638,8 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                               AppUIConstants.widgets.horizontalBox$8,
                               ChatActionButton(
                                 icon: const Icon(Icons.crop_rounded, size: 24),
-                                onPressed: _isLoading ? null : _onCrop,
+                                onPressed: _onCrop,
+                                disabled: _isLoading,
                               ),
                             ],
                           ),
@@ -820,7 +818,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
               if (_isLoading)
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.5),
+                    color: colorScheme.black.withValues(alpha: 0.5),
                     child: BackdropFilter(
                       filter: ui.ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
                       child: Center(
@@ -842,7 +840,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.25),
+                                color: colorScheme.black.withValues(alpha: 0.25),
                                 blurRadius: 16,
                                 offset: const Offset(0, 8),
                               ),

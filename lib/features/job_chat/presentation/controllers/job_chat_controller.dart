@@ -641,43 +641,49 @@ class JobChatController extends GetxController {
   }
 
   Future<void> fetchMessages() async {
+    isLoading.value = true;
     errorMessage.value = null;
     hasMoreMessages.value = true;
+    messages.clear();
 
-    final membersResult = await _getChatMembersUseCase(job.jobId);
-    membersResult.fold(
-      (failure) =>
-          debugPrint('Error fetching chat members: ${failure.message}'),
-      (data) {
-        chatMembers.assignAll(data);
-      },
-    );
+    try {
+      final membersResult = await _getChatMembersUseCase(job.jobId);
+      membersResult.fold(
+        (failure) =>
+            debugPrint('Error fetching chat members: ${failure.message}'),
+        (data) {
+          chatMembers.assignAll(data);
+        },
+      );
 
-    final result = await _getMessagesUseCase(
-      GetJobMessagesParams(
-        jobId: job.jobId,
-        options: const MessageQueryOptions(
-          limit: _messageLimit,
-          offset: 0,
+      final result = await _getMessagesUseCase(
+        GetJobMessagesParams(
+          jobId: job.jobId,
+          options: const MessageQueryOptions(
+            limit: _messageLimit,
+            offset: 0,
+          ),
         ),
-      ),
-    );
-    result.fold(
-      (failure) {
-        errorMessage.value = failure.message;
-        AppSnackbar.destructive(failure.message);
-      },
-      (data) {
-        if (data.length < _messageLimit) {
-          hasMoreMessages.value = false;
-        }
-        final updatedMessages = data.map((m) {
-          final isMe = m.senderId == _currentUserUid.value;
-          return m.copyWith(isMe: isMe);
-        }).toList();
-        messages.assignAll(updatedMessages);
-      },
-    );
+      );
+      result.fold(
+        (failure) {
+          errorMessage.value = failure.message;
+          AppSnackbar.destructive(failure.message);
+        },
+        (data) {
+          if (data.length < _messageLimit) {
+            hasMoreMessages.value = false;
+          }
+          final updatedMessages = data.map((m) {
+            final isMe = m.senderId == _currentUserUid.value;
+            return m.copyWith(isMe: isMe);
+          }).toList();
+          messages.assignAll(updatedMessages);
+        },
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> loadMoreMessages() async {

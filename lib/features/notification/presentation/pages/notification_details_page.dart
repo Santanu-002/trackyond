@@ -31,9 +31,9 @@ class NotificationDetailsPage extends StatelessWidget {
                     children: [
                       Text(
                         entry.key,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey,
+                          color: context.theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       AppUIConstants.widgets.verticalBox$4,

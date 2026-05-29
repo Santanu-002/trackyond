@@ -40,17 +40,21 @@ class WorkerDashboardPage extends GetView<WorkerDashboardController> {
         ),
       ),
       actions: [
-        Obx(() => AppNotificationBell(
-              count: notificationController.unreadCount.value,
-              onPressed: controller.openNotifications,
-            )),
+        Obx(
+          () => AppNotificationBell(
+            count: notificationController.unreadCount.value,
+            onPressed: controller.openNotifications,
+          ),
+        ),
         AppUIConstants.widgets.horizontalBox$8,
       ],
       floatingActionButton: Obx(() {
         if (controller.isActionLoading.value) {
-          return const FloatingActionButton(
+          return FloatingActionButton(
             onPressed: null,
-            child: CircularProgressIndicator(color: Colors.white),
+            child: CircularProgressIndicator(
+              color: context.theme.colorScheme.onPrimaryContainer,
+            ),
           );
         }
         return FloatingActionButton(

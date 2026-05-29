@@ -48,7 +48,7 @@ class AppStatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        style: context.textTheme.labelSmall?.copyWith(
           color: color,
           fontWeight: FontWeight.bold,
           letterSpacing: 0.2,

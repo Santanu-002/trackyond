@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:blurhash_dart/blurhash_dart.dart';
 import 'package:image/image.dart' as img;
@@ -82,14 +83,20 @@ class AppImage extends StatelessWidget {
                         image: decodedHashProvider,
                         fit: fit,
                       ),
-                      const Center(
+                      Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
+                          color: context.theme.colorScheme.onPrimary,
                         ),
                       ),
                     ],
                   )
-              : OctoPlaceholder.circularProgressIndicator(),
+              : (context) => Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: context.theme.colorScheme.onPrimary,
+                    ),
+                  ),
       errorBuilder: errorWidget != null
           ? (context, error, stackTrace) => errorWidget!(context, fullUrl, error)
           : decodedHashProvider != null

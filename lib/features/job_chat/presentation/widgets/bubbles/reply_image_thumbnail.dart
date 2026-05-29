@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trackyond/core/common/widgets/image/app_image.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 
 class ReplyImageThumbnail extends StatelessWidget {
   final String imageUrl;
@@ -19,7 +20,7 @@ class ReplyImageThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = context.colorScheme;
 
     Widget img = AppImage(
       imageUrl: imageUrl,
@@ -37,12 +38,12 @@ class ReplyImageThumbnail extends StatelessWidget {
         children: [
           img,
           Container(
-            color: Colors.black.withValues(alpha: 0.6),
+            color: colorScheme.black.withValues(alpha: 0.6),
             child: Center(
               child: Text(
                 '+$remainingCount',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                   fontSize: size * 0.45,
                   fontWeight: FontWeight.bold,
                 ),

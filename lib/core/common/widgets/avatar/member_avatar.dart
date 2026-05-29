@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/utils/avatar_utils.dart';
+import 'package:trackyond/core/common/widgets/avatar/member_avatar_placeholder.dart';
 
 class MemberAvatar extends StatelessWidget {
   final String name;
@@ -56,13 +57,13 @@ class MemberAvatar extends StatelessWidget {
           width: avatarRadius * 2,
           height: avatarRadius * 2,
           placeholder: (context, url) =>
-              _buildPlaceholder(context, avatarColor, avatarRadius),
+              MemberAvatarPlaceholder(name: name, radius: avatarRadius),
           errorWidget: (context, url, error) =>
-              _buildPlaceholder(context, avatarColor, avatarRadius),
+              MemberAvatarPlaceholder(name: name, radius: avatarRadius),
         ),
       );
     } else if (localFile == null) {
-      avatarChild = _buildPlaceholder(context, avatarColor, avatarRadius);
+      avatarChild = MemberAvatarPlaceholder(name: name, radius: avatarRadius);
     } else {
       avatarChild = const SizedBox.shrink();
     }
@@ -85,20 +86,5 @@ class MemberAvatar extends StatelessWidget {
     return avatar;
   }
 
-  Widget _buildPlaceholder(
-    BuildContext context,
-    Color avatarColor,
-    double radius,
-  ) {
-    return Center(
-      child: Text(
-        name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
-        style: context.textTheme.titleMedium?.copyWith(
-          color: context.theme.colorScheme.onPrimary,
-          fontWeight: FontWeight.bold,
-          fontSize: radius * .75,
-        ),
-      ),
-    );
-  }
+
 }

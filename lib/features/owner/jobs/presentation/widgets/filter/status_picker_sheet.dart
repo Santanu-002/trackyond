@@ -22,7 +22,7 @@ class StatusPickerSheet extends GetView<JobsController> {
         children: [
           Text(
             AppStrings.jobs.selectStatuses,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: context.textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
           Wrap(

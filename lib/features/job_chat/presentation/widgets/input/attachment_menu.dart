@@ -1,7 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/attachment_menu_item_widget.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 
 class AttachmentMenuItem {
@@ -57,69 +59,62 @@ class AttachmentMenu extends GetView<JobChatController> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
+    final screenWidth = context.width;
 
-    return Container(
-      margin: EdgeInsets.only(bottom: AppUIConstants.spacing.space$4),
-      padding: EdgeInsets.symmetric(
-        horizontal: AppUIConstants.spacing.space$12,
-        vertical: AppUIConstants.spacing.space$12,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
-        boxShadow: AppUIConstants.shadows.normal,
-      ),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        spacing: AppUIConstants.spacing.space$12,
-        runSpacing: AppUIConstants.spacing.space$12,
-        children: List.generate(
-          _menuItems.length,
-          (index) => _buildItem(context, _menuItems[index]),
+    // Cap the menu width at 500 logical pixels and deduct horizontal margins (16 * 2)
+    final menuWidth = screenWidth.clamp(0.0, 500.0) - (AppUIConstants.spacing.space$16 * 2);
+    final contentWidth = menuWidth - (AppUIConstants.spacing.space$12 * 2); // Deduct container padding
+    final itemWidth = contentWidth / _menuItems.length;
+
+    // Dynamically calculate sizes to fit perfectly on any screen size
+    final double scaleFactor = (itemWidth / 72.0).clamp(0.8, 1.0);
+    final double containerSize = 46.0 * scaleFactor;
+    final double iconSize = 22.0 * scaleFactor;
+    final double fontSize = 11.0 * scaleFactor;
+    final double horizontalPadding = 4.0 * scaleFactor;
+
+    return SizedBox(
+      width: menuWidth,
+      child: Container(
+        margin: EdgeInsets.only(bottom: AppUIConstants.spacing.space$4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
+          boxShadow: AppUIConstants.shadows.normal,
         ),
-      ),
-    );
-  }
-
-  Widget _buildItem(BuildContext context, AttachmentMenuItem item) {
-    final colorScheme = context.theme.colorScheme;
-    final color = item.colorResolver(colorScheme);
-    final textStyle = context.theme.textTheme.bodySmall?.copyWith(
-      fontWeight: FontWeight.w600,
-      fontSize: 11,
-    );
-
-    return InkWell(
-      onTap: item.onTapResolver(controller),
-      borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppUIConstants.spacing.space$8,
-          vertical: AppUIConstants.spacing.space$6,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 46,
-              height: 46,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppUIConstants.spacing.space$12,
+                vertical: AppUIConstants.spacing.space$12,
+              ),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+                color: colorScheme.surface.withValues(alpha: 0.75), // Translucent frosty color
+                borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+                ),
               ),
-              child: Icon(
-                item.icon,
-                color: color,
-                size: 22,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: _menuItems
+                    .map(
+                      (item) => Expanded(
+                        child: AttachmentMenuItemWidget(
+                          item: item,
+                          containerSize: containerSize,
+                          iconSize: iconSize,
+                          fontSize: fontSize,
+                          horizontalPadding: horizontalPadding,
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ),
-            SizedBox(height: AppUIConstants.spacing.space$6),
-            Text(
-              item.label,
-              style: textStyle,
-            ),
-          ],
+          ),
         ),
       ),
     );

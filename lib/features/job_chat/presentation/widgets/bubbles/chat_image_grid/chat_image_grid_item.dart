@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/media_viewer_page.dart';
 
 class ChatImageGridItem extends StatelessWidget {
@@ -27,6 +28,8 @@ class ChatImageGridItem extends StatelessWidget {
     final blurHash = content.metadata?['blurHash'] as String? ??
         content.metadata?['blur_hash'] as String?;
 
+    final colorScheme = context.colorScheme;
+
     Widget img = AppImage(
       imageUrl: url,
       blurHash: blurHash,
@@ -40,12 +43,12 @@ class ChatImageGridItem extends StatelessWidget {
         children: [
           img,
           Container(
-            color: Colors.black.withValues(alpha: 0.6),
+            color: colorScheme.black.withValues(alpha: 0.6),
             child: Center(
               child: Text(
                 '+$remaining',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: colorScheme.onPrimary,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
@@ -60,6 +63,7 @@ class ChatImageGridItem extends StatelessWidget {
       onTap: () {
         final routeArgs = {
           'imageUrls': imageContents.map((c) => AppImage.getFullUrl(c.metadata?['url'] as String? ?? '')).toList(),
+          'blurHashes': imageContents.map((c) => (c.metadata?['blurHash'] as String? ?? c.metadata?['blur_hash'] as String?)).toList(),
           'initialIndex': index,
           'messageUid': message.uid,
           'message': message,

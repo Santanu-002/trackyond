@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class AppStyledText extends StatelessWidget {
   final String text;
@@ -18,7 +19,7 @@ class AppStyledText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseStyle = style ?? Theme.of(context).textTheme.bodyMedium!;
+    final baseStyle = style ?? context.textTheme.bodyMedium!;
     
     return Text.rich(
       TextSpan(

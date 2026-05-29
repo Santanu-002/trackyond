@@ -15,6 +15,7 @@ import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_ent
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/chips/date_chip.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/chips/time_chip.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/chat_skeleton_list.dart';
 
 class JobChatPage extends GetView<JobChatController> {
   const JobChatPage({super.key});
@@ -99,7 +100,7 @@ class JobChatPage extends GetView<JobChatController> {
                   Expanded(
                     child: Obx(() {
                       if (controller.isLoading.value && controller.messages.isEmpty) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const ChatSkeletonList();
                       }
 
                       final items = controller.flattenedItems;

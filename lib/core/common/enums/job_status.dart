@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 
@@ -38,7 +39,7 @@ enum JobStatus {
   }
 
   Color color(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = context.theme.colorScheme;
     return switch (this) {
       JobStatus.pending => colorScheme.pending,
       JobStatus.assigned => colorScheme.pending, // Using pending color for assigned

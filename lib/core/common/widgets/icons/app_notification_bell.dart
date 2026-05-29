@@ -44,8 +44,8 @@ class AppNotificationBell extends StatelessWidget {
                 ),
                 child: Text(
                   AppUtils.formatNotificationCount(count),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: theme.colorScheme.onError,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),

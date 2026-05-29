@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:trackyond/core/common/widgets/button/chat_action_button.dart';
-import 'package:trackyond/core/common/widgets/button/app_button.dart';
+import 'package:trackyond/core/common/widgets/button/media_text_button.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -30,6 +30,7 @@ class _MediaViewerPageState extends State<MediaViewerPage>
   static const _mediaScannerChannel = MethodChannel('media_scanner_channel');
   
   late final List<String> imageUrls;
+  late final List<String?> blurHashes;
   late final int initialIndex;
   late final String messageUid;
   JobChatMessageEntity? message;
@@ -39,19 +40,22 @@ class _MediaViewerPageState extends State<MediaViewerPage>
   late final AnimationController _doubleTapAnimationController;
   Animation<double>? _doubleTapAnimation;
   VoidCallback? _doubleTapListener;
-
+ 
   bool _isSharing = false;
   bool _isDownloading = false;
   bool _isSliding = false;
   bool _showOverlays = true;
   Timer? _overlayTimer;
-
+ 
   @override
   void initState() {
     super.initState();
     // Parse arguments passed via Get.arguments
     final args = Get.arguments as Map<String, dynamic>;
     imageUrls = List<String>.from(args['imageUrls'] as List);
+    blurHashes = args['blurHashes'] != null
+        ? List<String?>.from(args['blurHashes'] as List)
+        : List<String?>.filled(imageUrls.length, null);
     initialIndex = args['initialIndex'] as int? ?? 0;
     messageUid = args['messageUid'] as String? ?? '';
     message = args['message'] as JobChatMessageEntity?;
@@ -202,343 +206,436 @@ class _MediaViewerPageState extends State<MediaViewerPage>
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = context.textTheme;
-    final chatController = Get.find<JobChatController>();
-    final isOverlayVisible = _showOverlays && !_isSliding;
-    
-    final senderName = message != null
-        ? (message!.isMe ? 'You' : chatController.getSenderName(message!))
-        : '';
+    final parentTheme = context.theme;
+    final localTheme = parentTheme.brightness == Brightness.dark
+        ? parentTheme
+        : ThemeData.dark(useMaterial3: true).copyWith(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: parentTheme.colorScheme.primary,
+              brightness: Brightness.dark,
+            ),
+          );
 
-    final captionText = message?.content
-            .where((c) => c.type == 'text')
-            .map((c) => c.content)
-            .whereType<String>()
-            .join('\n') ??
-        '';
+    return Theme(
+      data: localTheme,
+      child: Builder(
+        builder: (context) {
+          final textTheme = context.textTheme;
+          final colorScheme = context.theme.colorScheme;
+          final chatController = Get.find<JobChatController>();
+          final isOverlayVisible = _showOverlays && !_isSliding;
+          
+          final senderName = message != null
+              ? (message!.isMe ? 'You' : chatController.getSenderName(message!))
+              : '';
 
-    final hasReadMore = captionText.length > 120;
-    final displayCaption = hasReadMore 
-        ? '${captionText.substring(0, 120)}...' 
-        : captionText;
+          final captionText = message?.content
+                  .where((c) => c.type == 'text')
+                  .map((c) => c.content)
+                  .whereType<String>()
+                  .join('\n') ??
+              '';
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: ExtendedImageSlidePage(
-          slideAxis: SlideAxis.both,
-          slideType: SlideType.onlyImage,
-          slidePageBackgroundHandler: (Offset offset, Size pageSize) {
-            return defaultSlidePageBackgroundHandler(
-              offset: offset,
-              pageSize: pageSize,
-              color: context.theme.colorScheme.black,
-              pageGestureAxis: SlideAxis.both,
-            );
-          },
-          onSlidingPage: (state) {
-            final sliding = state.isSliding;
-            if (sliding != _isSliding) {
-              setState(() {
-                _isSliding = sliding;
-              });
-            }
-          },
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Image slider page view wrapped in a tap detector to toggle overlays
-              GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _toggleOverlays,
-                child: ExtendedImageGesturePageView.builder(
-                  controller: _pageController,
-                  itemCount: imageUrls.length,
-                  onPageChanged: (index) {
+          final hasReadMore = captionText.length > 120;
+          final displayCaption = hasReadMore 
+              ? '${captionText.substring(0, 120)}...' 
+              : captionText;
+
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.light,
+            child: Scaffold(
+              backgroundColor: colorScheme.surface.withValues(alpha: 0.0),
+              body: ExtendedImageSlidePage(
+                slideAxis: SlideAxis.both,
+                slideType: SlideType.onlyImage,
+                slidePageBackgroundHandler: (Offset offset, Size pageSize) {
+                  return defaultSlidePageBackgroundHandler(
+                    offset: offset,
+                    pageSize: pageSize,
+                    color: colorScheme.black,
+                    pageGestureAxis: SlideAxis.both,
+                  );
+                },
+                onSlidingPage: (state) {
+                  final sliding = state.isSliding;
+                  if (sliding != _isSliding) {
                     setState(() {
-                      _currentIndex = index;
+                      _isSliding = sliding;
                     });
-                    // Reset timer on page swipe to keep overlays visible while browsing
-                    if (_showOverlays) {
-                      _startOverlayTimer();
-                    }
-                  },
-                  physics: const BouncingScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    final url = AppImage.getFullUrl(imageUrls[index]);
-                    return ExtendedImage(
-                      image: CachedNetworkImageProvider(url),
-                      fit: BoxFit.contain,
-                      mode: ExtendedImageMode.gesture,
-                      enableSlideOutPage: true,
-                      initGestureConfigHandler: (state) {
-                        return GestureConfig(
-                          minScale: 1.0,
-                          animationMinScale: 0.7,
-                          maxScale: 4.0,
-                          animationMaxScale: 4.5,
-                          speed: 1.0,
-                          inertialSpeed: 100.0,
-                          initialScale: 1.0,
-                          inPageView: true,
-                          initialAlignment: InitialAlignment.center,
-                        );
-                      },
-                      heroBuilderForSlidingPage: (child) {
-                        return Hero(
-                          tag: 'image_${messageUid}_$index',
-                          child: child,
-                        );
-                      },
-                      onDoubleTap: (ExtendedImageGestureState state) {
-                        final pointerDownPosition = state.pointerDownPosition;
-                        final begin = state.gestureDetails?.totalScale ?? 1.0;
-                        double end;
+                  }
+                },
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Image slider page view wrapped in a tap detector to toggle overlays
+                    GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: _toggleOverlays,
+                      child: ExtendedImageGesturePageView.builder(
+                        controller: _pageController,
+                        itemCount: imageUrls.length,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentIndex = index;
+                          });
+                          // Reset timer on page swipe to keep overlays visible while browsing
+                          if (_showOverlays) {
+                            _startOverlayTimer();
+                          }
+                        },
+                        physics: const BouncingScrollPhysics(),
+                        itemBuilder: (context, index) {
+                          final url = AppImage.getFullUrl(imageUrls[index]);
+                          final blurHash = index < blurHashes.length ? blurHashes[index] : null;
+                          final MemoryImage? decodedHashProvider =
+                              (blurHash != null && blurHash.isNotEmpty)
+                                  ? AppImage.getBlurHashProvider(blurHash)
+                                  : null;
 
-                        // Clean up previous listeners
-                        if (_doubleTapAnimation != null && _doubleTapListener != null) {
-                          _doubleTapAnimation!.removeListener(_doubleTapListener!);
-                        }
+                          return ExtendedImage(
+                            image: CachedNetworkImageProvider(url),
+                            fit: BoxFit.contain,
+                            mode: ExtendedImageMode.gesture,
+                            enableSlideOutPage: true,
+                            loadStateChanged: (ExtendedImageState state) {
+                              switch (state.extendedImageLoadState) {
+                                case LoadState.loading:
+                                  return decodedHashProvider != null
+                                      ? Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            Image(
+                                              image: decodedHashProvider,
+                                              fit: BoxFit.contain,
+                                            ),
+                                            Center(
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onSurface),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Center(
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onSurface),
+                                          ),
+                                        );
+                                case LoadState.completed:
+                                  return null; // Return null to use default builder
+                                case LoadState.failed:
+                                  return decodedHashProvider != null
+                                      ? Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            Image(
+                                              image: decodedHashProvider,
+                                              fit: BoxFit.contain,
+                                            ),
+                                            Center(
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.error_outline_rounded,
+                                                    color: colorScheme.error,
+                                                    size: 32,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    'Failed to load image',
+                                                    style: context.theme.textTheme.bodyMedium?.copyWith(
+                                                      color: colorScheme.onSurface,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Center(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.error_outline_rounded,
+                                                color: colorScheme.error,
+                                                size: 32,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                'Failed to load image',
+                                                style: context.theme.textTheme.bodyMedium?.copyWith(
+                                                  color: colorScheme.onSurface,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                              }
+                            },
+                            initGestureConfigHandler: (state) {
+                              return GestureConfig(
+                                minScale: 1.0,
+                                animationMinScale: 0.7,
+                                maxScale: 4.0,
+                                animationMaxScale: 4.5,
+                                speed: 1.0,
+                                inertialSpeed: 100.0,
+                                initialScale: 1.0,
+                                inPageView: true,
+                                initialAlignment: InitialAlignment.center,
+                              );
+                            },
+                            heroBuilderForSlidingPage: (child) {
+                              return Hero(
+                                tag: 'image_${messageUid}_$index',
+                                child: child,
+                              );
+                            },
+                            onDoubleTap: (ExtendedImageGestureState state) {
+                              final pointerDownPosition = state.pointerDownPosition;
+                              final begin = state.gestureDetails?.totalScale ?? 1.0;
+                              double end;
 
-                        _doubleTapAnimationController.stop();
-                        _doubleTapAnimationController.reset();
+                              // Clean up previous listeners
+                              if (_doubleTapAnimation != null && _doubleTapListener != null) {
+                                _doubleTapAnimation!.removeListener(_doubleTapListener!);
+                              }
 
-                        if (begin == 1.0) {
-                          end = 3.0;
-                        } else {
-                          end = 1.0;
-                        }
+                              _doubleTapAnimationController.stop();
+                              _doubleTapAnimationController.reset();
 
-                        _doubleTapListener = () {
-                          state.handleDoubleTap(
-                            scale: _doubleTapAnimation!.value,
-                            doubleTapPosition: pointerDownPosition,
+                              if (begin == 1.0) {
+                                end = 3.0;
+                              } else {
+                                end = 1.0;
+                              }
+
+                              _doubleTapListener = () {
+                                state.handleDoubleTap(
+                                  scale: _doubleTapAnimation!.value,
+                                  doubleTapPosition: pointerDownPosition,
+                                );
+                              };
+                              _doubleTapAnimation = _doubleTapAnimationController
+                                  .drive(Tween<double>(begin: begin, end: end));
+
+                              _doubleTapAnimation!.addListener(_doubleTapListener!);
+                              _doubleTapAnimationController.forward();
+                              
+                              // Keep overlays visible during interaction or hide them
+                              _toggleOverlays();
+                            },
                           );
-                        };
-                        _doubleTapAnimation = _doubleTapAnimationController
-                            .drive(Tween<double>(begin: begin, end: end));
+                        },
+                      ),
+                    ),
 
-                        _doubleTapAnimation!.addListener(_doubleTapListener!);
-                        _doubleTapAnimationController.forward();
-                        
-                        // Keep overlays visible during interaction or hide them
-                        _toggleOverlays();
-                      },
-                    );
-                  },
-                ),
-              ),
-
-              // Overlay Top Controls (Animated Slide & Fade)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: AnimatedSlide(
-                  offset: isOverlayVisible ? Offset.zero : const Offset(0, -1),
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  child: AnimatedOpacity(
-                    opacity: isOverlayVisible ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: SafeArea(
-                      bottom: false,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppUIConstants.spacing.space$16,
-                          vertical: AppUIConstants.spacing.space$8,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Back Button
-                            ChatActionButton(
-                              icon: const Icon(
-                                  Icons.arrow_back_ios_new_rounded,
-                                  size: 20,
-                                ),
-                              onPressed: () => Navigator.of(context).pop(),
-                            ),
-
-                            // Title/Page Counter
-                            if (imageUrls.length > 1)
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: AppUIConstants.spacing.space$16,
-                                  vertical: AppUIConstants.spacing.space$6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(
-                                    AppUIConstants.radius.radius$24,
+                    // Overlay Top Controls (Animated Slide & Fade)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: AnimatedSlide(
+                        offset: isOverlayVisible ? Offset.zero : const Offset(0, -1),
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                        child: AnimatedOpacity(
+                          opacity: isOverlayVisible ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: SafeArea(
+                            bottom: false,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppUIConstants.spacing.space$16,
+                                vertical: AppUIConstants.spacing.space$8,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  // Back Button
+                                  ChatActionButton(
+                                    icon: const Icon(
+                                        Icons.arrow_back_ios_new_rounded,
+                                        size: 20,
+                                      ),
+                                    onPressed: () => Navigator.of(context).pop(),
                                   ),
-                                ),
-                                child: Text(
-                                  '${_currentIndex + 1} / ${imageUrls.length}',
-                                  style: textTheme.labelLarge?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              )
-                            else
-                              const SizedBox.shrink(),
 
-                            // Share / Action button
-                            ChatActionButton(
-                              icon: _isSharing
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
+                                  // Title/Page Counter
+                                  if (imageUrls.length > 1)
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: AppUIConstants.spacing.space$16,
+                                        vertical: AppUIConstants.spacing.space$6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.black.withValues(alpha: 0.5),
+                                        borderRadius: BorderRadius.circular(
+                                          AppUIConstants.radius.radius$24,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${_currentIndex + 1} / ${imageUrls.length}',
+                                        style: textTheme.labelLarge?.copyWith(
+                                          color: colorScheme.onSurface,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     )
-                                  : const Icon(
-                                      Icons.share_outlined,
-                                      size: 20,
-                                    ),
-                              onPressed: _isSharing
-                                  ? null
-                                  : () => _shareImage(imageUrls[_currentIndex]),
+                                  else
+                                    const SizedBox.shrink(),
+
+                                  // Share / Action button
+                                  ChatActionButton(
+                                    icon: _isSharing
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.share_outlined,
+                                            size: 20,
+                                          ),
+                                    onPressed: () => _shareImage(imageUrls[_currentIndex]),
+                                    disabled: _isSharing,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ),
 
-              // Overlay Bottom Details and Actions (Animated Slide & Fade)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: AnimatedSlide(
-                  offset: isOverlayVisible ? Offset.zero : const Offset(0, 1),
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  child: AnimatedOpacity(
-                    opacity: isOverlayVisible ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Container(
-                      padding: EdgeInsets.fromLTRB(
-                        AppUIConstants.spacing.space$20,
-                        AppUIConstants.spacing.space$24,
-                        AppUIConstants.spacing.space$20,
-                        MediaQuery.of(context).padding.bottom + AppUIConstants.spacing.space$20,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.85),
-                            Colors.black.withValues(alpha: 0.5),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Sender & Time Row
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                senderName,
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                    // Overlay Bottom Details and Actions (Animated Slide & Fade)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: AnimatedSlide(
+                        offset: isOverlayVisible ? Offset.zero : const Offset(0, 1),
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                        child: AnimatedOpacity(
+                          opacity: isOverlayVisible ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Container(
+                            padding: EdgeInsets.fromLTRB(
+                              AppUIConstants.spacing.space$20,
+                              AppUIConstants.spacing.space$24,
+                              AppUIConstants.spacing.space$20,
+                              context.mediaQueryPadding.bottom + AppUIConstants.spacing.space$20,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  colorScheme.black.withValues(alpha: 0.85),
+                                  colorScheme.black.withValues(alpha: 0.5),
+                                  colorScheme.surface.withValues(alpha: 0.0),
+                                ],
                               ),
-                              Text(
-                                message != null
-                                    ? DateFormat('hh:mm a').format(message!.timestamp)
-                                    : '',
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                ),
-                              ),
-                            ],
-                          ),
-                          
-                          // Caption Text (if there is text message content)
-                          if (captionText.isNotEmpty) ...[
-                            AppUIConstants.widgets.verticalBox$8,
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(text: displayCaption),
-                                  if (hasReadMore)
-                                    TextSpan(
-                                      text: ' Read more',
-                                      style: TextStyle(
-                                        color: context.theme.colorScheme.primary,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Sender & Time Row
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      senderName,
+                                      style: textTheme.titleMedium?.copyWith(
+                                        color: colorScheme.onSurface,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
+                                    Text(
+                                      message != null
+                                          ? DateFormat('hh:mm a').format(message!.timestamp)
+                                          : '',
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                
+                                // Caption Text (if there is text message content)
+                                if (captionText.isNotEmpty) ...[
+                                  AppUIConstants.widgets.verticalBox$8,
+                                  Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        TextSpan(text: displayCaption),
+                                        if (hasReadMore)
+                                          TextSpan(
+                                            text: ' Read more',
+                                            style: TextStyle(
+                                              color: colorScheme.primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurface.withValues(alpha: 0.95),
+                                      height: 1.35,
+                                    ),
+                                  ),
                                 ],
-                              ),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.955),
-                                height: 1.35,
-                              ),
+                                
+                                AppUIConstants.widgets.verticalBox$16,
+                                
+                                // Action row (Reply & Save) using standardised buttons
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    // Reply button
+                                    MediaTextButton(
+                                      leading: const Icon(Icons.reply_rounded),
+                                      label: AppStrings.jobChat.reply,
+                                      onPressed: () {
+                                        if (message != null) {
+                                          final chatController = Get.find<JobChatController>();
+                                          chatController.replyingToMessage.value = message;
+                                          Navigator.of(context).pop();
+                                        }
+                                      },
+                                    ),
+                                    AppUIConstants.widgets.horizontalBox$12,
+                                    // Download/Save button
+                                    MediaTextButton(
+                                      leading: const Icon(Icons.download_rounded),
+                                      label: AppStrings.common.save,
+                                      isLoading: _isDownloading,
+                                      onPressed: () => _downloadImage(imageUrls[_currentIndex]),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
-                          
-                          AppUIConstants.widgets.verticalBox$16,
-                          
-                          // Action row (Reply & Save) using standard AppButton widgets
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              // Reply button
-                              AppButton.filled(
-                                text: AppStrings.jobChat.reply,
-                                leading: const Icon(Icons.reply_rounded),
-                                onPressed: () {
-                                  if (message != null) {
-                                    final chatController = Get.find<JobChatController>();
-                                    chatController.replyingToMessage.value = message;
-                                    Navigator.of(context).pop();
-                                  }
-                                },
-                                width: null,
-                                height: 38,
-                                color: Colors.white.withValues(alpha: 0.15),
-                                shape: AppButtonShape.capsule,
-                              ),
-                              AppUIConstants.widgets.horizontalBox$12,
-                              // Download/Save button
-                              AppButton.filled(
-                                text: AppStrings.common.save,
-                                leading: const Icon(Icons.download_rounded),
-                                isLoading: _isDownloading,
-                                onPressed: () => _downloadImage(imageUrls[_currentIndex]),
-                                width: null,
-                                height: 38,
-                                color: Colors.white.withValues(alpha: 0.15),
-                                shape: AppButtonShape.capsule,
-                              ),
-                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

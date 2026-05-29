@@ -11,7 +11,7 @@ class AppDrawerHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
+    final topPadding = context.mediaQueryPadding.top;
     
     return Container(
       padding: EdgeInsets.only(

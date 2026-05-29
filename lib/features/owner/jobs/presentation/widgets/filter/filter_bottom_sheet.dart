@@ -90,7 +90,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.all(AppUIConstants.spacing.space$16),
-                    child: _buildTabContent(),
+                    child: switch (_selectedIndex) {
+                      0 => FilterSummaryTab(controller: controller),
+                      1 => FilterStatusTab(controller: controller),
+                      2 => FilterDateTab(controller: controller),
+                      3 => FilterWorkerTab(controller: controller),
+                      _ => const SizedBox.shrink(),
+                    },
                   ),
                 ),
               ],
@@ -125,15 +131,5 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         ],
       ),
     );
-  }
-
-  Widget _buildTabContent() {
-    return switch (_selectedIndex) {
-      0 => FilterSummaryTab(controller: controller),
-      1 => FilterStatusTab(controller: controller),
-      2 => FilterDateTab(controller: controller),
-      3 => FilterWorkerTab(controller: controller),
-      _ => const SizedBox.shrink(),
-    };
   }
 }

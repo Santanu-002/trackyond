@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 
 class ThumbnailItem extends StatelessWidget {
   final int index;
@@ -52,7 +53,7 @@ class ThumbnailItem extends StatelessWidget {
               ),
               if (!isActive)
                 Container(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: colorScheme.black.withValues(alpha: 0.5),
                 ),
             ],
           ),

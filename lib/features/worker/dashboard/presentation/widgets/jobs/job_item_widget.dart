@@ -15,7 +15,7 @@ class JobItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = context.textTheme;
     final colorScheme = context.theme.colorScheme;
 
     return InkWell(
@@ -108,7 +108,7 @@ class _InfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style: context.textTheme.bodySmall?.copyWith(
               color: context.theme.colorScheme.onSurfaceVariant,
             ),
             maxLines: 1,
@@ -128,7 +128,7 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = context.textTheme;
 
     Color color;
     switch (status) {

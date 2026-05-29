@@ -14,6 +14,7 @@ import 'package:trackyond/core/common/enums/job_status.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/filter/status_quick_chip.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/layout/jobs_action_bar_button.dart';
+import 'package:trackyond/features/owner/jobs/presentation/widgets/jobs_empty_state.dart';
 import 'package:trackyond/features/owner/jobs/presentation/widgets/worker/job_worker_capsule.dart';
 class JobsPage extends GetView<JobsController> {
   const JobsPage({super.key});
@@ -192,7 +193,7 @@ class JobsPage extends GetView<JobsController> {
                   }
 
                   if (controller.jobs.isEmpty) {
-                    return _buildEmptyState(context);
+                    return const JobsEmptyState();
                   }
 
                   return RefreshIndicator(
@@ -286,42 +287,6 @@ class JobsPage extends GetView<JobsController> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              AppIcons.jobs.filter,
-              size: 64,
-              color: context.theme.colorScheme.outlineVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              controller.searchQuery.isNotEmpty
-                  ? AppStrings.jobs.noSearchFound(controller.searchQuery.value)
-                  : controller.isFilteringActive
-                      ? AppStrings.jobs.noJobsMatchingFilters
-                      : AppStrings.jobs.noJobsFound,
-              textAlign: TextAlign.center,
-              style: context.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            if (controller.isFilteringActive)
-              AppButton.ghost(
-                onPressed: controller.clearFilters,
-                text: AppStrings.jobs.clearAllFilters,
-                width: null,
-                height: null,
-              ),
-          ],
-        ),
       ),
     );
   }

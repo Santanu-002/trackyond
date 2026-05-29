@@ -29,7 +29,7 @@ class JobStatusBadge extends StatelessWidget {
       ),
       child: Text(
         status.name.toUpperCase(),
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        style: context.textTheme.labelSmall?.copyWith(
           color: color,
           fontWeight: FontWeight.bold,
         ),

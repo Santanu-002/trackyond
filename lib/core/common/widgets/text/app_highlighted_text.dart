@@ -98,7 +98,7 @@ class AppHighlightedText extends StatelessWidget {
 
     return Text.rich(
       TextSpan(
-        style: style ?? Theme.of(context).textTheme.bodyMedium,
+        style: style ?? context.textTheme.bodyMedium,
         children: spans,
       ),
       maxLines: maxLines,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/skeleton/app_shimmer.dart';
 import 'package:trackyond/core/common/widgets/skeleton/app_skeleton_avatar.dart';
 import 'package:trackyond/core/common/widgets/skeleton/app_skeleton_text.dart';
@@ -9,7 +10,7 @@ class AppDrawerHeaderSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
+    final topPadding = context.mediaQueryPadding.top;
 
     return AppShimmer(
       child: Container(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:intl/intl.dart';
@@ -266,38 +267,11 @@ class _MediaViewerPageState extends State<MediaViewerPage>
                   physics: const BouncingScrollPhysics(),
                   itemBuilder: (context, index) {
                     final url = AppImage.getFullUrl(imageUrls[index]);
-                    final contentEntity = message?.content.firstWhereOrNull(
-                      (c) => c.type == 'image' && AppImage.getFullUrl(c.metadata?['url'] ?? c.content) == url,
-                    );
-                    final blurHash = contentEntity?.metadata?['blurHash'] as String? ??
-                        contentEntity?.metadata?['blur_hash'] as String?;
-                    
                     return ExtendedImage(
-                      image: ExtendedNetworkImageProvider(url, cache: true),
+                      image: CachedNetworkImageProvider(url),
                       fit: BoxFit.contain,
                       mode: ExtendedImageMode.gesture,
                       enableSlideOutPage: true,
-                      loadStateChanged: (ExtendedImageState state) {
-                        switch (state.extendedImageLoadState) {
-                          case LoadState.loading:
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          case LoadState.completed:
-                            return null;
-                          case LoadState.failed:
-                            return AppImage.buildPlaceholder(
-                              context: context,
-                              blurHash: blurHash,
-                              fit: BoxFit.contain,
-                              child: const Icon(
-                                Icons.error_outline,
-                                color: Colors.white,
-                                size: 30,
-                              ),
-                            );
-                        }
-                      },
                       initGestureConfigHandler: (state) {
                         return GestureConfig(
                           minScale: 1.0,

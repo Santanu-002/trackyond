@@ -83,16 +83,12 @@ class AppImage extends StatelessWidget {
                         fit: fit,
                       ),
                       const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
+                        child: CircularProgressIndicator(),
                       ),
                     ],
                   )
               : (context) => const Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
+                    child: CircularProgressIndicator(),
                   ),
       errorBuilder: errorWidget != null
           ? (context, error, stackTrace) => errorWidget!(context, fullUrl, error)

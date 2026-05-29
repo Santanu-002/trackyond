@@ -276,10 +276,7 @@ class _MediaViewerPageState extends State<MediaViewerPage>
                         switch (state.extendedImageLoadState) {
                           case LoadState.loading:
                             return const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
+                              child: CircularProgressIndicator(),
                             );
                           case LoadState.completed:
                             return null;

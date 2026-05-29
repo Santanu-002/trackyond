@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:intl/intl.dart';
@@ -272,7 +272,7 @@ class _MediaViewerPageState extends State<MediaViewerPage>
                     );
                     final blurHash = contentEntity?.metadata?['blurHash'] as String? ??
                         contentEntity?.metadata?['blur_hash'] as String?;
-                     
+                    
                     return ExtendedImage(
                       image: ExtendedNetworkImageProvider(url, cache: true),
                       fit: BoxFit.contain,

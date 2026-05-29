@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
@@ -37,39 +36,6 @@ class AppImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (imageUrl.isEmpty) {
-      return errorWidget?.call(context, imageUrl, 'Empty URL') ??
-          const Center(child: Icon(Icons.error_outline));
-    }
-
-    // 1. Asset Image
-    if (imageUrl.startsWith('assets/')) {
-      return Image.asset(
-        imageUrl,
-        fit: fit,
-        width: width,
-        height: height,
-        errorBuilder: (context, error, stackTrace) =>
-            errorWidget?.call(context, imageUrl, error) ??
-            const Center(child: Icon(Icons.error_outline)),
-      );
-    }
-
-    // 2. Local File Image
-    final localFile = File(imageUrl);
-    if (localFile.existsSync()) {
-      return Image.file(
-        localFile,
-        fit: fit,
-        width: width,
-        height: height,
-        errorBuilder: (context, error, stackTrace) =>
-            errorWidget?.call(context, imageUrl, error) ??
-            const Center(child: Icon(Icons.error_outline)),
-      );
-    }
-
-    // 3. Network Image
     final fullUrl = getFullUrl(imageUrl);
     if (fullUrl.isEmpty) {
       return errorWidget?.call(context, imageUrl, 'Empty URL') ??

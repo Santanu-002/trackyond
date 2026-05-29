@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
+import 'package:octo_image/octo_image.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
 class AppImage extends StatelessWidget {
@@ -36,6 +37,7 @@ class AppImage extends StatelessWidget {
   }
 
   static Widget buildPlaceholder({
+    required BuildContext context,
     required String? blurHash,
     BoxFit fit = BoxFit.cover,
     Widget? child,
@@ -62,56 +64,50 @@ class AppImage extends StatelessWidget {
           const Center(child: Icon(Icons.error_outline));
     }
 
+    final ImageProvider imageProvider;
     if (imageUrl.startsWith('assets/')) {
-      return Image.asset(
-        imageUrl,
-        fit: fit,
-        width: width,
-        height: height,
-        errorBuilder: errorWidget != null
-            ? (context, error, stackTrace) => errorWidget!(context, imageUrl, error)
-            : (context, error, stackTrace) => const Center(child: Icon(Icons.error_outline)),
-      );
+      imageProvider = AssetImage(imageUrl);
+    } else {
+      final localFile = File(imageUrl);
+      if (localFile.existsSync()) {
+        imageProvider = FileImage(localFile);
+      } else {
+        final fullUrl = getFullUrl(imageUrl);
+        if (fullUrl.isEmpty) {
+          return errorWidget?.call(context, imageUrl, 'Empty URL') ??
+              const Center(child: Icon(Icons.error_outline));
+        }
+        imageProvider = CachedNetworkImageProvider(fullUrl);
+      }
     }
 
-    final localFile = File(imageUrl);
-    if (localFile.existsSync()) {
-      return Image.file(
-        localFile,
-        fit: fit,
-        width: width,
-        height: height,
-        errorBuilder: errorWidget != null
-            ? (context, error, stackTrace) => errorWidget!(context, imageUrl, error)
-            : (context, error, stackTrace) => const Center(child: Icon(Icons.error_outline)),
-      );
-    }
-
-    final fullUrl = getFullUrl(imageUrl);
-    if (fullUrl.isEmpty) {
-      return errorWidget?.call(context, imageUrl, 'Empty URL') ??
-          const Center(child: Icon(Icons.error_outline));
-    }
-
-    return CachedNetworkImage(
-      imageUrl: fullUrl,
+    return OctoImage(
+      image: imageProvider,
       fit: fit,
       width: width,
       height: height,
-      placeholder: placeholder != null
-          ? (context, url) => placeholder!(context, url)
-          : (context, url) => buildPlaceholder(
-                blurHash: blurHash,
-                fit: fit,
-                child: const CircularProgressIndicator(strokeWidth: 2),
-              ),
-      errorWidget: errorWidget != null
-          ? (context, url, error) => errorWidget!(context, url, error)
-          : (context, url, error) => buildPlaceholder(
-                blurHash: blurHash,
-                fit: fit,
-                child: const Icon(Icons.error_outline),
-              ),
+      placeholderBuilder: placeholder != null
+          ? (context) => placeholder!(context, imageUrl)
+          : (blurHash != null && blurHash!.isNotEmpty)
+              ? (context) => buildPlaceholder(
+                    context: context,
+                    blurHash: blurHash,
+                    fit: fit,
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  )
+              : (context) => const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+      errorBuilder: errorWidget != null
+          ? (context, error, stackTrace) => errorWidget!(context, imageUrl, error)
+          : (blurHash != null && blurHash!.isNotEmpty)
+              ? (context, error, stackTrace) => buildPlaceholder(
+                    context: context,
+                    blurHash: blurHash,
+                    fit: fit,
+                    child: const Icon(Icons.error_outline),
+                  )
+              : OctoError.icon(icon: Icons.error_outline),
     );
   }
 }

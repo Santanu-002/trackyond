@@ -281,6 +281,7 @@ class _MediaViewerPageState extends State<MediaViewerPage>
                         switch (state.extendedImageLoadState) {
                           case LoadState.loading:
                             return AppImage.buildPlaceholder(
+                              context: context,
                               blurHash: blurHash,
                               fit: BoxFit.contain,
                               child: const CircularProgressIndicator(),
@@ -289,6 +290,7 @@ class _MediaViewerPageState extends State<MediaViewerPage>
                             return null;
                           case LoadState.failed:
                             return AppImage.buildPlaceholder(
+                              context: context,
                               blurHash: blurHash,
                               fit: BoxFit.contain,
                               child: const Icon(

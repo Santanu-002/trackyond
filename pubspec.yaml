@@ -23,6 +23,7 @@ dependencies:
   flutter_blurhash: ^0.9.1
   flutter_local_notifications: ^21.0.0
   flutter_new_badger: ^1.1.1
+  octo_image: ^2.1.0
   flutter_secure_storage: ^10.3.1
   fpdart: ^1.2.0
   freezed_annotation: ^3.1.0

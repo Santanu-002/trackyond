@@ -150,44 +150,10 @@ class _MediaPreviewPageState extends State<MediaPreviewPage>
 
   Future<void> _pickMoreMedia() async {
     final picker = ImagePicker();
-    if (_isVideoMode) {
-      final List<XFile> medias = await picker.pickMultipleMedia();
-      final videos = medias
-          .where((file) => _isVideoPath(file.path))
-          .toList();
-
-      if (videos.isNotEmpty && mounted) {
-        _videoControllers[_currentIndex]?.pause();
-
-        final oldLength = mediaPaths.length;
-        setState(() {
-          for (final video in videos) {
-            mediaPaths.add(video.path);
-            _originalPaths.add(video.path);
-            _editorControllers.add(ImageEditorController());
-            _editorKeys.add(GlobalKey<ExtendedImageEditorState>());
-            _aspectRatios.add(null);
-            _aspectRatioLabels.add(AppStrings.jobChat.cropPresetFree);
-            _savedHistoryIndices.add(0);
-          }
-          _currentIndex = oldLength;
-        });
-
-        // Initialize video controllers for all newly added videos
-        for (int i = oldLength; i < mediaPaths.length; i++) {
-          _initVideoController(i);
-        }
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_pageController.hasClients) {
-            _pageController.jumpToPage(oldLength);
-          }
-        });
-      }
-    } else {
-      final List<XFile> images = await picker.pickMultiImage(
-        imageQuality: 80,
-      );
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
 
       if (images.isNotEmpty && mounted) {
         final oldLength = mediaPaths.length;

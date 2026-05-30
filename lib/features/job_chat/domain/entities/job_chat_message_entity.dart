@@ -5,22 +5,19 @@ class JobChatMessageEntity extends Equatable {
   final String uid;
   final String? localId;
   final String jobId;
-  final String authorType; // 'user', 'system'
-  final String senderName;
-  final String senderId;
-  final String? senderProfileUid;
+  final String? senderUid;
   
   final List<JobChatMessageContentEntity> content;
   final String type; // 'message', 'activity'
   final Map<String, dynamic>? metadata;
+  final String? actionPerformed;
   
-  final DateTime timestamp;
+  final DateTime createdByAuthorAt;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final DateTime? seenAt;
   final DateTime? deliveredAt;
   
-  final String status; // 'sent', 'delivered', 'seen'
   final bool isMe;
   final bool active;
   final bool deleted;
@@ -29,41 +26,43 @@ class JobChatMessageEntity extends Equatable {
     required this.uid,
     this.localId,
     required this.jobId,
-    this.authorType = 'user',
-    required this.senderName,
-    required this.senderId,
-    this.senderProfileUid,
+    this.senderUid,
     required this.content,
     this.type = 'message',
     this.metadata,
-    required this.timestamp,
+    this.actionPerformed,
+    required this.createdByAuthorAt,
     this.createdAt,
     this.updatedAt,
     this.seenAt,
     this.deliveredAt,
-    this.status = 'sent',
     required this.isMe,
     this.active = true,
     this.deleted = false,
   });
 
+  DateTime get timestamp => createdByAuthorAt;
+
+  String get status {
+    if (seenAt != null) return 'seen';
+    if (deliveredAt != null) return 'delivered';
+    return 'sent';
+  }
+
   JobChatMessageEntity copyWith({
     String? uid,
     String? localId,
     String? jobId,
-    String? authorType,
-    String? senderName,
-    String? senderId,
-    String? senderProfileUid,
+    String? senderUid,
     List<JobChatMessageContentEntity>? content,
     String? type,
     Map<String, dynamic>? metadata,
-    DateTime? timestamp,
+    String? actionPerformed,
+    DateTime? createdByAuthorAt,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? seenAt,
     DateTime? deliveredAt,
-    String? status,
     bool? isMe,
     bool? active,
     bool? deleted,
@@ -72,19 +71,16 @@ class JobChatMessageEntity extends Equatable {
       uid: uid ?? this.uid,
       localId: localId ?? this.localId,
       jobId: jobId ?? this.jobId,
-      authorType: authorType ?? this.authorType,
-      senderName: senderName ?? this.senderName,
-      senderId: senderId ?? this.senderId,
-      senderProfileUid: senderProfileUid ?? this.senderProfileUid,
+      senderUid: senderUid ?? this.senderUid,
       content: content ?? this.content,
       type: type ?? this.type,
       metadata: metadata ?? this.metadata,
-      timestamp: timestamp ?? this.timestamp,
+      actionPerformed: actionPerformed ?? this.actionPerformed,
+      createdByAuthorAt: createdByAuthorAt ?? this.createdByAuthorAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       seenAt: seenAt ?? this.seenAt,
       deliveredAt: deliveredAt ?? this.deliveredAt,
-      status: status ?? this.status,
       isMe: isMe ?? this.isMe,
       active: active ?? this.active,
       deleted: deleted ?? this.deleted,
@@ -96,19 +92,16 @@ class JobChatMessageEntity extends Equatable {
         uid,
         localId,
         jobId,
-        authorType,
-        senderName,
-        senderId,
-        senderProfileUid,
+        senderUid,
         content,
         type,
         metadata,
-        timestamp,
+        actionPerformed,
+        createdByAuthorAt,
         createdAt,
         updatedAt,
         seenAt,
         deliveredAt,
-        status,
         isMe,
         active,
         deleted,

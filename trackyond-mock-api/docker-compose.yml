@@ -32,6 +32,7 @@ services:
   trackyond-api:
     build: .
     container_name: trackyond-api
+    user: root
     depends_on:
       db:
         condition: service_healthy

@@ -4,6 +4,9 @@ import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_con
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/media_viewer_page.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/bubble_time_and_status.dart';
+
+import 'package:trackyond/core/network/api/api_endpoints.dart';
 
 class ChatImageGridItem extends StatelessWidget {
   final int index;
@@ -11,6 +14,7 @@ class ChatImageGridItem extends StatelessWidget {
   final List<JobChatMessageContentEntity> imageContents;
   final bool isLast;
   final double imageRadius;
+  final bool showTimeOverlay;
 
   const ChatImageGridItem({
     super.key,
@@ -19,13 +23,24 @@ class ChatImageGridItem extends StatelessWidget {
     required this.imageContents,
     this.isLast = false,
     required this.imageRadius,
+    this.showTimeOverlay = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final content = imageContents[index];
-    final url = content.metadata?['url'] ?? '';
-    final blurHash = content.metadata?['blurHash'] as String? ??
+    final path = content.content ?? '';
+    final url = path.startsWith('http') ? path : ApiEndpoints.common.download(path);
+
+    final dynamic imageMeta = content.metadata?['imageMetadata'];
+    final double? imageWidth =
+        (imageMeta is Map ? imageMeta['width'] : content.metadata?['width'])
+            ?.toDouble();
+    final double? imageHeight =
+        (imageMeta is Map ? imageMeta['height'] : content.metadata?['height'])
+            ?.toDouble();
+    final blurHash = (imageMeta is Map ? imageMeta['blurHash'] : null) ??
+        content.metadata?['blurHash'] as String? ??
         content.metadata?['blur_hash'] as String?;
 
     final colorScheme = context.colorScheme;
@@ -33,7 +48,10 @@ class ChatImageGridItem extends StatelessWidget {
     Widget img = AppImage(
       imageUrl: url,
       blurHash: blurHash,
+      imageWidth: imageWidth,
+      imageHeight: imageHeight,
       fit: BoxFit.cover,
+      matchAspectRatio: imageContents.length == 1,
     );
 
     if (isLast && imageContents.length > 4) {
@@ -81,7 +99,45 @@ class ChatImageGridItem extends StatelessWidget {
         tag: 'image_${message.uid}_$index',
         child: ClipRRect(
           borderRadius: BorderRadius.circular(imageRadius),
-          child: img,
+          child: Stack(
+            fit: StackFit.passthrough,
+            children: [
+              img,
+              if (showTimeOverlay)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      right: 6,
+                      bottom: 4,
+                      top: 20, // Height gradient padding
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.5),
+                        ],
+                      ),
+                    ),
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: BubbleTimeAndStatus(
+                        timestamp: message.timestamp,
+                        isMe: message.isMe,
+                        status: message.status,
+                        isOverlaid: true,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

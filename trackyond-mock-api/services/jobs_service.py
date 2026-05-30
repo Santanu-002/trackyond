@@ -16,12 +16,19 @@ def calculate_allowed_actions(db: Session, job: models.Job) -> list[str]:
     Decision is based solely on the latest recorded JobActivity type.
     Status is only used as a fallback when no activity history exists.
     """
-    # Get the latest activity for this job
-    latest_activity = db.query(models.JobActivity).filter(
-        models.JobActivity.job_id == job.job_id
-    ).order_by(desc(models.JobActivity.created_at)).first()
+    # If this is a JobView, we can use the pre-computed last_activity_type
+    activity_type = None
+    if isinstance(job, models.JobView) and job.last_activity_type:
+        activity_type = str(job.last_activity_type).lower()
+    else:
+        # Fallback for standard Job models or if not cached
+        latest_activity = db.query(models.JobActivity).filter(
+            models.JobActivity.job_id == job.job_id
+        ).order_by(desc(models.JobActivity.created_at)).first()
+        if latest_activity:
+            activity_type = str(latest_activity.activity_type).lower()
 
-    if not latest_activity:
+    if not activity_type:
         # No activity recorded yet — fall back to job status
         status = str(job.status.value if hasattr(job.status, "value") else job.status).lower()
         if status in ("pending", "assigned"):
@@ -29,8 +36,6 @@ def calculate_allowed_actions(db: Session, job: models.Job) -> list[str]:
         if status == "in_progress":
             return ["take_break", "send_location", "complete_job"]
         return []
-
-    activity_type = str(latest_activity.activity_type).lower()
 
     if activity_type == "created":
         return ["reached"]
@@ -258,7 +263,7 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
                 text=f"@[profileUid#{admin_member.uid}] created this job and assigned to @[profileUid#{new_job.worker_profile_uid}]",
                 message_type=ChatMessageType.activity,
                 created_by_uid=admin_member.user_uid,
-                created_by_profile_uid=admin_member.uid,
+                sender_uid=admin_member.uid,
                 metadata={
                     "activity_type": "job_created",
                     "address": new_job.customer_address or "-",
@@ -326,7 +331,7 @@ def create_mock_job_for_employee(db: Session, user_uid: str):
         text=f"@[profileUid#{member.uid}] created this mock demo job",
         message_type=ChatMessageType.activity,
         created_by_uid=member.user_uid,
-        created_by_profile_uid=member.uid,
+        sender_uid=member.uid,
         metadata={
             "activity_type": "job_created",
             "address": new_job.customer_address or "-",

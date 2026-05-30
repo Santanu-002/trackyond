@@ -73,4 +73,18 @@ class AppUtils {
   static String getGoogleMapsUrl(double latitude, double longitude) {
     return 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
   }
+
+  /// Formats the given [bytes] into a human-readable file size string.
+  static String formatFileSize(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    }
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+  }
 }

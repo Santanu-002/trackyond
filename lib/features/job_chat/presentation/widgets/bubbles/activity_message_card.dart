@@ -15,6 +15,8 @@ import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_co
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_image_grid/chat_image_grid.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activity_meta_row.dart';
 
+import 'package:trackyond/core/network/api/api_endpoints.dart';
+
 class ActivityMessageCard extends StatelessWidget {
   final JobChatMessageEntity message;
   final JobChatMessageContentEntity content;
@@ -32,7 +34,7 @@ class ActivityMessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMe = message.isMe;
-    final isSystem = message.authorType == 'system';
+    final isSystem = message.senderUid == 'system';
     final colorScheme = context.theme.colorScheme;
     final textTheme = context.textTheme;
     final metadata = message.metadata ?? {};
@@ -262,87 +264,54 @@ class ActivityMessageCard extends StatelessWidget {
 
               final metadata = replyContent.metadata ?? {};
               final replyToUid = metadata['messageUid'] as String? ?? '';
-              final replySenderId = metadata['senderId'] as String? ?? '';
-              final replySenderProfileUid = metadata['senderProfileUid'] as String?;
+              final replySenderUid = metadata['senderUid'] as String?;
               final replySenderName = metadata['senderName'] as String? ?? '';
               final resolvedSenderName = chatController.resolveMemberName(
-                replySenderId.isEmpty ? null : replySenderId,
-                replySenderProfileUid,
+                replySenderUid,
                 replySenderName,
               );
-              final replyToMe = replySenderId == chatController.currentUserId;
+              final replyToMe = replySenderUid == chatController.currentUserProfileUid;
               final displayName = replyToMe ? 'You' : resolvedSenderName;
-              final replyImageUrl = metadata['imageUrl'] as String?;
+              final mediaType = metadata['mediaType'] as String? ?? 'text';
+              final mediaUrl = metadata['mediaUrl'] as String?;
+              final replyBlurHash = metadata['blurHash'] as String?;
+              final remainingMediaCount = metadata['remainingMediaCount'] as int? ?? 0;
               final String replyType = metadata['type'] as String? ?? 'message';
 
               Widget replyBodyWidget;
               if (replyType == 'activity') {
-                final rActivityType =
-                    JobActivityType.fromString(metadata['activityType']);
-                IconData rActivityIcon;
-                String rActivityTitle;
-
-                switch (rActivityType) {
-                  case JobActivityType.jobCreated:
-                    rActivityTitle = AppStrings.jobChat.activityJobAssigned;
-                    rActivityIcon = AppIcons.jobs.work;
-                    break;
-                  case JobActivityType.reachedLocation:
-                    rActivityTitle = AppStrings.jobChat.activityReachedSite;
-                    rActivityIcon = AppIcons.jobs.checkIn;
-                    break;
-                  case JobActivityType.startedJob:
-                    rActivityTitle = AppStrings.jobChat.activityJobStarted;
-                    rActivityIcon = AppIcons.common.play;
-                    break;
-                  case JobActivityType.completedJob:
-                    rActivityTitle = AppStrings.jobChat.activityJobCompleted;
-                    rActivityIcon = AppIcons.status.success;
-                    break;
-                  case JobActivityType.takeBreak:
-                    rActivityTitle = AppStrings.jobChat.activityOnBreak;
-                    rActivityIcon = AppIcons.jobs.coffee;
-                    break;
-                  case JobActivityType.breakOut:
-                    rActivityTitle = AppStrings.jobChat.activityBreakEnded;
-                    rActivityIcon = AppIcons.common.play;
-                    break;
-                  case JobActivityType.sendLocation:
-                    rActivityTitle = AppStrings.jobChat.activityLocationShared;
-                    rActivityIcon = AppIcons.jobs.myLocation;
-                    break;
-                  case JobActivityType.askLocation:
-                    rActivityTitle =
-                        AppStrings.jobChat.activityLocationRequested;
-                    rActivityIcon = AppIcons.jobs.locationSearching;
-                    break;
-                  case JobActivityType.askStatus:
-                    rActivityTitle = AppStrings.jobChat.activityStatusRequested;
-                    rActivityIcon = AppIcons.jobs.statusQuestion;
-                    break;
-                  case JobActivityType.askStatusProofs:
-                    rActivityTitle =
-                        AppStrings.jobChat.activityStatusProofsRequested;
-                    rActivityIcon = AppIcons.jobs.cameraOutlined;
-                    break;
-                  case JobActivityType.cancelJob:
-                    rActivityTitle = AppStrings.jobChat.activityJobCancelled;
-                    rActivityIcon = AppIcons.dashboard.cancelled;
-                    break;
-                  case JobActivityType.reopenJob:
-                    rActivityTitle = AppStrings.jobChat.activityJobReopened;
-                    rActivityIcon = AppIcons.common.refresh;
-                    break;
-                  default:
-                    rActivityTitle = AppStrings.jobChat.activityUpdate;
-                    rActivityIcon = Icons.info_outline;
-                }
-
                 replyBodyWidget = Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      rActivityIcon,
+                      Icons.info_outline,
+                      size: 12,
+                      color: isMe
+                          ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                          : colorScheme.primary,
+                    ),
+                    AppUIConstants.widgets.horizontalBox$4,
+                    Flexible(
+                      child: Text(
+                        replyContent.content ?? 'Activity Update',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: isMe
+                              ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                              : colorScheme.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              } else if (mediaType == 'image') {
+                replyBodyWidget = Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.photo,
                       size: 12,
                       color: isMe
                           ? colorScheme.onPrimary.withValues(alpha: 0.7)
@@ -350,7 +319,53 @@ class ActivityMessageCard extends StatelessWidget {
                     ),
                     AppUIConstants.widgets.horizontalBox$4,
                     Text(
-                      rActivityTitle,
+                      'Photo',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: isMe
+                            ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                            : colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                );
+              } else if (mediaType == 'video') {
+                replyBodyWidget = Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.videocam,
+                      size: 12,
+                      color: isMe
+                          ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                          : colorScheme.primary,
+                    ),
+                    AppUIConstants.widgets.horizontalBox$4,
+                    Text(
+                      'Video',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: isMe
+                            ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                            : colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                );
+              } else if (mediaType == 'document' || mediaType == 'pdf') {
+                replyBodyWidget = Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      mediaType == 'pdf' ? Icons.picture_as_pdf : Icons.description,
+                      size: 12,
+                      color: isMe
+                          ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                          : colorScheme.primary,
+                    ),
+                    AppUIConstants.widgets.horizontalBox$4,
+                    Text(
+                      mediaType == 'pdf' ? 'PDF' : 'Document',
                       style: textTheme.bodySmall?.copyWith(
                         color: isMe
                             ? colorScheme.onPrimary.withValues(alpha: 0.7)
@@ -398,12 +413,11 @@ class ActivityMessageCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (replyImageUrl != null) ...[
+                          if (mediaUrl != null && (mediaType == 'image' || mediaType == 'video')) ...[
                             ReplyImageThumbnail(
-                              imageUrl: replyImageUrl,
-                              blurHash: metadata['blurHash'] as String? ??
-                                  metadata['blur_hash'] as String?,
-                              remainingCount: metadata['remainingImageCount'] as int? ?? 0,
+                              imageUrl: mediaUrl.startsWith('http') ? mediaUrl : ApiEndpoints.common.download(mediaUrl),
+                              blurHash: replyBlurHash,
+                              remainingCount: remainingMediaCount,
                               size: 30.0,
                               borderRadius: 2.0,
                             ),

@@ -624,6 +624,7 @@ class JobChatStrings {
 
   String get jobUpdateBannerTitle => 'Job Update';
   String get timeFormat => 'hh:mm a';
+  String get justNow => 'Just now';
   String jobSubtitle(String jobId, String status) => 'Job #$jobId • $status';
   String get somethingWentWrong => 'Something went wrong';
   String get retry => 'Retry';
@@ -656,6 +657,8 @@ class JobChatStrings {
   String get uploadingPhoto => 'Uploading photo...';
   String get processingVideo => 'Processing video...';
   String get uploadingVideo => 'Uploading video...';
+  String get processingDoc => 'Processing document...';
+  String get uploadingDoc => 'Uploading document...';
   String get checkingPermissions => 'Checking permissions...';
   String get acquiringGPS => 'Acquiring GPS...';
   String get resolvingAddress => 'Resolving Address...';
@@ -678,6 +681,12 @@ class JobChatStrings {
   String get cropPresetOriginal => 'Original';
   String get cropPresetFree => 'Free';
   String get cropImageDeleted => 'Image removed from preview.';
+  String get trimmingVideo => 'Trimming video...';
+  String get trimmingVideos => 'Trimming videos...';
+  String get trimPhasePreparing => 'Preparing...';
+  String get trimPhaseFinalizing => 'Finalizing...';
+  String trimmingVideoOf(int current, int total) =>
+      total == 1 ? 'Trimming video...' : 'Trimming $current of $total...';
   
   // Image Viewer Strings
   String get reply => 'Reply';

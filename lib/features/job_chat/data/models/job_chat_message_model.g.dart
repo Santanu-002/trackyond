@@ -11,11 +11,7 @@ _JobChatMessageModel _$JobChatMessageModelFromJson(Map<String, dynamic> json) =>
       uid: json['uid'] as String,
       localId: json['localId'] as String?,
       jobId: json['jobId'] as String,
-      authorType: json['authorType'] as String? ?? 'user',
-      createdByUid: json['createdByUid'] as String?,
-      createdByProfileUid: json['createdByProfileUid'] as String?,
-      senderName: json['senderName'] as String?,
-      senderId: json['senderId'] as String?,
+      senderUid: json['senderUid'] as String?,
       content: (json['content'] as List<dynamic>)
           .map(
             (e) =>
@@ -24,6 +20,7 @@ _JobChatMessageModel _$JobChatMessageModelFromJson(Map<String, dynamic> json) =>
           .toList(),
       type: json['type'] as String? ?? 'message',
       metadata: json['metadata'] as Map<String, dynamic>?,
+      actionPerformed: json['actionPerformed'] as String?,
       createdByAuthorAt: const DateTimeConverter().fromJson(
         json['createdByAuthorAt'] as String,
       ),
@@ -39,8 +36,6 @@ _JobChatMessageModel _$JobChatMessageModelFromJson(Map<String, dynamic> json) =>
       deliveredAt: const DateTimeNullableConverter().fromJson(
         json['deliveredAt'] as String?,
       ),
-      status: json['status'] as String? ?? 'sent',
-      isMe: json['isMe'] as bool? ?? false,
       active: json['active'] as bool? ?? true,
       deleted: json['deleted'] as bool? ?? false,
     );
@@ -51,14 +46,11 @@ Map<String, dynamic> _$JobChatMessageModelToJson(
   'uid': instance.uid,
   'localId': instance.localId,
   'jobId': instance.jobId,
-  'authorType': instance.authorType,
-  'createdByUid': instance.createdByUid,
-  'createdByProfileUid': instance.createdByProfileUid,
-  'senderName': instance.senderName,
-  'senderId': instance.senderId,
+  'senderUid': instance.senderUid,
   'content': instance.content,
   'type': instance.type,
   'metadata': instance.metadata,
+  'actionPerformed': instance.actionPerformed,
   'createdByAuthorAt': const DateTimeConverter().toJson(
     instance.createdByAuthorAt,
   ),
@@ -66,8 +58,6 @@ Map<String, dynamic> _$JobChatMessageModelToJson(
   'updatedAt': const DateTimeNullableConverter().toJson(instance.updatedAt),
   'seenAt': const DateTimeNullableConverter().toJson(instance.seenAt),
   'deliveredAt': const DateTimeNullableConverter().toJson(instance.deliveredAt),
-  'status': instance.status,
-  'isMe': instance.isMe,
   'active': instance.active,
   'deleted': instance.deleted,
 };

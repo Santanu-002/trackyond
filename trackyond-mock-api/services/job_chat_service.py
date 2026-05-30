@@ -36,22 +36,29 @@ def get_job_messages(db: Session, job_id: str, limit: int = None, offset: int = 
     else:
         return query.order_by(asc(models.JobChatMessage.created_at)).all()
 
-def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMessageCreate):
-    print("DEBUG: message_data.created_by_author_at =", message_data.created_by_author_at, type(message_data.created_by_author_at), "tzinfo =", getattr(message_data.created_by_author_at, "tzinfo", None))
-    is_system = message_data.author_type == "system"
-    msg_uid = message_data.uid if (is_system and message_data.uid) else uuid.uuid4().hex
+def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMessageCreate, current_user: models.User = None):
+    print("DEBUG: message_data.created_by_author_at =", message_data.created_by_author_at, type(message_data.created_by_author_at))
+    is_system = message_data.type == "activity" and (not message_data.sender_uid or message_data.sender_uid == "system")
+    author_type = "system" if is_system else "user"
+    
+    created_by_uid = None
+    if not is_system and current_user:
+        created_by_uid = current_user.uid
+
+    msg_uid = uuid.uuid4().hex
     msg_local_id = msg_uid if is_system else message_data.local_id
 
     db_message = models.JobChatMessage(
         uid=msg_uid,
         local_id=msg_local_id,
         job_id=job_id,
-        author_type=message_data.author_type,
-        created_by_uid=message_data.created_by_uid,
-        created_by_profile_uid=message_data.created_by_profile_uid,
-        status=message_data.status,
+        author_type=author_type,
+        created_by_uid=created_by_uid,
+        sender_uid=message_data.sender_uid,
+        status="sent",
         created_by_author_at=message_data.created_by_author_at,
-        type=message_data.type
+        type=message_data.type,
+        action_performed=message_data.action_performed
     )
     if hasattr(message_data, "metadata") and message_data.metadata is not None:
         db_message.metadata_dict = message_data.metadata
@@ -59,7 +66,7 @@ def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMe
     db.add(db_message)
     db.flush()
 
-    for content in message_data.content:
+    for idx, content in enumerate(message_data.content):
         db_content = models.JobChatMessageContent(
             message_uid=db_message.uid,
             type=content.type,
@@ -71,16 +78,16 @@ def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMe
 
     # Process activity action if the message type is activity
     if db_message.type == "activity":
-        activity_type_meta = (db_message.metadata_dict or {}).get("activity_type")
+        activity_type_meta = (db_message.metadata_dict or {}).get("activity_type") or db_message.action_performed
         if activity_type_meta:
             # Map activity_type_meta -> (db_activity_type, job_status_update)
             activity_map = {
-                "reached_location": ("reached", None),
-                "started_job": ("started", JobStatus.in_progress),
-                "completed_job": ("completed", JobStatus.completed),
-                "take_break": ("take_break", None),
-                "break_out": ("break_out", None),
-                "send_location": ("send_location", None),
+                "reachedLocation": ("reached", None),
+                "startedJob": ("started", JobStatus.in_progress),
+                "completedJob": ("completed", JobStatus.completed),
+                "takeBreak": ("take_break", None),
+                "breakOut": ("break_out", None),
+                "sendLocation": ("send_location", None),
             }
             if activity_type_meta in activity_map:
                 db_activity_type, job_status_update = activity_map[activity_type_meta]
@@ -101,8 +108,8 @@ def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMe
                 db_activity = models.JobActivity(
                     uid=uuid.uuid4().hex,
                     job_id=job_id,
-                    profile_uid=message_data.created_by_profile_uid,
-                    actor_type=message_data.author_type,
+                    profile_uid=message_data.sender_uid,
+                    actor_type=author_type,
                     activity_type=db_activity_type,
                     message=first_text,
                     lat=db_message.metadata_dict.get('latitude') if db_message.metadata_dict else None,
@@ -121,7 +128,7 @@ def create_system_activity_message(
     text: str, 
     message_type: ChatMessageType = ChatMessageType.activity,
     created_by_uid: str = None,
-    created_by_profile_uid: str = None,
+    sender_uid: str = None,
     metadata: dict = None
 ):
     """Utility to create automated timeline activity messages"""
@@ -133,7 +140,7 @@ def create_system_activity_message(
         job_id=job_id,
         author_type="system",
         created_by_uid=created_by_uid,
-        created_by_profile_uid=created_by_profile_uid,
+        sender_uid=sender_uid,
         status="sent",
         type="activity",
         created_by_author_at=now_utc()
@@ -181,13 +188,16 @@ def send_job_message(db: Session, job_id: str, message_data: schemas.JobChatMess
     # Enforce worker attendance check before sending messages or timeline actions
     validate_worker_attendance(db, current_user)
 
-    if message_data.author_type != "system" and message_data.created_by_uid != current_user.uid:
-        raise HTTPException(
-            status_code=403, 
-            detail=f"Unauthorized to send message as this user (created_by_uid: {message_data.created_by_uid}, current_user.uid: {current_user.uid})"
-        )
+    is_system = message_data.type == "activity" and (not message_data.sender_uid or message_data.sender_uid == "system")
+    if not is_system:
+        member = db.query(models.Member).filter(models.Member.user_uid == current_user.uid).first()
+        if not member or message_data.sender_uid != member.uid:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Unauthorized to send message as this member profile (senderUid: {message_data.sender_uid})"
+            )
         
-    message = create_job_message(db, job_id, message_data)
+    message = create_job_message(db, job_id, message_data, current_user)
     message_serialized = schemas.JobChatMessageResponse.model_validate(message).model_dump(by_alias=True)
     
     # Get the updated job and serialize fully using jobs_service

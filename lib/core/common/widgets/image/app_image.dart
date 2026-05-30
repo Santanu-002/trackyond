@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:blurhash_dart/blurhash_dart.dart';
 import 'package:image/image.dart' as img;
@@ -13,8 +12,11 @@ class AppImage extends StatelessWidget {
   final BoxFit fit;
   final double? width;
   final double? height;
+  final double? imageWidth;
+  final double? imageHeight;
   final Widget Function(BuildContext, String)? placeholder;
   final Widget Function(BuildContext, String, dynamic)? errorWidget;
+  final bool matchAspectRatio;
 
   const AppImage({
     super.key,
@@ -23,8 +25,11 @@ class AppImage extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.width,
     this.height,
+    this.imageWidth,
+    this.imageHeight,
     this.placeholder,
     this.errorWidget,
+    this.matchAspectRatio = false,
   });
 
   static final Map<String, MemoryImage> _blurHashCache = {};
@@ -68,11 +73,16 @@ class AppImage extends StatelessWidget {
     final MemoryImage? decodedHashProvider =
         (blurHash != null && blurHash!.isNotEmpty) ? getBlurHashProvider(blurHash!) : null;
 
-    return OctoImage(
+    double? calculatedHeight = height;
+    if (calculatedHeight == null && width != null && imageWidth != null && imageHeight != null && imageWidth! > 0) {
+      calculatedHeight = width! * imageHeight! / imageWidth!;
+    }
+
+    Widget result = OctoImage(
       image: CachedNetworkImageProvider(fullUrl),
       fit: fit,
       width: width,
-      height: height,
+      height: calculatedHeight,
       placeholderBuilder: placeholder != null
           ? (context) => placeholder!(context, fullUrl)
           : decodedHashProvider != null
@@ -86,7 +96,7 @@ class AppImage extends StatelessWidget {
                       Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: context.theme.colorScheme.onPrimary,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
                       ),
                     ],
@@ -94,7 +104,7 @@ class AppImage extends StatelessWidget {
               : (context) => Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: context.theme.colorScheme.onPrimary,
+                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
       errorBuilder: errorWidget != null
@@ -114,5 +124,20 @@ class AppImage extends StatelessWidget {
                   )
               : OctoError.icon(),
     );
+
+    if (matchAspectRatio && width == null && height == null && imageWidth != null && imageHeight != null && imageHeight! > 0) {
+      double calculatedAspectRatio = imageWidth! / imageHeight!;
+      if (calculatedAspectRatio < 0.8) {
+        calculatedAspectRatio = 0.8;
+      } else if (calculatedAspectRatio > 2.0) {
+        calculatedAspectRatio = 2.0;
+      }
+      result = AspectRatio(
+        aspectRatio: calculatedAspectRatio,
+        child: result,
+      );
+    }
+
+    return result;
   }
 }

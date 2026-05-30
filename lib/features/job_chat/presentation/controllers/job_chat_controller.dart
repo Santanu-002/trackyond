@@ -1,47 +1,51 @@
 import 'dart:async';
-
 import 'dart:io';
 import 'dart:ui' as ui;
-import 'package:mime/mime.dart';
+
 import 'package:blurhash_dart/blurhash_dart.dart';
 import 'package:image/image.dart' as img;
-
+import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:trackyond/core/utils/app_utils.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:trackyond/core/network/api/api_endpoints.dart';
+import 'package:trackyond/app/routes/app_routes.dart';
+import 'package:trackyond/core/common/domain/usecase/upload_file_usecase.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/enums/job_action.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
-import 'package:trackyond/app/routes/app_routes.dart';
+import 'package:trackyond/core/common/enums/media_preview_type.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
+import 'package:trackyond/core/common/events/chat_event.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/job_chat/domain/entities/chat_item.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_type.dart';
+import 'package:trackyond/features/job_chat/domain/entities/message_query_options.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/emit_job_update_use_case.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_chat_members_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_messages_usecase.dart';
-import 'package:trackyond/features/job_chat/domain/usecases/send_message_usecase.dart';
-import 'package:trackyond/core/common/domain/usecase/upload_file_usecase.dart';
-import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
-import 'package:trackyond/core/common/usecase/usecase.dart';
-import 'package:trackyond/core/common/events/chat_event.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_use_case.dart';
-import 'package:trackyond/features/job_chat/domain/entities/message_query_options.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/send_message_usecase.dart';
+import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class JobChatController extends GetxController {
   final GetJobMessagesUseCase _getMessagesUseCase;
@@ -79,20 +83,26 @@ class JobChatController extends GetxController {
 
   void onScrollInteraction() {
     if (flattenedItems.isEmpty) return;
-    
+
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isNotEmpty) {
       // items are reversed, so index 0 is bottom. The top-most visible item has the highest index among visible items
-      final topMostItemPosition = positions.reduce((max, position) => position.index > max.index ? position : max);
+      final topMostItemPosition = positions.reduce(
+        (max, position) => position.index > max.index ? position : max,
+      );
       final highestIndex = topMostItemPosition.index;
 
       // Trigger lazy load if we are close to the top of the visible list (oldest messages)
-      if (highestIndex >= flattenedItems.length - 3 && !isLoadingMore.value && hasMoreMessages.value) {
+      if (highestIndex >= flattenedItems.length - 3 &&
+          !isLoadingMore.value &&
+          hasMoreMessages.value) {
         loadMoreMessages();
       }
 
       // If the oldest item (top of chat) is visible, hide the floating header
-      final isTopVisible = positions.any((p) => p.index == flattenedItems.length - 1);
+      final isTopVisible = positions.any(
+        (p) => p.index == flattenedItems.length - 1,
+      );
       if (isTopVisible) {
         isFloatingDateVisible.value = false;
         _floatingDateTimer?.cancel();
@@ -103,7 +113,7 @@ class JobChatController extends GetxController {
       if (index >= 0 && index < flattenedItems.length) {
         final topItem = flattenedItems[index];
         DateTime? newDate;
-        
+
         if (topItem is ChatDateHeader) {
           newDate = topItem.date;
         } else if (topItem is ChatMessageBubbleItem) {
@@ -117,7 +127,11 @@ class JobChatController extends GetxController {
         }
 
         if (newDate != null) {
-          floatingDate.value = DateTime(newDate.year, newDate.month, newDate.day);
+          floatingDate.value = DateTime(
+            newDate.year,
+            newDate.month,
+            newDate.day,
+          );
         }
       }
     }
@@ -152,8 +166,10 @@ class JobChatController extends GetxController {
   StreamSubscription<ChatEvent>? _chatEventsSubscription;
 
   String? get currentUserId => _currentUserUid.value;
+  String? get currentUserProfileUid => _currentUserProfileUid.value;
 
-  final Rxn<JobChatMessageEntity> replyingToMessage = Rxn<JobChatMessageEntity>();
+  final Rxn<JobChatMessageEntity> replyingToMessage =
+      Rxn<JobChatMessageEntity>();
   final RxString highlightedMessageUid = ''.obs;
   final RxBool isSelectionMode = false.obs;
   final RxSet<String> selectedMessageUids = <String>{}.obs;
@@ -167,8 +183,8 @@ class JobChatController extends GetxController {
 
     bool isSameSender(JobChatMessageEntity? a, JobChatMessageEntity? b) {
       if (a == null || b == null) return false;
-      if (a.authorType == 'system' || b.authorType == 'system') return false;
-      return a.senderId == b.senderId;
+      if (a.senderUid == 'system' || b.senderUid == 'system') return false;
+      return a.senderUid == b.senderUid;
     }
 
     // Messages are sorted by date from backend (asc)
@@ -233,10 +249,13 @@ class JobChatController extends GetxController {
       return ChatItem.header(message: message);
     }
 
-    final isActivity = message.type == 'activity' || message.content.any(
-      (c) =>
-          JobChatMessageType.fromString(c.type) == JobChatMessageType.activity,
-    );
+    final isActivity =
+        message.type == 'activity' ||
+        message.content.any(
+          (c) =>
+              JobChatMessageType.fromString(c.type) ==
+              JobChatMessageType.activity,
+        );
 
     if (isActivity) {
       return ChatItem.activityBubble(
@@ -281,26 +300,31 @@ class JobChatController extends GetxController {
     focusNode.requestFocus();
   }
 
-
-
   void cancelReply() {
     replyingToMessage.value = null;
   }
 
   bool isAskLocationFulfilled(DateTime askTime) {
     return messages.any((m) {
-      if (!m.timestamp.isAfter(askTime) || !m.isMe || m.type != 'activity') return false;
+      if (!m.timestamp.isAfter(askTime) || !m.isMe || m.type != 'activity') {
+        return false;
+      }
       final type = JobActivityType.fromString(m.metadata?['activity_type']);
-      return type == JobActivityType.sendLocation || type == JobActivityType.reachedLocation;
+      return type == JobActivityType.sendLocation ||
+          type == JobActivityType.reachedLocation;
     });
   }
 
   bool isAskStatusFulfilled(JobChatMessageEntity requestMessage) {
-    final reqType = JobActivityType.fromString(requestMessage.metadata?['activity_type']);
+    final reqType = JobActivityType.fromString(
+      requestMessage.metadata?['activity_type'],
+    );
 
     return messages.any((m) {
-      if (!m.timestamp.isAfter(requestMessage.timestamp) || !m.isMe) return false;
-      
+      if (!m.timestamp.isAfter(requestMessage.timestamp) || !m.isMe) {
+        return false;
+      }
+
       final hasReply = m.content.any((c) {
         if (c.type != 'reply') return false;
         final repliedMsgUid = c.metadata?['messageUid'] as String?;
@@ -311,7 +335,9 @@ class JobChatController extends GetxController {
         if (reqType == JobActivityType.askStatusProofs) {
           // For status with proofs, the reply itself must be an activity message of type sendStatus
           if (m.type == 'activity') {
-            final activityType = JobActivityType.fromString(m.metadata?['activity_type']);
+            final activityType = JobActivityType.fromString(
+              m.metadata?['activity_type'],
+            );
             if (activityType == JobActivityType.sendStatus) {
               return true;
             }
@@ -323,7 +349,9 @@ class JobChatController extends GetxController {
       }
 
       if (m.type == 'activity') {
-        final activityType = JobActivityType.fromString(m.metadata?['activity_type']);
+        final activityType = JobActivityType.fromString(
+          m.metadata?['activity_type'],
+        );
         final hasImage = m.content.any((c) => c.type == 'image');
         if (activityType == JobActivityType.sendStatus) {
           if (reqType == JobActivityType.askStatusProofs) {
@@ -397,73 +425,67 @@ class JobChatController extends GetxController {
   }
 
   String getSenderName(JobChatMessageEntity message) {
-    if (message.authorType == 'system') {
+    if (message.senderUid == 'system') {
       return 'System';
     }
 
-    if (message.senderProfileUid != null) {
-      final member = chatMembers.firstWhereOrNull((m) => m.uid == message.senderProfileUid);
+    if (message.senderUid != null) {
+      final member = chatMembers.firstWhereOrNull(
+        (m) => m.uid == message.senderUid,
+      );
       if (member != null) {
         return member.name;
       }
 
-      if (message.senderProfileUid == job.workerProfileUid) {
+      if (message.senderUid == job.workerProfileUid) {
         return job.workerName ?? 'Worker';
       }
-      if (message.senderProfileUid == job.createdByProfileUid) {
+      if (message.senderUid == job.createdByProfileUid) {
         return job.createdByName ?? 'Admin';
       }
     }
 
-    final memberByUid = chatMembers.firstWhereOrNull((m) => m.userUid == message.senderId);
-    if (memberByUid != null) {
-      return memberByUid.name;
-    }
-
-    return message.senderName;
+    return 'User';
   }
 
   String? getSenderImage(JobChatMessageEntity message) {
-    if (message.authorType == 'system') {
+    if (message.senderUid == 'system') {
       return null;
     }
 
-    if (message.senderProfileUid != null) {
-      final member = chatMembers.firstWhereOrNull((m) => m.uid == message.senderProfileUid);
+    if (message.senderUid != null) {
+      final member = chatMembers.firstWhereOrNull(
+        (m) => m.uid == message.senderUid,
+      );
       if (member != null) {
         return member.image;
       }
 
-      if (message.senderProfileUid == job.workerProfileUid) {
+      if (message.senderUid == job.workerProfileUid) {
         return job.workerImage;
       }
-    }
-
-    final memberByUid = chatMembers.firstWhereOrNull((m) => m.userUid == message.senderId);
-    if (memberByUid != null) {
-      return memberByUid.image;
     }
 
     return null;
   }
 
-  String resolveMemberName(String? senderId, String? senderProfileUid, String fallbackName) {
-    if (senderProfileUid != null) {
-      final member = chatMembers.firstWhereOrNull((m) => m.uid == senderProfileUid);
+  String resolveMemberName(
+    String? senderUid,
+    String fallbackName,
+  ) {
+    final profileUid = senderUid;
+    if (profileUid != null) {
+      final member = chatMembers.firstWhereOrNull(
+        (m) => m.uid == profileUid,
+      );
       if (member != null) {
         return member.name;
       }
-      if (senderProfileUid == job.workerProfileUid) {
+      if (profileUid == job.workerProfileUid) {
         return job.workerName ?? 'Worker';
       }
-      if (senderProfileUid == job.createdByProfileUid) {
+      if (profileUid == job.createdByProfileUid) {
         return job.createdByName ?? 'Admin';
-      }
-    }
-    if (senderId != null) {
-      final member = chatMembers.firstWhereOrNull((m) => m.userUid == senderId);
-      if (member != null) {
-        return member.name;
       }
     }
     return fallbackName;
@@ -585,7 +607,8 @@ class JobChatController extends GetxController {
   Future<void> _listenToEvents() async {
     final result = await _listenChatEventsUseCase(const NoParams());
     result.fold(
-      (failure) => debugPrint('Error listening to chat events: ${failure.message}'),
+      (failure) =>
+          debugPrint('Error listening to chat events: ${failure.message}'),
       (stream) {
         _chatEventsSubscription = stream.listen((event) {
           if (event is ChatMessageReceivedEvent) {
@@ -593,7 +616,11 @@ class JobChatController extends GetxController {
             if (message.jobId == job.jobId) {
               final exists = messages.any((m) => m.uid == message.uid);
               if (!exists) {
-                messages.add(message.copyWith(isMe: message.senderId == _currentUserUid.value));
+                messages.add(
+                  message.copyWith(
+                    isMe: message.senderUid == _currentUserProfileUid.value,
+                  ),
+                );
                 scrollToLast(animate: true);
               }
             }
@@ -659,10 +686,7 @@ class JobChatController extends GetxController {
       final result = await _getMessagesUseCase(
         GetJobMessagesParams(
           jobId: job.jobId,
-          options: const MessageQueryOptions(
-            limit: _messageLimit,
-            offset: 0,
-          ),
+          options: const MessageQueryOptions(limit: _messageLimit, offset: 0),
         ),
       );
       result.fold(
@@ -675,7 +699,7 @@ class JobChatController extends GetxController {
             hasMoreMessages.value = false;
           }
           final updatedMessages = data.map((m) {
-            final isMe = m.senderId == _currentUserUid.value;
+            final isMe = m.senderUid == _currentUserProfileUid.value;
             return m.copyWith(isMe: isMe);
           }).toList();
           messages.assignAll(updatedMessages);
@@ -713,7 +737,7 @@ class JobChatController extends GetxController {
         }
 
         final updatedMessages = data.map((m) {
-          final isMe = m.senderId == _currentUserUid.value;
+          final isMe = m.senderUid == _currentUserProfileUid.value;
           return m.copyWith(isMe: isMe);
         }).toList();
 
@@ -752,8 +776,12 @@ class JobChatController extends GetxController {
     Map<String, dynamic> locationData = {};
 
     try {
-      if (userRole == UserRole.worker && repliedMsg != null && repliedMsg.type == 'activity') {
-        final activityType = JobActivityType.fromString(repliedMsg.metadata?['activity_type']);
+      if (userRole == UserRole.worker &&
+          repliedMsg != null &&
+          repliedMsg.type == 'activity') {
+        final activityType = JobActivityType.fromString(
+          repliedMsg.metadata?['activity_type'],
+        );
         if (activityType == JobActivityType.askStatus) {
           // For status requests, attach location silently in background
           try {
@@ -762,12 +790,11 @@ class JobChatController extends GetxController {
             locationData = await _acquireLocationAndAddress();
           } catch (e) {
             debugPrint('Background location fetch failed: $e');
-            // We continue sending the message even if location fails, 
+            // We continue sending the message even if location fails,
             // but we might want to warn the user if it was strictly required.
           }
         }
       }
-
 
       // Optimistic UI update
       final tempLocalId = nanoid(10);
@@ -775,41 +802,60 @@ class JobChatController extends GetxController {
 
       if (repliedMsg != null) {
         String originalText = '';
-        String? imageUrl;
-        String? blurHash;
-        final imageContents =
-            repliedMsg.content.where((c) => c.type == 'image').toList();
-        final firstImage = imageContents.firstOrNull;
-        if (firstImage != null) {
-          imageUrl = firstImage.metadata?['url'] as String?;
-          blurHash = firstImage.metadata?['blurHash'] as String?;
-          originalText = firstImage.content ?? 'Photo';
-        } else {
-          final textContent = repliedMsg.content.firstWhereOrNull(
-            (c) => c.type == 'text' || c.type == 'activity',
-          );
-          originalText = textContent?.content ?? '';
+        String mediaType = 'text';
+        String? mediaUrl;
+        String? replyBlurHash;
+        int? pageCount;
+
+        final textContent = repliedMsg.content.firstWhereOrNull(
+          (c) => c.type == 'text' || c.type == 'activity',
+        );
+        originalText = textContent?.content ?? '';
+
+        final mediaItems = repliedMsg.content.where(
+          (c) => c.type == 'image' || c.type == 'video' || c.type == 'document' || c.type == 'pdf'
+        ).toList();
+
+        if (mediaItems.isNotEmpty) {
+          final firstMedia = mediaItems.first;
+          mediaType = firstMedia.type;
+          mediaUrl = firstMedia.content;
+          
+          if (firstMedia.type == 'image') {
+            final imgMeta = firstMedia.metadata?['imageMetadata'];
+            replyBlurHash = imgMeta?['blurHash'] ?? firstMedia.metadata?['blurHash'];
+            if (originalText.isEmpty) originalText = 'Photo';
+          } else if (firstMedia.type == 'video') {
+            final vidMeta = firstMedia.metadata?['videoMetadata'];
+            replyBlurHash = vidMeta?['thumbnailBlurHash'] ?? firstMedia.metadata?['blurHash'];
+            if (originalText.isEmpty) originalText = 'Video';
+          } else if (firstMedia.type == 'pdf') {
+            final pdfMeta = firstMedia.metadata?['pdfMetadata'];
+            pageCount = pdfMeta?['pageCount'];
+            if (originalText.isEmpty) originalText = 'PDF';
+          } else if (firstMedia.type == 'document') {
+            final docMeta = firstMedia.metadata?['documentMetadata'];
+            pageCount = docMeta?['pageCount'];
+            if (originalText.isEmpty) originalText = 'Document';
+          }
         }
+
+        final remainingMediaCount = mediaItems.length > 1 ? (mediaItems.length - 1) : 0;
 
         contentList.add(
           JobChatMessageContentEntity(
-            type: JobChatMessageType.reply.value,
+            type: 'reply',
             content: originalText,
             metadata: {
               'messageUid': repliedMsg.uid,
               'senderName': getSenderName(repliedMsg),
-              'senderId': repliedMsg.senderId,
-              'senderProfileUid': repliedMsg.senderProfileUid,
+              'senderUid': repliedMsg.senderUid,
               'type': repliedMsg.type,
-              'imageUrl': imageUrl,
-              'blurHash': blurHash,
-              'remainingImageCount': imageContents.length > 1
-                  ? (imageContents.length - 1)
-                  : null,
-              if (repliedMsg.type == 'activity') ...{
-                'activityType': repliedMsg.metadata?['activity_type'] ?? '',
-                'address': repliedMsg.metadata?['address'] ?? '',
-              }
+              'mediaType': mediaType,
+              'mediaUrl': mediaUrl,
+              'blurHash': replyBlurHash,
+              'pageCount': pageCount,
+              'remainingMediaCount': remainingMediaCount,
             },
           ),
         );
@@ -817,7 +863,7 @@ class JobChatController extends GetxController {
 
       contentList.add(
         JobChatMessageContentEntity(
-          type: JobChatMessageType.text.value,
+          type: 'text',
           content: text,
         ),
       );
@@ -832,11 +878,9 @@ class JobChatController extends GetxController {
         uid: '',
         localId: tempLocalId,
         jobId: job.jobId,
-        senderName: _currentUserName.value!,
-        senderId: _currentUserUid.value!,
-        senderProfileUid: _currentUserProfileUid.value,
+        senderUid: _currentUserProfileUid.value,
         content: contentList,
-        timestamp: DateTime.now(),
+        createdByAuthorAt: DateTime.now(),
         type: isActivityReply ? 'activity' : 'message',
         metadata: finalMetadata.isNotEmpty ? finalMetadata : null,
         isMe: true,
@@ -873,29 +917,30 @@ class JobChatController extends GetxController {
   }
 
   void sendMockPhoto() {
-    if (_currentUserUid.value == null || _currentUserName.value == null) return;
+    if (_currentUserProfileUid.value == null) return;
 
     final photoMsg = JobChatMessageEntity(
       uid: '',
       localId: nanoid(10),
       jobId: job.jobId,
-      senderName: _currentUserName.value!,
-      senderId: _currentUserUid.value!,
-      senderProfileUid: _currentUserProfileUid.value,
+      senderUid: _currentUserProfileUid.value,
       content: [
         JobChatMessageContentEntity(
-          type: JobChatMessageType.image.value,
-          content: '📸 Photo uploaded as proof of work',
+          type: 'image',
+          content: 'uploads/chat/mock_workspace.jpg',
           metadata: {
-            'url': 'https://picsum.photos/400/300',
-            'width': 400,
-            'height': 300,
+            'fileName': 'mock_workspace.jpg',
+            'size': '1.1 MB',
             'mimeType': 'image/jpeg',
-            'blurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+            'imageMetadata': {
+              'width': 400,
+              'height': 300,
+              'blurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+            },
           },
         ),
       ],
-      timestamp: DateTime.now(),
+      createdByAuthorAt: DateTime.now(),
       isMe: true,
     );
     messages.add(photoMsg);
@@ -906,17 +951,15 @@ class JobChatController extends GetxController {
       uid: timelineId,
       localId: timelineId,
       jobId: job.jobId,
-      authorType: 'system',
-      senderName: 'System',
-      senderId: 'system',
+      senderUid: 'system',
       type: 'activity',
-      content: [
+      content: const [
         JobChatMessageContentEntity(
-          type: JobChatMessageType.activity.value,
+          type: 'text',
           content: '📸 Photo uploaded as proof of work',
         ),
       ],
-      timestamp: DateTime.now(),
+      createdByAuthorAt: DateTime.now(),
       isMe: false,
     );
     messages.add(timelineMsg);
@@ -938,6 +981,30 @@ class JobChatController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error computing blurhash: $e');
+    }
+    return null;
+  }
+
+  Future<String?> _computeVideoBlurHash(String videoPath) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final thumbPath = await VideoThumbnail.thumbnailFile(
+        video: videoPath,
+        thumbnailPath: tempDir.path,
+        imageFormat: ImageFormat.JPEG,
+        maxHeight: 100,
+        quality: 50,
+      );
+      if (thumbPath != null) {
+        final blurHash = await _computeAndPrintBlurHash(thumbPath);
+        final file = File(thumbPath);
+        if (await file.exists()) {
+          await file.delete();
+        }
+        return blurHash;
+      }
+    } catch (e) {
+      debugPrint('Error computing video blurhash: $e');
     }
     return null;
   }
@@ -1036,13 +1103,19 @@ class JobChatController extends GetxController {
       final tempLocalId = nanoid(10);
       final List<JobChatMessageContentEntity> content = [];
 
-      final isPhotoAction = jobAction == JobAction.startJobWithCapturePhoto ||
-                            jobAction == JobAction.completeJobWithCapturePhoto;
+      final isPhotoAction =
+          jobAction == JobAction.startJobWithCapturePhoto ||
+          jobAction == JobAction.completeJobWithCapturePhoto;
 
       // 1. If it is a photo action, perform capture and upload first!
       if (isPhotoAction) {
         await _setPhase(AppStrings.jobChat.waitingForPhoto);
-        final result = await Get.toNamed(AppRoutes.common.camera) as Map<String, dynamic>?;
+        final result =
+            await Get.toNamed(
+                  AppRoutes.common.camera,
+                  arguments: {'skipPreview': true},
+                )
+                as Map<String, dynamic>?;
         if (result == null) {
           cancelCurrentAction();
           AppSnackbar.info(AppStrings.jobChat.photoRequired);
@@ -1070,14 +1143,16 @@ class JobChatController extends GetxController {
         final imgWidth = frame.image.width;
         final imgHeight = frame.image.height;
 
-        final String? calculatedBlurHash = await _computeAndPrintBlurHash(imagePath);
+        final String? calculatedBlurHash = await _computeAndPrintBlurHash(
+          imagePath,
+        );
 
         if (isActionCancelled.value) return;
         await _setPhase(AppStrings.jobChat.uploadingPhoto);
 
         final uploadResult = await _uploadFileUseCase(
           UploadFileParams(
-            file: file, 
+            file: file,
             path: uploadPath,
             cancelToken: _cancelToken,
             onSendProgress: (int sent, int total) {
@@ -1096,20 +1171,14 @@ class JobChatController extends GetxController {
           (path) {
             uploadedPhotoPath = path;
             photoMetadata = {
-              'url': ApiEndpoints.common.download(path),
-              'path': path,
-              'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
-              'fileMetadata': {
-                'fileName': fileName,
-                'size': _formatFileSize(fileSize),
-                'mimeType': mimeType,
-                'imageMetadata': {
-                  'width': imgWidth,
-                  'height': imgHeight,
-                },
-                'videoMetaData': null,
-                'docMetaData': null,
-              }
+              'fileName': fileName,
+              'size': AppUtils.formatFileSize(fileSize),
+              'mimeType': mimeType,
+              'imageMetadata': {
+                'width': imgWidth,
+                'height': imgHeight,
+                'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+              },
             };
           },
         );
@@ -1118,16 +1187,17 @@ class JobChatController extends GetxController {
 
       // 2. Now acquire location (either after successful photo upload, or directly if it's a normal action)
       Map<String, dynamic> locationData = {};
-      final bool requiresLocation = jobAction != JobAction.askLocation &&
-                                    jobAction != JobAction.askStatus &&
-                                    jobAction != JobAction.statusWithProofs &&
-                                    jobAction != JobAction.cancelJob &&
-                                    jobAction != JobAction.reopenJob;
-      
+      final bool requiresLocation =
+          jobAction != JobAction.askLocation &&
+          jobAction != JobAction.askStatus &&
+          jobAction != JobAction.statusWithProofs &&
+          jobAction != JobAction.cancelJob &&
+          jobAction != JobAction.reopenJob;
+
       if (requiresLocation) {
         locationData = await _acquireLocationAndAddress();
       }
-      
+
       if (isActionCancelled.value) return;
 
       switch (jobAction) {
@@ -1183,11 +1253,13 @@ class JobChatController extends GetxController {
               activityType = JobActivityType.askLocation;
               break;
             case JobAction.askStatus:
-              activityMessage = "Please provide a status update on your current progress.";
+              activityMessage =
+                  "Please provide a status update on your current progress.";
               activityType = JobActivityType.askStatus;
               break;
             case JobAction.statusWithProofs:
-              activityMessage = "Please share a status update with photo proofs.";
+              activityMessage =
+                  "Please share a status update with photo proofs.";
               activityType = JobActivityType.askStatusProofs;
               break;
             case _:
@@ -1198,7 +1270,7 @@ class JobChatController extends GetxController {
 
           content.add(
             JobChatMessageContentEntity(
-              type: JobChatMessageType.text.value,
+              type: 'text',
               content: activityMessage,
             ),
           );
@@ -1206,7 +1278,7 @@ class JobChatController extends GetxController {
           if (uploadedPhotoPath != null) {
             content.add(
               JobChatMessageContentEntity(
-                type: JobChatMessageType.image.value,
+                type: 'image',
                 content: uploadedPhotoPath,
                 metadata: photoMetadata,
               ),
@@ -1223,14 +1295,12 @@ class JobChatController extends GetxController {
             uid: '',
             localId: tempLocalId,
             jobId: job.jobId,
-            authorType: 'user',
-            senderName: _currentUserName.value!,
-            senderId: _currentUserUid.value!,
-            senderProfileUid: _currentUserProfileUid.value,
+            senderUid: _currentUserProfileUid.value,
             content: content,
             type: 'activity',
             metadata: messageMetadata,
-            timestamp: DateTime.now(),
+            actionPerformed: jobAction.value,
+            createdByAuthorAt: DateTime.now(),
             isMe: true,
           );
 
@@ -1241,9 +1311,9 @@ class JobChatController extends GetxController {
           result.fold((failure) => AppSnackbar.destructive(failure.message), (
             sendResult,
           ) {
-             messages.add(sendResult.message.copyWith(isMe: true));
-             scrollToLast(animate: true);
-             if (sendResult.job != null) {
+            messages.add(sendResult.message.copyWith(isMe: true));
+            scrollToLast(animate: true);
+            if (sendResult.job != null) {
               _job.value = sendResult.job!;
               _emitJobUpdateUseCase(sendResult.job!);
             }
@@ -1263,7 +1333,9 @@ class JobChatController extends GetxController {
     }
   }
 
-  Future<void> openCameraForStatusProof(JobChatMessageEntity requestMessage) async {
+  Future<void> openCameraForStatusProof(
+    JobChatMessageEntity requestMessage,
+  ) async {
     if (userRole == UserRole.worker) {
       if (Get.isRegistered<AttendanceController>()) {
         final attendanceController = Get.find<AttendanceController>();
@@ -1278,25 +1350,38 @@ class JobChatController extends GetxController {
       }
     }
 
-    final result = await Get.toNamed(AppRoutes.common.camera) as Map<String, dynamic>?;
+    final result =
+        await Get.toNamed(
+              AppRoutes.common.camera,
+              arguments: {
+                'requestMessage': requestMessage,
+                'skipPreview': false,
+              },
+            )
+            as Map<String, dynamic>?;
     if (result == null) return;
 
     final String? imagePath = result['path'] as String?;
     if (imagePath == null) return;
 
-    navigateToMediaPreview(imagePath: imagePath, requestMessage: requestMessage);
+    navigateToMediaPreview(
+      imagePath: imagePath,
+      requestMessage: requestMessage,
+      type: MediaPreviewType.image,
+    );
   }
 
   void navigateToMediaPreview({
     String? imagePath,
     List<String>? imagePaths,
     JobChatMessageEntity? requestMessage,
+    required MediaPreviewType type,
   }) {
     Get.toNamed(
-      AppRoutes.common.mediaPreview,
+      '${AppRoutes.common.mediaPreview}?type=${type.name}',
       arguments: {
-        'imagePath':? imagePath,
-        'imagePaths':? imagePaths,
+        'imagePath': imagePath,
+        'imagePaths': imagePaths,
         'requestMessage': requestMessage,
       },
     );
@@ -1316,17 +1401,20 @@ class JobChatController extends GetxController {
 
       // 1. Process photos & upload
       final List<JobChatMessageContentEntity> content = [];
-      
+
       content.add(
         JobChatMessageContentEntity(
-          type: JobChatMessageType.text.value,
-          content: caption.isNotEmpty ? caption : AppStrings.jobChat.statusProofDefaultCaption,
+          type: 'text',
+          content: caption.isNotEmpty
+              ? caption
+              : AppStrings.jobChat.statusProofDefaultCaption,
         ),
       );
 
       for (int i = 0; i < imagePaths.length; i++) {
         final imagePath = imagePaths[i];
-        actionLoadingMessage.value = '${AppStrings.jobChat.processingPhoto} (${i + 1}/${imagePaths.length})';
+        actionLoadingMessage.value =
+            '${AppStrings.jobChat.processingPhoto} (${i + 1}/${imagePaths.length})';
         final File file = File(imagePath);
         final uploadPath = job.jobId;
 
@@ -1340,10 +1428,13 @@ class JobChatController extends GetxController {
         final imgWidth = frame.image.width;
         final imgHeight = frame.image.height;
 
-        final String? calculatedBlurHash = await _computeAndPrintBlurHash(imagePath);
+        final String? calculatedBlurHash = await _computeAndPrintBlurHash(
+          imagePath,
+        );
 
         if (isActionCancelled.value) return false;
-        actionLoadingMessage.value = '${AppStrings.jobChat.uploadingPhoto} (${i + 1}/${imagePaths.length})';
+        actionLoadingMessage.value =
+            '${AppStrings.jobChat.uploadingPhoto} (${i + 1}/${imagePaths.length})';
 
         final uploadResult = await _uploadFileUseCase(
           UploadFileParams(
@@ -1370,24 +1461,18 @@ class JobChatController extends GetxController {
           (path) {
             uploadSuccess = true;
             final photoMetadata = {
-              'url': ApiEndpoints.common.download(path),
-              'path': path,
-              'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
-              'fileMetadata': {
-                'fileName': fileName,
-                'size': _formatFileSize(fileSize),
-                'mimeType': mimeType,
-                'imageMetadata': {
-                  'width': imgWidth,
-                  'height': imgHeight,
-                },
-                'videoMetaData': null,
-                'docMetaData': null,
-              }
+              'fileName': fileName,
+              'size': AppUtils.formatFileSize(fileSize),
+              'mimeType': mimeType,
+              'imageMetadata': {
+                'width': imgWidth,
+                'height': imgHeight,
+                'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+              },
             };
             content.add(
               JobChatMessageContentEntity(
-                type: JobChatMessageType.image.value,
+                type: 'image',
                 content: path,
                 metadata: photoMetadata,
               ),
@@ -1396,7 +1481,9 @@ class JobChatController extends GetxController {
         );
 
         if (!uploadSuccess) {
-          throw Exception(uploadError.isNotEmpty ? uploadError : 'Failed to upload photo.');
+          throw Exception(
+            uploadError.isNotEmpty ? uploadError : 'Failed to upload photo.',
+          );
         }
       }
 
@@ -1419,14 +1506,11 @@ class JobChatController extends GetxController {
         uid: '',
         localId: tempLocalId,
         jobId: job.jobId,
-        authorType: 'user',
-        senderName: _currentUserName.value!,
-        senderId: _currentUserUid.value!,
-        senderProfileUid: _currentUserProfileUid.value,
+        senderUid: _currentUserProfileUid.value,
         content: content,
         type: 'activity',
         metadata: messageMetadata,
-        timestamp: DateTime.now(),
+        createdByAuthorAt: DateTime.now(),
         isMe: true,
       );
 
@@ -1475,9 +1559,22 @@ class JobChatController extends GetxController {
         ext == '3gp';
   }
 
+  bool _isDocPath(String path) {
+    final ext = path.split('.').last.toLowerCase();
+    return ext == 'pdf' ||
+        ext == 'doc' ||
+        ext == 'docx' ||
+        ext == 'xls' ||
+        ext == 'xlsx' ||
+        ext == 'ppt' ||
+        ext == 'pptx' ||
+        ext == 'txt';
+  }
+
   Future<bool> sendGeneralMedia({
     required List<String> paths,
     required String caption,
+    Map<String, Map<String, dynamic>>? extraMetadata,
   }) async {
     try {
       _cancelToken = CancelToken();
@@ -1492,150 +1589,217 @@ class JobChatController extends GetxController {
       if (caption.trim().isNotEmpty) {
         content.add(
           JobChatMessageContentEntity(
-            type: JobChatMessageType.text.value,
+            type: 'text',
             content: caption.trim(),
           ),
         );
       }
 
-      for (int i = 0; i < paths.length; i++) {
-        final path = paths[i];
+      final List<JobChatMessageContentEntity?> uploadedContents =
+          List.filled(paths.length, null);
+      final List<String> uploadErrors = [];
+      final Map<int, double> progressMap = {};
+      int completedCount = 0;
+
+      void updateOverallProgress() {
+        if (paths.isEmpty) return;
+        double sum = 0.0;
+        for (int i = 0; i < paths.length; i++) {
+          sum += progressMap[i] ?? 0.0;
+        }
+        uploadProgress.value = sum / paths.length;
+        final displayCount = (completedCount + 1).clamp(1, paths.length);
+        actionLoadingMessage.value =
+            '${AppStrings.jobChat.cropSending} ($displayCount/${paths.length})';
+      }
+
+      Future<void> uploadFile(int index) async {
+        final path = paths[index];
         final isVideo = _isVideoPath(path);
-
-        actionLoadingMessage.value = isVideo
-            ? '${AppStrings.jobChat.processingVideo} (${i + 1}/${paths.length})'
-            : '${AppStrings.jobChat.processingPhoto} (${i + 1}/${paths.length})';
-
+        final isDoc = _isDocPath(path);
         final File file = File(path);
         final uploadPath = job.jobId;
         final fileSize = await file.length();
         final fileName = file.path.split('/').last;
 
-        if (isActionCancelled.value) return false;
+        try {
+          if (isDoc) {
+            final mimeType = lookupMimeType(path) ?? 'application/octet-stream';
+            final uploadResult = await _uploadFileUseCase(
+              UploadFileParams(
+                file: file,
+                path: uploadPath,
+                cancelToken: _cancelToken,
+                onSendProgress: (int sent, int total) {
+                  if (total > 0 && !isActionCancelled.value) {
+                    progressMap[index] = sent / total;
+                    updateOverallProgress();
+                  }
+                },
+              ),
+            );
 
-        if (isVideo) {
-          final mimeType = lookupMimeType(path) ?? 'video/mp4';
-          actionLoadingMessage.value = '${AppStrings.jobChat.uploadingVideo} (${i + 1}/${paths.length})';
+            if (isActionCancelled.value) return;
 
-          final uploadResult = await _uploadFileUseCase(
-            UploadFileParams(
-              file: file,
-              path: uploadPath,
-              cancelToken: _cancelToken,
-              onSendProgress: (int sent, int total) {
-                if (total > 0) {
-                  uploadProgress.value = sent / total;
-                }
-              },
-            ),
-          );
-
-          if (isActionCancelled.value) return false;
-
-          bool uploadSuccess = false;
-          String uploadError = '';
-
-          uploadResult.fold(
-            (failure) {
-              uploadError = failure.message;
-            },
-            (uploadedPath) {
-              uploadSuccess = true;
-              final videoMetadata = {
-                'url': ApiEndpoints.common.download(uploadedPath),
-                'path': uploadedPath,
-                'fileMetadata': {
-                  'fileName': fileName,
-                  'size': _formatFileSize(fileSize),
-                  'mimeType': mimeType,
-                  'videoMetaData': {
-                    'duration': '0:00',
-                  },
-                }
-              };
-              content.add(
-                JobChatMessageContentEntity(
-                  type: JobChatMessageType.video.value,
+            uploadResult.fold(
+              (failure) => uploadErrors.add(failure.message),
+              (uploadedPath) {
+                final isPdf = path.toLowerCase().endsWith('.pdf') || mimeType.contains('pdf');
+                uploadedContents[index] = JobChatMessageContentEntity(
+                  type: isPdf ? 'pdf' : 'document',
                   content: uploadedPath,
-                  metadata: videoMetadata,
-                ),
-              );
-            },
-          );
-
-          if (!uploadSuccess) {
-            throw Exception(uploadError.isNotEmpty ? uploadError : 'Failed to upload video.');
-          }
-        } else {
-          final mimeType = lookupMimeType(path) ?? 'image/jpeg';
-          final bytes = await file.readAsBytes();
-          final codec = await ui.instantiateImageCodec(bytes);
-          final frame = await codec.getNextFrame();
-          final imgWidth = frame.image.width;
-          final imgHeight = frame.image.height;
-          final String? calculatedBlurHash = await _computeAndPrintBlurHash(path);
-
-          actionLoadingMessage.value = '${AppStrings.jobChat.uploadingPhoto} (${i + 1}/${paths.length})';
-
-          final uploadResult = await _uploadFileUseCase(
-            UploadFileParams(
-              file: file,
-              path: uploadPath,
-              cancelToken: _cancelToken,
-              onSendProgress: (int sent, int total) {
-                if (total > 0) {
-                  uploadProgress.value = sent / total;
-                }
-              },
-            ),
-          );
-
-          if (isActionCancelled.value) return false;
-
-          bool uploadSuccess = false;
-          String uploadError = '';
-
-          uploadResult.fold(
-            (failure) {
-              uploadError = failure.message;
-            },
-            (uploadedPath) {
-              uploadSuccess = true;
-              final photoMetadata = {
-                'url': ApiEndpoints.common.download(uploadedPath),
-                'path': uploadedPath,
-                'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
-                'fileMetadata': {
-                  'fileName': fileName,
-                  'size': _formatFileSize(fileSize),
-                  'mimeType': mimeType,
-                  'imageMetadata': {
-                    'width': imgWidth,
-                    'height': imgHeight,
+                  metadata: {
+                    'fileName': fileName,
+                    'size': AppUtils.formatFileSize(fileSize),
+                    'mimeType': mimeType,
+                    if (isPdf)
+                      'pdfMetadata': const {
+                        'extension': 'pdf',
+                        'pageCount': 1,
+                      }
+                    else
+                      'documentMetadata': {
+                        'extension': file.path.split('.').last.toLowerCase(),
+                        'pageCount': null,
+                      },
                   },
-                  'videoMetaData': null,
-                  'docMetaData': null,
-                }
-              };
-              content.add(
-                JobChatMessageContentEntity(
-                  type: JobChatMessageType.image.value,
-                  content: uploadedPath,
-                  metadata: photoMetadata,
-                ),
-              );
-            },
-          );
+                );
+              },
+            );
+          } else if (isVideo) {
+            final mimeType = lookupMimeType(path) ?? 'video/mp4';
+            final String? calculatedBlurHash = await _computeVideoBlurHash(path);
 
-          if (!uploadSuccess) {
-            throw Exception(uploadError.isNotEmpty ? uploadError : 'Failed to upload photo.');
+            if (isActionCancelled.value) return;
+
+            final uploadResult = await _uploadFileUseCase(
+              UploadFileParams(
+                file: file,
+                path: uploadPath,
+                cancelToken: _cancelToken,
+                onSendProgress: (int sent, int total) {
+                  if (total > 0 && !isActionCancelled.value) {
+                    progressMap[index] = sent / total;
+                    updateOverallProgress();
+                  }
+                },
+              ),
+            );
+
+            if (isActionCancelled.value) return;
+
+            uploadResult.fold(
+              (failure) => uploadErrors.add(failure.message),
+              (uploadedPath) {
+                final extra = extraMetadata?[path];
+                final startMs = extra?['trimStart'];
+                final endMs = extra?['trimEnd'];
+                final isMuted = extra?['isMuted'];
+
+                uploadedContents[index] = JobChatMessageContentEntity(
+                  type: 'video',
+                  content: uploadedPath,
+                  metadata: {
+                    'fileName': fileName,
+                    'size': AppUtils.formatFileSize(fileSize),
+                    'mimeType': mimeType,
+                    'videoMetadata': {
+                      'aspectRatio': 1.777,
+                      'duration': 0,
+                      'thumbnailBlurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+                      'trimStart': ?startMs,
+                      'trimEnd': ?endMs,
+                      'isMuted': ?isMuted,
+                    },
+                  },
+                );
+              },
+            );
+          } else {
+            final mimeType = lookupMimeType(path) ?? 'image/jpeg';
+            final bytes = await file.readAsBytes();
+            final codec = await ui.instantiateImageCodec(bytes);
+            final frame = await codec.getNextFrame();
+            final imgWidth = frame.image.width;
+            final imgHeight = frame.image.height;
+            final String? calculatedBlurHash =
+                await _computeAndPrintBlurHash(path);
+
+            if (isActionCancelled.value) return;
+
+            final uploadResult = await _uploadFileUseCase(
+              UploadFileParams(
+                file: file,
+                path: uploadPath,
+                cancelToken: _cancelToken,
+                onSendProgress: (int sent, int total) {
+                  if (total > 0 && !isActionCancelled.value) {
+                    progressMap[index] = sent / total;
+                    updateOverallProgress();
+                  }
+                },
+              ),
+            );
+
+            if (isActionCancelled.value) return;
+
+            uploadResult.fold(
+              (failure) => uploadErrors.add(failure.message),
+              (uploadedPath) {
+                uploadedContents[index] = JobChatMessageContentEntity(
+                  type: 'image',
+                  content: uploadedPath,
+                  metadata: {
+                    'fileName': fileName,
+                    'size': AppUtils.formatFileSize(fileSize),
+                    'mimeType': mimeType,
+                    'imageMetadata': {
+                      'width': imgWidth,
+                      'height': imgHeight,
+                      'blurHash': calculatedBlurHash ?? 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+                    },
+                  },
+                );
+              },
+            );
           }
+
+          if (!isActionCancelled.value) {
+            progressMap[index] = 1.0;
+            completedCount++;
+            updateOverallProgress();
+          }
+        } catch (e) {
+          uploadErrors.add(e.toString());
         }
       }
 
+      int nextIndex = 0;
+      Future<void> worker() async {
+        while (nextIndex < paths.length) {
+          if (isActionCancelled.value) break;
+          final index = nextIndex++;
+          await uploadFile(index);
+        }
+      }
+
+      // Limit concurrency to 3
+      final int concurrency = paths.length < 3 ? paths.length : 3;
+      final List<Future<void>> workers =
+          List.generate(concurrency, (_) => worker());
+      await Future.wait(workers);
+
       if (isActionCancelled.value) return false;
 
-      if (_currentUserUid.value == null || _currentUserName.value == null) {
+      if (uploadErrors.isNotEmpty) {
+        throw Exception(uploadErrors.first);
+      }
+
+      final List<JobChatMessageContentEntity> nonNullContents =
+          uploadedContents.whereType<JobChatMessageContentEntity>().toList();
+      content.addAll(nonNullContents);
+
+      if (_currentUserProfileUid.value == null) {
         throw Exception('User authentication data missing.');
       }
 
@@ -1644,11 +1808,9 @@ class JobChatController extends GetxController {
         uid: '',
         localId: tempLocalId,
         jobId: job.jobId,
-        senderName: _currentUserName.value!,
-        senderId: _currentUserUid.value!,
-        senderProfileUid: _currentUserProfileUid.value,
+        senderUid: _currentUserProfileUid.value,
         content: content,
-        timestamp: DateTime.now(),
+        createdByAuthorAt: DateTime.now(),
         type: 'message',
         isMe: true,
       );
@@ -1754,12 +1916,7 @@ class JobChatController extends GetxController {
     exitSelectionMode();
   }
 
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
-  }
+
 
   List<String> get availableActions {
     if (userRole == null) return [];
@@ -1796,8 +1953,8 @@ class JobChatController extends GetxController {
     required String mediaUrl,
     required Map<String, dynamic> metadata,
   }) async {
-    if (_currentUserUid.value == null || _currentUserName.value == null) return;
-    
+    if (_currentUserProfileUid.value == null) return;
+
     isMessageSending.value = true;
     final tempLocalId = nanoid(10);
     try {
@@ -1813,11 +1970,9 @@ class JobChatController extends GetxController {
         uid: '',
         localId: tempLocalId,
         jobId: job.jobId,
-        senderName: _currentUserName.value!,
-        senderId: _currentUserUid.value!,
-        senderProfileUid: _currentUserProfileUid.value,
+        senderUid: _currentUserProfileUid.value,
         content: contentList,
-        timestamp: DateTime.now(),
+        createdByAuthorAt: DateTime.now(),
         type: 'message',
         isMe: true,
       );
@@ -1862,29 +2017,28 @@ class JobChatController extends GetxController {
       final mimeType = lookupMimeType(file.path) ?? 'video/mp4';
 
       final uploadResult = await _uploadFileUseCase(
-        UploadFileParams(
-          file: file,
-          path: job.jobId,
-        ),
+        UploadFileParams(file: file, path: job.jobId),
       );
 
       await uploadResult.fold(
         (failure) async {
-          debugPrint('Upload failed, falling back to mock video: ${failure.message}');
+          debugPrint(
+            'Upload failed, falling back to mock video: ${failure.message}',
+          );
           await sendAttachmentMessage(
             type: JobChatMessageType.video,
             contentText: fileName,
-            mediaUrl: 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+            mediaUrl:
+                'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
             metadata: {
-              'url': 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-              'fileMetadata': {
-                'fileName': fileName,
-                'size': _formatFileSize(fileSize),
-                'mimeType': mimeType,
-                'videoMetaData': {
-                  'duration': '0:00',
-                },
-              }
+              'fileName': fileName,
+              'size': AppUtils.formatFileSize(fileSize),
+              'mimeType': mimeType,
+              'videoMetadata': {
+                'aspectRatio': 1.777,
+                'duration': 0,
+                'thumbnailBlurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+              },
             },
           );
         },
@@ -1894,16 +2048,14 @@ class JobChatController extends GetxController {
             contentText: path,
             mediaUrl: ApiEndpoints.common.download(path),
             metadata: {
-              'url': ApiEndpoints.common.download(path),
-              'path': path,
-              'fileMetadata': {
-                'fileName': fileName,
-                'size': _formatFileSize(fileSize),
-                'mimeType': mimeType,
-                'videoMetaData': {
-                  'duration': '0:00',
-                },
-              }
+              'fileName': fileName,
+              'size': AppUtils.formatFileSize(fileSize),
+              'mimeType': mimeType,
+              'videoMetadata': {
+                'aspectRatio': 1.777,
+                'duration': 0,
+                'thumbnailBlurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+              },
             },
           );
         },
@@ -1918,13 +2070,22 @@ class JobChatController extends GetxController {
   Future<void> attachFromCamera() async {
     showAttachmentMenu.value = false;
     try {
-      final result = await Get.toNamed(AppRoutes.common.camera) as Map<String, dynamic>?;
+      final result =
+          await Get.toNamed(
+                AppRoutes.common.camera,
+                arguments: {'requestMessage': null, 'skipPreview': false},
+              )
+              as Map<String, dynamic>?;
       if (result == null) return;
 
       final String? imagePath = result['path'] as String?;
       if (imagePath == null) return;
 
-      navigateToMediaPreview(imagePath: imagePath, requestMessage: null);
+      navigateToMediaPreview(
+        imagePath: imagePath,
+        requestMessage: null,
+        type: MediaPreviewType.image,
+      );
     } catch (e) {
       AppSnackbar.destructive('Error navigating to preview: $e');
     }
@@ -1934,13 +2095,15 @@ class JobChatController extends GetxController {
     showAttachmentMenu.value = false;
     final picker = ImagePicker();
     try {
-      final List<XFile> images = await picker.pickMultiImage(
-        imageQuality: 80,
-      );
+      final List<XFile> images = await picker.pickMultiImage(imageQuality: 80);
       if (images.isEmpty) return;
 
       final imagePaths = images.map((img) => img.path).toList();
-      navigateToMediaPreview(imagePaths: imagePaths, requestMessage: null);
+      navigateToMediaPreview(
+        imagePaths: imagePaths,
+        requestMessage: null,
+        type: MediaPreviewType.image,
+      );
     } catch (e) {
       AppSnackbar.destructive('Error picking photo: $e');
     }
@@ -1950,14 +2113,17 @@ class JobChatController extends GetxController {
     showAttachmentMenu.value = false;
     final picker = ImagePicker();
     try {
-      final List<XFile> selectedFiles = await picker.pickMultipleMedia();
+      final List<XFile> selectedFiles = await picker.pickMultiVideo();
       final videoPaths = selectedFiles
-          .where((file) => _isVideoPath(file.path))
           .map((file) => file.path)
           .toList();
       if (videoPaths.isEmpty) return;
 
-      navigateToMediaPreview(imagePaths: videoPaths, requestMessage: null);
+      navigateToMediaPreview(
+        imagePaths: videoPaths,
+        requestMessage: null,
+        type: MediaPreviewType.video,
+      );
     } catch (e) {
       AppSnackbar.destructive('Error picking video: $e');
     }
@@ -1965,67 +2131,52 @@ class JobChatController extends GetxController {
 
   Future<void> attachDocument() async {
     showAttachmentMenu.value = false;
-    isMessageSending.value = true;
-    
-    await Future.delayed(const Duration(milliseconds: 600));
-    
-    final fileName = 'Project_Specification_${DateTime.now().millisecondsSinceEpoch % 10000}.docx';
-    final fileSize = 1540 * 1024;
-    
-    await sendAttachmentMessage(
-      type: JobChatMessageType.docs,
-      contentText: fileName,
-      mediaUrl: 'https://example.com/docs/$fileName',
-      metadata: {
-        'url': 'https://example.com/docs/$fileName',
-        'fileMetadata': {
-          'fileName': fileName,
-          'size': _formatFileSize(fileSize),
-          'mimeType': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'docMetaData': {
-            'pageCount': 12,
-          }
-        }
-      },
-    );
+    try {
+      final FilePickerResult? result = await FilePicker.pickFiles(
+        type: FileType.any,
+      );
+      if (result == null) return;
+      final paths = result.paths.whereType<String>().toList();
+      if (paths.isEmpty) return;
+
+      navigateToMediaPreview(
+        imagePaths: paths,
+        requestMessage: null,
+        type: MediaPreviewType.document,
+      );
+    } catch (e) {
+      AppSnackbar.destructive('Error picking document: $e');
+    }
   }
 
   Future<void> attachPdf() async {
     showAttachmentMenu.value = false;
-    isMessageSending.value = true;
-    
-    await Future.delayed(const Duration(milliseconds: 600));
-    
-    final fileName = 'Invoice_May_2026_${DateTime.now().millisecondsSinceEpoch % 10000}.pdf';
-    final fileSize = 750 * 1024;
-    
-    await sendAttachmentMessage(
-      type: JobChatMessageType.docs,
-      contentText: fileName,
-      mediaUrl: 'https://example.com/docs/$fileName',
-      metadata: {
-        'url': 'https://example.com/docs/$fileName',
-        'fileMetadata': {
-          'fileName': fileName,
-          'size': _formatFileSize(fileSize),
-          'mimeType': 'application/pdf',
-          'docMetaData': {
-            'pageCount': 3,
-          }
-        }
-      },
-    );
+    try {
+      final FilePickerResult? result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      if (result == null) return;
+      final paths = result.paths.whereType<String>().toList();
+      if (paths.isEmpty) return;
+
+      navigateToMediaPreview(
+        imagePaths: paths,
+        requestMessage: null,
+        type: MediaPreviewType.pdf,
+      );
+    } catch (e) {
+      AppSnackbar.destructive('Error picking PDF: $e');
+    }
   }
 
   Future<void> openMap(double latitude, double longitude) async {
-    final url = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+    final url =
+        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
     final uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         AppSnackbar.destructive('Could not launch Google Maps');
       }

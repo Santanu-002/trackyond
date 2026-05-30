@@ -19,16 +19,25 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
     members = db.query(models.Member).filter(models.Member.company_uid == company_uid).all()
     today_start = now_utc().replace(hour=0, minute=0, second=0, microsecond=0)
     
+    # Bulk fetch attendance for today for all members in this company
+    attendances = db.query(models.Attendance).filter(
+        models.Attendance.company_uid == company_uid,
+        models.Attendance.created_at >= today_start
+    ).all()
+    
+    attendance_map = {}
+    for att in attendances:
+        # Keep only the latest attendance per profile
+        if att.profile_uid not in attendance_map or att.created_at > attendance_map[att.profile_uid].created_at:
+            attendance_map[att.profile_uid] = att
+
     team_status = []
     for m in members:
         # Don't show the admin in the team list
         if m.user_uid == admin_uid:
             continue
 
-        latest = db.query(models.Attendance).filter(
-            models.Attendance.profile_uid == m.uid,
-            models.Attendance.created_at >= today_start
-        ).order_by(models.Attendance.created_at.desc()).first()
+        latest = attendance_map.get(m.uid)
             
         team_status.append({
             "profile": serialize_member_profile(m),
@@ -37,21 +46,29 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
     
     # 2. Job Statistics
     def get_admin_counts(start_date=None):
-        base_query = db.query(models.JobView).filter(models.JobView.company_uid == company_uid)
+        from sqlalchemy import func, case
+        
+        base_filters = [models.JobView.company_uid == company_uid]
         if start_date:
-            return {
-                "pending": base_query.filter(models.JobView.status.in_([JobStatus.pending, JobStatus.assigned]), models.JobView.created_at >= start_date).count(),
-                "inProgress": base_query.filter(models.JobView.status == JobStatus.in_progress, models.JobView.created_at >= start_date).count(),
-                "completed": base_query.filter(models.JobView.status == JobStatus.completed, models.JobView.completed_at >= start_date).count(),
-                "cancelled": base_query.filter(models.JobView.status == JobStatus.cancelled, models.JobView.updated_at >= start_date).count(),
-            }
-        else:
-            return {
-                "pending": base_query.filter(models.JobView.status.in_([JobStatus.pending, JobStatus.assigned])).count(),
-                "inProgress": base_query.filter(models.JobView.status == JobStatus.in_progress).count(),
-                "completed": base_query.filter(models.JobView.status == JobStatus.completed).count(),
-                "cancelled": base_query.filter(models.JobView.status == JobStatus.cancelled).count(),
-            }
+            base_filters.append(
+                (models.JobView.created_at >= start_date) | 
+                (models.JobView.completed_at >= start_date) | 
+                (models.JobView.updated_at >= start_date)
+            )
+            
+        stats = db.query(
+            func.sum(case((models.JobView.status.in_([JobStatus.pending, JobStatus.assigned]), 1), else_=0)).label("pending"),
+            func.sum(case((models.JobView.status == JobStatus.in_progress, 1), else_=0)).label("inProgress"),
+            func.sum(case((models.JobView.status == JobStatus.completed, 1), else_=0)).label("completed"),
+            func.sum(case((models.JobView.status == JobStatus.cancelled, 1), else_=0)).label("cancelled")
+        ).filter(*base_filters).first()
+        
+        return {
+            "pending": stats.pending or 0,
+            "inProgress": stats.inProgress or 0,
+            "completed": stats.completed or 0,
+            "cancelled": stats.cancelled or 0,
+        }
 
     # 3. Recent Jobs (last 10)
     recent_jobs_results = db.query(
@@ -67,7 +84,13 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
     recent_jobs = [serialize_job(j, worker_name, worker_image) for j, worker_name, worker_image in recent_jobs_results]
     
     # 4. Chart Data (Jobs by status)
-    all_jobs = db.query(models.JobView).filter(models.JobView.company_uid == company_uid).all()
+    from sqlalchemy import func
+    status_counts = db.query(
+        models.JobView.status, 
+        func.count(models.JobView.id)
+    ).filter(
+        models.JobView.company_uid == company_uid
+    ).group_by(models.JobView.status).all()
     
     chart_data = {"pending": 0, "inProgress": 0, "completed": 0, "cancelled": 0}
     status_map = {
@@ -78,10 +101,10 @@ def get_admin_dashboard_data(db: Session, admin_uid: str):
         JobStatus.cancelled: "cancelled"
     }
 
-    for job in all_jobs:
-        mapped_status = status_map.get(job.status)
+    for status, count in status_counts:
+        mapped_status = status_map.get(status)
         if mapped_status and mapped_status in chart_data:
-            chart_data[mapped_status] += 1
+            chart_data[mapped_status] += count
 
     return {
         "teamMembersStatus": team_status,
@@ -155,25 +178,32 @@ def get_employee_dashboard_data(db: Session, user_uid: str, profile_uid: str):
 
     # 4. Summary Stats
     def get_counts(start_date=None):
-        base_query = db.query(models.JobView).filter(models.JobView.worker_profile_uid == active_member.uid)
+        from sqlalchemy import func, case
+        base_filters = [models.JobView.worker_profile_uid == active_member.uid]
         if start_date:
-            return {
-                "pending": base_query.filter(models.JobView.status == JobStatus.assigned, models.JobView.assigned_at >= start_date).count(),
-                "inProgress": base_query.filter(models.JobView.status == JobStatus.in_progress, models.JobView.assigned_at >= start_date).count(),
-                "completed": base_query.filter(models.JobView.status == JobStatus.completed, models.JobView.completed_at >= today_start).count(),
-                "cancelled": base_query.filter(models.JobView.status == JobStatus.cancelled, models.JobView.updated_at >= today_start).count(),
-                "completedToday": base_query.filter(models.JobView.status == JobStatus.completed, models.JobView.completed_at >= today_start).count(),
-                "totalAssigned": base_query.filter(models.JobView.status.in_([JobStatus.assigned, JobStatus.in_progress]), models.JobView.assigned_at >= start_date).count()
-            }
-        else:
-            return {
-                "pending": base_query.filter(models.JobView.status == JobStatus.assigned).count(),
-                "inProgress": base_query.filter(models.JobView.status == JobStatus.in_progress).count(),
-                "completed": base_query.filter(models.JobView.status == JobStatus.completed).count(),
-                "cancelled": base_query.filter(models.JobView.status == JobStatus.cancelled).count(),
-                "completedToday": base_query.filter(models.JobView.status == JobStatus.completed, models.JobView.completed_at >= today_start).count(),
-                "totalAssigned": base_query.filter(models.JobView.status.in_([JobStatus.assigned, JobStatus.in_progress])).count()
-            }
+            base_filters.append(
+                (models.JobView.assigned_at >= start_date) | 
+                (models.JobView.completed_at >= start_date) | 
+                (models.JobView.updated_at >= start_date)
+            )
+            
+        stats = db.query(
+            func.sum(case((models.JobView.status == JobStatus.assigned, 1), else_=0)).label("pending"),
+            func.sum(case((models.JobView.status == JobStatus.in_progress, 1), else_=0)).label("inProgress"),
+            func.sum(case((models.JobView.status == JobStatus.completed, 1), else_=0)).label("completed"),
+            func.sum(case((models.JobView.status == JobStatus.cancelled, 1), else_=0)).label("cancelled"),
+            func.sum(case(((models.JobView.status == JobStatus.completed) & (models.JobView.completed_at >= today_start), 1), else_=0)).label("completedToday"),
+            func.sum(case((models.JobView.status.in_([JobStatus.assigned, JobStatus.in_progress]), 1), else_=0)).label("totalAssigned")
+        ).filter(*base_filters).first()
+        
+        return {
+            "pending": stats.pending or 0,
+            "inProgress": stats.inProgress or 0,
+            "completed": stats.completed or 0,
+            "cancelled": stats.cancelled or 0,
+            "completedToday": stats.completedToday or 0,
+            "totalAssigned": stats.totalAssigned or 0,
+        }
 
     return {
         "attendanceStatus": {

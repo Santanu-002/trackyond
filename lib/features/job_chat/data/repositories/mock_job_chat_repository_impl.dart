@@ -3,7 +3,6 @@ import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
-import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_type.dart';
 import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repository.dart';
 
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
@@ -22,32 +21,29 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
       JobChatMessageEntity(
         uid: '1',
         jobId: jobId,
-        authorType: 'system',
-        senderName: 'System',
-        senderId: 'system',
+        senderUid: 'system',
         type: 'activity',
-        content: [
+        content: const [
           JobChatMessageContentEntity(
-            type: JobChatMessageType.activity.value,
+            type: 'activity',
             content: 'Job created by Admin',
           ),
         ],
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
+        createdByAuthorAt: DateTime.now().subtract(const Duration(days: 1)),
         isMe: false,
       ),
       JobChatMessageEntity(
         uid: '2',
         jobId: jobId,
-        senderName: 'John Doe',
-        senderId: 'worker_1',
+        senderUid: 'worker_1',
         type: 'message',
-        content: [
+        content: const [
           JobChatMessageContentEntity(
-            type: JobChatMessageType.text.value,
+            type: 'text',
             content: 'Hello, I am on my way.',
           ),
         ],
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
+        createdByAuthorAt: DateTime.now().subtract(const Duration(hours: 2)),
         isMe: false,
       ),
     ]);

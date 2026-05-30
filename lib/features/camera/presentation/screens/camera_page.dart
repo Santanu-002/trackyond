@@ -109,7 +109,7 @@ class CameraPage extends GetView<AppCameraController> {
                               onTap: () async {
                                 final path = await controller.capturePhoto();
                                 if (path != null) {
-                                  Get.back(result: {'path': path, 'isVideo': false});
+                                  controller.handleMediaCaptured(path, false);
                                 }
                               },
                               onLongPressStart: () {
@@ -118,7 +118,7 @@ class CameraPage extends GetView<AppCameraController> {
                               onLongPressEnd: () async {
                                 final path = await controller.stopVideoRecording();
                                 if (path != null) {
-                                  Get.back(result: {'path': path, 'isVideo': true});
+                                  controller.handleMediaCaptured(path, true);
                                 }
                               },
                               videoProgress: controller.videoProgress,

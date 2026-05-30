@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
-import 'package:trackyond/core/constants/app_icons.dart';
-import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
@@ -14,6 +11,8 @@ import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/bubble_
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_image_grid/chat_image_grid.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/reply_image_thumbnail.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_bubble_layout.dart';
+
+import 'package:trackyond/core/network/api/api_endpoints.dart';
 
 class MessageBubble extends StatelessWidget {
   final JobChatMessageEntity message;
@@ -87,6 +86,9 @@ class MessageBubble extends StatelessWidget {
                   (c) =>
                       c.type == 'text' ||
                       c.type == 'image' ||
+                      c.type == 'video' ||
+                      c.type == 'document' ||
+                      c.type == 'pdf' ||
                       c.type == 'activity',
                 )
                 .toList()
@@ -104,84 +106,28 @@ class MessageBubble extends StatelessWidget {
         if (replyContent != null) {
           final metadata = replyContent.metadata ?? {};
           final replyToUid = metadata['messageUid'] as String? ?? '';
-          final replySenderId = metadata['senderId'] as String? ?? '';
-          final replySenderProfileUid = metadata['senderProfileUid'] as String?;
+          final replySenderUid = metadata['senderUid'] as String?;
           final replySenderName = metadata['senderName'] as String? ?? '';
           final replyType = metadata['type'] as String? ?? 'message';
-          final replyImageUrl = metadata['imageUrl'] as String?;
+          final mediaType = metadata['mediaType'] as String? ?? 'text';
+          final mediaUrl = metadata['mediaUrl'] as String?;
+          final replyBlurHash = metadata['blurHash'] as String?;
+          final remainingMediaCount = metadata['remainingMediaCount'] as int? ?? 0;
 
           final resolvedSenderName = chatController.resolveMemberName(
-            replySenderId.isEmpty ? null : replySenderId,
-            replySenderProfileUid,
+            replySenderUid,
             replySenderName,
           );
-          final replyToMe = replySenderId == chatController.currentUserId;
+          final replyToMe = replySenderUid == chatController.currentUserProfileUid;
           final displayName = replyToMe ? 'You' : resolvedSenderName;
 
           Widget replyBodyWidget;
           if (replyType == 'activity') {
-            final activityType = JobActivityType.fromString(metadata['activityType']);
-            String activityTitle = 'Activity Update';
-            IconData activityIcon = Icons.info_outline;
-
-            switch (activityType) {
-              case JobActivityType.jobCreated:
-                activityTitle = AppStrings.jobChat.activityJobAssigned;
-                activityIcon = AppIcons.jobs.work;
-                break;
-              case JobActivityType.reachedLocation:
-                activityTitle = AppStrings.jobChat.activityReachedSite;
-                activityIcon = AppIcons.jobs.checkIn;
-                break;
-              case JobActivityType.startedJob:
-                activityTitle = AppStrings.jobChat.activityJobStarted;
-                activityIcon = AppIcons.common.play;
-                break;
-              case JobActivityType.completedJob:
-                activityTitle = AppStrings.jobChat.activityJobCompleted;
-                activityIcon = AppIcons.status.success;
-                break;
-              case JobActivityType.takeBreak:
-                activityTitle = AppStrings.jobChat.activityOnBreak;
-                activityIcon = AppIcons.jobs.coffee;
-                break;
-              case JobActivityType.breakOut:
-                activityTitle = AppStrings.jobChat.activityBreakEnded;
-                activityIcon = AppIcons.common.play;
-                break;
-              case JobActivityType.sendLocation:
-                activityTitle = AppStrings.jobChat.activityLocationShared;
-                activityIcon = AppIcons.jobs.myLocation;
-                break;
-              case JobActivityType.askLocation:
-                activityTitle = AppStrings.jobChat.activityLocationRequested;
-                activityIcon = AppIcons.jobs.locationSearching;
-                break;
-              case JobActivityType.askStatus:
-                activityTitle = AppStrings.jobChat.activityStatusRequested;
-                activityIcon = AppIcons.jobs.statusQuestion;
-                break;
-              case JobActivityType.askStatusProofs:
-                activityTitle =
-                    AppStrings.jobChat.activityStatusProofsRequested;
-                activityIcon = AppIcons.jobs.cameraOutlined;
-                break;
-              case JobActivityType.cancelJob:
-                activityTitle = AppStrings.jobChat.activityJobCancelled;
-                activityIcon = AppIcons.dashboard.cancelled;
-                break;
-              case JobActivityType.reopenJob:
-                activityTitle = AppStrings.jobChat.activityJobReopened;
-                activityIcon = AppIcons.common.refresh;
-                break;
-              default:
-                break;
-            }
             replyBodyWidget = Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  activityIcon,
+                  Icons.info_outline,
                   size: 14,
                   color: isMe
                       ? colorScheme.onPrimary.withValues(alpha: 0.7)
@@ -190,7 +136,7 @@ class MessageBubble extends StatelessWidget {
                 AppUIConstants.widgets.horizontalBox$4,
                 Flexible(
                   child: Text(
-                    activityTitle,
+                    replyContent.content ?? 'Activity Update',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.bodySmall?.copyWith(
@@ -203,7 +149,7 @@ class MessageBubble extends StatelessWidget {
                 ),
               ],
             );
-          } else if (replyImageUrl != null) {
+          } else if (mediaType == 'image') {
             replyBodyWidget = Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -217,6 +163,52 @@ class MessageBubble extends StatelessWidget {
                 AppUIConstants.widgets.horizontalBox$4,
                 Text(
                   'Photo',
+                  style: textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
+                    color: isMe
+                        ? colorScheme.onPrimary.withValues(alpha: 0.8)
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            );
+          } else if (mediaType == 'video') {
+            replyBodyWidget = Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.videocam,
+                  size: 14,
+                  color: isMe
+                      ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                      : colorScheme.primary,
+                ),
+                AppUIConstants.widgets.horizontalBox$4,
+                Text(
+                  'Video',
+                  style: textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
+                    color: isMe
+                        ? colorScheme.onPrimary.withValues(alpha: 0.8)
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            );
+          } else if (mediaType == 'document' || mediaType == 'pdf') {
+            replyBodyWidget = Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  mediaType == 'pdf' ? Icons.picture_as_pdf : Icons.description,
+                  size: 14,
+                  color: isMe
+                      ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                      : colorScheme.primary,
+                ),
+                AppUIConstants.widgets.horizontalBox$4,
+                Text(
+                  mediaType == 'pdf' ? 'PDF' : 'Document',
                   style: textTheme.bodySmall?.copyWith(
                     fontSize: 12,
                     color: isMe
@@ -265,12 +257,11 @@ class MessageBubble extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (replyImageUrl != null) ...[
+                        if (mediaUrl != null && (mediaType == 'image' || mediaType == 'video')) ...[
                           ReplyImageThumbnail(
-                            imageUrl: replyImageUrl,
-                            blurHash: metadata['blurHash'] as String? ??
-                                metadata['blur_hash'] as String?,
-                            remainingCount: metadata['remainingImageCount'] as int? ?? 0,
+                            imageUrl: mediaUrl.startsWith('http') ? mediaUrl : ApiEndpoints.common.download(mediaUrl),
+                            blurHash: replyBlurHash,
+                            remainingCount: remainingMediaCount,
                             size: 30.0,
                             borderRadius: 2.0,
                           ),
@@ -307,10 +298,15 @@ class MessageBubble extends StatelessWidget {
 
         final imageContents = validContents.where((c) => c.type == 'image').toList();
         final videoContents = validContents.where((c) => c.type == 'video').toList();
-        final docContents = validContents.where((c) => c.type == 'docs').toList();
+        final docContents = validContents.where((c) => c.type == 'document' || c.type == 'pdf').toList();
         final textContents = validContents
-            .where((c) => c.type != 'image' && c.type != 'video' && c.type != 'docs')
+            .where((c) => c.type != 'image' && c.type != 'video' && c.type != 'document' && c.type != 'pdf')
             .toList();
+
+        final isSingleImageNoCaption = imageContents.length == 1 &&
+            textContents.isEmpty &&
+            videoContents.isEmpty &&
+            docContents.isEmpty;
 
         if (imageContents.isNotEmpty) {
           final double topPad = (replyContent == null) ? 6.0 : 4.0;
@@ -329,6 +325,7 @@ class MessageBubble extends StatelessWidget {
                 imageContents: imageContents,
                 isMe: isMe,
                 width: 240,
+                showTimeOverlay: isSingleImageNoCaption,
               ),
             ),
           );
@@ -336,10 +333,18 @@ class MessageBubble extends StatelessWidget {
 
         if (videoContents.isNotEmpty) {
           for (final video in videoContents) {
-            final fileMeta = video.metadata?['fileMetadata'] as Map<String, dynamic>?;
-            final duration = fileMeta?['videoMetaData']?['duration'] as String? ?? '0:00';
-            final fileName = fileMeta?['fileName'] as String? ?? 'Video';
-            final url = video.metadata?['url'] as String? ?? '';
+            final fileName = video.metadata?['fileName'] as String? ?? video.content?.split('/').last ?? 'Video';
+            final videoMeta = video.metadata?['videoMetadata'] as Map<String, dynamic>?;
+            final durationVal = videoMeta?['duration'];
+            final String duration;
+            if (durationVal is int) {
+              duration = '${durationVal ~/ 60}:${(durationVal % 60).toString().padLeft(2, '0')}';
+            } else if (durationVal is String) {
+              duration = durationVal;
+            } else {
+              duration = '0:00';
+            }
+            final url = video.content ?? '';
             
             children.add(
               GestureDetector(
@@ -357,9 +362,9 @@ class MessageBubble extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: colorScheme.black.withValues(alpha: 0.87),
                       borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
-                      image: url.isNotEmpty && url.contains('http')
+                      image: url.isNotEmpty
                           ? DecorationImage(
-                              image: NetworkImage('https://picsum.photos/400/300?random=video'),
+                              image: NetworkImage(url.startsWith('http') ? url : ApiEndpoints.common.download(url)),
                               fit: BoxFit.cover,
                               opacity: 0.6,
                             )
@@ -421,11 +426,10 @@ class MessageBubble extends StatelessWidget {
 
         if (docContents.isNotEmpty) {
           for (final doc in docContents) {
-            final fileMeta = doc.metadata?['fileMetadata'] as Map<String, dynamic>?;
-            final fileName = fileMeta?['fileName'] as String? ?? doc.content ?? 'Document';
-            final fileSize = fileMeta?['size'] as String? ?? 'Unknown size';
-            final mimeType = fileMeta?['mimeType'] as String? ?? '';
-            final isPdf = mimeType.contains('pdf') || fileName.toLowerCase().endsWith('.pdf');
+            final fileName = doc.metadata?['fileName'] as String? ?? doc.content?.split('/').last ?? 'Document';
+            final fileSize = doc.metadata?['size'] as String? ?? 'Unknown size';
+            final mimeType = doc.metadata?['mimeType'] as String? ?? '';
+            final isPdf = doc.type == 'pdf' || mimeType.contains('pdf') || fileName.toLowerCase().endsWith('.pdf');
 
             final docIcon = isPdf ? Icons.picture_as_pdf : Icons.description;
             final docIconColor = isPdf ? colorScheme.attachmentPdf : colorScheme.attachmentDocs;
@@ -541,6 +545,7 @@ class MessageBubble extends StatelessWidget {
                   time: BubbleTimeAndStatus(
                     timestamp: message.timestamp,
                     isMe: isMe,
+                    status: message.status,
                   ),
                 ),
               ),
@@ -559,7 +564,7 @@ class MessageBubble extends StatelessWidget {
             validContents.isNotEmpty &&
             (validContents.last.type == 'text' ||
                 validContents.last.type == 'activity');
-        if (!hasLastText && validContents.isNotEmpty) {
+        if (!hasLastText && validContents.isNotEmpty && !isSingleImageNoCaption) {
           children.add(
             Align(
               alignment: Alignment.centerRight,
@@ -572,13 +577,14 @@ class MessageBubble extends StatelessWidget {
                 child: BubbleTimeAndStatus(
                   timestamp: message.timestamp,
                   isMe: isMe,
+                  status: message.status,
                 ),
               ),
             ),
           );
         }
 
-        final hasMedia = validContents.any((c) => c.type == 'image' || c.type == 'video' || c.type == 'docs');
+        final hasMedia = validContents.any((c) => c.type == 'image' || c.type == 'video' || c.type == 'document' || c.type == 'pdf');
 
         if (hasMedia) {
           return Column(

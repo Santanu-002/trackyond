@@ -2,7 +2,8 @@ enum JobChatMessageType {
   text('text'),
   image('image'),
   video('video'),
-  docs('docs'),
+  document('document'),
+  pdf('pdf'),
   activity('activity'),
   header('header'),
   reply('reply');

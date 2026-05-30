@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text, UniqueConstraint, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text, UniqueConstraint, Index, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from core.utils.datetime_utils import now_utc
@@ -77,6 +77,11 @@ class Job(Base):
     capture_location = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=now_utc)
     updated_at = Column(DateTime, default=now_utc, onupdate=now_utc)
+    
+    __table_args__ = (
+        Index('idx_job_company_status', 'company_uid', 'status'),
+        Index('idx_job_worker_status', 'worker_profile_uid', 'status'),
+    )
 
 class JobView(Base):
     __tablename__ = "jobs_view"
@@ -173,6 +178,13 @@ class Attendance(Base):
     
     created_at = Column(DateTime, default=now_utc)
     updated_at = Column(DateTime, default=now_utc, onupdate=now_utc)
+    
+    __table_args__ = (
+        # Used for finding team status for a company today
+        Index('idx_attendance_company_date', 'company_uid', 'created_at'),
+        # Used for finding worker's attendance
+        Index('idx_attendance_profile_date', 'profile_uid', 'created_at'),
+    )
 
 class JobChatMessage(Base):
     __tablename__ = "messages"
@@ -182,7 +194,7 @@ class JobChatMessage(Base):
     
     # Author Info
     created_by_uid = Column(String, ForeignKey("users.uid"), nullable=True) # Null for System
-    created_by_profile_uid = Column(String, ForeignKey("members.uid"), nullable=True)
+    sender_uid = Column("created_by_profile_uid", String, ForeignKey("members.uid"), nullable=True)
     author_type = Column(String, default="user") # 'user' or 'system'
     
     # Timing
@@ -200,6 +212,7 @@ class JobChatMessage(Base):
     # Message Type & Metadata
     type = Column(String, nullable=False, default="message") # 'message' or 'activity'
     metadata_json = Column(Text, nullable=True)
+    action_performed = Column(String, nullable=True)
 
     @property
     def metadata_dict(self):
@@ -218,6 +231,7 @@ class JobChatMessage(Base):
             self.metadata_json = json.dumps(value)
         else:
             self.metadata_json = None
+
 
     content = relationship("JobChatMessageContent", back_populates="chat_message", cascade="all, delete-orphan")
 
@@ -272,4 +286,5 @@ class JobChatMessageContent(Base):
             self.metadata_json = json.dumps(value)
         else:
             self.metadata_json = None
+
 

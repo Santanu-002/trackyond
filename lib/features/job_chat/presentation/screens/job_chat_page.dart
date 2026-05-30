@@ -140,8 +140,8 @@ class JobChatPage extends GetView<JobChatController> {
                                   final msgA = getMsg(a);
                                   final msgB = getMsg(b);
                                   if (msgA != null && msgB != null) {
-                                    if (msgA.authorType == 'system' || msgB.authorType == 'system') return false;
-                                    return msgA.senderId == msgB.senderId;
+                                    if (msgA.senderUid == 'system' || msgB.senderUid == 'system') return false;
+                                    return msgA.senderUid == msgB.senderUid;
                                   }
                                   return false;
                                 }

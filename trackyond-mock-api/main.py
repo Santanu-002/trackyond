@@ -7,6 +7,9 @@ from api.api import api_router
 from core.errors.exceptions import AppException, app_exception_handler, validation_exception_handler
 from core.middleware.device_metadata import DeviceMetadataMiddleware
 from core.database.redis_client import get_redis
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import os
 import sys
 import subprocess
@@ -33,28 +36,20 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"[STARTUP] Firebase Admin initialization failed or already initialized: {e}")
 
-    try:
-        print("[STARTUP] Applying database migrations...")
-        # Use sys.executable so we always invoke the same Python env as the running process.
-        result = subprocess.run(
-            [sys.executable, "-m", "alembic", "upgrade", "head"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        print(f"[STARTUP] Migrations applied successfully:\n{result.stdout}")
-    except subprocess.CalledProcessError as e:
-        print(f"[STARTUP] Migration failed:\n{e.stderr}")
-    except Exception as e:
-        print(f"[STARTUP] Unexpected error during migration: {e}")
+    # Migrations should be handled externally in CI/CD or via an init container
     yield
 
 
 app = FastAPI(title="Trackyond Mock API", lifespan=lifespan)
 
+# Setup Rate Limiting
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+app.state.limiter = limiter
+
 # Register Exception Handlers
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Register Middleware
 app.add_middleware(DeviceMetadataMiddleware)

@@ -7,11 +7,9 @@ part 'job_chat_message_content_model.g.dart';
 @freezed
 sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
   const factory JobChatMessageContentModel({
-    required int id,
     required String type,
     String? content,
     Map<String, dynamic>? metadata,
-    String? actionPerformed,
   }) = _JobChatMessageContentModel;
 
   const JobChatMessageContentModel._();
@@ -24,7 +22,6 @@ sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
       type: type,
       content: content,
       metadata: metadata,
-      actionPerformed: actionPerformed,
     );
   }
 }

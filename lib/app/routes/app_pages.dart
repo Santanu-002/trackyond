@@ -8,6 +8,7 @@ import 'package:trackyond/features/auth/presentation/screens/choose_role_page.da
 import 'package:trackyond/features/auth/presentation/screens/send_otp_page.dart';
 import 'package:trackyond/features/auth/presentation/screens/verify_otp_page.dart';
 import 'package:trackyond/features/job_chat/presentation/bindings/job_chat_binding.dart';
+import 'package:trackyond/features/job_chat/presentation/bindings/media_preview_binding.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/job_chat_page.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/media_preview_page.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/media_viewer_page.dart';
@@ -70,6 +71,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.common.mediaPreview,
+      binding: MediaPreviewBinding(),
       page: () => const MediaPreviewPage(),
     ),
     GetPage(

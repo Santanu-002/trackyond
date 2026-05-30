@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:camera/camera.dart' as cam;
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 
@@ -192,6 +193,51 @@ class AppCameraController extends GetxController {
     _recordingStartTime = null;
     _recordingTimer?.cancel();
     _recordingTimer = null;
+  }
+
+  Future<void> pauseCamera() async {
+    if (_controller == null || !isInitialized) return;
+    try {
+      await _controller!.pausePreview();
+    } catch (e) {
+      debugPrint('Error pausing camera preview: $e');
+    }
+  }
+
+  Future<void> resumeCamera() async {
+    if (_controller == null || !isInitialized) return;
+    try {
+      await _controller!.resumePreview();
+    } catch (e) {
+      debugPrint('Error resuming camera preview: $e');
+    }
+  }
+
+  Future<void> handleMediaCaptured(String path, bool isVideo) async {
+    final args = Get.arguments as Map<String, dynamic>?;
+    final bool skipPreview = args?['skipPreview'] as bool? ?? false;
+    final requestMessage = args?['requestMessage'];
+
+    if (skipPreview) {
+      Get.back(result: {'path': path, 'isVideo': isVideo});
+      return;
+    }
+
+    await pauseCamera();
+
+    final result = await Get.toNamed(
+      '${AppRoutes.common.mediaPreview}?type=${isVideo ? 'video' : 'image'}',
+      arguments: {
+        'imagePath': path,
+        'requestMessage': requestMessage,
+      },
+    );
+
+    if (result == true) {
+      Get.back();
+    } else {
+      await resumeCamera();
+    }
   }
 
   @override

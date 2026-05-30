@@ -21,7 +21,7 @@ async def app_exception_handler(request: Request, exc: AppException):
                 details=exc.details,
                 retry_after=exc.retry_after
             )
-        ).model_dump()
+        ).model_dump(by_alias=True)
     )
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -52,5 +52,5 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
                 error_code=error_code,
                 details={"errors": exc.errors()}
             )
-        ).model_dump()
+        ).model_dump(by_alias=True)
     )

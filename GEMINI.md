@@ -25,7 +25,7 @@ We use a modern and robust set of packages:
 - **Functional Programming**: `fpdart`
 - **Code Generation**: `freezed`, `json_serializable`, `build_runner`
 - **Storage**: `shared_preferences`, `flutter_secure_storage`
-- **UI & Styling**: `google_fonts`, `pinput`, `extended_image`, `flutter_blurhash`, `animations`, `shimmer`
+- **UI & Styling**: `google_fonts`, `pinput`, `extended_image`, `animations`, `shimmer`
 - **Utilities**: `connectivity_plus`, `device_info_plus`, `geolocator`, `package_info_plus`, `intl`, `nanoid`
 
 ### 2. Shimmer & Skeleton Standards

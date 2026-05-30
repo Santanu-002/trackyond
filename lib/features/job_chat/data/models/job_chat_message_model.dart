@@ -12,17 +12,11 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
     required String uid,
     String? localId,
     required String jobId,
-    @Default('user') String authorType,
-    String? createdByUid,
-    String? createdByProfileUid,
-    
-    // We'll mock these for now as they might not be in the initial JSON from old code
-    String? senderName,
-    String? senderId,
-
+    String? senderUid,
     required List<JobChatMessageContentModel> content,
     @Default('message') String type,
     Map<String, dynamic>? metadata,
+    String? actionPerformed,
     
     @DateTimeConverter() required DateTime createdByAuthorAt,
     @DateTimeNullableConverter() DateTime? createdAt,
@@ -30,38 +24,41 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
     @DateTimeNullableConverter() DateTime? seenAt,
     @DateTimeNullableConverter() DateTime? deliveredAt,
     
-    @Default('sent') String status,
-    @Default(false) bool isMe,
-    @Default(true) bool active,
-    @Default(false) bool deleted,
+    @Default(true) bool? active,
+    @Default(false) bool? deleted,
   }) = _JobChatMessageModel;
 
   const JobChatMessageModel._();
 
+  DateTime get timestamp => createdByAuthorAt;
+
+  String get status {
+    if (seenAt != null) return 'seen';
+    if (deliveredAt != null) return 'delivered';
+    return 'sent';
+  }
+
   factory JobChatMessageModel.fromJson(Map<String, dynamic> json) =>
       _$JobChatMessageModelFromJson(json);
 
-  JobChatMessageEntity toEntity() {
+  JobChatMessageEntity toEntity({bool? isMe}) {
     return JobChatMessageEntity(
       uid: uid,
       localId: localId,
       jobId: jobId,
-      authorType: authorType,
-      senderName: senderName ?? 'User',
-      senderId: senderId ?? createdByUid ?? 'unknown',
-      senderProfileUid: createdByProfileUid,
+      senderUid: senderUid,
       content: content.map((e) => e.toEntity()).toList(),
       type: type,
       metadata: metadata,
-      timestamp: createdByAuthorAt,
+      actionPerformed: actionPerformed,
+      createdByAuthorAt: createdByAuthorAt,
       createdAt: createdAt,
       updatedAt: updatedAt,
       seenAt: seenAt,
       deliveredAt: deliveredAt,
-      status: status,
-      isMe: isMe,
-      active: active,
-      deleted: deleted,
+      isMe: isMe ?? false,
+      active: active ?? true,
+      deleted: deleted ?? false,
     );
   }
 }

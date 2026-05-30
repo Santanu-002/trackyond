@@ -9,6 +9,7 @@ class ChatImageGrid extends StatelessWidget {
   final List<JobChatMessageContentEntity> imageContents;
   final bool isMe;
   final double? width;
+  final bool showTimeOverlay;
 
   const ChatImageGrid({
     super.key,
@@ -16,6 +17,7 @@ class ChatImageGrid extends StatelessWidget {
     required this.imageContents,
     required this.isMe,
     this.width,
+    this.showTimeOverlay = false,
   });
 
   @override
@@ -27,10 +29,8 @@ class ChatImageGrid extends StatelessWidget {
     final double imageRadius = AppUIConstants.radius.radius$16 - 2.0;
 
     if (displayCount == 1) {
-      final fileMetadata =
-          imageContents[0].metadata?['fileMetadata'] as Map<String, dynamic>?;
       final imageMetadata =
-          fileMetadata?['imageMetadata'] as Map<String, dynamic>?;
+          imageContents[0].metadata?['imageMetadata'] as Map<String, dynamic>?;
       final imgWidth =
           (imageMetadata?['width'] ?? imageContents[0].metadata?['width']) as num?;
       final imgHeight =
@@ -42,6 +42,7 @@ class ChatImageGrid extends StatelessWidget {
         message: message,
         imageContents: imageContents,
         imageRadius: imageRadius,
+        showTimeOverlay: showTimeOverlay,
       );
 
       if (imgWidth != null && imgHeight != null && imgHeight > 0) {

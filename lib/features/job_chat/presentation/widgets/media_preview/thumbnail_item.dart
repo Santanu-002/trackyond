@@ -105,6 +105,14 @@ class _ThumbnailItemState extends State<ThumbnailItem> {
         ext == 'mkv' ||
         ext == 'webm' ||
         ext == '3gp';
+    final isDoc = ext == 'pdf' ||
+        ext == 'doc' ||
+        ext == 'docx' ||
+        ext == 'xls' ||
+        ext == 'xlsx' ||
+        ext == 'ppt' ||
+        ext == 'pptx' ||
+        ext == 'txt';
 
     return GestureDetector(
       onTap: widget.isLoading ? null : widget.onTap,
@@ -145,6 +153,19 @@ class _ThumbnailItemState extends State<ThumbnailItem> {
                     Icons.play_circle_outline_rounded,
                     color: Colors.white,
                     size: 28,
+                  ),
+                ),
+              ] else if (isDoc) ...[
+                Container(
+                  color: widget.colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+                  child: Center(
+                    child: Icon(
+                      ext == 'pdf' ? Icons.picture_as_pdf : Icons.description,
+                      color: ext == 'pdf'
+                          ? widget.colorScheme.attachmentPdf
+                          : widget.colorScheme.attachmentDocs,
+                      size: 28,
+                    ),
                   ),
                 ),
               ] else

@@ -4,6 +4,7 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/enums/media_preview_type.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/media_preview_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/components/media_preview_loading_overlay.dart';
@@ -59,7 +60,7 @@ class MediaPreviewPage extends GetView<MediaPreviewController> {
                             ctrl.pause();
                           }
                         });
-                        if (controller.isVideoPath(mediaPaths[index])) {
+                        if (controller.previewType == MediaPreviewType.video) {
                           controller.initVideoController(index);
                         }
                       },
@@ -67,7 +68,7 @@ class MediaPreviewPage extends GetView<MediaPreviewController> {
                         final path = mediaPaths[index];
                         final file = File(path);
 
-                        if (controller.isVideoPath(path)) {
+                        if (controller.previewType == MediaPreviewType.video) {
                           controller.initVideoController(index);
                           final videoCtrl = controller.videoControllers[index];
                           if (videoCtrl == null) {
@@ -83,7 +84,8 @@ class MediaPreviewPage extends GetView<MediaPreviewController> {
                           return VideoPreviewWidget(controller: videoCtrl);
                         }
 
-                        if (controller.isDocPath(path)) {
+                        if (controller.previewType == MediaPreviewType.document ||
+                            controller.previewType == MediaPreviewType.pdf) {
                           return DocumentPreviewWidget(
                             path: path,
                             colorScheme: colorScheme,
@@ -148,6 +150,7 @@ class MediaPreviewPage extends GetView<MediaPreviewController> {
                         mediaPaths: mediaPaths,
                         currentIndex: activeIndex,
                         isLoading: isLoading,
+                        previewType: controller.previewType,
                         onSend: controller.onSend,
                         onPickMoreMedia: controller.pickMoreMedia,
                         onThumbnailTap: (index) {
@@ -166,7 +169,7 @@ class MediaPreviewPage extends GetView<MediaPreviewController> {
                         },
                       ),
 
-                    if (!isCropping && controller.isVideoPath(mediaPaths[activeIndex]))
+                    if (!isCropping && controller.previewType == MediaPreviewType.video)
                       Positioned(
                         top: MediaQuery.of(context).padding.top + 60,
                         left: 16,
@@ -207,7 +210,7 @@ class MediaPreviewPage extends GetView<MediaPreviewController> {
 
                     MediaPreviewTopBar(
                       isDraggingTrim: controller.isDraggingTrim.value,
-                      isVideo: controller.isVideoPath(mediaPaths[activeIndex]),
+                      isVideo: controller.previewType == MediaPreviewType.video,
                       videoController: controller.videoControllers[activeIndex],
                       startProgress: controller.videoStartProgresses[activeIndex] ?? 0.0,
                       endProgress: controller.videoEndProgresses[activeIndex] ?? 1.0,
@@ -216,8 +219,7 @@ class MediaPreviewPage extends GetView<MediaPreviewController> {
                       canUndo: canUndo,
                       canRedo: canRedo,
                       showCropOption: mediaPaths.isNotEmpty &&
-                          !controller.isVideoPath(mediaPaths[activeIndex]) &&
-                          !controller.isDocPath(mediaPaths[activeIndex]),
+                          controller.previewType == MediaPreviewType.image,
                       onBack: () {
                         if (isCropping) {
                           controller.cancelCrop();

@@ -14,7 +14,7 @@ abstract interface class IJobChatDataSource {
     required String jobId,
     MessageQueryOptionsModel? options,
   });
-  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required JobChatMessageModel message});
+  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required List<JobChatMessageModel> messages});
   Future<ApiResponse<JobModel>> updateJobStatus({
     required String jobId,
     required String status,
@@ -45,11 +45,11 @@ class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatD
   }
 
   @override
-  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required JobChatMessageModel message}) async {
-    final payload = message.toJson();
+  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required List<JobChatMessageModel> messages}) async {
+    final payload = messages.map((m) => m.toJson()).toList();
     return performApiRequest(
       _dio.post(
-        ApiEndpoints.common.jobChatMessages(message.jobId),
+        ApiEndpoints.common.jobChatMessages(messages.first.jobId),
         data: payload,
       ),
       (data) => SendMessageResponseModel.fromJson(data as Map<String, dynamic>),

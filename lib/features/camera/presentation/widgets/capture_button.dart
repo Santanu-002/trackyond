@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 
 class CaptureButton extends StatefulWidget {
   final VoidCallback onTap;
@@ -136,7 +137,8 @@ class _CaptureButtonState extends State<CaptureButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
+    final colorScheme = theme.colorScheme;
+    final primaryColor = colorScheme.primary;
 
     return GestureDetector(
       onTapDown: _handleTapDown,
@@ -168,16 +170,16 @@ class _CaptureButtonState extends State<CaptureButton> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.6),
+                            color: colorScheme.black.withValues(alpha: 0.6),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.15),
+                              color: colorScheme.onPrimary.withValues(alpha: 0.15),
                               width: 1,
                             ),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.lock_open_rounded,
-                            color: Colors.white,
+                            color: colorScheme.onPrimary,
                             size: 16,
                           ),
                         ),
@@ -186,12 +188,12 @@ class _CaptureButtonState extends State<CaptureButton> {
                       Text(
                         'Slide up to lock',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: colorScheme.onPrimary.withValues(alpha: 0.9),
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           shadows: [
                             Shadow(
-                              color: Colors.black.withValues(alpha: 0.5),
+                              color: colorScheme.black.withValues(alpha: 0.5),
                               blurRadius: 4,
                             ),
                           ],
@@ -200,7 +202,7 @@ class _CaptureButtonState extends State<CaptureButton> {
                       const SizedBox(height: 2),
                       Icon(
                         Icons.keyboard_arrow_up_rounded,
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: colorScheme.onPrimary.withValues(alpha: 0.7),
                         size: 18,
                       ),
                     ],
@@ -225,7 +227,7 @@ class _CaptureButtonState extends State<CaptureButton> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: widget.isRecording ? 0.3 : 1.0),
+                            color: colorScheme.onPrimary.withValues(alpha: widget.isRecording ? 0.3 : 1.0),
                             width: widget.isRecording ? 6 : 4,
                           ),
                         ),
@@ -255,7 +257,7 @@ class _CaptureButtonState extends State<CaptureButton> {
                           width: widget.isRecording ? 32 : 62,
                           height: widget.isRecording ? 32 : 62,
                           decoration: BoxDecoration(
-                            color: widget.isRecording ? Colors.red : Colors.white,
+                            color: widget.isRecording ? colorScheme.error : colorScheme.onPrimary,
                             borderRadius: BorderRadius.circular(widget.isRecording ? 8 : 31),
                           ),
                         ),

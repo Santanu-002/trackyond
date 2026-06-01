@@ -1,10 +1,49 @@
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:trackyond/core/common/enums/media_preview_type.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 
 class AppUtils {
   const AppUtils._();
+
+  /// Returns the corresponding [MediaPreviewType] for a given file [path].
+  static MediaPreviewType getMediaPreviewType(String path) {
+    final ext = path.split('.').last.toLowerCase();
+    if (ext == 'pdf') {
+      return MediaPreviewType.pdf;
+    }
+    if (ext == 'mp4' ||
+        ext == 'mov' ||
+        ext == 'avi' ||
+        ext == 'mkv' ||
+        ext == 'webm' ||
+        ext == '3gp') {
+      return MediaPreviewType.video;
+    }
+    if (ext == 'jpg' ||
+        ext == 'jpeg' ||
+        ext == 'png' ||
+        ext == 'gif' ||
+        ext == 'webp' ||
+        ext == 'bmp' ||
+        ext == 'heic' ||
+        ext == 'heif') {
+      return MediaPreviewType.image;
+    }
+    return MediaPreviewType.document;
+  }
+
+  /// Checks if a given file [path] is a video.
+  static bool isVideoPath(String path) {
+    return getMediaPreviewType(path) == MediaPreviewType.video;
+  }
+
+  /// Checks if a given file [path] is a document (including PDFs).
+  static bool isDocPath(String path) {
+    final type = getMediaPreviewType(path);
+    return type == MediaPreviewType.document || type == MediaPreviewType.pdf;
+  }
 
   /// Formats a [DateTime] into a group header label for notifications.
   /// Logic: Today, Yesterday, Weekdays (if < 7 days), Month & Year.
@@ -86,5 +125,14 @@ class AppUtils {
       return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     }
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+  }
+
+  /// Formats video duration in seconds to a "m:ss" format.
+  /// Defaults to '0:05' if null or 0.
+  static String formatVideoDuration(int? seconds) {
+    final secs = (seconds == null || seconds <= 0) ? 5 : seconds;
+    final int minutes = secs ~/ 60;
+    final int remainingSeconds = secs % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 }

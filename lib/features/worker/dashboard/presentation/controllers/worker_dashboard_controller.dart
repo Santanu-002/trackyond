@@ -128,12 +128,10 @@ class WorkerDashboardController extends GetxController {
         recentJobs.removeLast();
       }
     }
-    fetchDashboardData(silent: true);
   }
 
   void onJobDeleted(String jobId) {
     recentJobs.removeWhere((j) => j.jobId == jobId);
-    fetchDashboardData(silent: true);
   }
 
   Future<void> _loadStatsFilter() async {
@@ -153,17 +151,13 @@ class WorkerDashboardController extends GetxController {
     isProfileLoading.value = false;
   }
 
-  Future<void> fetchDashboardData({bool silent = false}) async {
-    if (!silent) {
-      isDashboardLoading.value = true;
-    }
+  Future<void> fetchDashboardData() async {
+    isDashboardLoading.value = true;
     final result = await _getWorkerDashboardUseCase(const NoParams());
 
     result.fold(
       (failure) {
-        if (!silent) {
-          AppSnackbar.destructive(failure.message);
-        }
+        AppSnackbar.destructive(failure.message);
       },
       (data) {
         // Update Attendance Status in the permanent AttendanceController
@@ -195,9 +189,7 @@ class WorkerDashboardController extends GetxController {
             data.unreadNotificationCount;
       },
     );
-    if (!silent) {
-      isDashboardLoading.value = false;
-    }
+    isDashboardLoading.value = false;
   }
 
   @override

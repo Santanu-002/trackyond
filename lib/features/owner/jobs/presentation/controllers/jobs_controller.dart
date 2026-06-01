@@ -9,7 +9,7 @@ import 'package:trackyond/core/common/entities/job/job_filter_options.dart';
 import 'package:trackyond/core/common/entities/job/job_sort_options.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/member/team_member_status_entity.dart';
-import 'package:trackyond/core/common/enums/filter_enums.dart';
+import 'package:trackyond/core/common/enums/filter_enums.dart' hide SortOrder;
 import 'package:trackyond/core/common/enums/job_status.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -120,7 +120,7 @@ class JobsController extends GetxController {
 
     // Instant Validation: Check for invalid date range
     final dateRule = currentFilter.advancedFilter.rules.firstWhereOrNull(
-      (rule) => rule.field == 'date',
+      (rule) => rule.field == JobFilterField.date,
     );
     if (dateRule != null &&
         dateRule.value is List &&
@@ -193,7 +193,7 @@ class JobsController extends GetxController {
       filter.value.advancedFilter.rules,
     );
     final statusRule = currentRules.firstWhereOrNull(
-      (rule) => rule.field == 'status',
+      (rule) => rule.field == JobFilterField.status,
     );
 
     List<JobStatus> selectedStatuses = [];
@@ -210,7 +210,7 @@ class JobsController extends GetxController {
     }
 
     final statusIndex = currentRules.indexWhere(
-      (rule) => rule.field == 'status',
+      (rule) => rule.field == JobFilterField.status,
     );
 
     if (selectedStatuses.isEmpty) {
@@ -219,7 +219,7 @@ class JobsController extends GetxController {
       }
     } else {
       final newRule = FilterRuleEntity(
-        field: 'status',
+        field: JobFilterField.status,
         operator: FilterOperator.inList,
         value: selectedStatuses,
       );
@@ -234,7 +234,7 @@ class JobsController extends GetxController {
 
   bool isStatusSelected(JobStatus? status) {
     final statusRule = filter.value.advancedFilter.rules.firstWhereOrNull(
-      (rule) => rule.field == 'status',
+      (rule) => rule.field == JobFilterField.status,
     );
 
     if (status == null) {
@@ -252,12 +252,12 @@ class JobsController extends GetxController {
     final currentRules = List<FilterRuleEntity>.from(
       filter.value.advancedFilter.rules,
     );
-    currentRules.removeWhere((rule) => rule.field == 'date');
+    currentRules.removeWhere((rule) => rule.field == JobFilterField.date);
 
     if (from != null && to != null) {
       currentRules.add(
         FilterRuleEntity(
-          field: 'date',
+          field: JobFilterField.date,
           operator: FilterOperator.between,
           value: [from, to],
         ),
@@ -273,7 +273,7 @@ class JobsController extends GetxController {
 
   DateTime? get fromDate {
     final dateRule = filter.value.advancedFilter.rules.firstWhereOrNull(
-      (rule) => rule.field == 'date',
+      (rule) => rule.field == JobFilterField.date,
     );
     if (dateRule == null || (dateRule.value as List).isEmpty) return null;
     return (dateRule.value as List)[0] as DateTime;
@@ -281,7 +281,7 @@ class JobsController extends GetxController {
 
   DateTime? get toDate {
     final dateRule = filter.value.advancedFilter.rules.firstWhereOrNull(
-      (rule) => rule.field == 'date',
+      (rule) => rule.field == JobFilterField.date,
     );
     if (dateRule == null || (dateRule.value as List).length < 2) return null;
     return (dateRule.value as List)[1] as DateTime;
@@ -465,7 +465,7 @@ class JobsController extends GetxController {
 
   List<MemberProfile> get selectedWorkers {
     final workerRule = filter.value.advancedFilter.rules.firstWhereOrNull(
-      (rule) => rule.field == 'worker',
+      (rule) => rule.field == JobFilterField.worker,
     );
     if (workerRule == null || workerRule.value is! List) return [];
     return List<MemberProfile>.from(workerRule.value as List);
@@ -476,7 +476,7 @@ class JobsController extends GetxController {
       filter.value.advancedFilter.rules,
     );
     final workerIndex = currentRules.indexWhere(
-      (rule) => rule.field == 'worker',
+      (rule) => rule.field == JobFilterField.worker,
     );
 
     List<MemberProfile> selected = [];
@@ -496,7 +496,7 @@ class JobsController extends GetxController {
       if (workerIndex != -1) removeRule(workerIndex);
     } else {
       final newRule = FilterRuleEntity(
-        field: 'worker',
+        field: JobFilterField.worker,
         operator: FilterOperator.inList,
         value: selected,
       );
@@ -530,7 +530,7 @@ class JobsController extends GetxController {
     final currentRules = List<FilterRuleEntity>.from(
       filter.value.advancedFilter.rules,
     );
-    currentRules.removeWhere((rule) => rule.field == 'status');
+    currentRules.removeWhere((rule) => rule.field == JobFilterField.status);
     filter.value = filter.value.copyWith(
       advancedFilter: filter.value.advancedFilter.copyWith(rules: currentRules),
     );
@@ -647,11 +647,10 @@ class JobsController extends GetxController {
         JobStatus.cancelled => scheme.error,
       };
 
-  String getFieldLabel(String field) => switch (field) {
-    'status' => AppStrings.jobs.status,
-    'date' => AppStrings.jobs.date,
-    'worker' => AppStrings.jobs.members,
-    _ => field,
+  String getFieldLabel(JobFilterField field) => switch (field) {
+    JobFilterField.status => AppStrings.jobs.status,
+    JobFilterField.date => AppStrings.jobs.date,
+    JobFilterField.worker => AppStrings.jobs.members,
   };
 
   String getValueLabel(dynamic value) {

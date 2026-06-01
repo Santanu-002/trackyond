@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$JobChatMessageModel {
 
- String get uid; String? get localId; String get jobId; String? get senderUid; List<JobChatMessageContentModel> get content; String get type; Map<String, dynamic>? get metadata; String? get actionPerformed;@DateTimeConverter() DateTime get createdByAuthorAt;@DateTimeNullableConverter() DateTime? get createdAt;@DateTimeNullableConverter() DateTime? get updatedAt;@DateTimeNullableConverter() DateTime? get seenAt;@DateTimeNullableConverter() DateTime? get deliveredAt; bool? get active; bool? get deleted;
+@JsonKey(includeToJson: false) String get uid; String? get localId; String get jobId; String? get senderUid; List<JobChatMessageContentModel> get content;@JsonKey(unknownEnumValue: JobChatMessageType.message) JobChatMessageType get type; Map<String, dynamic>? get metadata; String? get actionPerformed;@DateTimeConverter() DateTime get createdByAuthorAt;@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? get createdAt;@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? get updatedAt;@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? get seenAt;@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? get deliveredAt;@JsonKey(includeToJson: false) bool? get active;@JsonKey(includeToJson: false) bool? get deleted;
 /// Create a copy of JobChatMessageModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $JobChatMessageModelCopyWith<$Res>  {
   factory $JobChatMessageModelCopyWith(JobChatMessageModel value, $Res Function(JobChatMessageModel) _then) = _$JobChatMessageModelCopyWithImpl;
 @useResult
 $Res call({
- String uid, String? localId, String jobId, String? senderUid, List<JobChatMessageContentModel> content, String type, Map<String, dynamic>? metadata, String? actionPerformed,@DateTimeConverter() DateTime createdByAuthorAt,@DateTimeNullableConverter() DateTime? createdAt,@DateTimeNullableConverter() DateTime? updatedAt,@DateTimeNullableConverter() DateTime? seenAt,@DateTimeNullableConverter() DateTime? deliveredAt, bool? active, bool? deleted
+@JsonKey(includeToJson: false) String uid, String? localId, String jobId, String? senderUid, List<JobChatMessageContentModel> content,@JsonKey(unknownEnumValue: JobChatMessageType.message) JobChatMessageType type, Map<String, dynamic>? metadata, String? actionPerformed,@DateTimeConverter() DateTime createdByAuthorAt,@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? createdAt,@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? updatedAt,@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? seenAt,@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? deliveredAt,@JsonKey(includeToJson: false) bool? active,@JsonKey(includeToJson: false) bool? deleted
 });
 
 
@@ -73,7 +73,7 @@ as String?,jobId: null == jobId ? _self.jobId : jobId // ignore: cast_nullable_t
 as String,senderUid: freezed == senderUid ? _self.senderUid : senderUid // ignore: cast_nullable_to_non_nullable
 as String?,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as List<JobChatMessageContentModel>,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
+as JobChatMessageType,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,actionPerformed: freezed == actionPerformed ? _self.actionPerformed : actionPerformed // ignore: cast_nullable_to_non_nullable
 as String?,createdByAuthorAt: null == createdByAuthorAt ? _self.createdByAuthorAt : createdByAuthorAt // ignore: cast_nullable_to_non_nullable
 as DateTime,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -164,7 +164,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String? localId,  String jobId,  String? senderUid,  List<JobChatMessageContentModel> content,  String type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt, @DateTimeNullableConverter()  DateTime? createdAt, @DateTimeNullableConverter()  DateTime? updatedAt, @DateTimeNullableConverter()  DateTime? seenAt, @DateTimeNullableConverter()  DateTime? deliveredAt,  bool? active,  bool? deleted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(includeToJson: false)  String uid,  String? localId,  String jobId,  String? senderUid,  List<JobChatMessageContentModel> content, @JsonKey(unknownEnumValue: JobChatMessageType.message)  JobChatMessageType type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? createdAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? updatedAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? seenAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? deliveredAt, @JsonKey(includeToJson: false)  bool? active, @JsonKey(includeToJson: false)  bool? deleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JobChatMessageModel() when $default != null:
 return $default(_that.uid,_that.localId,_that.jobId,_that.senderUid,_that.content,_that.type,_that.metadata,_that.actionPerformed,_that.createdByAuthorAt,_that.createdAt,_that.updatedAt,_that.seenAt,_that.deliveredAt,_that.active,_that.deleted);case _:
@@ -185,7 +185,7 @@ return $default(_that.uid,_that.localId,_that.jobId,_that.senderUid,_that.conten
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String? localId,  String jobId,  String? senderUid,  List<JobChatMessageContentModel> content,  String type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt, @DateTimeNullableConverter()  DateTime? createdAt, @DateTimeNullableConverter()  DateTime? updatedAt, @DateTimeNullableConverter()  DateTime? seenAt, @DateTimeNullableConverter()  DateTime? deliveredAt,  bool? active,  bool? deleted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(includeToJson: false)  String uid,  String? localId,  String jobId,  String? senderUid,  List<JobChatMessageContentModel> content, @JsonKey(unknownEnumValue: JobChatMessageType.message)  JobChatMessageType type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? createdAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? updatedAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? seenAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? deliveredAt, @JsonKey(includeToJson: false)  bool? active, @JsonKey(includeToJson: false)  bool? deleted)  $default,) {final _that = this;
 switch (_that) {
 case _JobChatMessageModel():
 return $default(_that.uid,_that.localId,_that.jobId,_that.senderUid,_that.content,_that.type,_that.metadata,_that.actionPerformed,_that.createdByAuthorAt,_that.createdAt,_that.updatedAt,_that.seenAt,_that.deliveredAt,_that.active,_that.deleted);}
@@ -202,7 +202,7 @@ return $default(_that.uid,_that.localId,_that.jobId,_that.senderUid,_that.conten
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String? localId,  String jobId,  String? senderUid,  List<JobChatMessageContentModel> content,  String type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt, @DateTimeNullableConverter()  DateTime? createdAt, @DateTimeNullableConverter()  DateTime? updatedAt, @DateTimeNullableConverter()  DateTime? seenAt, @DateTimeNullableConverter()  DateTime? deliveredAt,  bool? active,  bool? deleted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(includeToJson: false)  String uid,  String? localId,  String jobId,  String? senderUid,  List<JobChatMessageContentModel> content, @JsonKey(unknownEnumValue: JobChatMessageType.message)  JobChatMessageType type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? createdAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? updatedAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? seenAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter()  DateTime? deliveredAt, @JsonKey(includeToJson: false)  bool? active, @JsonKey(includeToJson: false)  bool? deleted)?  $default,) {final _that = this;
 switch (_that) {
 case _JobChatMessageModel() when $default != null:
 return $default(_that.uid,_that.localId,_that.jobId,_that.senderUid,_that.content,_that.type,_that.metadata,_that.actionPerformed,_that.createdByAuthorAt,_that.createdAt,_that.updatedAt,_that.seenAt,_that.deliveredAt,_that.active,_that.deleted);case _:
@@ -214,13 +214,13 @@ return $default(_that.uid,_that.localId,_that.jobId,_that.senderUid,_that.conten
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _JobChatMessageModel extends JobChatMessageModel {
-  const _JobChatMessageModel({required this.uid, this.localId, required this.jobId, this.senderUid, required final  List<JobChatMessageContentModel> content, this.type = 'message', final  Map<String, dynamic>? metadata, this.actionPerformed, @DateTimeConverter() required this.createdByAuthorAt, @DateTimeNullableConverter() this.createdAt, @DateTimeNullableConverter() this.updatedAt, @DateTimeNullableConverter() this.seenAt, @DateTimeNullableConverter() this.deliveredAt, this.active = true, this.deleted = false}): _content = content,_metadata = metadata,super._();
+  const _JobChatMessageModel({@JsonKey(includeToJson: false) required this.uid, this.localId, required this.jobId, this.senderUid, required final  List<JobChatMessageContentModel> content, @JsonKey(unknownEnumValue: JobChatMessageType.message) this.type = JobChatMessageType.message, final  Map<String, dynamic>? metadata, this.actionPerformed, @DateTimeConverter() required this.createdByAuthorAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter() this.createdAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter() this.updatedAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter() this.seenAt, @JsonKey(includeToJson: false)@DateTimeNullableConverter() this.deliveredAt, @JsonKey(includeToJson: false) this.active = true, @JsonKey(includeToJson: false) this.deleted = false}): _content = content,_metadata = metadata,super._();
   factory _JobChatMessageModel.fromJson(Map<String, dynamic> json) => _$JobChatMessageModelFromJson(json);
 
-@override final  String uid;
+@override@JsonKey(includeToJson: false) final  String uid;
 @override final  String? localId;
 @override final  String jobId;
 @override final  String? senderUid;
@@ -231,7 +231,7 @@ class _JobChatMessageModel extends JobChatMessageModel {
   return EqualUnmodifiableListView(_content);
 }
 
-@override@JsonKey() final  String type;
+@override@JsonKey(unknownEnumValue: JobChatMessageType.message) final  JobChatMessageType type;
  final  Map<String, dynamic>? _metadata;
 @override Map<String, dynamic>? get metadata {
   final value = _metadata;
@@ -243,12 +243,12 @@ class _JobChatMessageModel extends JobChatMessageModel {
 
 @override final  String? actionPerformed;
 @override@DateTimeConverter() final  DateTime createdByAuthorAt;
-@override@DateTimeNullableConverter() final  DateTime? createdAt;
-@override@DateTimeNullableConverter() final  DateTime? updatedAt;
-@override@DateTimeNullableConverter() final  DateTime? seenAt;
-@override@DateTimeNullableConverter() final  DateTime? deliveredAt;
-@override@JsonKey() final  bool? active;
-@override@JsonKey() final  bool? deleted;
+@override@JsonKey(includeToJson: false)@DateTimeNullableConverter() final  DateTime? createdAt;
+@override@JsonKey(includeToJson: false)@DateTimeNullableConverter() final  DateTime? updatedAt;
+@override@JsonKey(includeToJson: false)@DateTimeNullableConverter() final  DateTime? seenAt;
+@override@JsonKey(includeToJson: false)@DateTimeNullableConverter() final  DateTime? deliveredAt;
+@override@JsonKey(includeToJson: false) final  bool? active;
+@override@JsonKey(includeToJson: false) final  bool? deleted;
 
 /// Create a copy of JobChatMessageModel
 /// with the given fields replaced by the non-null parameter values.
@@ -283,7 +283,7 @@ abstract mixin class _$JobChatMessageModelCopyWith<$Res> implements $JobChatMess
   factory _$JobChatMessageModelCopyWith(_JobChatMessageModel value, $Res Function(_JobChatMessageModel) _then) = __$JobChatMessageModelCopyWithImpl;
 @override @useResult
 $Res call({
- String uid, String? localId, String jobId, String? senderUid, List<JobChatMessageContentModel> content, String type, Map<String, dynamic>? metadata, String? actionPerformed,@DateTimeConverter() DateTime createdByAuthorAt,@DateTimeNullableConverter() DateTime? createdAt,@DateTimeNullableConverter() DateTime? updatedAt,@DateTimeNullableConverter() DateTime? seenAt,@DateTimeNullableConverter() DateTime? deliveredAt, bool? active, bool? deleted
+@JsonKey(includeToJson: false) String uid, String? localId, String jobId, String? senderUid, List<JobChatMessageContentModel> content,@JsonKey(unknownEnumValue: JobChatMessageType.message) JobChatMessageType type, Map<String, dynamic>? metadata, String? actionPerformed,@DateTimeConverter() DateTime createdByAuthorAt,@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? createdAt,@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? updatedAt,@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? seenAt,@JsonKey(includeToJson: false)@DateTimeNullableConverter() DateTime? deliveredAt,@JsonKey(includeToJson: false) bool? active,@JsonKey(includeToJson: false) bool? deleted
 });
 
 
@@ -308,7 +308,7 @@ as String?,jobId: null == jobId ? _self.jobId : jobId // ignore: cast_nullable_t
 as String,senderUid: freezed == senderUid ? _self.senderUid : senderUid // ignore: cast_nullable_to_non_nullable
 as String?,content: null == content ? _self._content : content // ignore: cast_nullable_to_non_nullable
 as List<JobChatMessageContentModel>,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
+as JobChatMessageType,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>?,actionPerformed: freezed == actionPerformed ? _self.actionPerformed : actionPerformed // ignore: cast_nullable_to_non_nullable
 as String?,createdByAuthorAt: null == createdByAuthorAt ? _self.createdByAuthorAt : createdByAuthorAt // ignore: cast_nullable_to_non_nullable
 as DateTime,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from typing import List
 from db.database import get_db
 from db import models
 from api.dependencies import get_current_user
@@ -31,15 +32,15 @@ async def get_messages(
 @router.post("/{job_id}/messages", response_model=GenericResponse)
 async def send_message(
     job_id: str,
-    message_data: schemas.JobChatMessageCreate,
+    messages_data: List[schemas.JobChatMessageCreate],
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
     """
-    Send a new message to a job chat.
+    Send new messages to a job chat.
     """
-    response_data = job_chat_service.send_job_message(db, job_id, message_data, current_user)
-    return GenericResponse(success=True, message="Message sent successfully", data=response_data)
+    response_data = job_chat_service.send_job_messages(db, job_id, messages_data, current_user)
+    return GenericResponse(success=True, message="Messages sent successfully", data=response_data)
 
 @router.get("/{job_id}/members", response_model=GenericResponse)
 async def get_chat_members(

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/core/utils/json_converters.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_content_model.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
@@ -7,25 +8,30 @@ part 'job_chat_message_model.freezed.dart';
 part 'job_chat_message_model.g.dart';
 
 @freezed
+@JsonSerializable(explicitToJson: true)
 sealed class JobChatMessageModel with _$JobChatMessageModel {
   const factory JobChatMessageModel({
-    required String uid,
+    @JsonKey(includeToJson: false) required String uid,
     String? localId,
     required String jobId,
     String? senderUid,
     required List<JobChatMessageContentModel> content,
-    @Default('message') String type,
+    
+    @JsonKey(unknownEnumValue: JobChatMessageType.message)
+    @Default(JobChatMessageType.message) JobChatMessageType type,
+    
     Map<String, dynamic>? metadata,
     String? actionPerformed,
     
     @DateTimeConverter() required DateTime createdByAuthorAt,
-    @DateTimeNullableConverter() DateTime? createdAt,
-    @DateTimeNullableConverter() DateTime? updatedAt,
-    @DateTimeNullableConverter() DateTime? seenAt,
-    @DateTimeNullableConverter() DateTime? deliveredAt,
     
-    @Default(true) bool? active,
-    @Default(false) bool? deleted,
+    @JsonKey(includeToJson: false) @DateTimeNullableConverter() DateTime? createdAt,
+    @JsonKey(includeToJson: false) @DateTimeNullableConverter() DateTime? updatedAt,
+    @JsonKey(includeToJson: false) @DateTimeNullableConverter() DateTime? seenAt,
+    @JsonKey(includeToJson: false) @DateTimeNullableConverter() DateTime? deliveredAt,
+    
+    @JsonKey(includeToJson: false) @Default(true) bool? active,
+    @JsonKey(includeToJson: false) @Default(false) bool? deleted,
   }) = _JobChatMessageModel;
 
   const JobChatMessageModel._();
@@ -62,4 +68,3 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
     );
   }
 }
-

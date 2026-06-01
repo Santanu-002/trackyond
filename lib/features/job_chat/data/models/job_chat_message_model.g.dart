@@ -18,7 +18,13 @@ _JobChatMessageModel _$JobChatMessageModelFromJson(Map<String, dynamic> json) =>
                 JobChatMessageContentModel.fromJson(e as Map<String, dynamic>),
           )
           .toList(),
-      type: json['type'] as String? ?? 'message',
+      type:
+          $enumDecodeNullable(
+            _$JobChatMessageTypeEnumMap,
+            json['type'],
+            unknownValue: JobChatMessageType.message,
+          ) ??
+          JobChatMessageType.message,
       metadata: json['metadata'] as Map<String, dynamic>?,
       actionPerformed: json['actionPerformed'] as String?,
       createdByAuthorAt: const DateTimeConverter().fromJson(
@@ -43,21 +49,19 @@ _JobChatMessageModel _$JobChatMessageModelFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$JobChatMessageModelToJson(
   _JobChatMessageModel instance,
 ) => <String, dynamic>{
-  'uid': instance.uid,
   'localId': instance.localId,
   'jobId': instance.jobId,
   'senderUid': instance.senderUid,
-  'content': instance.content,
-  'type': instance.type,
+  'content': instance.content.map((e) => e.toJson()).toList(),
+  'type': instance.type.toJson(),
   'metadata': instance.metadata,
   'actionPerformed': instance.actionPerformed,
   'createdByAuthorAt': const DateTimeConverter().toJson(
     instance.createdByAuthorAt,
   ),
-  'createdAt': const DateTimeNullableConverter().toJson(instance.createdAt),
-  'updatedAt': const DateTimeNullableConverter().toJson(instance.updatedAt),
-  'seenAt': const DateTimeNullableConverter().toJson(instance.seenAt),
-  'deliveredAt': const DateTimeNullableConverter().toJson(instance.deliveredAt),
-  'active': instance.active,
-  'deleted': instance.deleted,
+};
+
+const _$JobChatMessageTypeEnumMap = {
+  JobChatMessageType.message: 'message',
+  JobChatMessageType.activity: 'activity',
 };

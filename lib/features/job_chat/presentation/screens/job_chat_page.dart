@@ -152,7 +152,7 @@ class JobChatPage extends GetView<JobChatController> {
                                 double bottomPadding = AppUIConstants.spacing.space$4;
 
                                 if (item is ChatTimeHeaderItem) {
-                                  bottomPadding = AppUIConstants.spacing.space$2;
+                                  bottomPadding = AppUIConstants.spacing.space$8;
                                 } else if (item is ChatHeaderMessage) {
                                   if (prevItem is ChatHeaderMessage) {
                                     bottomPadding = 0;

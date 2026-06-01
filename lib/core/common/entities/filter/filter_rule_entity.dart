@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:trackyond/core/common/enums/filter_enums.dart';
 
 class FilterRuleEntity extends Equatable {
-  final String field;
+  final JobFilterField field;
   final FilterOperator operator;
   final dynamic value;
 
@@ -16,7 +16,7 @@ class FilterRuleEntity extends Equatable {
   List<Object?> get props => [field, operator, value];
 
   FilterRuleEntity copyWith({
-    String? field,
+    JobFilterField? field,
     FilterOperator? operator,
     dynamic value,
   }) {

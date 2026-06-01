@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/entities/filter/app_chip_entity.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
+import 'package:trackyond/core/common/enums/filter_enums.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
@@ -50,8 +51,7 @@ class TeamStatusController extends GetxController {
   // Filters & Search
   final selectedStatus = Rxn<AttendanceStatus>();
 
-  /// 'desc' = Newest first, 'asc' = Oldest first.
-  final selectedOrder = 'desc'.obs;
+  final selectedOrder = SortOrder.desc.obs;
   final searchQuery = ''.obs;
   final searchBy = 'All'.obs;
 
@@ -117,7 +117,7 @@ class TeamStatusController extends GetxController {
 
   /// Sorts [list] in-place: working first, then by startAt per selectedOrder.
   void _sortInPlace(List<TeamMemberStatusEntity> list) {
-    final isDesc = selectedOrder.value == 'desc';
+    final isDesc = selectedOrder.value == SortOrder.desc;
     list.sort((a, b) {
       // Tier 1: working before not-started (always).
       final statusCmp = _statusPriority(a).compareTo(_statusPriority(b));
@@ -212,7 +212,7 @@ class TeamStatusController extends GetxController {
     _allMembers.refresh(); // notify Obx widgets
   }
 
-  void setOrder(String order) {
+  void setOrder(SortOrder order) {
     selectedOrder.value = order;
     _allMembers.refresh(); // notify Obx widgets
   }

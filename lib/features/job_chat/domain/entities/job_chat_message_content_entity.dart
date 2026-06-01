@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 
 class JobChatMessageContentEntity extends Equatable {
-  final String type;
+  final JobChatMessageContentType type;
   final String? content;
   final Map<String, dynamic>? metadata;
 
@@ -14,4 +15,3 @@ class JobChatMessageContentEntity extends Equatable {
   @override
   List<Object?> get props => [type, content, metadata];
 }
-

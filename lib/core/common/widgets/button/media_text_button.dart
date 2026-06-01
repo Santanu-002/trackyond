@@ -19,8 +19,9 @@ class MediaTextButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isEnabled = onPressed != null && !isLoading;
-    final effectiveBgColor = Colors.white.withValues(alpha: 0.15);
-    final effectiveFgColor = isEnabled ? Colors.white : Colors.white.withValues(alpha: 0.35);
+    final colorScheme = context.theme.colorScheme;
+    final effectiveBgColor = colorScheme.onPrimary.withValues(alpha: 0.15);
+    final effectiveFgColor = isEnabled ? colorScheme.onPrimary : colorScheme.onPrimary.withValues(alpha: 0.35);
 
     return Material(
       color: effectiveBgColor,

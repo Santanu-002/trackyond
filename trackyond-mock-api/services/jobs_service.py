@@ -13,20 +13,18 @@ from services.job_chat_service import create_system_activity_message
 def calculate_allowed_actions(db: Session, job: models.Job) -> list[str]:
     """
     Central source of truth for allowed worker actions.
-    Decision is based solely on the latest recorded JobActivity type.
+    Decision is based solely on the latest recorded state-defining JobActivity type.
     Status is only used as a fallback when no activity history exists.
     """
-    # If this is a JobView, we can use the pre-computed last_activity_type
-    activity_type = None
-    if isinstance(job, models.JobView) and job.last_activity_type:
-        activity_type = str(job.last_activity_type).lower()
-    else:
-        # Fallback for standard Job models or if not cached
-        latest_activity = db.query(models.JobActivity).filter(
-            models.JobActivity.job_id == job.job_id
-        ).order_by(desc(models.JobActivity.created_at)).first()
-        if latest_activity:
-            activity_type = str(latest_activity.activity_type).lower()
+    # Filter to only get the latest state-defining activity, bypassing non-state-defining ones (like send_location)
+    state_defining_activities = ["created", "reached", "started", "break_out", "take_break", "completed"]
+    
+    latest_activity = db.query(models.JobActivity).filter(
+        models.JobActivity.job_id == job.job_id,
+        models.JobActivity.activity_type.in_(state_defining_activities)
+    ).order_by(desc(models.JobActivity.created_at)).first()
+
+    activity_type = str(latest_activity.activity_type).lower() if latest_activity else None
 
     if not activity_type:
         # No activity recorded yet — fall back to job status
@@ -265,7 +263,7 @@ def create_admin_job(db: Session, admin_uid: str, job_data: dict):
                 created_by_uid=admin_member.user_uid,
                 sender_uid=admin_member.uid,
                 metadata={
-                    "activity_type": "job_created",
+                    "activityType": "jobCreated",
                     "address": new_job.customer_address or "-",
                     "assigned_time": new_job.created_at.isoformat() if new_job.created_at else "-",
                     "workerName": admin_member.name,
@@ -333,7 +331,7 @@ def create_mock_job_for_employee(db: Session, user_uid: str):
         created_by_uid=member.user_uid,
         sender_uid=member.uid,
         metadata={
-            "activity_type": "job_created",
+            "activityType": "jobCreated",
             "address": new_job.customer_address or "-",
             "assigned_time": new_job.created_at.isoformat() if new_job.created_at else "-",
             "workerName": member.name,

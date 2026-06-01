@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/enums/media_preview_type.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
@@ -9,13 +10,14 @@ import 'package:trackyond/features/job_chat/presentation/widgets/input/chat_send
 import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/add_more_button.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/thumbnail_item.dart';
 
-class MediaPreviewBottomControls extends StatelessWidget {
+class MediaPreviewBottomControls extends StatefulWidget {
   final TextEditingController captionController;
   final FocusNode focusNode;
   final bool isKeyboardActive;
   final List<String> mediaPaths;
   final int currentIndex;
   final bool isLoading;
+  final MediaPreviewType previewType;
   final VoidCallback onSend;
   final VoidCallback onPickMoreMedia;
   final ValueChanged<int> onThumbnailTap;
@@ -28,10 +30,62 @@ class MediaPreviewBottomControls extends StatelessWidget {
     required this.mediaPaths,
     required this.currentIndex,
     required this.isLoading,
+    required this.previewType,
     required this.onSend,
     required this.onPickMoreMedia,
     required this.onThumbnailTap,
   });
+
+  @override
+  State<MediaPreviewBottomControls> createState() => _MediaPreviewBottomControlsState();
+}
+
+class _MediaPreviewBottomControlsState extends State<MediaPreviewBottomControls> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToIndex(widget.currentIndex);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant MediaPreviewBottomControls oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentIndex != oldWidget.currentIndex ||
+        widget.mediaPaths.length != oldWidget.mediaPaths.length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToIndex(widget.currentIndex);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToIndex(int index) {
+    if (!_scrollController.hasClients) return;
+
+    final viewportWidth = _scrollController.position.viewportDimension;
+    final maxScrollExtent = _scrollController.position.maxScrollExtent;
+
+    const itemWidth = 64.0;
+    const padding = 16.0;
+    final targetOffset = (index * itemWidth) + padding - (viewportWidth / 2) + (itemWidth / 2);
+    final clampedOffset = targetOffset.clamp(0.0, maxScrollExtent);
+
+    _scrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,30 +107,32 @@ class MediaPreviewBottomControls extends StatelessWidget {
                 bottom: AppUIConstants.spacing.space$12,
               ),
               child: AnimatedOpacity(
-                opacity: isKeyboardActive ? 0.0 : 1.0,
+                opacity: widget.isKeyboardActive ? 0.0 : 1.0,
                 duration: const Duration(milliseconds: 200),
                 child: ListView.builder(
+                  controller: _scrollController,
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   padding: EdgeInsets.symmetric(
                     horizontal: AppUIConstants.spacing.space$16,
                   ),
-                  itemCount: mediaPaths.length + 1,
+                  itemCount: widget.mediaPaths.length + 1,
                   itemBuilder: (context, index) {
-                    if (index == mediaPaths.length) {
+                    if (index == widget.mediaPaths.length) {
                       return AddMoreButton(
-                        isLoading: isLoading,
+                        isLoading: widget.isLoading,
                         colorScheme: colorScheme,
-                        onTap: onPickMoreMedia,
+                        onTap: widget.onPickMoreMedia,
                       );
                     }
                     return ThumbnailItem(
                       index: index,
-                      path: mediaPaths[index],
-                      isActive: index == currentIndex,
-                      isLoading: isLoading,
+                      path: widget.mediaPaths[index],
+                      isActive: index == widget.currentIndex,
+                      isLoading: widget.isLoading,
                       colorScheme: colorScheme,
-                      onTap: () => onThumbnailTap(index),
+                      previewType: widget.previewType,
+                      onTap: () => widget.onThumbnailTap(index),
                     );
                   },
                 ),
@@ -87,8 +143,8 @@ class MediaPreviewBottomControls extends StatelessWidget {
                 horizontal: AppUIConstants.spacing.space$16,
               ),
               child: ChatInputField(
-                controller: captionController,
-                focusNode: focusNode,
+                controller: widget.captionController,
+                focusNode: widget.focusNode,
                 hintText: AppStrings.jobChat.addCaptionHint,
                 backgroundColor: colorScheme.black,
                 borderColor: colorScheme.onPrimary.withValues(
@@ -141,8 +197,8 @@ class MediaPreviewBottomControls extends StatelessWidget {
                     ),
                   ),
                   ChatSendButton(
-                    onPressed: onSend,
-                    isLoading: isLoading,
+                    onPressed: widget.onSend,
+                    isLoading: widget.isLoading,
                   ),
                 ],
               ),

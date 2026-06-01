@@ -29,7 +29,7 @@ class TeamStatusSection extends GetView<OwnerDashboardController> {
       child: Container(
         color: Colors.transparent,
         clipBehavior: Clip.none,
-        height: 146,
+        height: 156,
         child: ListView.separated(
           separatorBuilder: (context, index) =>
               SizedBox(width: AppUIConstants.spacing.space$8),

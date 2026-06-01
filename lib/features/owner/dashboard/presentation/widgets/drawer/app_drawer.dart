@@ -63,39 +63,42 @@ class AppDrawer extends GetView<OwnerDashboardController> {
           ),
 
           // Footer / Logout
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppUIConstants.spacing.space$12,
-              vertical: AppUIConstants.spacing.space$24,
-            ),
-            child: AppButton.filled(
-              borderRadius: AppUIConstants.radius.radius$12,
-              splashColor: theme.colorScheme.error.withValues(alpha: 0.1),
-              gradientColors: [
-                theme.colorScheme.error.withValues(alpha: 0.1),
-                theme.colorScheme.error.withValues(alpha: 0.1),
-              ],
-              onPressed: () {
-                Get.back();
-                controller.logout();
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: AppUIConstants.spacing.space$8,
-                children: [
-                  Icon(
-                    AppIcons.common.logout,
-                    color: theme.colorScheme.error,
-                    size: 20,
-                  ),
-                  Text(
-                    strings.logout,
-                    style: context.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.error,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppUIConstants.spacing.space$12,
+                vertical: AppUIConstants.spacing.space$24,
+              ),
+              child: AppButton.filled(
+                borderRadius: AppUIConstants.radius.radius$12,
+                splashColor: theme.colorScheme.error.withValues(alpha: 0.1),
+                gradientColors: [
+                  theme.colorScheme.error.withValues(alpha: 0.1),
+                  theme.colorScheme.error.withValues(alpha: 0.1),
                 ],
+                onPressed: () {
+                  Get.back();
+                  controller.logout();
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: AppUIConstants.spacing.space$8,
+                  children: [
+                    Icon(
+                      AppIcons.common.logout,
+                      color: theme.colorScheme.error,
+                      size: 20,
+                    ),
+                    Text(
+                      strings.logout,
+                      style: context.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

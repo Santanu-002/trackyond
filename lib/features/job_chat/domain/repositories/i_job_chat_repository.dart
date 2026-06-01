@@ -12,7 +12,7 @@ abstract interface class IJobChatRepository {
     String jobId, {
     MessageQueryOptions? options,
   });
-  Future<Either<AppFailure, SendMessageResult>> sendMessage(JobChatMessageEntity message);
+  Future<Either<AppFailure, SendMessageResult>> sendMessage(List<JobChatMessageEntity> messages);
   Future<Either<AppFailure, JobEntity>> updateJobStatus(String jobId, String status);
   Future<Either<AppFailure, List<MemberProfile>>> getChatMembers(String jobId);
 }

@@ -3,6 +3,7 @@ import 'package:camera/camera.dart' as cam;
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
+import 'package:trackyond/core/common/enums/media_preview_type.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 
@@ -155,7 +156,7 @@ class AppCameraController extends GetxController {
           timer.cancel();
           final path = await stopVideoRecording();
           if (path != null) {
-            Get.back(result: {'path': path, 'isVideo': true});
+            Get.back(result: {'path': path, 'mediaType': MediaPreviewType.video});
           }
         } else {
           _videoProgress.value = progressVal;
@@ -219,7 +220,12 @@ class AppCameraController extends GetxController {
     final requestMessage = args?['requestMessage'];
 
     if (skipPreview) {
-      Get.back(result: {'path': path, 'isVideo': isVideo});
+      Get.back(
+        result: {
+          'path': path,
+          'mediaType': isVideo ? MediaPreviewType.video : MediaPreviewType.image,
+        },
+      );
       return;
     }
 

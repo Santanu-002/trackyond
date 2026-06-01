@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:trackyond/core/common/enums/job_action.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/reply_image_thumbnail.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
@@ -40,7 +42,7 @@ class ActivityMessageCard extends StatelessWidget {
     final metadata = message.metadata ?? {};
     final rawAddress = metadata['address'] as String? ?? '';
     final address = rawAddress.trim().isEmpty ? '-' : rawAddress;
-    final activityType = JobActivityType.fromString(metadata['activity_type']);
+    final activityType = JobActivityType.fromString(metadata['activityType']);
 
     final chatController = Get.find<JobChatController>();
     final senderName = chatController.getSenderName(message);
@@ -52,8 +54,8 @@ class ActivityMessageCard extends StatelessWidget {
       for (final msg in chatController.messages) {
         if (msg.timestamp.isBefore(message.timestamp)) {
           final isTakeBreak =
-              msg.type == 'activity' &&
-              JobActivityType.fromString(msg.metadata?['activity_type']) == JobActivityType.takeBreak;
+              msg.type == JobChatMessageType.activity &&
+              JobActivityType.fromString(msg.metadata?['activityType']) == JobActivityType.takeBreak;
           if (isTakeBreak) {
             if (takeBreakTime == null || msg.timestamp.isAfter(takeBreakTime)) {
               takeBreakTime = msg.timestamp;
@@ -81,62 +83,8 @@ class ActivityMessageCard extends StatelessWidget {
       }
     }
 
-    final String cardTitle;
-    final IconData cardIcon;
-
-    switch (activityType) {
-      case JobActivityType.jobCreated:
-        cardTitle = AppStrings.jobChat.activityJobAssigned;
-        cardIcon = AppIcons.jobs.work;
-        break;
-      case JobActivityType.reachedLocation:
-        cardTitle = AppStrings.jobChat.activityReachedSite;
-        cardIcon = AppIcons.jobs.checkIn;
-        break;
-      case JobActivityType.startedJob:
-        cardTitle = AppStrings.jobChat.activityJobStarted;
-        cardIcon = AppIcons.common.play;
-        break;
-      case JobActivityType.completedJob:
-        cardTitle = AppStrings.jobChat.activityJobCompleted;
-        cardIcon = AppIcons.status.success;
-        break;
-      case JobActivityType.takeBreak:
-        cardTitle = AppStrings.jobChat.activityOnBreak;
-        cardIcon = AppIcons.jobs.coffee;
-        break;
-      case JobActivityType.breakOut:
-        cardTitle = AppStrings.jobChat.activityBreakEnded;
-        cardIcon = AppIcons.common.play;
-        break;
-      case JobActivityType.sendLocation:
-        cardTitle = AppStrings.jobChat.activityLocationShared;
-        cardIcon = AppIcons.jobs.myLocation;
-        break;
-      case JobActivityType.askLocation:
-        cardTitle = AppStrings.jobChat.activityLocationRequested;
-        cardIcon = AppIcons.jobs.locationSearching;
-        break;
-      case JobActivityType.askStatus:
-        cardTitle = AppStrings.jobChat.activityStatusRequested;
-        cardIcon = AppIcons.jobs.statusQuestion;
-        break;
-      case JobActivityType.askStatusProofs:
-        cardTitle = AppStrings.jobChat.activityStatusProofsRequested;
-        cardIcon = AppIcons.jobs.cameraOutlined;
-        break;
-      case JobActivityType.cancelJob:
-        cardTitle = AppStrings.jobChat.activityJobCancelled;
-        cardIcon = AppIcons.dashboard.cancelled;
-        break;
-      case JobActivityType.reopenJob:
-        cardTitle = AppStrings.jobChat.activityJobReopened;
-        cardIcon = AppIcons.common.refresh;
-        break;
-      default:
-        cardTitle = AppStrings.jobChat.activityUpdate;
-        cardIcon = Icons.info_outline;
-    }
+    final cardTitle = activityType.title;
+    final cardIcon = activityType.icon;
 
     String displayTime;
     final assignedTimeStr =
@@ -185,13 +133,17 @@ class ActivityMessageCard extends StatelessWidget {
         latitude != null &&
         longitude != null;
 
-    final imageContents = message.content.where((c) => c.type == 'image').toList();
+    final mediaContents = message.content
+        .where((c) =>
+            c.type == JobChatMessageContentType.image ||
+            c.type == JobChatMessageContentType.video)
+        .toList();
     Widget? imageWidget;
 
-    if (imageContents.isNotEmpty) {
+    if (mediaContents.isNotEmpty) {
       imageWidget = ChatImageGrid(
         message: message,
-        imageContents: imageContents,
+        imageContents: mediaContents,
         isMe: isMe,
       );
     }
@@ -258,7 +210,7 @@ class ActivityMessageCard extends StatelessWidget {
             // --- REPLY PREVIEW START ---
             () {
               final replyContent = message.content.firstWhereOrNull(
-                (c) => c.type == 'reply',
+                (c) => c.type == JobChatMessageContentType.reply,
               );
               if (replyContent == null) return const SizedBox.shrink();
 
@@ -272,19 +224,24 @@ class ActivityMessageCard extends StatelessWidget {
               );
               final replyToMe = replySenderUid == chatController.currentUserProfileUid;
               final displayName = replyToMe ? 'You' : resolvedSenderName;
-              final mediaType = metadata['mediaType'] as String? ?? 'text';
+              final contentTypeStr = metadata['contentType'] as String?;
+              final contentType = JobChatMessageContentType.fromString(contentTypeStr);
               final mediaUrl = metadata['mediaUrl'] as String?;
               final replyBlurHash = metadata['blurHash'] as String?;
               final remainingMediaCount = metadata['remainingMediaCount'] as int? ?? 0;
-              final String replyType = metadata['type'] as String? ?? 'message';
+              final replyType = JobChatMessageType.fromString(metadata['type'] as String?);
 
               Widget replyBodyWidget;
-              if (replyType == 'activity') {
+              if (replyType == JobChatMessageType.activity) {
+                final originalMsg = chatController.messages.firstWhereOrNull((m) => m.uid == replyToUid);
+                final activityTypeStr = metadata['activityType'] as String? ?? originalMsg?.metadata?['activityType'] as String?;
+                final activityType = JobActivityType.fromString(activityTypeStr);
+
                 replyBodyWidget = Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.info_outline,
+                      activityType.icon,
                       size: 12,
                       color: isMe
                           ? colorScheme.onPrimary.withValues(alpha: 0.7)
@@ -293,7 +250,7 @@ class ActivityMessageCard extends StatelessWidget {
                     AppUIConstants.widgets.horizontalBox$4,
                     Flexible(
                       child: Text(
-                        replyContent.content ?? 'Activity Update',
+                        activityType.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.bodySmall?.copyWith(
@@ -306,58 +263,72 @@ class ActivityMessageCard extends StatelessWidget {
                     ),
                   ],
                 );
-              } else if (mediaType == 'image') {
+              } else if (contentType == JobChatMessageContentType.image) {
+                final displayText = (replyContent.content != null && replyContent.content!.isNotEmpty)
+                    ? replyContent.content!
+                    : 'Photo';
                 replyBodyWidget = Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.photo,
+                      Icons.photo_outlined,
                       size: 12,
                       color: isMe
                           ? colorScheme.onPrimary.withValues(alpha: 0.7)
                           : colorScheme.primary,
                     ),
                     AppUIConstants.widgets.horizontalBox$4,
-                    Text(
-                      'Photo',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: isMe
-                            ? colorScheme.onPrimary.withValues(alpha: 0.7)
-                            : colorScheme.onSurfaceVariant,
-                        fontSize: 12,
+                    Flexible(
+                      child: Text(
+                        displayText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: isMe
+                              ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                              : colorScheme.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
                 );
-              } else if (mediaType == 'video') {
+              } else if (contentType == JobChatMessageContentType.video) {
+                final displayText = (replyContent.content != null && replyContent.content!.isNotEmpty)
+                    ? replyContent.content!
+                    : 'Video';
                 replyBodyWidget = Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.videocam,
+                      Icons.videocam_outlined,
                       size: 12,
                       color: isMe
                           ? colorScheme.onPrimary.withValues(alpha: 0.7)
                           : colorScheme.primary,
                     ),
                     AppUIConstants.widgets.horizontalBox$4,
-                    Text(
-                      'Video',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: isMe
-                            ? colorScheme.onPrimary.withValues(alpha: 0.7)
-                            : colorScheme.onSurfaceVariant,
-                        fontSize: 12,
+                    Flexible(
+                      child: Text(
+                        displayText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: isMe
+                              ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                              : colorScheme.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
                 );
-              } else if (mediaType == 'document' || mediaType == 'pdf') {
+              } else if (contentType == JobChatMessageContentType.document || contentType == JobChatMessageContentType.pdf) {
                 replyBodyWidget = Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      mediaType == 'pdf' ? Icons.picture_as_pdf : Icons.description,
+                      contentType == JobChatMessageContentType.pdf ? Icons.picture_as_pdf : Icons.description,
                       size: 12,
                       color: isMe
                           ? colorScheme.onPrimary.withValues(alpha: 0.7)
@@ -365,7 +336,7 @@ class ActivityMessageCard extends StatelessWidget {
                     ),
                     AppUIConstants.widgets.horizontalBox$4,
                     Text(
-                      mediaType == 'pdf' ? 'PDF' : 'Document',
+                      contentType == JobChatMessageContentType.pdf ? 'PDF' : 'Document',
                       style: textTheme.bodySmall?.copyWith(
                         color: isMe
                             ? colorScheme.onPrimary.withValues(alpha: 0.7)
@@ -406,20 +377,21 @@ class ActivityMessageCard extends StatelessWidget {
                                 ? colorScheme.onPrimary
                                 : colorScheme.primary,
                             width: 4,
-                          ),
                         ),
                       ),
-                      padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (mediaUrl != null && (mediaType == 'image' || mediaType == 'video')) ...[
+                    ),
+                    padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (mediaUrl != null && (contentType == JobChatMessageContentType.image || contentType == JobChatMessageContentType.video)) ...[
                             ReplyImageThumbnail(
                               imageUrl: mediaUrl.startsWith('http') ? mediaUrl : ApiEndpoints.common.download(mediaUrl),
                               blurHash: replyBlurHash,
                               remainingCount: remainingMediaCount,
                               size: 30.0,
                               borderRadius: 2.0,
+                              isVideo: contentType == JobChatMessageContentType.video,
                             ),
                             AppUIConstants.widgets.horizontalBox$8,
                           ],

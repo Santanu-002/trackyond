@@ -30,16 +30,16 @@ class BubbleTimeAndStatus extends StatelessWidget {
     final Color tickColor;
 
     if (isOverlaid) {
-      textColor = Colors.white;
+      textColor = colorScheme.onPrimary;
       tickColor = status == 'seen'
-          ? const Color(0xFF34B7F1) // WhatsApp blue tick color
-          : Colors.white.withValues(alpha: 0.7);
+          ? colorScheme.primary
+          : colorScheme.onPrimary.withValues(alpha: 0.7);
     } else {
       textColor = isMe
           ? colorScheme.onPrimary.withValues(alpha: 0.7)
           : colorScheme.onSurfaceVariant;
       tickColor = status == 'seen'
-          ? (isMe ? const Color(0xFF34B7F1) : colorScheme.primary)
+          ? colorScheme.primary
           : (isMe 
               ? colorScheme.onPrimary.withValues(alpha: 0.7) 
               : colorScheme.onSurfaceVariant.withValues(alpha: 0.7));

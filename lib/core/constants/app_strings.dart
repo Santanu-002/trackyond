@@ -669,6 +669,7 @@ class JobChatStrings {
   String get waitingForPhoto => 'Waiting for photo...';
   
   // Cropping & Media Preview Strings
+  String pdfPageCount(int count) => count == 1 ? '1 page' : '$count pages';
   String get cropImageSuccess => 'Image cropped successfully!';
   String get cropImageFailed => 'Failed to crop image. Please try again.';
   String get cropOriginalFileNotFound => 'Original file does not exist.';
@@ -692,6 +693,8 @@ class JobChatStrings {
   String get reply => 'Reply';
   String get saveImageSuccess => 'Image saved to Downloads folder!';
   String get saveImageFailed => 'Failed to download image.';
+  String get saveVideoSuccess => 'Video saved to Downloads folder!';
+  String get saveVideoFailed => 'Failed to download video.';
   String get saveDirectoryNotFound => 'Failed to find storage directory.';
   String get shareImageFailed => 'Failed to share: Image data could not be fetched.';
   String get shareError => 'Error sharing image: ';

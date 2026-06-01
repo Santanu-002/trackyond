@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/enums/filter_enums.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
@@ -20,7 +21,7 @@ class FilterDateTab extends StatelessWidget {
         Obx(() {
           final fromDate = controller.fromDate;
           final dateRule = controller.filter.value.advancedFilter.rules
-              .firstWhereOrNull((r) => r.field == 'date');
+              .firstWhereOrNull((r) => r.field == JobFilterField.date);
 
           return AppButton.outlined(
             text: fromDate == null

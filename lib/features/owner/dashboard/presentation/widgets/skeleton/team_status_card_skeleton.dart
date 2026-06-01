@@ -12,7 +12,10 @@ class TeamStatusCardSkeleton extends StatelessWidget {
       width: 110,
       padding: EdgeInsets.zero,
       child: Padding(
-        padding: EdgeInsets.all(AppUIConstants.spacing.space$12),
+        padding: EdgeInsets.symmetric(
+          vertical: AppUIConstants.spacing.space$8,
+          horizontal: AppUIConstants.spacing.space$12,
+        ),
         child: AppShimmer(
           child: Column(
             mainAxisSize: MainAxisSize.min,

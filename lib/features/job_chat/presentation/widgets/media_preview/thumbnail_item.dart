@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:trackyond/core/common/enums/media_preview_type.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
+import 'package:trackyond/core/utils/file_type_icon_resolver.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 class ThumbnailItem extends StatefulWidget {
@@ -11,6 +14,7 @@ class ThumbnailItem extends StatefulWidget {
   final bool isActive;
   final bool isLoading;
   final ColorScheme colorScheme;
+  final MediaPreviewType previewType;
   final VoidCallback onTap;
 
   const ThumbnailItem({
@@ -20,6 +24,7 @@ class ThumbnailItem extends StatefulWidget {
     required this.isActive,
     required this.isLoading,
     required this.colorScheme,
+    required this.previewType,
     required this.onTap,
   });
 
@@ -46,30 +51,14 @@ class _ThumbnailItemState extends State<ThumbnailItem> {
   }
 
   Future<void> _generateThumbnailIfNeeded() async {
-    final ext = widget.path.split('.').last.toLowerCase();
-    final isVideo = ext == 'mp4' ||
-        ext == 'mov' ||
-        ext == 'avi' ||
-        ext == 'mkv' ||
-        ext == 'webm' ||
-        ext == '3gp';
-
-    if (!isVideo) {
-      if (mounted) {
-        setState(() {
-          _thumbnailPath = null;
-        });
-      }
+    if (widget.previewType != MediaPreviewType.video) {
+      if (mounted) setState(() => _thumbnailPath = null);
       return;
     }
 
     if (_isGenerating) return;
 
-    if (mounted) {
-      setState(() {
-        _isGenerating = true;
-      });
-    }
+    if (mounted) setState(() => _isGenerating = true);
 
     try {
       final tempDir = await getTemporaryDirectory();
@@ -88,46 +77,29 @@ class _ThumbnailItemState extends State<ThumbnailItem> {
       }
     } catch (e) {
       debugPrint('Error generating thumbnail: $e');
-      if (mounted) {
-        setState(() {
-          _isGenerating = false;
-        });
-      }
+      if (mounted) setState(() => _isGenerating = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final ext = widget.path.split('.').last.toLowerCase();
-    final isVideo = ext == 'mp4' ||
-        ext == 'mov' ||
-        ext == 'avi' ||
-        ext == 'mkv' ||
-        ext == 'webm' ||
-        ext == '3gp';
-    final isDoc = ext == 'pdf' ||
-        ext == 'doc' ||
-        ext == 'docx' ||
-        ext == 'xls' ||
-        ext == 'xlsx' ||
-        ext == 'ppt' ||
-        ext == 'pptx' ||
-        ext == 'txt';
+    final fileTypeInfo =
+        FileTypeIconResolver.resolve(widget.path, widget.colorScheme);
+    final docIcon = fileTypeInfo.icon;
+    final docIconColor = fileTypeInfo.color;
 
     return GestureDetector(
       onTap: widget.isLoading ? null : widget.onTap,
       child: Container(
         width: 56,
         height: 56,
-        margin: EdgeInsets.only(
-          right: AppUIConstants.spacing.space$8,
-        ),
+        margin: EdgeInsets.only(right: AppUIConstants.spacing.space$8),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(
-            AppUIConstants.radius.radius$12,
-          ),
+          borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
           border: Border.all(
-            color: widget.isActive ? widget.colorScheme.primary : Colors.transparent,
+            color: widget.isActive
+                ? widget.colorScheme.primary
+                : Colors.transparent,
             width: 2,
           ),
         ),
@@ -138,41 +110,40 @@ class _ThumbnailItemState extends State<ThumbnailItem> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (isVideo) ...[
+              // ── Video ──────────────────────────────────────────────────────
+              if (widget.previewType == MediaPreviewType.video) ...[
                 if (_thumbnailPath != null)
-                  Image.file(
-                    File(_thumbnailPath!),
-                    fit: BoxFit.cover,
-                  )
+                  Image.file(File(_thumbnailPath!), fit: BoxFit.cover)
                 else
-                  Container(
-                    color: widget.colorScheme.surfaceContainerHighest,
-                  ),
-                const Center(
+                  Container(color: widget.colorScheme.surfaceContainerHighest),
+                Center(
                   child: Icon(
                     Icons.play_circle_outline_rounded,
-                    color: Colors.white,
+                    color: widget.colorScheme.onPrimary,
                     size: 28,
                   ),
                 ),
-              ] else if (isDoc) ...[
-                Container(
-                  color: widget.colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
-                  child: Center(
-                    child: Icon(
-                      ext == 'pdf' ? Icons.picture_as_pdf : Icons.description,
-                      color: ext == 'pdf'
-                          ? widget.colorScheme.attachmentPdf
-                          : widget.colorScheme.attachmentDocs,
-                      size: 28,
-                    ),
-                  ),
+              ]
+
+              // ── Document / PDF ─────────────────────────────────────────────
+              else if (widget.previewType == MediaPreviewType.document ||
+                  widget.previewType == MediaPreviewType.pdf) ...[
+                Center(
+                  child: docIcon is FaIconData
+                      ? FaIcon(docIcon, color: docIconColor, size: 28)
+                      : Icon(
+                          docIcon as IconData,
+                          color: docIconColor,
+                          size: 28,
+                        ),
                 ),
-              ] else
-                Image.file(
-                  File(widget.path),
-                  fit: BoxFit.cover,
-                ),
+              ]
+
+              // ── Image ──────────────────────────────────────────────────────
+              else
+                Image.file(File(widget.path), fit: BoxFit.cover),
+
+              // ── Inactive dim overlay ───────────────────────────────────────
               if (!widget.isActive)
                 Container(
                   color: widget.colorScheme.black.withValues(alpha: 0.5),

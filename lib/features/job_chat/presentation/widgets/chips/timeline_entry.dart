@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
-import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_type.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 
 class TimelineEntry extends GetView<JobChatController> {
@@ -18,10 +18,8 @@ class TimelineEntry extends GetView<JobChatController> {
     return Column(
       children: [
         ...message.content.map((content) {
-          final type = JobChatMessageType.fromString(content.type);
-
-          if (type == JobChatMessageType.activity ||
-              type == JobChatMessageType.header) {
+          if (content.type == JobChatMessageContentType.activity ||
+              content.type == JobChatMessageContentType.header) {
             final baseStyle = textTheme.labelSmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
               fontStyle: FontStyle.italic,

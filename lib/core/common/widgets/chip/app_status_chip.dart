@@ -41,13 +41,16 @@ class AppStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withAlpha(30),
         borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
       ),
       child: Text(
         label,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: context.textTheme.labelSmall?.copyWith(
           color: color,
           fontWeight: FontWeight.bold,

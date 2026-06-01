@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/enums/filter_enums.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/common/widgets/chip/app_filter_chip_row.dart';
@@ -29,11 +30,11 @@ class TeamFilterRow extends GetView<TeamStatusController> {
         AppUIConstants.widgets.horizontalBox$12,
         Obx(() {
           return AppSortChip(
-            isDescending: controller.selectedOrder.value == 'desc',
+            isDescending: controller.selectedOrder.value == SortOrder.desc,
             descendingLabel: AppStrings.teamStatus.newest,
             ascendingLabel: AppStrings.teamStatus.oldest,
             onToggle: () => controller.setOrder(
-              controller.selectedOrder.value == 'desc' ? 'asc' : 'desc',
+              controller.selectedOrder.value == SortOrder.desc ? SortOrder.asc : SortOrder.desc,
             ),
           );
         }),

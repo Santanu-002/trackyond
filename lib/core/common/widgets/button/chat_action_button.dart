@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 
 class ChatActionButton extends StatelessWidget {
   final Widget icon;
@@ -24,9 +25,10 @@ class ChatActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isEnabled = !disabled && onPressed != null;
+    final colorScheme = context.colorScheme;
 
-    final effectiveBgColor = backgroundColor ?? Colors.white.withValues(alpha: 0.15);
-    final effectiveIconColor = iconColor ?? Colors.white;
+    final effectiveBgColor = backgroundColor ?? colorScheme.onPrimary.withValues(alpha: 0.15);
+    final effectiveIconColor = iconColor ?? colorScheme.onPrimary;
     final finalIconColor = isEnabled ? effectiveIconColor : effectiveIconColor.withValues(alpha: 0.35);
 
     return IconButton.filled(

@@ -45,7 +45,10 @@ class TeamStatusCard extends GetView<OwnerDashboardController> {
               AppUIConstants.radius.radius$24,
             ),
             child: Padding(
-              padding: EdgeInsets.all(AppUIConstants.spacing.space$12),
+              padding: EdgeInsets.symmetric(
+                vertical: AppUIConstants.spacing.space$8,
+                horizontal: AppUIConstants.spacing.space$12,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,

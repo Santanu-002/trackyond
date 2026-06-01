@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
@@ -39,8 +40,8 @@ class JobChatRepositoryImpl implements IJobChatRepository {
   }
 
   @override
-  Future<Either<AppFailure, SendMessageResult>> sendMessage(JobChatMessageEntity message) async {
-    final model = JobChatMessageModel(
+  Future<Either<AppFailure, SendMessageResult>> sendMessage(List<JobChatMessageEntity> messages) async {
+    final models = messages.map((message) => JobChatMessageModel(
       uid: message.uid,
       localId: message.localId,
       jobId: message.jobId,
@@ -60,14 +61,19 @@ class JobChatRepositoryImpl implements IJobChatRepository {
       deliveredAt: message.deliveredAt,
       active: message.active,
       deleted: message.deleted,
-    );
+    )).toList();
 
-    final response = await _remoteDataSource.sendMessage(message: model);
+    if (models.isEmpty) {
+      return Left(ServerFailure('No messages to send'));
+    }
+
+    final response = await _remoteDataSource.sendMessage(messages: models);
     
     return response.fold(
       (error) => Left(ServerFailure(error.message)),
       (data) {
         if (data == null) return Left(ServerFailure('No data returned'));
+        debugPrint("DEBUG: Job response after sending message: ${data.job?.toJson()}");
         return Right(data.toEntity());
       },
     );

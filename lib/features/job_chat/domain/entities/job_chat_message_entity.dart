@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 
 class JobChatMessageEntity extends Equatable {
@@ -8,7 +9,7 @@ class JobChatMessageEntity extends Equatable {
   final String? senderUid;
   
   final List<JobChatMessageContentEntity> content;
-  final String type; // 'message', 'activity'
+  final JobChatMessageType type;
   final Map<String, dynamic>? metadata;
   final String? actionPerformed;
   
@@ -28,7 +29,7 @@ class JobChatMessageEntity extends Equatable {
     required this.jobId,
     this.senderUid,
     required this.content,
-    this.type = 'message',
+    this.type = JobChatMessageType.message,
     this.metadata,
     this.actionPerformed,
     required this.createdByAuthorAt,
@@ -55,7 +56,7 @@ class JobChatMessageEntity extends Equatable {
     String? jobId,
     String? senderUid,
     List<JobChatMessageContentEntity>? content,
-    String? type,
+    JobChatMessageType? type,
     Map<String, dynamic>? metadata,
     String? actionPerformed,
     DateTime? createdByAuthorAt,
@@ -107,4 +108,3 @@ class JobChatMessageEntity extends Equatable {
         deleted,
       ];
 }
-

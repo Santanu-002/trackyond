@@ -7,6 +7,7 @@ import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/job/job_filter_options.dart';
 import 'package:trackyond/core/common/entities/job/job_sort_options.dart';
 import 'package:trackyond/core/common/enums/job_status.dart';
+import 'package:trackyond/core/common/enums/filter_enums.dart';
 
 abstract interface class IJobsRemoteDataSource {
   Future<ApiResponse<JobModel>> createJob(Map<String, dynamic> jobData);
@@ -54,11 +55,11 @@ class JobsRemoteDataSourceImpl with BaseRemoteDataSource implements IJobsRemoteD
       queryParams['logicalOperator'] = filter.advancedFilter.logicalOperator.name;
       
       for (final rule in filter.advancedFilter.rules) {
-        if (rule.field == 'status' && rule.value is List) {
+        if (rule.field == JobFilterField.status && rule.value is List) {
           queryParams['statuses'] = (rule.value as List).map((e) => (e as JobStatus).name).toList();
-        } else if (rule.field == 'worker' && rule.value is List) {
+        } else if (rule.field == JobFilterField.worker && rule.value is List) {
           queryParams['workerIds'] = (rule.value as List).map((e) => (e as MemberProfile).uid).toList();
-        } else if (rule.field == 'date' && rule.value is List && (rule.value as List).length == 2) {
+        } else if (rule.field == JobFilterField.date && rule.value is List && (rule.value as List).length == 2) {
           queryParams['fromDate'] = (rule.value as List)[0].toIso8601String();
           queryParams['toDate'] = (rule.value as List)[1].toIso8601String();
         }

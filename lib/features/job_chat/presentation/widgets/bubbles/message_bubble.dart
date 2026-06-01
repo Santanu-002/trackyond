@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
-import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activity_message_card.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/bubble_time_and_status.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_image_grid/chat_image_grid.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/reply_image_thumbnail.dart';
+import 'package:trackyond/core/common/enums/job_activity_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_bubble_layout.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/document_bubble_item.dart';
 
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
@@ -29,15 +31,15 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final activityContentIndex = message.content.indexWhere(
-      (c) => c.type == 'activity',
+      (c) => c.type == JobChatMessageContentType.activity,
     );
 
-    final isActivityMessage = message.type == 'activity';
+    final isActivityMessage = message.type == JobChatMessageType.activity;
 
     if (isActivityMessage || activityContentIndex != -1) {
       final content = isActivityMessage
           ? message.content.firstWhere(
-              (c) => c.type == 'text',
+              (c) => c.type == JobChatMessageContentType.text,
               orElse: () => message.content.first,
             )
           : message.content[activityContentIndex];
@@ -84,23 +86,23 @@ class MessageBubble extends StatelessWidget {
             message.content
                 .where(
                   (c) =>
-                      c.type == 'text' ||
-                      c.type == 'image' ||
-                      c.type == 'video' ||
-                      c.type == 'document' ||
-                      c.type == 'pdf' ||
-                      c.type == 'activity',
+                      c.type == JobChatMessageContentType.text ||
+                      c.type == JobChatMessageContentType.image ||
+                      c.type == JobChatMessageContentType.video ||
+                      c.type == JobChatMessageContentType.document ||
+                      c.type == JobChatMessageContentType.pdf ||
+                      c.type == JobChatMessageContentType.activity,
                 )
                 .toList()
               ..sort((a, b) {
-                if (a.type == 'image' && b.type != 'image') return -1;
-                if (a.type != 'image' && b.type == 'image') return 1;
+                if (a.type == JobChatMessageContentType.image && b.type != JobChatMessageContentType.image) return -1;
+                if (a.type != JobChatMessageContentType.image && b.type == JobChatMessageContentType.image) return 1;
                 return 0;
               });
         final List<Widget> children = [];
 
         final replyContent = message.content.firstWhereOrNull(
-          (c) => c.type == 'reply',
+          (c) => c.type == JobChatMessageContentType.reply,
         );
 
         if (replyContent != null) {
@@ -108,8 +110,9 @@ class MessageBubble extends StatelessWidget {
           final replyToUid = metadata['messageUid'] as String? ?? '';
           final replySenderUid = metadata['senderUid'] as String?;
           final replySenderName = metadata['senderName'] as String? ?? '';
-          final replyType = metadata['type'] as String? ?? 'message';
-          final mediaType = metadata['mediaType'] as String? ?? 'text';
+          final replyType = JobChatMessageType.fromString(metadata['type'] as String?);
+          final contentTypeStr = metadata['contentType'] as String?;
+          final contentType = JobChatMessageContentType.fromString(contentTypeStr);
           final mediaUrl = metadata['mediaUrl'] as String?;
           final replyBlurHash = metadata['blurHash'] as String?;
           final remainingMediaCount = metadata['remainingMediaCount'] as int? ?? 0;
@@ -122,12 +125,16 @@ class MessageBubble extends StatelessWidget {
           final displayName = replyToMe ? 'You' : resolvedSenderName;
 
           Widget replyBodyWidget;
-          if (replyType == 'activity') {
+          if (replyType == JobChatMessageType.activity) {
+            final originalMsg = chatController.messages.firstWhereOrNull((m) => m.uid == replyToUid);
+            final activityTypeStr = metadata['activityType'] as String? ?? originalMsg?.metadata?['activityType'] as String?;
+            final activityType = JobActivityType.fromString(activityTypeStr);
+
             replyBodyWidget = Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.info_outline,
+                  activityType.icon,
                   size: 14,
                   color: isMe
                       ? colorScheme.onPrimary.withValues(alpha: 0.7)
@@ -136,7 +143,7 @@ class MessageBubble extends StatelessWidget {
                 AppUIConstants.widgets.horizontalBox$4,
                 Flexible(
                   child: Text(
-                    replyContent.content ?? 'Activity Update',
+                    activityType.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.bodySmall?.copyWith(
@@ -149,58 +156,72 @@ class MessageBubble extends StatelessWidget {
                 ),
               ],
             );
-          } else if (mediaType == 'image') {
+          } else if (contentType == JobChatMessageContentType.image) {
+            final displayText = (replyContent.content != null && replyContent.content!.isNotEmpty)
+                ? replyContent.content!
+                : 'Photo';
             replyBodyWidget = Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.photo,
+                  Icons.photo_outlined,
                   size: 14,
                   color: isMe
                       ? colorScheme.onPrimary.withValues(alpha: 0.7)
                       : colorScheme.primary,
                 ),
                 AppUIConstants.widgets.horizontalBox$4,
-                Text(
-                  'Photo',
-                  style: textTheme.bodySmall?.copyWith(
-                    fontSize: 12,
-                    color: isMe
-                        ? colorScheme.onPrimary.withValues(alpha: 0.8)
-                        : colorScheme.onSurfaceVariant,
+                Flexible(
+                  child: Text(
+                    displayText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: 12,
+                      color: isMe
+                          ? colorScheme.onPrimary.withValues(alpha: 0.8)
+                          : colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
             );
-          } else if (mediaType == 'video') {
+          } else if (contentType == JobChatMessageContentType.video) {
+            final displayText = (replyContent.content != null && replyContent.content!.isNotEmpty)
+                ? replyContent.content!
+                : 'Video';
             replyBodyWidget = Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.videocam,
+                  Icons.videocam_outlined,
                   size: 14,
                   color: isMe
                       ? colorScheme.onPrimary.withValues(alpha: 0.7)
                       : colorScheme.primary,
                 ),
                 AppUIConstants.widgets.horizontalBox$4,
-                Text(
-                  'Video',
-                  style: textTheme.bodySmall?.copyWith(
-                    fontSize: 12,
-                    color: isMe
-                        ? colorScheme.onPrimary.withValues(alpha: 0.8)
-                        : colorScheme.onSurfaceVariant,
+                Flexible(
+                  child: Text(
+                    displayText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: 12,
+                      color: isMe
+                          ? colorScheme.onPrimary.withValues(alpha: 0.8)
+                          : colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
             );
-          } else if (mediaType == 'document' || mediaType == 'pdf') {
+          } else if (contentType == JobChatMessageContentType.document || contentType == JobChatMessageContentType.pdf) {
             replyBodyWidget = Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  mediaType == 'pdf' ? Icons.picture_as_pdf : Icons.description,
+                  contentType == JobChatMessageContentType.pdf ? Icons.picture_as_pdf : Icons.description,
                   size: 14,
                   color: isMe
                       ? colorScheme.onPrimary.withValues(alpha: 0.7)
@@ -208,7 +229,7 @@ class MessageBubble extends StatelessWidget {
                 ),
                 AppUIConstants.widgets.horizontalBox$4,
                 Text(
-                  mediaType == 'pdf' ? 'PDF' : 'Document',
+                  contentType == JobChatMessageContentType.pdf ? 'PDF' : 'Document',
                   style: textTheme.bodySmall?.copyWith(
                     fontSize: 12,
                     color: isMe
@@ -257,13 +278,14 @@ class MessageBubble extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (mediaUrl != null && (mediaType == 'image' || mediaType == 'video')) ...[
+                        if (mediaUrl != null && (contentType == JobChatMessageContentType.image || contentType == JobChatMessageContentType.video)) ...[
                           ReplyImageThumbnail(
                             imageUrl: mediaUrl.startsWith('http') ? mediaUrl : ApiEndpoints.common.download(mediaUrl),
                             blurHash: replyBlurHash,
                             remainingCount: remainingMediaCount,
                             size: 30.0,
                             borderRadius: 2.0,
+                            isVideo: contentType == JobChatMessageContentType.video,
                           ),
                           AppUIConstants.widgets.horizontalBox$8,
                         ],
@@ -296,219 +318,46 @@ class MessageBubble extends StatelessWidget {
           );
         }
 
-        final imageContents = validContents.where((c) => c.type == 'image').toList();
-        final videoContents = validContents.where((c) => c.type == 'video').toList();
-        final docContents = validContents.where((c) => c.type == 'document' || c.type == 'pdf').toList();
+        final mediaContents = validContents
+            .where((c) =>
+                c.type == JobChatMessageContentType.image ||
+                c.type == JobChatMessageContentType.video)
+            .toList();
+        final docContents = validContents.where((c) => c.type == JobChatMessageContentType.document || c.type == JobChatMessageContentType.pdf).toList();
         final textContents = validContents
-            .where((c) => c.type != 'image' && c.type != 'video' && c.type != 'document' && c.type != 'pdf')
+            .where((c) => c.type != JobChatMessageContentType.image && c.type != JobChatMessageContentType.video && c.type != JobChatMessageContentType.document && c.type != JobChatMessageContentType.pdf)
             .toList();
 
-        final isSingleImageNoCaption = imageContents.length == 1 &&
+        final isSingleMediaNoCaption = mediaContents.length == 1 &&
             textContents.isEmpty &&
-            videoContents.isEmpty &&
             docContents.isEmpty;
 
-        if (imageContents.isNotEmpty) {
-          final double topPad = (replyContent == null) ? 6.0 : 4.0;
-          final isLast = textContents.isEmpty && videoContents.isEmpty && docContents.isEmpty;
-          final double bottomPad = isLast ? 6.0 : 4.0;
+        if (mediaContents.isNotEmpty) {
           children.add(
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppUIConstants.spacing.space$4,
-                topPad,
-                AppUIConstants.spacing.space$4,
-                bottomPad,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4.0,
+                vertical: 4.0,
               ),
               child: ChatImageGrid(
                 message: message,
-                imageContents: imageContents,
+                imageContents: mediaContents,
                 isMe: isMe,
                 width: 240,
-                showTimeOverlay: isSingleImageNoCaption,
+                showTimeOverlay: isSingleMediaNoCaption,
               ),
             ),
           );
         }
 
-        if (videoContents.isNotEmpty) {
-          for (final video in videoContents) {
-            final fileName = video.metadata?['fileName'] as String? ?? video.content?.split('/').last ?? 'Video';
-            final videoMeta = video.metadata?['videoMetadata'] as Map<String, dynamic>?;
-            final durationVal = videoMeta?['duration'];
-            final String duration;
-            if (durationVal is int) {
-              duration = '${durationVal ~/ 60}:${(durationVal % 60).toString().padLeft(2, '0')}';
-            } else if (durationVal is String) {
-              duration = durationVal;
-            } else {
-              duration = '0:00';
-            }
-            final url = video.content ?? '';
-            
-            children.add(
-              GestureDetector(
-                onTap: () {
-                  AppSnackbar.info('Playing video: $fileName ($duration)');
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppUIConstants.spacing.space$8,
-                    vertical: AppUIConstants.spacing.space$4,
-                  ),
-                  child: Container(
-                    width: 240,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: colorScheme.black.withValues(alpha: 0.87),
-                      borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
-                      image: url.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(url.startsWith('http') ? url : ApiEndpoints.common.download(url)),
-                              fit: BoxFit.cover,
-                              opacity: 0.6,
-                            )
-                          : null,
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Play Button
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: colorScheme.black.withValues(alpha: 0.54),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: colorScheme.onPrimary, width: 2),
-                          ),
-                          child: Icon(
-                            Icons.play_arrow,
-                            color: colorScheme.onPrimary,
-                            size: 32,
-                          ),
-                        ),
-                        // Duration badge bottom right
-                        Positioned(
-                          right: 8,
-                          bottom: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: colorScheme.black.withValues(alpha: 0.87),
-                              borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$4),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.videocam, color: colorScheme.onPrimary, size: 12),
-                                AppUIConstants.widgets.horizontalBox$4,
-                                Text(
-                                  duration,
-                                  style: textTheme.labelSmall?.copyWith(
-                                    color: colorScheme.onPrimary,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
-        }
-
         if (docContents.isNotEmpty) {
           for (final doc in docContents) {
-            final fileName = doc.metadata?['fileName'] as String? ?? doc.content?.split('/').last ?? 'Document';
-            final fileSize = doc.metadata?['size'] as String? ?? 'Unknown size';
-            final mimeType = doc.metadata?['mimeType'] as String? ?? '';
-            final isPdf = doc.type == 'pdf' || mimeType.contains('pdf') || fileName.toLowerCase().endsWith('.pdf');
-
-            final docIcon = isPdf ? Icons.picture_as_pdf : Icons.description;
-            final docIconColor = isPdf ? colorScheme.attachmentPdf : colorScheme.attachmentDocs;
-
             children.add(
-              GestureDetector(
-                onTap: () {
-                  AppSnackbar.success('Opening document: $fileName');
-                },
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppUIConstants.spacing.space$8,
-                    vertical: AppUIConstants.spacing.space$4,
-                  ),
-                  child: Container(
-                    width: 240,
-                    padding: EdgeInsets.all(AppUIConstants.spacing.space$12),
-                    decoration: BoxDecoration(
-                      color: isMe 
-                          ? colorScheme.onPrimary.withValues(alpha: 0.1) 
-                          : colorScheme.onSurface.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
-                      border: Border.all(
-                        color: isMe 
-                            ? colorScheme.onPrimary.withValues(alpha: 0.2) 
-                            : colorScheme.outlineVariant,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(AppUIConstants.spacing.space$8),
-                          decoration: BoxDecoration(
-                            color: docIconColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$8),
-                          ),
-                          child: Icon(
-                            docIcon,
-                            color: docIconColor,
-                            size: 28,
-                          ),
-                        ),
-                        AppUIConstants.widgets.horizontalBox$12,
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                fileName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: isMe ? colorScheme.onPrimary : colorScheme.onSurface,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                fileSize,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: isMe 
-                                      ? colorScheme.onPrimary.withValues(alpha: 0.7) 
-                                      : colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.open_in_new,
-                          color: isMe 
-                              ? colorScheme.onPrimary.withValues(alpha: 0.6) 
-                              : colorScheme.onSurfaceVariant,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              DocumentBubbleItem(
+                doc: doc,
+                isMe: isMe,
+                colorScheme: colorScheme,
+                textTheme: textTheme,
               ),
             );
           }
@@ -533,7 +382,7 @@ class MessageBubble extends StatelessWidget {
             ),
           );
 
-          final double topPad = (i == 0 && imageContents.isEmpty && videoContents.isEmpty && docContents.isEmpty && replyContent == null) ? 8.0 : 4.0;
+          final double topPad = (i == 0 && mediaContents.isEmpty && docContents.isEmpty && replyContent == null) ? 8.0 : 4.0;
           final double bottomPad = isLast ? 8.0 : 4.0;
 
           if (isLast) {
@@ -562,17 +411,18 @@ class MessageBubble extends StatelessWidget {
 
         final hasLastText =
             validContents.isNotEmpty &&
-            (validContents.last.type == 'text' ||
-                validContents.last.type == 'activity');
-        if (!hasLastText && validContents.isNotEmpty && !isSingleImageNoCaption) {
+            (validContents.last.type == JobChatMessageContentType.text ||
+                validContents.last.type == JobChatMessageContentType.activity);
+        final hasNoTextOrDocs = textContents.isEmpty && docContents.isEmpty;
+        if (!hasLastText && validContents.isNotEmpty && !isSingleMediaNoCaption) {
           children.add(
             Align(
               alignment: Alignment.centerRight,
               child: Padding(
-                padding: const EdgeInsets.only(
+                padding: EdgeInsets.only(
                   right: 12.0,
-                  bottom: 8.0,
-                  top: 4.0,
+                  bottom: hasNoTextOrDocs ? 6.0 : 8.0,
+                  top: hasNoTextOrDocs ? 0.0 : (textContents.isEmpty ? 0.0 : 4.0),
                 ),
                 child: BubbleTimeAndStatus(
                   timestamp: message.timestamp,
@@ -584,7 +434,7 @@ class MessageBubble extends StatelessWidget {
           );
         }
 
-        final hasMedia = validContents.any((c) => c.type == 'image' || c.type == 'video' || c.type == 'document' || c.type == 'pdf');
+        final hasMedia = validContents.any((c) => c.type == JobChatMessageContentType.image || c.type == JobChatMessageContentType.video || c.type == JobChatMessageContentType.document || c.type == JobChatMessageContentType.pdf);
 
         if (hasMedia) {
           return Column(

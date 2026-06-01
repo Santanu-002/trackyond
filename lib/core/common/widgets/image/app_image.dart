@@ -1,9 +1,11 @@
 import 'dart:typed_data';
+
+import 'package:blurhash_dart/blurhash_dart.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:octo_image/octo_image.dart';
-import 'package:blurhash_dart/blurhash_dart.dart';
+import 'package:get/get.dart';
 import 'package:image/image.dart' as img;
+import 'package:octo_image/octo_image.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
 class AppImage extends StatelessWidget {
@@ -71,10 +73,16 @@ class AppImage extends StatelessWidget {
     }
 
     final MemoryImage? decodedHashProvider =
-        (blurHash != null && blurHash!.isNotEmpty) ? getBlurHashProvider(blurHash!) : null;
+        (blurHash != null && blurHash!.isNotEmpty)
+        ? getBlurHashProvider(blurHash!)
+        : null;
 
     double? calculatedHeight = height;
-    if (calculatedHeight == null && width != null && imageWidth != null && imageHeight != null && imageWidth! > 0) {
+    if (calculatedHeight == null &&
+        width != null &&
+        imageWidth != null &&
+        imageHeight != null &&
+        imageWidth! > 0) {
       calculatedHeight = width! * imageHeight! / imageWidth!;
     }
 
@@ -86,56 +94,51 @@ class AppImage extends StatelessWidget {
       placeholderBuilder: placeholder != null
           ? (context) => placeholder!(context, fullUrl)
           : decodedHashProvider != null
-              ? (context) => Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image(
-                        image: decodedHashProvider,
-                        fit: fit,
-                      ),
-                      Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      ),
-                    ],
-                  )
-              : (context) => Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
+          ? (context) => Stack(
+              fit: StackFit.expand,
+              children: [
+                Image(image: decodedHashProvider, fit: fit),
+                Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
+                ),
+              ],
+            )
+          : (context) => Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: context.theme.colorScheme.onPrimary,
+              ),
+            ),
       errorBuilder: errorWidget != null
-          ? (context, error, stackTrace) => errorWidget!(context, fullUrl, error)
+          ? (context, error, stackTrace) =>
+                errorWidget!(context, fullUrl, error)
           : decodedHashProvider != null
-              ? (context, error, stackTrace) => Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image(
-                        image: decodedHashProvider,
-                        fit: fit,
-                      ),
-                      const Center(
-                        child: Icon(Icons.error_outline),
-                      ),
-                    ],
-                  )
-              : OctoError.icon(),
+          ? (context, error, stackTrace) => Stack(
+              fit: StackFit.expand,
+              children: [
+                Image(image: decodedHashProvider, fit: fit),
+                const Center(child: Icon(Icons.error_outline)),
+              ],
+            )
+          : OctoError.icon(),
     );
 
-    if (matchAspectRatio && width == null && height == null && imageWidth != null && imageHeight != null && imageHeight! > 0) {
+    if (matchAspectRatio &&
+        width == null &&
+        height == null &&
+        imageWidth != null &&
+        imageHeight != null &&
+        imageHeight! > 0) {
       double calculatedAspectRatio = imageWidth! / imageHeight!;
       if (calculatedAspectRatio < 0.8) {
         calculatedAspectRatio = 0.8;
       } else if (calculatedAspectRatio > 2.0) {
         calculatedAspectRatio = 2.0;
       }
-      result = AspectRatio(
-        aspectRatio: calculatedAspectRatio,
-        child: result,
-      );
+      result = AspectRatio(aspectRatio: calculatedAspectRatio, child: result);
     }
 
     return result;

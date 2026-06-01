@@ -10,6 +10,8 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:trackyond/core/common/enums/media_preview_type.dart';
+import 'package:trackyond/features/job_chat/data/models/upload_files_dto.dart';
+import 'package:mime/mime.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
@@ -22,9 +24,9 @@ class MediaPreviewController extends GetxController
     with GetSingleTickerProviderStateMixin {
   final Map<int, VideoPlayerController> videoControllers = {};
   final Map<int, List<String>> videoThumbnails = {};
-  final Map<int, double> videoStartProgresses = {};
-  final Map<int, double> videoEndProgresses = {};
-  final Map<int, bool> videoMutedStates = {};
+  final videoStartProgresses = <int, double>{}.obs;
+  final videoEndProgresses = <int, double>{}.obs;
+  final videoMutedStates = <int, bool>{}.obs;
   final Map<int, int> fileSizes = {};
 
   late final MediaPreviewType previewType;
@@ -107,8 +109,7 @@ class MediaPreviewController extends GetxController
     );
 
     if (mediaPaths.isNotEmpty) {
-      final initialPath = mediaPaths[currentIndex.value];
-      if (isVideoPath(initialPath)) {
+      if (previewType == MediaPreviewType.video) {
         initVideoController(currentIndex.value);
       }
     }
@@ -130,27 +131,7 @@ class MediaPreviewController extends GetxController
     super.onClose();
   }
 
-  bool isVideoPath(String path) {
-    final ext = path.split('.').last.toLowerCase();
-    return ext == 'mp4' ||
-        ext == 'mov' ||
-        ext == 'avi' ||
-        ext == 'mkv' ||
-        ext == 'webm' ||
-        ext == '3gp';
-  }
 
-  bool isDocPath(String path) {
-    final ext = path.split('.').last.toLowerCase();
-    return ext == 'pdf' ||
-        ext == 'doc' ||
-        ext == 'docx' ||
-        ext == 'xls' ||
-        ext == 'xlsx' ||
-        ext == 'ppt' ||
-        ext == 'pptx' ||
-        ext == 'txt';
-  }
 
   Future<void> loadFileSizes() async {
     for (int i = 0; i < mediaPaths.length; i++) {
@@ -215,10 +196,10 @@ class MediaPreviewController extends GetxController
   }
 
   void initVideoController(int index) {
-    final path = mediaPaths[index];
-    if (!isVideoPath(path)) return;
+    if (previewType != MediaPreviewType.video) return;
     if (videoControllers.containsKey(index)) return;
 
+    final path = mediaPaths[index];
     final controller = VideoPlayerController.file(File(path));
     videoControllers[index] = controller;
 
@@ -327,19 +308,21 @@ class MediaPreviewController extends GetxController
 
     focusNode.unfocus();
 
-    // Collect videos that need physical trimming (non-trivial trim range)
+    // Collect videos that need physical trimming (non-trivial trim range) or physical muting
     final List<int> videoIndicesToTrim = [];
-    for (int i = 0; i < mediaPaths.length; i++) {
-      if (!isVideoPath(mediaPaths[i])) continue;
-      final start = videoStartProgresses[i] ?? 0.0;
-      final end = videoEndProgresses[i] ?? 1.0;
-      final videoCtrl = videoControllers[i];
-      if (videoCtrl == null || !videoCtrl.value.isInitialized) continue;
-      final durationMs = videoCtrl.value.duration.inMilliseconds;
-      final startMs = (durationMs * start).toInt();
-      final endMs = (durationMs * end).toInt();
-      final isFullVideo = startMs <= 50 && endMs >= durationMs - 50;
-      if (!isFullVideo) videoIndicesToTrim.add(i);
+    if (previewType == MediaPreviewType.video) {
+      for (int i = 0; i < mediaPaths.length; i++) {
+        final start = videoStartProgresses[i] ?? 0.0;
+        final end = videoEndProgresses[i] ?? 1.0;
+        final isMuted = videoMutedStates[i] ?? false;
+        final videoCtrl = videoControllers[i];
+        if (videoCtrl == null || !videoCtrl.value.isInitialized) continue;
+        final durationMs = videoCtrl.value.duration.inMilliseconds;
+        final startMs = (durationMs * start).toInt();
+        final endMs = (durationMs * end).toInt();
+        final isFullVideo = startMs <= 50 && endMs >= durationMs - 50;
+        if (!isFullVideo || isMuted) videoIndicesToTrim.add(i);
+      }
     }
 
     // Pause all videos before processing
@@ -415,13 +398,6 @@ class MediaPreviewController extends GetxController
     final requestMessage = args['requestMessage'] as JobChatMessageEntity?;
     final controller = Get.find<JobChatController>();
 
-    final Map<String, Map<String, dynamic>> extraMetadata = {};
-    for (int i = 0; i < mediaPaths.length; i++) {
-      if (!isVideoPath(mediaPaths[i])) continue;
-      final isMuted = videoMutedStates[i] ?? false;
-      extraMetadata[mediaPaths[i]] = {'isMuted': isMuted};
-    }
-
     bool success = false;
     if (requestMessage != null) {
       success = await controller.sendMediaStatusProof(
@@ -430,10 +406,25 @@ class MediaPreviewController extends GetxController
         requestMessage: requestMessage,
       );
     } else {
+      final uploadFilesDto = UploadFiles(
+        type: previewType,
+        files: mediaPaths.map((path) {
+          final ext = path.split('.').last.toLowerCase();
+          final mimeType = lookupMimeType(path) ?? 
+              (previewType == MediaPreviewType.video 
+                  ? 'video/mp4' 
+                  : (previewType == MediaPreviewType.image ? 'image/jpeg' : 'application/octet-stream'));
+          return UploadFile(
+            path: path,
+            extension: ext,
+            mimeType: mimeType,
+          );
+        }).toList(),
+      );
+
       success = await controller.sendGeneralMedia(
-        paths: mediaPaths,
+        uploadFiles: uploadFilesDto,
         caption: captionController.text,
-        extraMetadata: extraMetadata,
       );
     }
 

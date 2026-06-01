@@ -5,6 +5,9 @@ import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_ent
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/media_viewer_page.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/bubble_time_and_status.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_image_grid/video_thumbnail_widget.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
+import 'package:trackyond/core/utils/app_utils.dart';
 
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
@@ -31,28 +34,52 @@ class ChatImageGridItem extends StatelessWidget {
     final content = imageContents[index];
     final path = content.content ?? '';
     final url = path.startsWith('http') ? path : ApiEndpoints.common.download(path);
+    final isVideo = content.type == JobChatMessageContentType.video;
 
-    final dynamic imageMeta = content.metadata?['imageMetadata'];
-    final double? imageWidth =
-        (imageMeta is Map ? imageMeta['width'] : content.metadata?['width'])
-            ?.toDouble();
-    final double? imageHeight =
-        (imageMeta is Map ? imageMeta['height'] : content.metadata?['height'])
-            ?.toDouble();
-    final blurHash = (imageMeta is Map ? imageMeta['blurHash'] : null) ??
-        content.metadata?['blurHash'] as String? ??
-        content.metadata?['blur_hash'] as String?;
+    double? imageWidth;
+    double? imageHeight;
+    String? blurHash;
+
+    int? durationSec;
+    if (isVideo) {
+      final dynamic videoMeta = content.metadata?['videoMetadata'];
+      final double? videoAspectRatio = (videoMeta is Map ? videoMeta['aspectRatio'] : content.metadata?['aspectRatio'])?.toDouble();
+      blurHash = (videoMeta is Map ? videoMeta['thumbnailBlurHash'] : null) ?? content.metadata?['thumbnailBlurHash'] as String?;
+      durationSec = (videoMeta is Map ? videoMeta['duration'] : content.metadata?['duration'])?.toInt();
+      if (videoAspectRatio != null && videoAspectRatio > 0) {
+        imageWidth = videoAspectRatio;
+        imageHeight = 1.0;
+      }
+    } else {
+      final dynamic imageMeta = content.metadata?['imageMetadata'];
+      imageWidth = (imageMeta is Map ? imageMeta['width'] : content.metadata?['width'])?.toDouble();
+      imageHeight = (imageMeta is Map ? imageMeta['height'] : content.metadata?['height'])?.toDouble();
+      blurHash = (imageMeta is Map ? imageMeta['blurHash'] : null) ??
+          content.metadata?['blurHash'] as String? ??
+          content.metadata?['blur_hash'] as String?;
+    }
 
     final colorScheme = context.colorScheme;
 
-    Widget img = AppImage(
-      imageUrl: url,
-      blurHash: blurHash,
-      imageWidth: imageWidth,
-      imageHeight: imageHeight,
-      fit: BoxFit.cover,
-      matchAspectRatio: imageContents.length == 1,
-    );
+    Widget img;
+    if (isVideo) {
+      img = VideoThumbnailWidget(
+        videoUrl: url,
+        blurHash: blurHash,
+        width: imageContents.length == 1 ? imageWidth : null,
+        height: imageContents.length == 1 ? imageHeight : null,
+        fit: BoxFit.cover,
+      );
+    } else {
+      img = AppImage(
+        imageUrl: url,
+        blurHash: blurHash,
+        imageWidth: imageContents.length == 1 ? imageWidth : null,
+        imageHeight: imageContents.length == 1 ? imageHeight : null,
+        fit: BoxFit.cover,
+        matchAspectRatio: imageContents.length == 1,
+      );
+    }
 
     if (isLast && imageContents.length > 4) {
       final remaining = imageContents.length - 4;
@@ -80,8 +107,19 @@ class ChatImageGridItem extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         final routeArgs = {
-          'imageUrls': imageContents.map((c) => AppImage.getFullUrl(c.metadata?['url'] as String? ?? '')).toList(),
-          'blurHashes': imageContents.map((c) => (c.metadata?['blurHash'] as String? ?? c.metadata?['blur_hash'] as String?)).toList(),
+          'imageUrls': imageContents.map((c) => c.content ?? c.metadata?['url'] as String? ?? '').toList(),
+          'blurHashes': imageContents.map((c) {
+            if (c.type == JobChatMessageContentType.video) {
+              final dynamic videoMeta = c.metadata?['videoMetadata'];
+              return (videoMeta is Map ? videoMeta['thumbnailBlurHash'] : null) ?? c.metadata?['thumbnailBlurHash'] as String?;
+            } else {
+              final dynamic imageMeta = c.metadata?['imageMetadata'];
+              return (imageMeta is Map ? imageMeta['blurHash'] : null) ??
+                  c.metadata?['blurHash'] as String? ??
+                  c.metadata?['blur_hash'] as String?;
+            }
+          }).toList(),
+          'contentTypes': imageContents.map((c) => c.type.value).toList(),
           'initialIndex': index,
           'messageUid': message.uid,
           'message': message,
@@ -100,10 +138,10 @@ class ChatImageGridItem extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(imageRadius),
           child: Stack(
-            fit: StackFit.passthrough,
+            fit: StackFit.expand,
             children: [
               img,
-              if (showTimeOverlay)
+              if (showTimeOverlay || isVideo)
                 Positioned(
                   left: 0,
                   right: 0,
@@ -121,18 +159,46 @@ class ChatImageGridItem extends StatelessWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.5),
+                          colorScheme.black.withValues(alpha: 0.4),
                         ],
                       ),
                     ),
-                    child: Align(
-                      alignment: Alignment.bottomRight,
-                      child: BubbleTimeAndStatus(
-                        timestamp: message.timestamp,
-                        isMe: message.isMe,
-                        status: message.status,
-                        isOverlaid: true,
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (isVideo)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                Icons.videocam_rounded,
+                                color: colorScheme.onPrimary,
+                                size: 14,
+                              ),
+                              Text(
+                                AppUtils.formatVideoDuration(durationSec),
+                                style: TextStyle(
+                                  color: colorScheme.onPrimary,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          )
+                        else
+                          const SizedBox.shrink(),
+                        if (showTimeOverlay)
+                          BubbleTimeAndStatus(
+                            timestamp: message.timestamp,
+                            isMe: message.isMe,
+                            status: message.status,
+                            isOverlaid: true,
+                          )
+                        else
+                          const SizedBox.shrink(),
+                      ],
                     ),
                   ),
                 ),

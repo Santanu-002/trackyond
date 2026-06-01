@@ -41,8 +41,8 @@ class _BlinkingRedDotState extends State<BlinkingRedDot>
       child: Container(
         width: 8,
         height: 8,
-        decoration: const BoxDecoration(
-          color: Colors.red,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.error,
           shape: BoxShape.circle,
         ),
       ),

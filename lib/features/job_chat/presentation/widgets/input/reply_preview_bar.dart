@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
-import 'package:trackyond/core/constants/app_icons.dart';
-import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/reply_image_thumbnail.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/core/network/api/api_endpoints.dart';
 
 class ReplyPreviewBar extends GetView<JobChatController> {
   const ReplyPreviewBar({super.key});
@@ -22,7 +23,7 @@ class ReplyPreviewBar extends GetView<JobChatController> {
       String senderName;
       if (isMe) {
         senderName = 'You';
-      } else if (replyMsg.type == 'activity') {
+      } else if (replyMsg.type == JobChatMessageType.activity) {
         final metaWorkerName = replyMsg.metadata?['workerName'] as String?;
         if (metaWorkerName != null && metaWorkerName.isNotEmpty) {
           senderName = metaWorkerName;
@@ -30,7 +31,7 @@ class ReplyPreviewBar extends GetView<JobChatController> {
           senderName = controller.getSenderName(replyMsg);
           if (senderName == 'System') {
             final activityType =
-                JobActivityType.fromString(replyMsg.metadata?['activity_type']);
+                JobActivityType.fromString(replyMsg.metadata?['activityType']);
             final isOwnerAction =
                 activityType == JobActivityType.askLocation ||
                 activityType == JobActivityType.askStatus ||
@@ -51,18 +52,29 @@ class ReplyPreviewBar extends GetView<JobChatController> {
         }
       }
 
-      // Check if it has an image
+      // Check if it has an image or video
+      final mediaContents = replyMsg.content
+          .where((c) =>
+              c.type == JobChatMessageContentType.image ||
+              c.type == JobChatMessageContentType.video)
+          .toList();
+      final firstMedia = mediaContents.firstOrNull;
       String? imageUrl;
       String? blurHash;
-      final imageContents =
-          replyMsg.content.where((c) => c.type == 'image').toList();
-      final firstImage = imageContents.firstOrNull;
-      if (firstImage != null) {
-        imageUrl = firstImage.metadata?['url'] as String?;
-        blurHash = firstImage.metadata?['blurHash'] as String?;
+      if (firstMedia != null) {
+        final path = firstMedia.content ?? '';
+        imageUrl = path.startsWith('http') ? path : ApiEndpoints.common.download(path);
+        
+        if (firstMedia.type == JobChatMessageContentType.video) {
+          final dynamic videoMeta = firstMedia.metadata?['videoMetadata'];
+          blurHash = (videoMeta is Map ? videoMeta['thumbnailBlurHash'] : null) ?? firstMedia.metadata?['thumbnailBlurHash'] as String?;
+        } else {
+          final dynamic imageMeta = firstMedia.metadata?['imageMetadata'];
+          blurHash = (imageMeta is Map ? imageMeta['blurHash'] : null) ?? firstMedia.metadata?['blurHash'] as String?;
+        }
       }
 
-      final isActivity = replyMsg.type == 'activity';
+      final isActivity = replyMsg.type == JobChatMessageType.activity;
 
       Widget contentWidget;
       Widget? leadingImage;
@@ -74,72 +86,20 @@ class ReplyPreviewBar extends GetView<JobChatController> {
             imageUrl: imageUrl,
             blurHash: blurHash,
             remainingCount:
-                imageContents.length > 1 ? (imageContents.length - 1) : 0,
+                mediaContents.length > 1 ? (mediaContents.length - 1) : 0,
             size: 40.0,
             borderRadius: AppUIConstants.radius.radius$4,
+            isVideo: firstMedia?.type == JobChatMessageContentType.video,
           ),
         );
       }
 
       if (isActivity) {
         final activityType =
-            JobActivityType.fromString(replyMsg.metadata?['activity_type']);
+            JobActivityType.fromString(replyMsg.metadata?['activityType']);
 
-        String activityTitle;
-        IconData activityIcon;
-        switch (activityType) {
-          case JobActivityType.jobCreated:
-            activityTitle = AppStrings.jobChat.activityJobAssigned;
-            activityIcon = AppIcons.jobs.work;
-            break;
-          case JobActivityType.reachedLocation:
-            activityTitle = AppStrings.jobChat.activityReachedSite;
-            activityIcon = AppIcons.jobs.checkIn;
-            break;
-          case JobActivityType.startedJob:
-            activityTitle = AppStrings.jobChat.activityJobStarted;
-            activityIcon = AppIcons.common.play;
-            break;
-          case JobActivityType.completedJob:
-            activityTitle = AppStrings.jobChat.activityJobCompleted;
-            activityIcon = AppIcons.status.success;
-            break;
-          case JobActivityType.takeBreak:
-            activityTitle = AppStrings.jobChat.activityOnBreak;
-            activityIcon = AppIcons.jobs.coffee;
-            break;
-          case JobActivityType.breakOut:
-            activityTitle = AppStrings.jobChat.activityBreakEnded;
-            activityIcon = AppIcons.common.play;
-            break;
-          case JobActivityType.sendLocation:
-            activityTitle = AppStrings.jobChat.activityLocationShared;
-            activityIcon = AppIcons.jobs.myLocation;
-            break;
-          case JobActivityType.askLocation:
-            activityTitle = AppStrings.jobChat.activityLocationRequested;
-            activityIcon = AppIcons.jobs.locationSearching;
-            break;
-          case JobActivityType.askStatus:
-            activityTitle = AppStrings.jobChat.activityStatusRequested;
-            activityIcon = AppIcons.jobs.statusQuestion;
-            break;
-          case JobActivityType.askStatusProofs:
-            activityTitle = AppStrings.jobChat.activityStatusProofsRequested;
-            activityIcon = AppIcons.jobs.cameraOutlined;
-            break;
-          case JobActivityType.cancelJob:
-            activityTitle = AppStrings.jobChat.activityJobCancelled;
-            activityIcon = AppIcons.dashboard.cancelled;
-            break;
-          case JobActivityType.reopenJob:
-            activityTitle = AppStrings.jobChat.activityJobReopened;
-            activityIcon = AppIcons.common.refresh;
-            break;
-          default:
-            activityTitle = AppStrings.jobChat.activityUpdate;
-            activityIcon = Icons.info_outline;
-        }
+        final activityTitle = activityType.title;
+        final activityIcon = activityType.icon;
 
         contentWidget = Row(
           children: [
@@ -169,17 +129,68 @@ class ReplyPreviewBar extends GetView<JobChatController> {
       } else {
         final textContent =
             replyMsg.content
-                .firstWhereOrNull((c) => c.type == 'text')
+                .firstWhereOrNull((c) => c.type == JobChatMessageContentType.text)
                 ?.content ??
             '';
-        contentWidget = Text(
-          imageUrl != null && textContent.isEmpty ? 'Photo' : textContent,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-        );
+        String displayBody = textContent;
+        if (imageUrl != null && textContent.isEmpty) {
+          displayBody = firstMedia?.type == JobChatMessageContentType.video ? 'Video' : 'Photo';
+        }
+
+        if (firstMedia?.type == JobChatMessageContentType.video) {
+          contentWidget = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.videocam_outlined,
+                size: 14,
+                color: colorScheme.primary,
+              ),
+              AppUIConstants.widgets.horizontalBox$4,
+              Flexible(
+                child: Text(
+                  displayBody,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          );
+        } else if (firstMedia?.type == JobChatMessageContentType.image) {
+          contentWidget = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.photo_outlined,
+                size: 14,
+                color: colorScheme.primary,
+              ),
+              AppUIConstants.widgets.horizontalBox$4,
+              Flexible(
+                child: Text(
+                  displayBody,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          );
+        } else {
+          contentWidget = Text(
+            displayBody,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          );
+        }
       }
 
       return GestureDetector(

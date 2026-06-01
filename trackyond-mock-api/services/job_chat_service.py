@@ -78,16 +78,54 @@ def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMe
 
     # Process activity action if the message type is activity
     if db_message.type == "activity":
-        activity_type_meta = (db_message.metadata_dict or {}).get("activity_type") or db_message.action_performed
+        meta_dict = db_message.metadata_dict or {}
+        activity_type_meta = meta_dict.get("activityType") or db_message.action_performed
         if activity_type_meta:
             # Map activity_type_meta -> (db_activity_type, job_status_update)
             activity_map = {
                 "reachedLocation": ("reached", None),
+                "reached_location": ("reached", None),
+                "reached": ("reached", None),
+                
                 "startedJob": ("started", JobStatus.in_progress),
+                "started_job": ("started", JobStatus.in_progress),
+                "started": ("started", JobStatus.in_progress),
+                
                 "completedJob": ("completed", JobStatus.completed),
+                "completed_job": ("completed", JobStatus.completed),
+                "completed": ("completed", JobStatus.completed),
+                
                 "takeBreak": ("take_break", None),
+                "take_break": ("take_break", None),
+                "take_started": ("take_break", None),
+                
                 "breakOut": ("break_out", None),
+                "break_out": ("break_out", None),
+                "resumed": ("break_out", None),
+                
                 "sendLocation": ("send_location", None),
+                "send_location": ("send_location", None),
+                
+                "askLocation": ("ask_location", None),
+                "ask_location": ("ask_location", None),
+                
+                "askStatus": ("ask_status", None),
+                "ask_status": ("ask_status", None),
+                
+                "askStatusProofs": ("ask_status_proofs", None),
+                "ask_status_proofs": ("ask_status_proofs", None),
+                
+                "sendStatus": ("send_status", None),
+                "send_status": ("send_status", None),
+                
+                "cancelJob": ("cancel_job", None),
+                "cancel_job": ("cancel_job", None),
+                
+                "reopenJob": ("reopen_job", None),
+                "reopen_job": ("reopen_job", None),
+                
+                "jobCreated": ("created", None),
+                "job_created": ("created", None),
             }
             if activity_type_meta in activity_map:
                 db_activity_type, job_status_update = activity_map[activity_type_meta]
@@ -138,7 +176,7 @@ def create_system_activity_message(
         uid=message_uid,
         local_id=message_uid,
         job_id=job_id,
-        author_type="system",
+        author_type="user" if (sender_uid and sender_uid != "system") else "system",
         created_by_uid=created_by_uid,
         sender_uid=sender_uid,
         status="sent",
@@ -180,45 +218,60 @@ def validate_worker_attendance(db: Session, current_user: models.User) -> None:
                 detail="You must mark your attendance (check-in) first before sending messages or performing job activities."
             )
 
-def send_job_message(db: Session, job_id: str, message_data: schemas.JobChatMessageCreate, current_user: models.User) -> dict:
+def send_job_messages(db: Session, job_id: str, messages_data: list[schemas.JobChatMessageCreate], current_user: models.User) -> dict:
     """
-    Validates attendance and permissions, creates the message, and returns the response data
-    containing message detail, allowed actions, and the updated serialized job.
+    Validates attendance and permissions, creates a list of messages, and returns the response data
+    containing details of the messages sent, allowed actions, and the updated serialized job.
     """
     # Enforce worker attendance check before sending messages or timeline actions
     validate_worker_attendance(db, current_user)
 
-    is_system = message_data.type == "activity" and (not message_data.sender_uid or message_data.sender_uid == "system")
-    if not is_system:
-        member = db.query(models.Member).filter(models.Member.user_uid == current_user.uid).first()
-        if not member or message_data.sender_uid != member.uid:
-            raise HTTPException(
-                status_code=403, 
-                detail=f"Unauthorized to send message as this member profile (senderUid: {message_data.sender_uid})"
-            )
-        
-    message = create_job_message(db, job_id, message_data, current_user)
-    message_serialized = schemas.JobChatMessageResponse.model_validate(message).model_dump(by_alias=True)
+    member = db.query(models.Member).filter(models.Member.user_uid == current_user.uid).first()
     
+    # Verify authorization for all messages
+    for msg_data in messages_data:
+        is_system = msg_data.type == "activity" and (not msg_data.sender_uid or msg_data.sender_uid == "system")
+        if not is_system:
+            if not member or msg_data.sender_uid != member.uid:
+                raise HTTPException(
+                    status_code=403, 
+                    detail=f"Unauthorized to send message as this member profile (senderUid: {msg_data.sender_uid})"
+                )
+
+    serialized_messages = []
+    last_message = None
+    
+    for msg_data in messages_data:
+        message = create_job_message(db, job_id, msg_data, current_user)
+        last_message = message
+        message_serialized = schemas.JobChatMessageResponse.model_validate(message).model_dump(by_alias=True)
+        serialized_messages.append(message_serialized)
+
     # Get the updated job and serialize fully using jobs_service
     from services.jobs_service import get_job_with_details
     job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
     
     serialized_job = get_job_with_details(db, job) if job else {}
-    allowed_actions = serialized_job.get("allowedActions", []) if serialized_job else []
     
-    if job:
+    if job and last_message:
         try:
             from services.notification_service import send_job_chat_notification
-            send_job_chat_notification(db, job, current_user, message, message_serialized)
+            send_job_chat_notification(db, job, current_user, last_message, serialized_messages[-1])
         except Exception as e:
             print(f"Error triggering job chat notification: {e}")
 
     return {
-        "message": message_serialized,
-        "allowedActions": allowed_actions,
+        "messages": serialized_messages,
         "job": serialized_job
     }
+
+
+def send_job_message(db: Session, job_id: str, message_data: schemas.JobChatMessageCreate, current_user: models.User) -> dict:
+    """
+    Validates attendance and permissions, creates a single message, and returns the response data
+    containing message detail, allowed actions, and the updated serialized job.
+    """
+    return send_job_messages(db, job_id, [message_data], current_user)
 
 
 def get_job_chat_members(db: Session, job_id: str) -> list:

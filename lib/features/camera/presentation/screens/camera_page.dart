@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/core/common/widgets/button/chat_action_button.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/camera/presentation/controllers/camera_controller.dart';
@@ -13,10 +14,11 @@ class CameraPage extends GetView<AppCameraController> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = context.colorScheme;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: colorScheme.black,
         body: Obx(() {
           if (!controller.isInitialized) {
             return Center(
@@ -170,7 +172,7 @@ class CameraPage extends GetView<AppCameraController> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
+                        color: colorScheme.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -180,8 +182,8 @@ class CameraPage extends GetView<AppCameraController> {
                           AppUIConstants.widgets.horizontalBox$8,
                           Text(
                             controller.recordingTime,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: colorScheme.onPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.5,
@@ -197,7 +199,7 @@ class CameraPage extends GetView<AppCameraController> {
               if (controller.isCapturing)
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.4),
+                    color: colorScheme.black.withValues(alpha: 0.4),
                     child: Center(
                       child: CircularProgressIndicator(
                         color: context.theme.colorScheme.onPrimary,

@@ -7,9 +7,9 @@ import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repos
 import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
 class SendMessageParams {
-  final JobChatMessageEntity message;
+  final List<JobChatMessageEntity> messages;
 
-  SendMessageParams({required this.message});
+  SendMessageParams({required this.messages});
 }
 
 class SendMessageUseCase implements BaseUseCase<SendMessageResult, SendMessageParams> {
@@ -19,6 +19,6 @@ class SendMessageUseCase implements BaseUseCase<SendMessageResult, SendMessagePa
 
   @override
   Future<Either<AppFailure, SendMessageResult>> call(SendMessageParams params) {
-    return _repository.sendMessage(params.message);
+    return _repository.sendMessage(params.messages);
   }
 }

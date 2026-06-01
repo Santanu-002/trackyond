@@ -8,6 +8,7 @@ class ReplyImageThumbnail extends StatelessWidget {
   final int remainingCount;
   final double size;
   final double borderRadius;
+  final bool isVideo;
 
   const ReplyImageThumbnail({
     super.key,
@@ -16,27 +17,48 @@ class ReplyImageThumbnail extends StatelessWidget {
     this.remainingCount = 0,
     this.size = 30.0,
     this.borderRadius = 2.0,
+    this.isVideo = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.colorScheme;
 
-    Widget img = AppImage(
-      imageUrl: imageUrl,
-      blurHash: blurHash,
-      fit: BoxFit.cover,
-      errorWidget: (context, url, error) => Container(
-        color: colorScheme.surfaceDim,
-        child: const Center(child: Icon(Icons.error_outline, size: 14)),
-      ),
-    );
+    final MemoryImage? decodedHashProvider = (blurHash != null && blurHash!.isNotEmpty)
+        ? AppImage.getBlurHashProvider(blurHash!)
+        : null;
+
+    Widget backgroundWidget;
+    if (isVideo) {
+      if (decodedHashProvider != null) {
+        backgroundWidget = Image(
+          image: decodedHashProvider,
+          fit: BoxFit.cover,
+        );
+      } else {
+        backgroundWidget = Container(
+          color: colorScheme.surfaceContainerHighest,
+        );
+      }
+    } else {
+      backgroundWidget = AppImage(
+        imageUrl: imageUrl,
+        blurHash: blurHash,
+        fit: BoxFit.cover,
+        errorWidget: (context, url, error) => Container(
+          color: colorScheme.surfaceDim,
+          child: const Center(child: Icon(Icons.error_outline, size: 14)),
+        ),
+      );
+    }
+
+    Widget displayWidget = backgroundWidget;
 
     if (remainingCount > 0) {
-      img = Stack(
+      displayWidget = Stack(
         fit: StackFit.expand,
         children: [
-          img,
+          backgroundWidget,
           Container(
             color: colorScheme.black.withValues(alpha: 0.6),
             child: Center(
@@ -52,6 +74,20 @@ class ReplyImageThumbnail extends StatelessWidget {
           ),
         ],
       );
+    } else if (isVideo) {
+      displayWidget = Stack(
+        fit: StackFit.expand,
+        children: [
+          backgroundWidget,
+          Center(
+            child: Icon(
+              Icons.play_circle_outline_rounded,
+              color: colorScheme.onPrimary,
+              size: size * 0.6,
+            ),
+          ),
+        ],
+      );
     }
 
     return Container(
@@ -62,7 +98,7 @@ class ReplyImageThumbnail extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: img,
+        child: displayWidget,
       ),
     );
   }

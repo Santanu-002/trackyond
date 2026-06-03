@@ -26,7 +26,7 @@ Map<String, dynamic> _$SwitchProfileModelToJson(_SwitchProfileModel instance) =>
       'name': instance.name,
       'designation': instance.designation,
       'image': instance.image,
-      'company': instance.company,
+      'company': instance.company.toJson(),
       'isPrimary': instance.isPrimary,
     };
 

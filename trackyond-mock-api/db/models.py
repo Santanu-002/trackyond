@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from core.utils.datetime_utils import now_utc
 from .database import Base
-from core.constants.enums import UserRole, JobStatus, AttendanceStatus, NotificationStatus
+from core.constants.enums import UserRole, JobStatus, AttendanceStatus, NotificationStatus, ChatMessageStatus
 
 class User(Base):
     __tablename__ = "users"
@@ -203,16 +203,29 @@ class JobChatMessage(Base):
     created_by_author_at = Column(DateTime) # Device timestamp
     
     # Status
-    status = Column(String, default="sent") # 'sent', 'delivered', 'seen'
+    status = Column(String, default=ChatMessageStatus.sent.value) # 'sent', 'delivered', 'seen', 'removed'
     seen_at = Column(DateTime, nullable=True)
     delivered_at = Column(DateTime, nullable=True)
     active = Column(Boolean, default=True)
     deleted = Column(Boolean, default=False)
 
+    # Deletion Details (For Everyone)
+    deleted_by_uid = Column(String, ForeignKey("users.uid"), nullable=True)
+    deleted_by_user_type = Column(String, nullable=True) # 'owner' or 'worker'
+    deleted_at = Column(DateTime, nullable=True)
+    deleted_by_user_at = Column(DateTime, nullable=True)
+    
+    # Deletion Details (For Me)
+    deleted_for_users = relationship("MessageDeletedForUser", cascade="all, delete-orphan")
+
     # Message Type & Metadata
     type = Column(String, nullable=False, default="message") # 'message' or 'activity'
     metadata_json = Column(Text, nullable=True)
     action_performed = Column(String, nullable=True)
+
+    @property
+    def deleted_for_list(self):
+        return [record.user_uid for record in self.deleted_for_users]
 
     @property
     def metadata_dict(self):
@@ -286,5 +299,12 @@ class JobChatMessageContent(Base):
             self.metadata_json = json.dumps(value)
         else:
             self.metadata_json = None
+
+class MessageDeletedForUser(Base):
+    __tablename__ = "message_deleted_for_users"
+    id = Column(Integer, primary_key=True, index=True)
+    message_uid = Column(String, ForeignKey("messages.uid", ondelete="CASCADE"), index=True)
+    user_uid = Column(String, ForeignKey("users.uid", ondelete="CASCADE"), index=True)
+    deleted_at = Column(DateTime, default=now_utc)
 
 

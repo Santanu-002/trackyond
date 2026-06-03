@@ -6,6 +6,7 @@ import 'package:trackyond/core/common/models/member/member_profile_model.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
 import 'package:trackyond/features/job_chat/data/models/send_message_response_model.dart';
+import 'package:trackyond/features/job_chat/data/models/send_message_model.dart';
 
 import 'package:trackyond/features/job_chat/data/models/message_query_options_model.dart';
 
@@ -14,12 +15,18 @@ abstract interface class IJobChatDataSource {
     required String jobId,
     MessageQueryOptionsModel? options,
   });
-  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required List<JobChatMessageModel> messages});
+  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required List<SendMessageModel> messages});
   Future<ApiResponse<JobModel>> updateJobStatus({
     required String jobId,
     required String status,
   });
   Future<ApiResponse<List<MemberProfileModel>>> getChatMembers({required String jobId});
+  Future<ApiResponse<void>> deleteMessages({
+    required String jobId,
+    required String deleteType,
+    required List<String> messageUids,
+    required DateTime deletedByUserAt,
+  });
 }
 
 class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatDataSource {
@@ -45,7 +52,7 @@ class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatD
   }
 
   @override
-  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required List<JobChatMessageModel> messages}) async {
+  Future<ApiResponse<SendMessageResponseModel>> sendMessage({required List<SendMessageModel> messages}) async {
     final payload = messages.map((m) => m.toJson()).toList();
     return performApiRequest(
       _dio.post(
@@ -78,6 +85,26 @@ class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatD
         final list = data as List;
         return list.map((e) => MemberProfileModel.fromJson(e as Map<String, dynamic>)).toList();
       },
+    );
+  }
+
+  @override
+  Future<ApiResponse<void>> deleteMessages({
+    required String jobId,
+    required String deleteType,
+    required List<String> messageUids,
+    required DateTime deletedByUserAt,
+  }) async {
+    return performApiRequest(
+      _dio.post(
+        ApiEndpoints.common.jobChatMessagesDelete(jobId),
+        data: {
+          'deleteType': deleteType,
+          'messageUids': messageUids,
+          'deletedByUserAt': deletedByUserAt.toUtc().toIso8601String(),
+        },
+      ),
+      (data) {},
     );
   }
 }

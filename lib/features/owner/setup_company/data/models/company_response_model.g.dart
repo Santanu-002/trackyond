@@ -18,6 +18,6 @@ _CompanyResponseModel _$CompanyResponseModelFromJson(
 Map<String, dynamic> _$CompanyResponseModelToJson(
   _CompanyResponseModel instance,
 ) => <String, dynamic>{
-  'ownerProfile': instance.memberProfile,
-  'company': instance.company,
+  'ownerProfile': instance.memberProfile.toJson(),
+  'company': instance.company.toJson(),
 };

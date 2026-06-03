@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_selection_controller.dart';
 
 class SwipeToReply extends StatefulWidget {
   final Widget child;
@@ -118,22 +119,25 @@ class _SwipeToReplyState extends State<SwipeToReply>
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
     final chatController = Get.find<JobChatController>();
+    final selectionController = Get.find<JobChatSelectionController>();
 
     return Obx(() {
-      final isSelectionMode = chatController.isSelectionMode.value;
-      final isSelected = chatController.selectedMessageUids.contains(widget.messageUid);
+      final isSelectionMode = selectionController.isSelectionMode.value;
+      final isSelected = selectionController.selectedMessageUids.contains(widget.messageUid);
       final isTriggered = _dragExtent >= _triggerThreshold;
       final swipeProgress = (_dragExtent / _triggerThreshold).clamp(0.0, 1.0);
+      final msg = chatController.messages.firstWhereOrNull((m) => m.uid == widget.messageUid);
+      final isDeleted = msg?.deleted ?? false;
 
       return SizedBox(
         width: double.infinity,
         child: GestureDetector(
           onLongPress: isSelectionMode
               ? null
-              : () => chatController.enterSelectionMode(widget.messageUid),
-          onHorizontalDragUpdate: isSelectionMode ? null : _onDragUpdate,
-          onHorizontalDragEnd: isSelectionMode ? null : _onDragEnd,
-          onHorizontalDragCancel: isSelectionMode ? null : _onDragCancel,
+              : () => selectionController.enterSelectionMode(widget.messageUid),
+          onHorizontalDragUpdate: (isSelectionMode || isDeleted) ? null : _onDragUpdate,
+          onHorizontalDragEnd: (isSelectionMode || isDeleted) ? null : _onDragEnd,
+          onHorizontalDragCancel: (isSelectionMode || isDeleted) ? null : _onDragCancel,
           behavior: HitTestBehavior.translucent,
           child: Stack(
             clipBehavior: Clip.none,
@@ -231,8 +235,8 @@ class _SwipeToReplyState extends State<SwipeToReply>
                 Positioned.fill(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => chatController.toggleSelection(widget.messageUid),
-                    onLongPress: () => chatController.toggleSelection(widget.messageUid),
+                    onTap: () => selectionController.toggleSelection(widget.messageUid),
+                    onLongPress: () => selectionController.toggleSelection(widget.messageUid),
                     child: const SizedBox.expand(),
                   ),
                 ),

@@ -20,6 +20,6 @@ _ProfileResponseModel _$ProfileResponseModelFromJson(
 Map<String, dynamic> _$ProfileResponseModelToJson(
   _ProfileResponseModel instance,
 ) => <String, dynamic>{
-  'profile': instance.profile,
-  'company': instance.company,
+  'profile': instance.profile?.toJson(),
+  'company': instance.company?.toJson(),
 };

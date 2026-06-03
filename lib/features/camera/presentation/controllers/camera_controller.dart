@@ -218,6 +218,7 @@ class AppCameraController extends GetxController {
     final args = Get.arguments as Map<String, dynamic>?;
     final bool skipPreview = args?['skipPreview'] as bool? ?? false;
     final requestMessage = args?['requestMessage'];
+    final String? action = args?['action'] as String?;
 
     if (skipPreview) {
       Get.back(
@@ -236,6 +237,7 @@ class AppCameraController extends GetxController {
       arguments: {
         'imagePath': path,
         'requestMessage': requestMessage,
+        'action': action,
       },
     );
 

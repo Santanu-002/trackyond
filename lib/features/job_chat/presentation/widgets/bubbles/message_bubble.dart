@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
@@ -36,7 +37,7 @@ class MessageBubble extends StatelessWidget {
 
     final isActivityMessage = message.type == JobChatMessageType.activity;
 
-    if (isActivityMessage || activityContentIndex != -1) {
+    if ((isActivityMessage || activityContentIndex != -1) && !message.deleted) {
       final content = isActivityMessage
           ? message.content.firstWhere(
               (c) => c.type == JobChatMessageContentType.text,
@@ -82,6 +83,39 @@ class MessageBubble extends StatelessWidget {
 
     final bubbleContent = Builder(
       builder: (context) {
+        if (message.deleted) {
+          final displayText = message.deletedByUserType == 'owner'
+              ? AppStrings.jobChat.messageRemovedByAdmin
+              : AppStrings.jobChat.messageRemoved;
+
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(10.0, 8.0, 10.0, 8.0),
+            child: ChatBubbleLayout(
+              text: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.block,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  ),
+                  AppUIConstants.widgets.horizontalBox$4,
+                  Flexible(
+                    child: Text(
+                      displayText,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              time: const SizedBox.shrink(),
+            ),
+          );
+        }
+
         final validContents =
             message.content
                 .where(
@@ -468,7 +502,14 @@ class MessageBubble extends StatelessWidget {
               ),
               padding: EdgeInsets.zero,
               decoration: BoxDecoration(
-                color: colorScheme.primary,
+                color: message.deleted
+                    ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+                    : colorScheme.primary,
+                border: message.deleted
+                    ? Border.all(
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.15),
+                      )
+                    : null,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(topLeftRadius),
                   topRight: Radius.circular(topRightRadius),
@@ -525,7 +566,14 @@ class MessageBubble extends StatelessWidget {
                       margin: EdgeInsets.zero,
                       padding: EdgeInsets.zero,
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
+                        color: message.deleted
+                            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+                            : colorScheme.surfaceContainerHighest,
+                        border: message.deleted
+                            ? Border.all(
+                                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.15),
+                              )
+                            : null,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(topLeftRadius),
                           topRight: Radius.circular(topRightRadius),

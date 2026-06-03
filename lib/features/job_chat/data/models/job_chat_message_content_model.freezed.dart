@@ -202,8 +202,8 @@ return $default(_that.type,_that.content,_that.metadata);case _:
 }
 
 /// @nodoc
+@JsonSerializable()
 
-@JsonSerializable(explicitToJson: true)
 class _JobChatMessageContentModel extends JobChatMessageContentModel {
   const _JobChatMessageContentModel({@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) required this.type, this.content, final  Map<String, dynamic>? metadata}): _metadata = metadata,super._();
   factory _JobChatMessageContentModel.fromJson(Map<String, dynamic> json) => _$JobChatMessageContentModelFromJson(json);

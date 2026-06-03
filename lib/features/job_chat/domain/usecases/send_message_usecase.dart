@@ -1,13 +1,13 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
+import 'package:trackyond/features/job_chat/domain/entities/send_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repository.dart';
 
 import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
 class SendMessageParams {
-  final List<JobChatMessageEntity> messages;
+  final List<SendMessageEntity> messages;
 
   SendMessageParams({required this.messages});
 }

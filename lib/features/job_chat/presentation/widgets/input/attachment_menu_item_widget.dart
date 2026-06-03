@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/attachment_menu.dart';
 
-class AttachmentMenuItemWidget extends GetView<JobChatController> {
+class AttachmentMenuItemWidget extends GetView<JobChatAttachmentController> {
   final AttachmentMenuItem item;
   final double containerSize;
   final double iconSize;

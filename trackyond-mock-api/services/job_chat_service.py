@@ -2,19 +2,25 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc
 import uuid
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException
 from db import models
 from schemas import job_chat as schemas
 from core.utils.datetime_utils import now_utc
-from core.constants.enums import ChatMessageType, JobStatus
+from core.constants.enums import ChatMessageType, JobStatus, ChatMessageStatus
 from services.serializers import serialize_job, serialize_member_profile
 
-def get_job_messages(db: Session, job_id: str, limit: int = None, offset: int = None, search: str = None, message_type: str = None):
+def get_job_messages(db: Session, job_id: str, limit: int = None, offset: int = None, search: str = None, message_type: str = None, current_user: models.User = None):
     query = db.query(models.JobChatMessage).filter(
         models.JobChatMessage.job_id == job_id,
         models.JobChatMessage.active == True
     )
+
+    if current_user:
+        deleted_uids = db.query(models.MessageDeletedForUser.message_uid).filter(
+            models.MessageDeletedForUser.user_uid == current_user.uid
+        )
+        query = query.filter(~models.JobChatMessage.uid.in_(deleted_uids))
 
     if message_type:
         query = query.filter(models.JobChatMessage.type == message_type)
@@ -297,4 +303,79 @@ def get_job_chat_members(db: Session, job_id: str) -> list:
                 members.append(serialize_member_profile(assignee))
 
     return members
+
+def delete_job_messages(db: Session, job_id: str, delete_req: schemas.JobChatMessageDeleteRequest, current_user: models.User):
+    # Fetch job first to ensure it exists
+    job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    is_owner = current_user.role.value == "owner"
+
+    if delete_req.delete_type == "forMe":
+        for msg_uid in delete_req.message_uids:
+            msg = db.query(models.JobChatMessage).filter(models.JobChatMessage.uid == msg_uid, models.JobChatMessage.job_id == job_id).first()
+            if not msg:
+                raise HTTPException(status_code=404, detail=f"Message {msg_uid} not found")
+            
+            # Check if record already exists to avoid unique constraint violations
+            exists = db.query(models.MessageDeletedForUser).filter(
+                models.MessageDeletedForUser.message_uid == msg_uid,
+                models.MessageDeletedForUser.user_uid == current_user.uid
+            ).first()
+            if not exists:
+                deleted_for_me = models.MessageDeletedForUser(
+                    message_uid=msg_uid,
+                    user_uid=current_user.uid
+                )
+                db.add(deleted_for_me)
+        db.commit()
+
+    elif delete_req.delete_type == "forEveryone":
+        for msg_uid in delete_req.message_uids:
+            msg = db.query(models.JobChatMessage).filter(models.JobChatMessage.uid == msg_uid, models.JobChatMessage.job_id == job_id).first()
+            if not msg:
+                raise HTTPException(status_code=404, detail=f"Message {msg_uid} not found")
+            
+            # Workers validation rules
+            if not is_owner:
+                # 1. Activity messages cannot be deleted for everyone by workers
+                if msg.type == "activity":
+                    raise HTTPException(status_code=403, detail="Workers cannot delete activity messages for everyone")
+                
+                # 2. Worker must be the author of the message
+                if msg.created_by_uid != current_user.uid:
+                    raise HTTPException(status_code=403, detail="Cannot delete other user's messages for everyone")
+                
+                # 3. Message must have been created < 15 minutes ago
+                device_time = delete_req.deleted_by_user_at
+                if device_time.tzinfo is None:
+                    device_time = device_time.replace(tzinfo=timezone.utc)
+                else:
+                    device_time = device_time.astimezone(timezone.utc)
+                
+                msg_time = msg.createdByAuthorAt if hasattr(msg, 'createdByAuthorAt') else msg.created_by_author_at
+                if msg_time.tzinfo is None:
+                    msg_time = msg_time.replace(tzinfo=timezone.utc)
+                else:
+                    msg_time = msg_time.astimezone(timezone.utc)
+                
+                diff = device_time - msg_time
+                if diff.total_seconds() > 900: # 15 minutes
+                    raise HTTPException(status_code=400, detail="Cannot delete messages created more than 15 minutes ago")
+            
+            # Perform delete for everyone (by updating status and metadata, and clearing content)
+            msg.status = ChatMessageStatus.removed.value
+            msg.deleted = True
+            msg.deleted_by_uid = current_user.uid
+            msg.deleted_by_user_type = current_user.role.value
+            msg.deleted_at = now_utc()
+            msg.deleted_by_user_at = delete_req.deleted_by_user_at
+            
+            # Clear contents for privacy
+            msg.content = []
+        
+        db.commit()
+    else:
+        raise HTTPException(status_code=400, detail="Invalid delete type")
 

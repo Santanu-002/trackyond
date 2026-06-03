@@ -40,8 +40,8 @@ Map<String, dynamic> _$VerifyOtpResponseModelToJson(
   'accessExpireAt': instance.accessExpireAt,
   'refreshExpireAt': instance.refreshExpireAt,
   'tokenIssuedAt': instance.tokenIssuedAt,
-  'profile': instance.profile,
-  'company': instance.company,
+  'profile': instance.profile?.toJson(),
+  'company': instance.company?.toJson(),
 };
 
 const _$UserRoleEnumMap = {UserRole.owner: 'owner', UserRole.worker: 'worker'};

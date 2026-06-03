@@ -1,10 +1,12 @@
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
-import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_upload_controller.dart';
 
 class MediaPreviewLoadingOverlay extends StatelessWidget {
   final String? localLoadingPhase;
@@ -23,12 +25,13 @@ class MediaPreviewLoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
-    final controller = Get.find<JobChatController>();
+    final actionController = Get.find<JobChatActionController>();
+    final uploadController = Get.find<JobChatUploadController>();
 
     return Obx(() {
       // Access observable values so Obx registers dependencies
-      controller.uploadProgress.value;
-      controller.actionLoadingMessage.value;
+      uploadController.uploadProgress.value;
+      actionController.actionLoadingMessage.value;
 
       double? finalProgress;
       String finalPhase = 'Loading';
@@ -39,10 +42,11 @@ class MediaPreviewLoadingOverlay extends StatelessWidget {
         finalPhase = localLoadingPhase!;
         finalCount = localLoadingCount ?? '';
       } else {
-        finalProgress = controller.uploadProgress.value;
-        if (finalProgress <= 0) finalProgress = null;
+        final p = uploadController.uploadProgress.value;
+        finalProgress = p <= 0 ? null : p;
 
-        final message = controller.actionLoadingMessage.value ??
+        final message =
+            actionController.actionLoadingMessage.value ??
             AppStrings.jobChat.cropSending;
 
         // Parse out phase and count e.g., "Uploading Photo (1/4)" -> phase: "Uploading Photo", count: "1/4"
@@ -76,16 +80,12 @@ class MediaPreviewLoadingOverlay extends StatelessWidget {
                     AppUIConstants.radius.radius$16,
                   ),
                   border: Border.all(
-                    color: colorScheme.onSurface.withValues(
-                      alpha: 0.1,
-                    ),
+                    color: colorScheme.onSurface.withValues(alpha: 0.1),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: colorScheme.black.withValues(
-                        alpha: 0.25,
-                      ),
+                      color: colorScheme.black.withValues(alpha: 0.25),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
@@ -100,8 +100,9 @@ class MediaPreviewLoadingOverlay extends StatelessWidget {
                       child: CircularProgressIndicator(
                         strokeWidth: 3,
                         value: finalProgress,
-                        backgroundColor: colorScheme.onSurface
-                            .withValues(alpha: 0.1),
+                        backgroundColor: colorScheme.onSurface.withValues(
+                          alpha: 0.1,
+                        ),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           colorScheme.primary,
                         ),

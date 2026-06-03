@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/scaffold/app_scaffold.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_selection_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/message_bubble.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/message_input.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/attachment_menu.dart';
@@ -24,22 +27,24 @@ class JobChatPage extends GetView<JobChatController> {
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
     final textTheme = context.textTheme;
+    final selectionController = Get.find<JobChatSelectionController>();
+    final attachmentController = Get.find<JobChatAttachmentController>();
 
-    return Obx(() {
-      final isSelectionMode = controller.isSelectionMode.value;
-
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) {
-            if (controller.isSelectionMode.value) {
-              controller.exitSelectionMode();
-            } else {
-              controller.onBack();
-            }
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          if (selectionController.isSelectionMode.value) {
+            selectionController.exitSelectionMode();
+          } else {
+            controller.onBack();
           }
-        },
-        child: AppScaffold(
+        }
+      },
+      child: Obx(() {
+        final isSelectionMode = selectionController.isSelectionMode.value;
+
+        return AppScaffold(
           useScrollView: false,
           padding: EdgeInsets.zero,
           titleSpacing: 0,
@@ -47,13 +52,13 @@ class JobChatPage extends GetView<JobChatController> {
           leading: isSelectionMode
               ? IconButton(
                   icon: Icon(AppIcons.common.close),
-                  onPressed: controller.exitSelectionMode,
+                  onPressed: selectionController.exitSelectionMode,
                 )
               : null,
-          onBackPressed: isSelectionMode ? controller.exitSelectionMode : controller.onBack,
+          onBackPressed: isSelectionMode ? selectionController.exitSelectionMode : controller.onBack,
           titleWidget: isSelectionMode
               ? Text(
-                  '${controller.selectedMessageUids.length} ${AppStrings.jobChat.selected}',
+                  '${selectionController.selectedMessageUids.length} ${AppStrings.jobChat.selected}',
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -80,14 +85,20 @@ class JobChatPage extends GetView<JobChatController> {
                 ),
           actions: isSelectionMode
               ? [
-                  IconButton(
-                    icon: Icon(AppIcons.common.copy),
-                    onPressed: controller.copySelectedMessagesText,
-                  ),
+                  if (selectionController.canCopySelected)
+                    IconButton(
+                      icon: Icon(AppIcons.common.copy),
+                      onPressed: selectionController.copySelectedMessagesText,
+                    ),
+                  if (selectionController.canDeleteSelected)
+                    IconButton(
+                      icon: Icon(AppIcons.common.delete),
+                      onPressed: () => selectionController.deleteSelectedMessages(context),
+                    ),
                 ]
               : [
                   IconButton(
-                    icon: Icon(AppIcons.common.menu),
+                    icon: Icon(CupertinoIcons.ellipsis_vertical),
                     onPressed: () {
                       // TODO: Implement options
                     },
@@ -126,6 +137,9 @@ class JobChatPage extends GetView<JobChatController> {
                               ),
                               itemCount: items.length,
                               itemBuilder: (context, index) {
+                                if (index < 0 || index >= items.length) {
+                                  return const SizedBox.shrink();
+                                }
                                 final item = items[index];
                                 final prevItem = index > 0 ? items[index - 1] : null;
                                 final nextItem = index + 1 < items.length ? items[index + 1] : null;
@@ -153,6 +167,8 @@ class JobChatPage extends GetView<JobChatController> {
 
                                 if (item is ChatTimeHeaderItem) {
                                   bottomPadding = AppUIConstants.spacing.space$8;
+                                } else if (item is ChatDateHeader) {
+                                  bottomPadding = 0;
                                 } else if (item is ChatHeaderMessage) {
                                   if (prevItem is ChatHeaderMessage) {
                                     bottomPadding = 0;
@@ -162,7 +178,9 @@ class JobChatPage extends GetView<JobChatController> {
                                 } else if (item is ChatMessageBubbleItem || item is ChatActivityBubble) {
                                   if (hasSameSenderBelow) {
                                     bottomPadding = AppUIConstants.spacing.space$2;
-                                  } else if (prevItem is ChatMessageBubbleItem || prevItem is ChatActivityBubble) {
+                                  } else if (prevItem is ChatMessageBubbleItem ||
+                                      prevItem is ChatActivityBubble ||
+                                      prevItem is ChatTimeHeaderItem) {
                                     bottomPadding = AppUIConstants.spacing.space$8;
                                   } else {
                                     bottomPadding = AppUIConstants.spacing.space$16;
@@ -175,11 +193,13 @@ class JobChatPage extends GetView<JobChatController> {
                                     ChatDateHeader(:final date) => DateChip(
                                       date: date,
                                       margin: index == items.length - 1
-                                          ? EdgeInsets.only(
-                                              top: AppUIConstants.spacing.space$4,
-                                              bottom: AppUIConstants.spacing.space$8,
+                                          ? EdgeInsets.symmetric(
+                                              vertical: AppUIConstants.spacing.space$16,
                                             )
-                                          : null,
+                                          : EdgeInsets.only(
+                                              top: 0,
+                                              bottom: AppUIConstants.spacing.space$16,
+                                            ),
                                     ),
                                     ChatTimeHeaderItem(:final time) => TimeChip(time: time),
                                     ChatHeaderMessage(:final message) => Padding(
@@ -243,13 +263,13 @@ class JobChatPage extends GetView<JobChatController> {
                 ],
               ),
               Obx(() {
-                final isOpen = controller.showAttachmentMenu.value;
+                final isOpen = attachmentController.showAttachmentMenu.value;
 
                 return Positioned(
                   left: AppUIConstants.spacing.space$16,
                   right: AppUIConstants.spacing.space$16,
                   child: CompositedTransformFollower(
-                    link: controller.layerLink,
+                    link: attachmentController.layerLink,
                     showWhenUnlinked: false,
                     targetAnchor: Alignment.topCenter,
                     followerAnchor: Alignment.bottomCenter,
@@ -274,8 +294,8 @@ class JobChatPage extends GetView<JobChatController> {
               }),
             ],
           ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 }

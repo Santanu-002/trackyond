@@ -15,7 +15,7 @@ import 'package:mime/mime.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
-import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:flutter_native_video_trimmer/flutter_native_video_trimmer.dart';
@@ -268,7 +268,14 @@ class MediaPreviewController extends GetxController
             allowedExtensions: ['pdf'],
           );
           if (result != null) {
-            newPaths.addAll(result.paths.whereType<String>());
+            final selectedPaths = result.paths.whereType<String>().toList();
+            final pdfPaths = selectedPaths
+                .where((path) => path.toLowerCase().endsWith('.pdf'))
+                .toList();
+            if (pdfPaths.length < selectedPaths.length) {
+              AppSnackbar.warn(AppStrings.jobChat.onlyPdfsAllowed);
+            }
+            newPaths.addAll(pdfPaths);
           }
           break;
       }
@@ -395,12 +402,19 @@ class MediaPreviewController extends GetxController
     }
 
     final args = Get.arguments as Map<String, dynamic>;
+    final action = args['action'] as String?;
     final requestMessage = args['requestMessage'] as JobChatMessageEntity?;
-    final controller = Get.find<JobChatController>();
+    final actionController = Get.find<JobChatActionController>();
 
     bool success = false;
-    if (requestMessage != null) {
-      success = await controller.sendMediaStatusProof(
+    if (action != null) {
+      success = await actionController.executeActionWithMedia(
+        actionString: action,
+        mediaPaths: mediaPaths,
+        caption: captionController.text,
+      );
+    } else if (requestMessage != null) {
+      success = await actionController.sendMediaStatusProof(
         imagePaths: mediaPaths,
         caption: captionController.text,
         requestMessage: requestMessage,
@@ -422,7 +436,7 @@ class MediaPreviewController extends GetxController
         }).toList(),
       );
 
-      success = await controller.sendGeneralMedia(
+      success = await actionController.sendGeneralMedia(
         uploadFiles: uploadFilesDto,
         caption: captionController.text,
       );

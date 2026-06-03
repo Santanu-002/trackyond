@@ -7,12 +7,15 @@ import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/job_action_button.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
 
 class JobActionsBar extends GetView<JobChatController> {
   const JobActionsBar({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final actionController = Get.find<JobChatActionController>();
+
     return Obx(() {
       if (controller.replyingToMessage.value != null) {
         return const SizedBox.shrink();
@@ -52,7 +55,7 @@ class JobActionsBar extends GetView<JobChatController> {
         );
       }
 
-      final actions = controller.availableActions;
+      final actions = actionController.availableActions;
       if (actions.isEmpty) return const SizedBox.shrink();
 
       final List<String> mainActions = [];
@@ -151,6 +154,4 @@ class JobActionsBar extends GetView<JobChatController> {
         action == JobAction.cancelJob ||
         action == JobAction.reopenJob;
   }
-
-
 }

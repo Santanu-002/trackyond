@@ -7,6 +7,8 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_upload_controller.dart';
 
 class JobActionButton extends GetView<JobChatController> {
   final String actionString;
@@ -23,6 +25,9 @@ class JobActionButton extends GetView<JobChatController> {
     final colorScheme = context.theme.colorScheme;
     final jobAction = JobAction.fromString(actionString);
     if (jobAction == null) return const SizedBox.shrink();
+
+    final actionController = Get.find<JobChatActionController>();
+    final uploadController = Get.find<JobChatUploadController>();
 
     final isPrimary = jobAction == JobAction.reached ||
                       jobAction == JobAction.startJob ||
@@ -46,14 +51,14 @@ class JobActionButton extends GetView<JobChatController> {
 
     final baseColor = getActionColor(jobAction);
     final contentColor = isPrimary ? colorScheme.onPrimary : baseColor;
-    final isAnyActionLoading = controller.isActionLoading.value;
 
     return Obx(() {
+      final isAnyActionLoading = actionController.isActionLoading.value;
       final isThisActionLoading =
-          controller.isActionLoading.value &&
-          controller.loadingActionLabel.value == actionString;
-      final message = controller.actionLoadingMessage.value;
-      final progress = controller.uploadProgress.value;
+          actionController.isActionLoading.value &&
+          actionController.loadingActionLabel.value == actionString;
+      final message = actionController.actionLoadingMessage.value;
+      final progress = uploadController.uploadProgress.value;
       final isUploading = isThisActionLoading &&
           (message == 'Uploading photo...' || progress > 0);
 
@@ -92,7 +97,7 @@ class JobActionButton extends GetView<JobChatController> {
                 ),
                 const SizedBox(width: 4), // tight spacer for cancel button
                 IconButton(
-                  onPressed: controller.cancelCurrentAction,
+                  onPressed: uploadController.cancelCurrentAction,
                   icon: Icon(
                     Icons.close_rounded,
                     color: contentColor,
@@ -170,7 +175,7 @@ class JobActionButton extends GetView<JobChatController> {
               color: baseColor,
               onPressed: isAnyActionLoading
                   ? null
-                  : () => controller.executeAction(actionString),
+                  : () => actionController.executeAction(actionString),
               child: buttonChild,
             )
           : AppButton.outlined(
@@ -181,7 +186,7 @@ class JobActionButton extends GetView<JobChatController> {
               color: baseColor,
               onPressed: isAnyActionLoading
                   ? null
-                  : () => controller.executeAction(actionString),
+                  : () => actionController.executeAction(actionString),
               child: buttonChild,
             );
     });

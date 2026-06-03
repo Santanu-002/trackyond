@@ -24,8 +24,8 @@ _TeamStatusModel _$TeamStatusModelFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TeamStatusModelToJson(_TeamStatusModel instance) =>
     <String, dynamic>{
-      'members': instance.members,
-      'stats': instance.stats,
-      'options': instance.options,
-      'pagination': instance.pagination,
+      'members': instance.members.map((e) => e.toJson()).toList(),
+      'stats': instance.stats.toJson(),
+      'options': instance.options.toJson(),
+      'pagination': instance.pagination.toJson(),
     };

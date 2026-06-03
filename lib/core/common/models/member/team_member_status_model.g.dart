@@ -20,6 +20,6 @@ _TeamMemberStatusModel _$TeamMemberStatusModelFromJson(
 Map<String, dynamic> _$TeamMemberStatusModelToJson(
   _TeamMemberStatusModel instance,
 ) => <String, dynamic>{
-  'profile': instance.profile,
-  'todayAttendance': instance.todayAttendance,
+  'profile': instance.profile.toJson(),
+  'todayAttendance': instance.todayAttendance?.toJson(),
 };

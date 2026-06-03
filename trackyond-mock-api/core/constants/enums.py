@@ -75,3 +75,9 @@ class ChatMessageType(str, Enum):
     activity = "activity"
     header = "header"
     reply = "reply"
+
+class ChatMessageStatus(str, Enum):
+    sent = "sent"
+    delivered = "delivered"
+    seen = "seen"
+    removed = "removed"

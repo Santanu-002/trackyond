@@ -14,6 +14,8 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_image_grid/chat_image_grid.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activity_meta_row.dart';
 
@@ -45,6 +47,8 @@ class ActivityMessageCard extends StatelessWidget {
     final activityType = JobActivityType.fromString(metadata['activityType']);
 
     final chatController = Get.find<JobChatController>();
+    final actionController = Get.find<JobChatActionController>();
+    final attachmentController = Get.find<JobChatAttachmentController>();
     final senderName = chatController.getSenderName(message);
     final senderImage = chatController.getSenderImage(message);
 
@@ -526,7 +530,7 @@ class ActivityMessageCard extends StatelessWidget {
                 color: colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
               GestureDetector(
-                onTap: () => chatController.openMap(latitude, longitude),
+                onTap: () => actionController.openMap(latitude, longitude),
                 behavior: HitTestBehavior.opaque,
                 child: Container(
                   width: double.infinity,
@@ -564,12 +568,12 @@ class ActivityMessageCard extends StatelessWidget {
                 );
 
                 final isThisActionLoading =
-                    chatController.isActionLoading.value &&
-                    chatController.loadingActionLabel.value ==
+                    actionController.isActionLoading.value &&
+                    actionController.loadingActionLabel.value ==
                         JobAction.sendLocation.value &&
-                    chatController.loadingActionMessageUid.value == message.uid;
+                    actionController.loadingActionMessageUid.value == message.uid;
                 final loadingMessage =
-                    chatController.actionLoadingMessage.value;
+                    actionController.actionLoadingMessage.value;
 
                 final btnColor = isFulfilled
                     ? colorScheme.onSurfaceVariant
@@ -584,7 +588,7 @@ class ActivityMessageCard extends StatelessWidget {
                     GestureDetector(
                       onTap: (isFulfilled || isThisActionLoading)
                           ? null
-                          : () => chatController.executeAction(
+                          : () => actionController.executeAction(
                               JobAction.sendLocation.value,
                               messageUid: message.uid,
                             ),
@@ -711,7 +715,7 @@ class ActivityMessageCard extends StatelessWidget {
                     GestureDetector(
                       onTap: isFulfilled
                           ? null
-                          : () => chatController.openCameraForStatusProof(message),
+                          : () => attachmentController.openCameraForStatusProof(message),
                       behavior: HitTestBehavior.opaque,
                       child: Container(
                         width: double.infinity,

@@ -24,9 +24,11 @@ _OwnerDashboardModel _$OwnerDashboardModelFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$OwnerDashboardModelToJson(
   _OwnerDashboardModel instance,
 ) => <String, dynamic>{
-  'teamMembersStatus': instance.teamMembersStatus,
-  'jobCounts': instance.jobCounts,
-  'recentJobs': instance.recentJobs,
+  'teamMembersStatus': instance.teamMembersStatus
+      .map((e) => e.toJson())
+      .toList(),
+  'jobCounts': instance.jobCounts.toJson(),
+  'recentJobs': instance.recentJobs.map((e) => e.toJson()).toList(),
   'unreadNotificationCount': instance.unreadNotificationCount,
 };
 
@@ -44,6 +46,6 @@ _OwnerDashboardModelStats _$OwnerDashboardModelStatsFromJson(
 Map<String, dynamic> _$OwnerDashboardModelStatsToJson(
   _OwnerDashboardModelStats instance,
 ) => <String, dynamic>{
-  'todayStats': instance.todayStats,
-  'overallStats': instance.overallStats,
+  'todayStats': instance.todayStats.toJson(),
+  'overallStats': instance.overallStats.toJson(),
 };

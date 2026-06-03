@@ -4,13 +4,13 @@ import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/attachment_menu_item_widget.dart';
-import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
 
 class AttachmentMenuItem {
   final IconData icon;
   final String label;
   final Color Function(ColorScheme) colorResolver;
-  final VoidCallback Function(JobChatController) onTapResolver;
+  final VoidCallback Function(JobChatAttachmentController) onTapResolver;
 
   const AttachmentMenuItem({
     required this.icon,
@@ -20,7 +20,7 @@ class AttachmentMenuItem {
   });
 }
 
-class AttachmentMenu extends GetView<JobChatController> {
+class AttachmentMenu extends GetView<JobChatAttachmentController> {
   const AttachmentMenu({super.key});
 
   static List<AttachmentMenuItem> get _menuItems => [

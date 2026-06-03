@@ -670,6 +670,15 @@ class JobChatStrings {
   
   // Cropping & Media Preview Strings
   String pdfPageCount(int count) => count == 1 ? '1 page' : '$count pages';
+  String get onlyPdfsAllowed => 'Only PDF files are allowed';
+  String get messageRemovedByAdmin => 'This message was removed by Admin';
+  String get messageRemoved => 'This message was removed';
+  String get deleteForMe => 'Delete for me';
+  String get deleteForEveryone => 'Delete for everyone';
+  String get deleteMessagesTitle => 'Delete Message?';
+  String deleteMessagesPrompt(int count) => count == 1
+      ? 'Are you sure you want to delete this message?'
+      : 'Are you sure you want to delete these $count messages?';
   String get cropImageSuccess => 'Image cropped successfully!';
   String get cropImageFailed => 'Failed to crop image. Please try again.';
   String get cropOriginalFileNotFound => 'Original file does not exist.';

@@ -44,6 +44,19 @@ _JobChatMessageModel _$JobChatMessageModelFromJson(Map<String, dynamic> json) =>
       ),
       active: json['active'] as bool? ?? true,
       deleted: json['deleted'] as bool? ?? false,
+      deletedByUid: json['deletedByUid'] as String?,
+      deletedByUserType: json['deletedByUserType'] as String?,
+      deletedFor:
+          (json['deletedFor'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      deletedAt: const DateTimeNullableConverter().fromJson(
+        json['deletedAt'] as String?,
+      ),
+      deletedByUserAt: const DateTimeNullableConverter().fromJson(
+        json['deletedByUserAt'] as String?,
+      ),
     );
 
 Map<String, dynamic> _$JobChatMessageModelToJson(
@@ -58,6 +71,13 @@ Map<String, dynamic> _$JobChatMessageModelToJson(
   'actionPerformed': instance.actionPerformed,
   'createdByAuthorAt': const DateTimeConverter().toJson(
     instance.createdByAuthorAt,
+  ),
+  'deletedByUid': instance.deletedByUid,
+  'deletedByUserType': instance.deletedByUserType,
+  'deletedFor': instance.deletedFor,
+  'deletedAt': const DateTimeNullableConverter().toJson(instance.deletedAt),
+  'deletedByUserAt': const DateTimeNullableConverter().toJson(
+    instance.deletedByUserAt,
   ),
 };
 

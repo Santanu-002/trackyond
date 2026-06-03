@@ -6,7 +6,6 @@ part 'job_chat_message_content_model.freezed.dart';
 part 'job_chat_message_content_model.g.dart';
 
 @freezed
-@JsonSerializable(explicitToJson: true)
 sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
   const factory JobChatMessageContentModel({
     @JsonKey(unknownEnumValue: JobChatMessageContentType.unknown)

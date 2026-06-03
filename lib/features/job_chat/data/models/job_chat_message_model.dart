@@ -8,7 +8,6 @@ part 'job_chat_message_model.freezed.dart';
 part 'job_chat_message_model.g.dart';
 
 @freezed
-@JsonSerializable(explicitToJson: true)
 sealed class JobChatMessageModel with _$JobChatMessageModel {
   const factory JobChatMessageModel({
     @JsonKey(includeToJson: false) required String uid,
@@ -32,6 +31,12 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
     
     @JsonKey(includeToJson: false) @Default(true) bool? active,
     @JsonKey(includeToJson: false) @Default(false) bool? deleted,
+    
+    String? deletedByUid,
+    String? deletedByUserType,
+    @Default([]) List<String> deletedFor,
+    @DateTimeNullableConverter() DateTime? deletedAt,
+    @DateTimeNullableConverter() DateTime? deletedByUserAt,
   }) = _JobChatMessageModel;
 
   const JobChatMessageModel._();
@@ -65,6 +70,11 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
       isMe: isMe ?? false,
       active: active ?? true,
       deleted: deleted ?? false,
+      deletedByUid: deletedByUid,
+      deletedByUserType: deletedByUserType,
+      deletedFor: deletedFor,
+      deletedAt: deletedAt,
+      deletedByUserAt: deletedByUserAt,
     );
   }
 }

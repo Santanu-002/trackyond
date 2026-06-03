@@ -23,6 +23,12 @@ class JobChatMessageEntity extends Equatable {
   final bool active;
   final bool deleted;
 
+  final String? deletedByUid;
+  final String? deletedByUserType;
+  final List<String> deletedFor;
+  final DateTime? deletedAt;
+  final DateTime? deletedByUserAt;
+
   const JobChatMessageEntity({
     required this.uid,
     this.localId,
@@ -40,6 +46,11 @@ class JobChatMessageEntity extends Equatable {
     required this.isMe,
     this.active = true,
     this.deleted = false,
+    this.deletedByUid,
+    this.deletedByUserType,
+    this.deletedFor = const [],
+    this.deletedAt,
+    this.deletedByUserAt,
   });
 
   DateTime get timestamp => createdByAuthorAt;
@@ -67,6 +78,11 @@ class JobChatMessageEntity extends Equatable {
     bool? isMe,
     bool? active,
     bool? deleted,
+    String? deletedByUid,
+    String? deletedByUserType,
+    List<String>? deletedFor,
+    DateTime? deletedAt,
+    DateTime? deletedByUserAt,
   }) {
     return JobChatMessageEntity(
       uid: uid ?? this.uid,
@@ -85,6 +101,11 @@ class JobChatMessageEntity extends Equatable {
       isMe: isMe ?? this.isMe,
       active: active ?? this.active,
       deleted: deleted ?? this.deleted,
+      deletedByUid: deletedByUid ?? this.deletedByUid,
+      deletedByUserType: deletedByUserType ?? this.deletedByUserType,
+      deletedFor: deletedFor ?? this.deletedFor,
+      deletedAt: deletedAt ?? this.deletedAt,
+      deletedByUserAt: deletedByUserAt ?? this.deletedByUserAt,
     );
   }
 
@@ -106,5 +127,10 @@ class JobChatMessageEntity extends Equatable {
         isMe,
         active,
         deleted,
+        deletedByUid,
+        deletedByUserType,
+        deletedFor,
+        deletedAt,
+        deletedByUserAt,
       ];
 }

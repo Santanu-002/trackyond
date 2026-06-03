@@ -19,5 +19,5 @@ Map<String, dynamic> _$AttendanceStatusModelToJson(
   _AttendanceStatusModel instance,
 ) => <String, dynamic>{
   'status': const AttendanceStatusConverter().toJson(instance.status),
-  'attendance': instance.attendance,
+  'attendance': instance.attendance?.toJson(),
 };

@@ -25,9 +25,9 @@ _WorkerDashboardModel _$WorkerDashboardModelFromJson(
 Map<String, dynamic> _$WorkerDashboardModelToJson(
   _WorkerDashboardModel instance,
 ) => <String, dynamic>{
-  'attendanceStatus': instance.attendanceStatus,
-  'recentJobs': instance.recentJobs,
-  'jobCounts': instance.jobCounts,
+  'attendanceStatus': instance.attendanceStatus.toJson(),
+  'recentJobs': instance.recentJobs.map((e) => e.toJson()).toList(),
+  'jobCounts': instance.jobCounts.toJson(),
   'unreadNotificationCount': instance.unreadNotificationCount,
 };
 
@@ -45,6 +45,6 @@ _WorkerDashboardModelStats _$WorkerDashboardModelStatsFromJson(
 Map<String, dynamic> _$WorkerDashboardModelStatsToJson(
   _WorkerDashboardModelStats instance,
 ) => <String, dynamic>{
-  'todayStats': instance.todayStats,
-  'overallStats': instance.overallStats,
+  'todayStats': instance.todayStats.toJson(),
+  'overallStats': instance.overallStats.toJson(),
 };

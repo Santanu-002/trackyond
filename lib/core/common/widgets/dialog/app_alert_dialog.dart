@@ -4,37 +4,43 @@ import 'package:trackyond/core/common/widgets/button/app_button.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 
 class AppAlertDialog extends StatelessWidget {
-  final String title;
+  final String? title;
   final String message;
-  final String confirmText;
-  final VoidCallback onConfirm;
+  final String? confirmText;
+  final VoidCallback? onConfirm;
   final String? cancelText;
   final VoidCallback? onCancel;
   final bool isDestructive;
   final bool canPop;
+  final List<Widget>? actions;
+  final bool actionsVertical;
 
   const AppAlertDialog({
     super.key,
-    required this.title,
+    this.title,
     required this.message,
-    required this.confirmText,
-    required this.onConfirm,
+    this.confirmText,
+    this.onConfirm,
     this.cancelText,
     this.onCancel,
     this.isDestructive = false,
     this.canPop = true,
-  });
+    this.actions,
+    this.actionsVertical = false,
+  }) : assert(actions != null || (confirmText != null && onConfirm != null));
 
   static Future<T?> show<T>({
     required BuildContext context,
-    required String title,
+    String? title,
     required String message,
-    required String confirmText,
-    required VoidCallback onConfirm,
+    String? confirmText,
+    VoidCallback? onConfirm,
     String? cancelText,
     VoidCallback? onCancel,
     bool isDestructive = false,
     bool canPop = true,
+    List<Widget>? actions,
+    bool actionsVertical = false,
   }) {
     return Get.dialog<T>(
       AppAlertDialog(
@@ -46,6 +52,8 @@ class AppAlertDialog extends StatelessWidget {
         onCancel: onCancel,
         isDestructive: isDestructive,
         canPop: canPop,
+        actions: actions,
+        actionsVertical: actionsVertical,
       ),
       barrierDismissible: false,
     );
@@ -57,7 +65,7 @@ class AppAlertDialog extends StatelessWidget {
       canPop: canPop,
       child: Dialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
+          borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$24),
         ),
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -66,7 +74,7 @@ class AppAlertDialog extends StatelessWidget {
           decoration: BoxDecoration(
             color: context.theme.colorScheme.surface,
             shape: BoxShape.rectangle,
-            borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$16),
+            borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$24),
             boxShadow: [
               BoxShadow(
                 color: context.theme.colorScheme.onSurface.withValues(alpha: 0.1),
@@ -79,61 +87,75 @@ class AppAlertDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: context.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDestructive
-                      ? context.theme.colorScheme.error
-                      : context.theme.colorScheme.onSurface,
+              if (title != null) ...[
+                Text(
+                  title!,
+                  style: context.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDestructive
+                        ? context.theme.colorScheme.error
+                        : context.theme.colorScheme.onSurface,
+                  ),
                 ),
-              ),
-              AppUIConstants.widgets.verticalBox$12,
+                AppUIConstants.widgets.verticalBox$12,
+              ],
               Text(
                 message,
+                textAlign: TextAlign.start,
                 style: context.textTheme.bodyMedium?.copyWith(
                   color: context.theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               AppUIConstants.widgets.verticalBox$24,
-              Row(
-                spacing: AppUIConstants.spacing.space$12,
-                children: [
-                  if (cancelText != null)
-                    Expanded(
-                      child: AppButton.ghost(
-                        text: cancelText!,
-                        onPressed: onCancel ?? () => Get.back(),
+              if (actionsVertical)
+                SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    spacing: AppUIConstants.spacing.space$8,
+                    children: actions ?? [],
+                  ),
+                )
+              else
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  spacing: AppUIConstants.spacing.space$12,
+                  children: actions ?? [
+                    if (cancelText != null)
+                      Expanded(
+                        child: AppButton.ghost(
+                          text: cancelText!,
+                          onPressed: onCancel ?? () => Get.back(),
+                        ),
                       ),
-                    ),
-                  Expanded(
-                    child: isDestructive
-                        ? AppButton.custom(
-                            onPressed: onConfirm,
-                            child: Container(
-                              height: 48,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: context.theme.colorScheme.errorContainer,
-                                borderRadius: BorderRadius.circular(
-                                    AppUIConstants.radius.radius$12),
-                              ),
-                              child: Text(
-                                confirmText,
-                                style: context.textTheme.labelLarge?.copyWith(
-                                  color: context.theme.colorScheme.onErrorContainer,
-                                  fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: isDestructive
+                          ? AppButton.custom(
+                              onPressed: onConfirm!,
+                              child: Container(
+                                height: 48,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: context.theme.colorScheme.errorContainer,
+                                  borderRadius: BorderRadius.circular(
+                                      AppUIConstants.radius.radius$12),
+                                ),
+                                child: Text(
+                                  confirmText!,
+                                  style: context.textTheme.labelLarge?.copyWith(
+                                    color: context.theme.colorScheme.onErrorContainer,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
+                            )
+                          : AppButton.filled(
+                              text: confirmText!,
+                              onPressed: onConfirm!,
                             ),
-                          )
-                        : AppButton.filled(
-                            text: confirmText,
-                            onPressed: onConfirm,
-                          ),
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

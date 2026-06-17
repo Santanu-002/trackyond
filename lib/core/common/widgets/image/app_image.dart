@@ -36,13 +36,35 @@ class AppImage extends StatelessWidget {
 
   static final Map<String, MemoryImage> _blurHashCache = {};
 
-  static MemoryImage? getBlurHashProvider(String hash) {
+  static MemoryImage? getBlurHashProvider(
+    String hash, {
+    double? imageWidth,
+    double? imageHeight,
+  }) {
     if (_blurHashCache.containsKey(hash)) {
       return _blurHashCache[hash];
     }
     try {
       final blurHashObj = BlurHash.decode(hash);
-      final decodedImage = blurHashObj.toImage(32, 32);
+      
+      // Calculate aspect ratio
+      double ratio = 1.0;
+      if (imageWidth != null && imageHeight != null && imageHeight > 0) {
+        ratio = imageWidth / imageHeight;
+      } else {
+        ratio = blurHashObj.numCompX / blurHashObj.numCompY;
+      }
+      
+      // Maintain aspect ratio with a max dimension of 32
+      int targetWidth = 32;
+      int targetHeight = 32;
+      if (ratio > 1.0) {
+        targetHeight = (32 / ratio).round().clamp(1, 32);
+      } else if (ratio < 1.0) {
+        targetWidth = (32 * ratio).round().clamp(1, 32);
+      }
+      
+      final decodedImage = blurHashObj.toImage(targetWidth, targetHeight);
       final pngBytes = Uint8List.fromList(img.encodePng(decodedImage));
       final memoryImage = MemoryImage(pngBytes);
       _blurHashCache[hash] = memoryImage;
@@ -74,7 +96,11 @@ class AppImage extends StatelessWidget {
 
     final MemoryImage? decodedHashProvider =
         (blurHash != null && blurHash!.isNotEmpty)
-        ? getBlurHashProvider(blurHash!)
+        ? getBlurHashProvider(
+            blurHash!,
+            imageWidth: imageWidth ?? width,
+            imageHeight: imageHeight ?? height,
+          )
         : null;
 
     double? calculatedHeight = height;

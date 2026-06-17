@@ -10,6 +10,8 @@ class VideoThumbnailWidget extends StatefulWidget {
   final BoxFit fit;
   final double? width;
   final double? height;
+  final double? imageWidth;
+  final double? imageHeight;
 
   const VideoThumbnailWidget({
     super.key,
@@ -18,6 +20,8 @@ class VideoThumbnailWidget extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.width,
     this.height,
+    this.imageWidth,
+    this.imageHeight,
   });
 
   static final Map<String, Uint8List> _thumbnailCache = {};
@@ -78,7 +82,11 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
   Widget build(BuildContext context) {
     final colorScheme = context.colorScheme;
     final MemoryImage? decodedHashProvider = (widget.blurHash != null && widget.blurHash!.isNotEmpty)
-        ? AppImage.getBlurHashProvider(widget.blurHash!)
+        ? AppImage.getBlurHashProvider(
+            widget.blurHash!,
+            imageWidth: widget.imageWidth ?? widget.width,
+            imageHeight: widget.imageHeight ?? widget.height,
+          )
         : null;
 
     Widget imageWidget;

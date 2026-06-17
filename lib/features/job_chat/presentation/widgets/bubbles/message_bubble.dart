@@ -416,13 +416,16 @@ class MessageBubble extends StatelessWidget {
             ),
           );
 
-          final double topPad = (i == 0 && mediaContents.isEmpty && docContents.isEmpty && replyContent == null) ? 8.0 : 4.0;
+          final double topPad = (i == 0 && mediaContents.isEmpty && docContents.isEmpty && replyContent == null)
+              ? 8.0
+              : (docContents.isNotEmpty ? 0.0 : 4.0);
           final double bottomPad = isLast ? 8.0 : 4.0;
+          final double leftPad = docContents.isNotEmpty ? 12.0 : 8.0;
 
           if (isLast) {
             children.add(
               Padding(
-                padding: EdgeInsets.fromLTRB(8.0, topPad, 12.0, bottomPad),
+                padding: EdgeInsets.fromLTRB(leftPad, topPad, 12.0, bottomPad),
                 child: ChatBubbleLayout(
                   text: textWidget,
                   time: BubbleTimeAndStatus(
@@ -436,19 +439,16 @@ class MessageBubble extends StatelessWidget {
           } else {
             children.add(
               Padding(
-                padding: EdgeInsets.fromLTRB(8.0, topPad, 12.0, bottomPad),
+                padding: EdgeInsets.fromLTRB(leftPad, topPad, 12.0, bottomPad),
                 child: textWidget,
               ),
             );
           }
         }
 
-        final hasLastText =
-            validContents.isNotEmpty &&
-            (validContents.last.type == JobChatMessageContentType.text ||
-                validContents.last.type == JobChatMessageContentType.activity);
+        final hasVisualTextAtBottom = textContents.isNotEmpty;
         final hasNoTextOrDocs = textContents.isEmpty && docContents.isEmpty;
-        if (!hasLastText && validContents.isNotEmpty && !isSingleMediaNoCaption) {
+        if (!hasVisualTextAtBottom && validContents.isNotEmpty && !isSingleMediaNoCaption) {
           children.add(
             Align(
               alignment: Alignment.centerRight,

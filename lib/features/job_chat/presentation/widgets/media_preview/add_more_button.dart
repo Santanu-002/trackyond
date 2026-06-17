@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
+import 'package:trackyond/core/theme/color_scheme_extension.dart';
 
 class AddMoreButton extends StatelessWidget {
   final bool isLoading;
@@ -21,7 +22,7 @@ class AddMoreButton extends StatelessWidget {
         width: 56,
         height: 56,
         decoration: BoxDecoration(
-          color: colorScheme.onPrimary.withValues(alpha: 0.1),
+          color: colorScheme.black.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
           border: Border.all(
             color: colorScheme.onPrimary.withValues(alpha: 0.2),

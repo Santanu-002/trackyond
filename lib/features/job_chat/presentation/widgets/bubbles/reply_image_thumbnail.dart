@@ -25,7 +25,11 @@ class ReplyImageThumbnail extends StatelessWidget {
     final colorScheme = context.colorScheme;
 
     final MemoryImage? decodedHashProvider = (blurHash != null && blurHash!.isNotEmpty)
-        ? AppImage.getBlurHashProvider(blurHash!)
+        ? AppImage.getBlurHashProvider(
+            blurHash!,
+            imageWidth: size,
+            imageHeight: size,
+          )
         : null;
 
     Widget backgroundWidget;

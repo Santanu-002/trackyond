@@ -68,14 +68,16 @@ class ChatImageGridItem extends StatelessWidget {
         blurHash: blurHash,
         width: imageContents.length == 1 ? imageWidth : null,
         height: imageContents.length == 1 ? imageHeight : null,
+        imageWidth: imageWidth,
+        imageHeight: imageHeight,
         fit: BoxFit.cover,
       );
     } else {
       img = AppImage(
         imageUrl: url,
         blurHash: blurHash,
-        imageWidth: imageContents.length == 1 ? imageWidth : null,
-        imageHeight: imageContents.length == 1 ? imageHeight : null,
+        imageWidth: imageWidth,
+        imageHeight: imageHeight,
         fit: BoxFit.cover,
         matchAspectRatio: imageContents.length == 1,
       );

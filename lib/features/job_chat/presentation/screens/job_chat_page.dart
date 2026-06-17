@@ -115,6 +115,9 @@ class JobChatPage extends GetView<JobChatController> {
                       }
 
                       final items = controller.flattenedItems;
+                      if (items.isEmpty) {
+                        return const SizedBox.expand();
+                      }
 
                       return Stack(
                         alignment: Alignment.topCenter,
@@ -132,7 +135,9 @@ class JobChatPage extends GetView<JobChatController> {
                               initialScrollIndex: 0,
                               reverse: true,
                               padding: EdgeInsets.only(
-                                top: AppUIConstants.spacing.space$8,
+                                top: items.isNotEmpty && items.last is ChatDateHeader
+                                    ? 0
+                                    : AppUIConstants.spacing.space$8,
                                 bottom: 0,
                               ),
                               itemCount: items.length,
@@ -193,8 +198,9 @@ class JobChatPage extends GetView<JobChatController> {
                                     ChatDateHeader(:final date) => DateChip(
                                       date: date,
                                       margin: index == items.length - 1
-                                          ? EdgeInsets.symmetric(
-                                              vertical: AppUIConstants.spacing.space$16,
+                                          ? EdgeInsets.only(
+                                              top: AppUIConstants.spacing.space$4,
+                                              bottom: AppUIConstants.spacing.space$16,
                                             )
                                           : EdgeInsets.only(
                                               top: 0,

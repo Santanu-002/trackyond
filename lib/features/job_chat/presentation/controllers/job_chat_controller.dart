@@ -192,18 +192,33 @@ class JobChatController extends GetxController {
   }
 
   void scrollToLast({bool animate = false}) {
-    if (!itemScrollController.isAttached) return;
-    if (flattenedItems.isEmpty) return;
-    const index = 0;
-    if (animate) {
-      itemScrollController.scrollTo(
-        index: index,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
-    } else {
-      itemScrollController.jumpTo(index: index);
-    }
+    _scrollToLastAfterLayout(animate: animate);
+  }
+
+  void _scrollToLastAfterLayout({required bool animate, int attempt = 0}) {
+    if (flattenedItems.isEmpty || isClosed) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (flattenedItems.isEmpty || isClosed) return;
+
+      if (!itemScrollController.isAttached) {
+        if (attempt < 3) {
+          _scrollToLastAfterLayout(animate: animate, attempt: attempt + 1);
+        }
+        return;
+      }
+
+      const index = 0;
+      if (animate) {
+        itemScrollController.scrollTo(
+          index: index,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      } else {
+        itemScrollController.jumpTo(index: index);
+      }
+    });
   }
 
   List<ChatItem> get flattenedItems {

@@ -70,3 +70,6 @@ app.*.map.json
 /ios/Flutter/App.podspec
 
 gha-creds-*.json
+service-account.json
+service-account.bak.md
+service-account.bak

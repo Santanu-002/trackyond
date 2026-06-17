@@ -48,10 +48,10 @@ class JobChatBinding extends Bindings {
     Get.lazyPut(() => DeleteMessagesUseCase(Get.find()));
 
     // ── Controllers ─────────────────────────────────────────────────────
-    Get.lazyPut(() => JobChatAttachmentController());
-    Get.lazyPut(() => JobChatUploadController(uploadFileUseCase: Get.find()));
-    Get.lazyPut(() => JobChatSelectionController(deleteMessagesUseCase: Get.find()));
-    Get.lazyPut(() => JobChatActionController(sendMessageUseCase: Get.find()));
+    Get.put(JobChatAttachmentController());
+    Get.put(JobChatUploadController(uploadFileUseCase: Get.find()));
+    Get.put(JobChatSelectionController(deleteMessagesUseCase: Get.find()));
+    Get.put(JobChatActionController(sendMessageUseCase: Get.find()));
 
     Get.lazyPut(
       () => JobChatController(

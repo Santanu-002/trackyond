@@ -27,7 +27,7 @@ class ChatActionButton extends StatelessWidget {
     final isEnabled = !disabled && onPressed != null;
     final colorScheme = context.colorScheme;
 
-    final effectiveBgColor = backgroundColor ?? colorScheme.onPrimary.withValues(alpha: 0.15);
+    final effectiveBgColor = backgroundColor ?? colorScheme.black.withValues(alpha: 0.5);
     final effectiveIconColor = iconColor ?? colorScheme.onPrimary;
     final finalIconColor = isEnabled ? effectiveIconColor : effectiveIconColor.withValues(alpha: 0.35);
 

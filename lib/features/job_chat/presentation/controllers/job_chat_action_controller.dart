@@ -1052,13 +1052,25 @@ class JobChatActionController extends GetxController {
       final List<SendMessageEntity> messageEntities = [];
       final List<String> tempLocalIds = [];
 
-      for (int i = 0; i < nonNullContents.length; i++) {
+      final List<JobChatMessageContentEntity> mediaContents = nonNullContents
+          .where((c) =>
+              c.type == JobChatMessageContentType.image ||
+              c.type == JobChatMessageContentType.video)
+          .toList();
+
+      final List<JobChatMessageContentEntity> docContents = nonNullContents
+          .where((c) =>
+              c.type == JobChatMessageContentType.document ||
+              c.type == JobChatMessageContentType.pdf)
+          .toList();
+
+      void addMessage(List<JobChatMessageContentEntity> contents) {
         final tempLocalId = nanoid(10);
         tempLocalIds.add(tempLocalId);
 
         final List<JobChatMessageContentEntity> messageContent = [];
 
-        if (i == 0 && caption.trim().isNotEmpty) {
+        if (messageEntities.isEmpty && caption.trim().isNotEmpty) {
           messageContent.add(
             JobChatMessageContentEntity(
               type: JobChatMessageContentType.text,
@@ -1067,7 +1079,7 @@ class JobChatActionController extends GetxController {
           );
         }
 
-        messageContent.add(nonNullContents[i]);
+        messageContent.addAll(contents);
 
         messageEntities.add(
           SendMessageEntity(
@@ -1079,6 +1091,14 @@ class JobChatActionController extends GetxController {
             type: JobChatMessageType.message,
           ),
         );
+      }
+
+      if (mediaContents.isNotEmpty) {
+        addMessage(mediaContents);
+      }
+
+      for (final doc in docContents) {
+        addMessage([doc]);
       }
 
       if (messageEntities.isEmpty) {

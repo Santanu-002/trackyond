@@ -157,4 +157,6 @@ db/*.sqlite3
 db/*.json
 !db/.gitkeep
 uploads/
+service-account.json
+service-account.bak.md
 

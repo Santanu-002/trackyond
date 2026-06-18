@@ -140,4 +140,8 @@ class _CommonEndpoints {
   String jobChatMembers(String jobId) => '$_root/job-chat/$jobId/members';
 
   String jobChatMessagesDelete(String jobId) => '$_root/job-chat/$jobId/messages/delete';
+
+  String jobChatSeen(String jobId) => '$_root/job-chat/$jobId/seen';
+
+  String jobChatDelivered(String jobId) => '$_root/job-chat/$jobId/delivered';
 }

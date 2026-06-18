@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
+import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/network/api/request_extras.dart';
@@ -24,6 +25,12 @@ abstract interface class IAuthDataSource {
   Future<ApiResponse<void>> logout({required UserRole role});
 
   Future<ApiResponse<ProfileResponseModel>> getProfile({required UserRole role});
+
+  Future<ApiResponse<AuthTokens>> refreshAuthToken({
+    required String accessToken,
+    required String refreshToken,
+    required UserRole role,
+  });
 }
 
 class AuthDataSourceImpl with BaseRemoteDataSource implements IAuthDataSource {
@@ -94,6 +101,31 @@ class AuthDataSourceImpl with BaseRemoteDataSource implements IAuthDataSource {
     return performApiRequest(
       _dio.get(endpoint),
       (json) => ProfileResponseModel.fromJson(json as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<AuthTokens>> refreshAuthToken({
+    required String accessToken,
+    required String refreshToken,
+    required UserRole role,
+  }) async {
+    final endpoint = role == UserRole.owner
+        ? ApiEndpoints.admin.auth.refresh
+        : ApiEndpoints.employee.auth.refresh;
+
+    return performApiRequest(
+      _dio.post(
+        endpoint,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'x-refresh-token': refreshToken,
+          },
+          extra: {RequestExtras.isPublic: true},
+        ),
+      ),
+      (json) => AuthTokens.fromJson(json as Map<String, dynamic>),
     );
   }
 }

@@ -12,6 +12,9 @@ import 'package:trackyond/features/auth/domain/usecases/get_company_usecase.dart
 import 'package:trackyond/features/auth/domain/usecases/get_member_profile_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_user_role_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/refresh_auth_token_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/connect_websocket_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/disconnect_websocket_usecase.dart';
 import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 
 class AuthController extends GetxController {
@@ -23,6 +26,9 @@ class AuthController extends GetxController {
   final LogoutUseCase _logoutUseCase;
   final CheckTokenValidityUseCase _checkTokenValidityUseCase;
   final CheckOnboardingStatusUseCase _checkOnboardingStatusUseCase;
+  final RefreshAuthTokenUseCase _refreshAuthTokenUseCase;
+  final ConnectWebSocketUseCase _connectWebSocketUseCase;
+  final DisconnectWebSocketUseCase _disconnectWebSocketUseCase;
 
   AuthController({
     required CheckAuthStatusUseCase checkAuthStatusUseCase,
@@ -33,6 +39,9 @@ class AuthController extends GetxController {
     required LogoutUseCase logoutUseCase,
     required CheckTokenValidityUseCase checkTokenValidityUseCase,
     required CheckOnboardingStatusUseCase checkOnboardingStatusUseCase,
+    required RefreshAuthTokenUseCase refreshAuthTokenUseCase,
+    required ConnectWebSocketUseCase connectWebSocketUseCase,
+    required DisconnectWebSocketUseCase disconnectWebSocketUseCase,
   }) : _checkAuthStatusUseCase = checkAuthStatusUseCase,
        _getAuthenticatedUserUseCase = getAuthenticatedUserUseCase,
        _getUserRoleUseCase = getUserRoleUseCase,
@@ -40,7 +49,10 @@ class AuthController extends GetxController {
        _getCompanyUseCase = getCompanyUseCase,
        _logoutUseCase = logoutUseCase,
        _checkTokenValidityUseCase = checkTokenValidityUseCase,
-       _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase;
+       _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase,
+       _refreshAuthTokenUseCase = refreshAuthTokenUseCase,
+       _connectWebSocketUseCase = connectWebSocketUseCase,
+       _disconnectWebSocketUseCase = disconnectWebSocketUseCase;
 
   @override
   void onReady() async {
@@ -101,6 +113,11 @@ class AuthController extends GetxController {
     return tokenResult.fold((_) => false, (valid) => valid);
   }
 
+  Future<bool> refreshAuthToken() async {
+    final result = await _refreshAuthTokenUseCase(const NoParams());
+    return result.fold((_) => false, (success) => success);
+  }
+
   Future<bool> get _hasCompletedOnboarding async {
     final result = await _checkOnboardingStatusUseCase(const NoParams());
     return result.fold<bool>((_) => false, (completed) => completed);
@@ -120,6 +137,8 @@ class AuthController extends GetxController {
         return;
       }
 
+      _connectWebSocketUseCase(const NoParams());
+
       // 3. User exists, check status and navigate
       final role = await userRole;
 
@@ -135,6 +154,7 @@ class AuthController extends GetxController {
     if (Get.isRegistered<NotificationController>()) {
       await Get.find<NotificationController>().deleteFcmToken();
     }
+    await _disconnectWebSocketUseCase(const NoParams());
     await _logoutUseCase(const NoParams());
     Get.offAllNamed(AppRoutes.common.auth.chooseRole);
   }

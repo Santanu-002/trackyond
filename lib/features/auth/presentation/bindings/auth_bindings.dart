@@ -11,6 +11,9 @@ import 'package:trackyond/features/auth/domain/usecases/get_member_profile_useca
 import 'package:trackyond/features/auth/domain/usecases/get_user_role_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/get_company_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/refresh_auth_token_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/connect_websocket_usecase.dart';
+import 'package:trackyond/features/auth/domain/usecases/disconnect_websocket_usecase.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/auth/presentation/controllers/choose_role_controller.dart';
 
@@ -36,6 +39,9 @@ class AuthBindings extends Bindings {
     Get.lazyPut(() => LogoutUseCase(Get.find()));
     Get.lazyPut(() => CheckTokenValidityUseCase(Get.find()));
     Get.lazyPut(() => CheckOnboardingStatusUseCase(Get.find()));
+    Get.lazyPut(() => RefreshAuthTokenUseCase(Get.find()));
+    Get.lazyPut(() => ConnectWebSocketUseCase(Get.find()));
+    Get.lazyPut(() => DisconnectWebSocketUseCase(Get.find()));
 
     // Controllers
     Get.put(
@@ -48,6 +54,9 @@ class AuthBindings extends Bindings {
         logoutUseCase: Get.find(),
         checkTokenValidityUseCase: Get.find(),
         checkOnboardingStatusUseCase: Get.find(),
+        refreshAuthTokenUseCase: Get.find(),
+        connectWebSocketUseCase: Get.find(),
+        disconnectWebSocketUseCase: Get.find(),
       ),
       permanent: true,
     );

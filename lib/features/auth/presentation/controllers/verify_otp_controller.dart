@@ -10,16 +10,21 @@ import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/auth/domain/entities/send_otp_response_entity.dart';
 import 'package:trackyond/features/auth/domain/usecases/send_otp_use_case.dart';
 import 'package:trackyond/features/auth/domain/usecases/verify_otp_use_case.dart';
+import 'package:trackyond/features/auth/domain/usecases/connect_websocket_usecase.dart';
+import 'package:trackyond/core/common/usecase/usecase.dart';
 
 class VerifyOtpController extends GetxController {
   final VerifyOtpUseCase _verifyOtpUseCase;
   final SendOtpUseCase _sendOtpUseCase;
+  final ConnectWebSocketUseCase _connectWebSocketUseCase;
 
   VerifyOtpController({
     required VerifyOtpUseCase verifyOtpUseCase,
     required SendOtpUseCase sendOtpUseCase,
+    required ConnectWebSocketUseCase connectWebSocketUseCase,
   }) : _verifyOtpUseCase = verifyOtpUseCase,
-       _sendOtpUseCase = sendOtpUseCase;
+       _sendOtpUseCase = sendOtpUseCase,
+       _connectWebSocketUseCase = connectWebSocketUseCase;
 
   late final String phone;
   late Rx<SendOtpResponseEntity> _session;
@@ -163,6 +168,8 @@ class VerifyOtpController extends GetxController {
       },
       (entity) async {
         isLoading.value = false;
+
+        _connectWebSocketUseCase(const NoParams());
 
         if (entity.role == UserRole.owner) {
           if (entity.isNewUser) {

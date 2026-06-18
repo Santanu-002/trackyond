@@ -2,15 +2,18 @@ package com.example.trackyond
 
 import android.media.MediaScannerConnection
 import android.provider.Settings
+import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
 
 class MainActivity : FlutterFragmentActivity() {
 
     private val deviceIdChannel = "device_id_channel"
     private val mediaScannerChannel = "media_scanner_channel"
+    private val fileProviderChannel = "com.example.trackyond/fileprovider"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -43,6 +46,28 @@ class MainActivity : FlutterFragmentActivity() {
                         result.success(true)
                     } else {
                         result.error("INVALID_PATH", "Path was null", null)
+                    }
+                } else {
+                    result.notImplemented()
+                }
+            }
+
+        // File Provider Channel — converts a local file path to a content:// URI using Android FileProvider
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, fileProviderChannel)
+            .setMethodCallHandler { call: MethodCall, result: MethodChannel.Result ->
+                if (call.method == "getContentUri") {
+                    val filePath = call.argument<String>("filePath")
+                    if (filePath != null) {
+                        try {
+                            val file = File(filePath)
+                            val authority = "${packageName}.fileProvider"
+                            val uri = FileProvider.getUriForFile(this, authority, file)
+                            result.success(uri.toString())
+                        } catch (e: Exception) {
+                            result.error("FILE_PROVIDER_ERROR", e.message, null)
+                        }
+                    } else {
+                        result.error("INVALID_PATH", "File path was null", null)
                     }
                 } else {
                     result.notImplemented()

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
@@ -16,23 +17,28 @@ class TokenServiceImpl implements TokenService {
   Future<void> saveTokens(AuthTokens tokens) async {
     await _lock.synchronized(() async {
       final existingIssuedAt = await _storage.read(key: _keys.tokenIssuedAt);
+      debugPrint('DEBUG TokenService: saveTokens called with accessExpireAt=${tokens.accessExpireAt}, tokenIssuedAt=${tokens.tokenIssuedAt}');
 
       // If existing token exists → compare timestamps
       if (existingIssuedAt != null) {
         try {
-          final existing = DateTime.parse(existingIssuedAt);
-          final incoming = DateTime.parse(tokens.tokenIssuedAt);
+          final existing = DateTime.parse(existingIssuedAt).toUtc();
+          final incoming = DateTime.parse(tokens.tokenIssuedAt).toUtc();
+          debugPrint('DEBUG TokenService: comparing existingIssuedAt (UTC)=$existing vs incoming (UTC)=$incoming');
 
           // If incoming is older → ignore
           if (incoming.isBefore(existing)) {
+            debugPrint('DEBUG TokenService: incoming token is older than existing. Ignoring.');
             return;
           }
-        } catch (_) {
+        } catch (e) {
+          debugPrint('DEBUG TokenService: error comparing timestamps: $e');
           // If parsing fails, fallback to overwrite
         }
       }
 
       // Save tokens
+      debugPrint('DEBUG TokenService: Writing tokens to secure storage...');
       await Future.wait([
         _storage.write(key: _keys.accessToken, value: tokens.accessToken),
         _storage.write(key: _keys.refreshToken, value: tokens.refreshToken),
@@ -43,6 +49,7 @@ class TokenServiceImpl implements TokenService {
         ),
         _storage.write(key: _keys.tokenIssuedAt, value: tokens.tokenIssuedAt),
       ]);
+      debugPrint('DEBUG TokenService: Tokens written successfully.');
     });
   }
 

@@ -11,11 +11,14 @@ import 'package:trackyond/core/services/device_header/device_info_service.dart';
 import 'package:trackyond/core/services/device_header/platform_info_service.dart';
 import 'package:trackyond/core/services/notification/fcm_token_service.dart';
 import 'package:trackyond/core/services/notification/notification_service.dart';
+import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/core/common/repositories/i_event_bus_repository.dart';
 import 'package:trackyond/core/common/repositories/event_bus_repository_impl.dart';
 import 'package:trackyond/core/services/token/token_service.dart';
 import 'package:trackyond/core/services/token/token_service_impl.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
+import 'package:trackyond/core/services/websocket/websocket_service.dart';
+import 'package:trackyond/core/services/websocket/priority_queue_manager.dart';
 
 class AppInitializer {
   const AppInitializer._();
@@ -91,5 +94,14 @@ class AppInitializer {
     );
 
     Get.put<Dio>(networkClient.dio, permanent: true);
+
+    Get.put<WebSocketService>(WebSocketService(), permanent: true);
+    debugPrint('INIT: WebSocketService initialized');
+
+    Get.put<PriorityQueueManager>(PriorityQueueManager(), permanent: true);
+    debugPrint('INIT: PriorityQueueManager initialized');
+
+    Get.put<LocalNotificationService>(LocalNotificationService(), permanent: true);
+    debugPrint('INIT: LocalNotificationService initialized');
   }
 }

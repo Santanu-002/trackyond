@@ -12,6 +12,7 @@ class VerifyOtpBinding extends Bindings {
       () => VerifyOtpController(
         sendOtpUseCase: Get.find(),
         verifyOtpUseCase: Get.find(),
+        connectWebSocketUseCase: Get.find(),
       ),
     );
   }

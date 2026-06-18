@@ -31,5 +31,11 @@ abstract interface class IAuthRepository {
 
   Future<Either<AppFailure, bool>> checkTokenValidity();
 
+  Future<Either<AppFailure, bool>> refreshAuthToken();
+
   Future<Either<AppFailure, Unit>> logout();
+
+  Future<Either<AppFailure, Unit>> connectWebSocket();
+
+  Future<Either<AppFailure, Unit>> disconnectWebSocket();
 }

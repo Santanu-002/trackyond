@@ -1,4 +1,6 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:get/get.dart';
+import 'package:trackyond/core/services/websocket/websocket_service.dart';
 import 'package:trackyond/core/common/entities/company/company_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
@@ -58,23 +60,20 @@ class AuthRepositoryImpl implements IAuthRepository {
       otp: otp,
       role: role,
     );
-    return response.when(
-      success: (_, message, data) {
+    return await response.when(
+      success: (_, message, data) async {
         if (message.toLowerCase().contains('access denied')) {
           return Left(AccessDeniedFailure(message));
         }
         if (data != null) {
-          _tokenService.saveTokens(data.tokens);
+          await _tokenService.saveTokens(data.tokens);
           final userModel = data.getUser(role);
-          _userService.setUser(userModel);
-          _userService.saveUserRole(role);
-
-          if (data.profile != null) {
-            _userService.setProfile(data.profile!);
-          }
-          if (data.company != null) {
-            _userService.setCompany(data.company!);
-          }
+          await Future.wait([
+            _userService.setUser(userModel),
+            _userService.saveUserRole(role),
+            if (data.profile != null) _userService.setProfile(data.profile!),
+            if (data.company != null) _userService.setCompany(data.company!),
+          ]);
 
           return Right(
             VerifyOtpEntity(
@@ -88,7 +87,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         }
         return Left(ServerFailure(message));
       },
-      error: (_, message, _, _) {
+      error: (_, message, _, _) async {
         if (message.toLowerCase().contains('access denied')) {
           return Left(AccessDeniedFailure(message));
         }
@@ -190,6 +189,37 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
+  Future<Either<AppFailure, bool>> refreshAuthToken() async {
+    final role = _userService.getUserRole();
+    if (role == null) {
+      return Left(ServerFailure('User role is missing'));
+    }
+
+    final accessToken = await _tokenService.getAccessToken();
+    final refreshToken = await _tokenService.getRefreshToken();
+    if (accessToken == null || refreshToken == null) {
+      return Left(ServerFailure('Tokens are missing'));
+    }
+
+    final response = await _dataSource.refreshAuthToken(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      role: role,
+    );
+
+    return response.fold(
+      (error) => Left(ServerFailure(error.message)),
+      (data) async {
+        if (data != null) {
+          await _tokenService.saveTokens(data);
+          return const Right(true);
+        }
+        return Left(ServerFailure('Response data was null'));
+      },
+    );
+  }
+
+  @override
   Future<Either<AppFailure, Unit>> logout() async {
     final role = _userService.getUserRole();
 
@@ -201,5 +231,29 @@ class AuthRepositoryImpl implements IAuthRepository {
     await _userService.clear();
 
     return const Right(unit);
+  }
+
+  @override
+  Future<Either<AppFailure, Unit>> connectWebSocket() async {
+    try {
+      if (Get.isRegistered<WebSocketService>()) {
+        WebSocketService.find.connect();
+      }
+      return const Right(unit);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<AppFailure, Unit>> disconnectWebSocket() async {
+    try {
+      if (Get.isRegistered<WebSocketService>()) {
+        await WebSocketService.find.disconnect();
+      }
+      return const Right(unit);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
   }
 }

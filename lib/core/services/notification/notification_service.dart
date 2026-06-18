@@ -1,14 +1,45 @@
+import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/notification_constants.dart';
 import 'package:trackyond/core/services/notification/background_ack_service.dart';
+import 'package:trackyond/core/services/notification/local_notification_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint('Handling a background message: ${message.messageId}');
+
+  try {
+    final type = message.data['type'] ?? message.data[NotificationConstants.dataKeys.type];
+    if (type == 'cancelNotification') {
+      final jobId = message.data['jobId'];
+      if (jobId != null) {
+        await FlutterLocalNotificationsPlugin().cancel(id: jobId.hashCode);
+        LocalNotificationService.clearConversationMessagesStatic(jobId);
+        debugPrint('FCM: Cancelled background notification for job $jobId');
+      }
+      return;
+    }
+
+    if (type == NotificationConstants.types.jobChatMessage) {
+      final messageJsonStr = message.data['message'];
+      if (messageJsonStr != null) {
+        final messageJson = jsonDecode(messageJsonStr);
+        final jobId = messageJson['jobId'] as String?;
+        final messageUid = messageJson['uid'] as String?;
+        if (jobId != null && messageUid != null) {
+          // Send delivered status update to backend in background
+          await LocalNotificationService.markAsDelivered(jobId, [messageUid]);
+        }
+      }
+    }
+  } catch (e) {
+    debugPrint('Error handling background chat message delivery: $e');
+  }
 
   try {
     final notificationId =

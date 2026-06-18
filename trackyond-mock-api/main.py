@@ -16,6 +16,7 @@ import subprocess
 import logging
 import firebase_admin
 from firebase_admin import credentials
+from services.websocket_service import websocket_manager
 
 
 @asynccontextmanager
@@ -36,8 +37,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"[STARTUP] Firebase Admin initialization failed or already initialized: {e}")
 
+    # Start WebSocket monitoring tasks
+    websocket_manager.start_monitoring()
+
     # Migrations should be handled externally in CI/CD or via an init container
     yield
+
+    # Stop WebSocket monitoring tasks
+    await websocket_manager.stop_monitoring()
 
 
 app = FastAPI(title="Trackyond Mock API", lifespan=lifespan)

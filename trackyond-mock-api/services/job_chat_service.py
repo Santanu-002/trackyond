@@ -244,6 +244,19 @@ def send_job_messages(db: Session, job_id: str, messages_data: list[schemas.JobC
                     detail=f"Unauthorized to send message as this member profile (senderUid: {msg_data.sender_uid})"
                 )
 
+    # Automatically mark all previous unread messages from other users as seen by the current user
+    seen_message_uids = []
+    if member:
+        now_dt = now_utc()
+        unread_messages = db.query(models.JobChatMessage).filter(
+            models.JobChatMessage.job_id == job_id,
+            models.JobChatMessage.sender_uid != member.uid,
+            models.JobChatMessage.seen_at.is_(None)
+        ).all()
+        seen_message_uids = [m.uid for m in unread_messages]
+        for msg in unread_messages:
+            msg.seen_at = now_dt
+
     serialized_messages = []
     last_message = None
     
@@ -268,7 +281,8 @@ def send_job_messages(db: Session, job_id: str, messages_data: list[schemas.JobC
 
     return {
         "messages": serialized_messages,
-        "job": serialized_job
+        "job": serialized_job,
+        "seenMessageUids": seen_message_uids
     }
 
 
@@ -378,4 +392,44 @@ def delete_job_messages(db: Session, job_id: str, delete_req: schemas.JobChatMes
         db.commit()
     else:
         raise HTTPException(status_code=400, detail="Invalid delete type")
+
+
+def mark_job_messages_as_seen(db: Session, job_id: str, current_user: models.User, message_uids: list[str] = None) -> list[str]:
+    member = db.query(models.Member).filter(models.Member.user_uid == current_user.uid).first()
+    if not member:
+        raise HTTPException(status_code=404, detail="User member profile not found")
+        
+    query = db.query(models.JobChatMessage).filter(
+        models.JobChatMessage.job_id == job_id,
+        models.JobChatMessage.sender_uid != member.uid,
+        models.JobChatMessage.seen_at.is_(None)
+    )
+    
+    if message_uids:
+        query = query.filter(models.JobChatMessage.uid.in_(message_uids))
+        
+    messages = query.all()
+    
+    seen_uids = [m.uid for m in messages]
+    now_dt = now_utc()
+    for msg in messages:
+        msg.seen_at = now_dt
+    db.commit()
+    return seen_uids
+
+
+def mark_job_messages_as_delivered(db: Session, job_id: str, message_uids: list[str]) -> list[str]:
+    messages = db.query(models.JobChatMessage).filter(
+        models.JobChatMessage.job_id == job_id,
+        models.JobChatMessage.uid.in_(message_uids),
+        models.JobChatMessage.delivered_at.is_(None)
+    ).all()
+    
+    now_dt = now_utc()
+    for msg in messages:
+        msg.delivered_at = now_dt
+        msg.status = "delivered"
+    db.commit()
+    return [m.uid for m in messages]
+
 

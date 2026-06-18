@@ -12,3 +12,7 @@ JWT_REFRESH_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_EXPIRE_DAYS", "7"))
 
 # Mock Configuration
 MOCK_STATIC_OTP = os.getenv("MOCK_STATIC_OTP", "000000")
+
+# WebSocket Configuration
+WS_HEARTBEAT_GRACE_SECONDS = int(os.getenv("WS_HEARTBEAT_GRACE_SECONDS", "10"))
+

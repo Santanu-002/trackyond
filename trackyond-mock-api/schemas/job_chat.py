@@ -81,3 +81,12 @@ class JobChatMessageDeleteRequest(BaseSchema):
     delete_type: str = Field(..., serialization_alias="deleteType", validation_alias="deleteType")
     message_uids: List[str] = Field(..., serialization_alias="messageUids", validation_alias="messageUids")
     deleted_by_user_at: datetime = Field(..., serialization_alias="deletedByUserAt", validation_alias="deletedByUserAt")
+
+class JobChatMessageDeliveredRequest(BaseSchema):
+    message_uids: List[str] = Field(..., serialization_alias="messageUids", validation_alias="messageUids")
+
+
+class JobChatMessageSeenRequest(BaseSchema):
+    message_uids: Optional[List[str]] = Field(None, serialization_alias="messageUids", validation_alias="messageUids")
+
+

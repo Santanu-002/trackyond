@@ -6,9 +6,14 @@ from core.responses.models import ErrorResponse, ErrorDetail
 
 class DeviceMetadataMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # Exclude documentation, health check, and public file download endpoints
+        # Exclude documentation, health check, public file download endpoints, and WebSocket connections
         path = request.url.path
-        if path in ["/docs", "/openapi.json", "/redoc", "/health", "/"] or path.startswith("/api/v1/common/files/download/"):
+        if (
+            request.scope.get("type") == "websocket" or
+            path == "/api/v1/common/ws" or
+            path in ["/docs", "/openapi.json", "/redoc", "/health", "/"] or
+            path.startswith("/api/v1/common/files/download/")
+        ):
             return await call_next(request)
 
         # Required headers

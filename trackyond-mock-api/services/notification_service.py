@@ -202,7 +202,10 @@ def create_notification(
         try:
             messaging.send_each_for_multicast(message_payload)
         except Exception as e:
-            print(f"Error sending FCM: {e}")
+            if "invalid_grant" in str(e) or "jwt" in str(e).lower():
+                print("[FCM Warning] Bypassed FCM push: Firebase credentials are mock/placeholder.")
+            else:
+                print(f"Error sending FCM: {e}")
 
     return new_notification
 
@@ -418,5 +421,42 @@ def send_job_chat_notification(
         response = messaging.send_each_for_multicast(message_payload)
         print(f"DEBUG: Sent job chat message FCM notification. Success count: {response.success_count}, Failure count: {response.failure_count}")
     except Exception as e:
-        print(f"Error sending FCM: {e}")
+        if "invalid_grant" in str(e) or "jwt" in str(e).lower():
+            print("[FCM Warning] Bypassed FCM job chat notification: Firebase credentials are mock/placeholder.")
+        else:
+            print(f"Error sending FCM: {e}")
+
+def send_cancel_notification_push(db: Session, user_uid: str, job_id: str):
+    """
+    Sends a silent FCM message to a user's devices to cancel notifications for a job chat.
+    """
+    from firebase_admin import messaging
+    
+    tokens = db.query(models.FCMToken).filter(
+        models.FCMToken.user_uid == user_uid,
+        models.FCMToken.is_active == True
+    ).all()
+    
+    fcm_tokens = [t.fcm_token for t in tokens]
+    if not fcm_tokens:
+        return
+        
+    fcm_data = {
+        "type": "cancelNotification",
+        "jobId": str(job_id),
+    }
+    
+    message_payload = messaging.MulticastMessage(
+        data=fcm_data,
+        tokens=fcm_tokens,
+    )
+    
+    try:
+        response = messaging.send_each_for_multicast(message_payload)
+        print(f"DEBUG: Sent cancelNotification silent FCM. Success: {response.success_count}, Failure: {response.failure_count}")
+    except Exception as e:
+        if "invalid_grant" in str(e) or "jwt" in str(e).lower():
+            print("[FCM Warning] Bypassed FCM cancelNotification silent push: Firebase credentials are mock/placeholder.")
+        else:
+            print(f"Error sending cancelNotification FCM: {e}")
 

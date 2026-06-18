@@ -39,7 +39,7 @@ class BubbleTimeAndStatus extends StatelessWidget {
           ? colorScheme.onPrimary.withValues(alpha: 0.7)
           : colorScheme.onSurfaceVariant;
       tickColor = status == 'seen'
-          ? colorScheme.primary
+          ? colorScheme.onPrimary
           : (isMe 
               ? colorScheme.onPrimary.withValues(alpha: 0.7) 
               : colorScheme.onSurfaceVariant.withValues(alpha: 0.7));

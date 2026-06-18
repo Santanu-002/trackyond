@@ -23,6 +23,8 @@ sealed class ChatItem {
     @Default(false) bool hasSameSenderAbove,
     @Default(false) bool hasSameSenderBelow,
   }) = ChatMessageBubbleItem;
+
+  const factory ChatItem.unreadDivider() = ChatUnreadDividerItem;
 }
 
 class ChatHeaderMessage extends ChatItem {
@@ -66,3 +68,8 @@ class ChatMessageBubbleItem extends ChatItem {
     this.hasSameSenderBelow = false,
   });
 }
+
+class ChatUnreadDividerItem extends ChatItem {
+  const ChatUnreadDividerItem();
+}
+

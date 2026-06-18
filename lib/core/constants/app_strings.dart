@@ -622,6 +622,7 @@ class JobDetailsStrings {
 class JobChatStrings {
   const JobChatStrings();
 
+  String get newMessages => 'New Messages';
   String get jobUpdateBannerTitle => 'Job Update';
   String get timeFormat => 'hh:mm a';
   String get justNow => 'Just now';

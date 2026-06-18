@@ -23,6 +23,8 @@ import 'package:trackyond/features/notification/domain/usecases/get_notification
 import 'package:trackyond/features/notification/domain/usecases/retry_failed_acks_usecase.dart';
 import 'package:trackyond/features/notification/domain/usecases/show_local_notification_usecase.dart';
 import 'package:trackyond/features/notification/domain/usecases/sync_fcm_token_usecase.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/features/notification/domain/usecases/update_notifications_status_usecase.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/controllers/worker_dashboard_controller.dart';
 
@@ -279,7 +281,17 @@ class NotificationController extends GetxController {
     final notification = message.notification;
     final data = message.data;
 
-    final type = data[NotificationConstants.dataKeys.type];
+    final type = data['type'] ?? data[NotificationConstants.dataKeys.type];
+    if (type == 'cancelNotification') {
+      final jobId = data['jobId'];
+      if (jobId != null) {
+        FlutterLocalNotificationsPlugin().cancel(id: jobId.hashCode);
+        LocalNotificationService.clearConversationMessagesStatic(jobId);
+        debugPrint('FCM: Cancelled foreground notification for job $jobId');
+      }
+      return;
+    }
+
     if (type == NotificationConstants.types.jobChatMessage) {
       final messageJsonStr = data['message'];
       if (messageJsonStr != null) {
@@ -287,6 +299,9 @@ class NotificationController extends GetxController {
           final messageJson = jsonDecode(messageJsonStr);
           final messageModel = JobChatMessageModel.fromJson(messageJson);
           final messageEntity = messageModel.toEntity();
+
+          // Mark message as delivered since we received it in foreground
+          LocalNotificationService.markAsDelivered(messageEntity.jobId, [messageEntity.uid]);
 
           bool isChatOpen = false;
           if (Get.isRegistered<JobChatController>()) {

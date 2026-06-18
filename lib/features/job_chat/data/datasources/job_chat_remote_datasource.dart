@@ -7,7 +7,6 @@ import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
 import 'package:trackyond/features/job_chat/data/models/send_message_response_model.dart';
 import 'package:trackyond/features/job_chat/data/models/send_message_model.dart';
-
 import 'package:trackyond/features/job_chat/data/models/message_query_options_model.dart';
 
 abstract interface class IJobChatDataSource {
@@ -26,6 +25,11 @@ abstract interface class IJobChatDataSource {
     required String deleteType,
     required List<String> messageUids,
     required DateTime deletedByUserAt,
+  });
+  Future<ApiResponse<void>> markMessagesAsSeen({required String jobId, List<String>? messageUids});
+  Future<ApiResponse<void>> markMessagesAsDelivered({
+    required String jobId,
+    required List<String> messageUids,
   });
 }
 
@@ -103,6 +107,31 @@ class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatD
           'messageUids': messageUids,
           'deletedByUserAt': deletedByUserAt.toUtc().toIso8601String(),
         },
+      ),
+      (data) {},
+    );
+  }
+
+  @override
+  Future<ApiResponse<void>> markMessagesAsSeen({required String jobId, List<String>? messageUids}) async {
+    return performApiRequest(
+      _dio.post(
+        ApiEndpoints.common.jobChatSeen(jobId),
+        data: messageUids != null ? {'messageUids': messageUids} : null,
+      ),
+      (data) {},
+    );
+  }
+
+  @override
+  Future<ApiResponse<void>> markMessagesAsDelivered({
+    required String jobId,
+    required List<String> messageUids,
+  }) async {
+    return performApiRequest(
+      _dio.post(
+        ApiEndpoints.common.jobChatDelivered(jobId),
+        data: {'messageUids': messageUids},
       ),
       (data) {},
     );

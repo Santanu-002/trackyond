@@ -19,6 +19,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/chips/date_chip.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/chips/time_chip.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/chat_skeleton_list.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/scroll/scroll_to_bottom_button.dart';
 
 class JobChatPage extends GetView<JobChatController> {
   const JobChatPage({super.key});
@@ -132,7 +133,8 @@ class JobChatPage extends GetView<JobChatController> {
                             child: ScrollablePositionedList.builder(
                               itemScrollController: controller.itemScrollController,
                               itemPositionsListener: controller.itemPositionsListener,
-                              initialScrollIndex: 0,
+                              initialScrollIndex: controller.initialScrollIndex,
+                              initialAlignment: controller.initialScrollAlignment,
                               reverse: true,
                               padding: EdgeInsets.only(
                                 top: items.isNotEmpty && items.last is ChatDateHeader
@@ -190,11 +192,45 @@ class JobChatPage extends GetView<JobChatController> {
                                   } else {
                                     bottomPadding = AppUIConstants.spacing.space$16;
                                   }
+                                } else if (item is ChatUnreadDividerItem) {
+                                  bottomPadding = 0;
                                 }
 
                                 return Padding(
                                   padding: EdgeInsets.only(bottom: bottomPadding),
                                   child: switch (item) {
+                                    ChatUnreadDividerItem() => Container(
+                                      margin: EdgeInsets.symmetric(
+                                        vertical: AppUIConstants.spacing.space$8,
+                                        horizontal: AppUIConstants.spacing.space$24,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Divider(
+                                              color: context.theme.colorScheme.error.withValues(alpha: 0.3),
+                                              thickness: 1,
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$12),
+                                            child: Text(
+                                              AppStrings.jobChat.newMessages,
+                                              style: context.textTheme.labelMedium?.copyWith(
+                                                color: context.theme.colorScheme.error,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Divider(
+                                              color: context.theme.colorScheme.error.withValues(alpha: 0.3),
+                                              thickness: 1,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     ChatDateHeader(:final date) => DateChip(
                                       date: date,
                                       margin: index == items.length - 1
@@ -261,6 +297,17 @@ class JobChatPage extends GetView<JobChatController> {
                               ),
                             );
                           }),
+                          Positioned(
+                            bottom: AppUIConstants.spacing.space$16,
+                            right: AppUIConstants.spacing.space$16,
+                            child: Obx(() {
+                              return ScrollToBottomButton(
+                                visible: !controller.isNearBottom.value,
+                                unreadCount: controller.unreadCount,
+                                onTap: () => controller.scrollToLast(animate: true),
+                              );
+                            }),
+                          ),
                         ],
                       );
                     }),

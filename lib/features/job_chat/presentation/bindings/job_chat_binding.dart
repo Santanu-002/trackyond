@@ -19,6 +19,7 @@ import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_se
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_use_case.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/delete_messages_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/mark_messages_seen_usecase.dart';
 
 class JobChatBinding extends Bindings {
   @override
@@ -46,6 +47,7 @@ class JobChatBinding extends Bindings {
     Get.lazyPut(() => EmitJobUpdateUseCase(Get.find()));
     Get.lazyPut(() => ListenChatEventsUseCase(Get.find()));
     Get.lazyPut(() => DeleteMessagesUseCase(Get.find()));
+    Get.lazyPut(() => MarkMessagesSeenUseCase(Get.find()));
 
     // ── Controllers ─────────────────────────────────────────────────────
     Get.put(JobChatAttachmentController());
@@ -61,6 +63,7 @@ class JobChatBinding extends Bindings {
         emitJobUpdateUseCase: Get.find(),
         uploadFileUseCase: Get.find(),
         listenChatEventsUseCase: Get.find(),
+        markMessagesSeenUseCase: Get.find(),
       ),
     );
   }

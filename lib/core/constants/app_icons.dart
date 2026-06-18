@@ -91,6 +91,7 @@ class _CommonIcons {
 
   IconData get menu => Icons.menu_rounded;
   IconData get chevronDown => Icons.keyboard_arrow_down_rounded;
+  IconData get keyboardDoubleArrowDown => Icons.keyboard_double_arrow_down_rounded;
   IconData get arrowDown => Icons.south_rounded;
   IconData get arrowUp => Icons.north_rounded;
   IconData get calendarRange => Icons.date_range_rounded;

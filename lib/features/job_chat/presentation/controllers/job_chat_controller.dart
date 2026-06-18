@@ -18,6 +18,7 @@ import 'package:trackyond/core/common/events/chat_event.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
+import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/core/utils/app_utils.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/job_chat/domain/entities/chat_item.dart';
@@ -30,6 +31,7 @@ import 'package:trackyond/features/job_chat/domain/usecases/get_job_chat_members
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_messages_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_use_case.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/send_message_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/mark_messages_seen_usecase.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_selection_controller.dart';
@@ -44,6 +46,7 @@ class JobChatController extends GetxController {
   final EmitJobUpdateUseCase _emitJobUpdateUseCase;
   final UploadFileUseCase _uploadFileUseCase;
   final ListenChatEventsUseCase _listenChatEventsUseCase;
+  final MarkMessagesSeenUseCase _markMessagesSeenUseCase;
 
   JobChatController({
     required GetJobMessagesUseCase getMessagesUseCase,
@@ -52,12 +55,14 @@ class JobChatController extends GetxController {
     required EmitJobUpdateUseCase emitJobUpdateUseCase,
     required UploadFileUseCase uploadFileUseCase,
     required ListenChatEventsUseCase listenChatEventsUseCase,
+    required MarkMessagesSeenUseCase markMessagesSeenUseCase,
   }) : _getMessagesUseCase = getMessagesUseCase,
        _sendMessageUseCase = sendMessageUseCase,
        _getChatMembersUseCase = getChatMembersUseCase,
        _emitJobUpdateUseCase = emitJobUpdateUseCase,
        _uploadFileUseCase = uploadFileUseCase,
-       _listenChatEventsUseCase = listenChatEventsUseCase;
+       _listenChatEventsUseCase = listenChatEventsUseCase,
+       _markMessagesSeenUseCase = markMessagesSeenUseCase;
 
   // Sub-controllers (lazy getters — resolved after all lazyPuts are registered)
   JobChatAttachmentController get attachmentController =>
@@ -74,6 +79,7 @@ class JobChatController extends GetxController {
 
   // Central state variables
   final RxList<JobChatMessageEntity> messages = <JobChatMessageEntity>[].obs;
+  final RxList<JobChatMessageEntity> pendingMessages = <JobChatMessageEntity>[].obs;
   final RxList<MemberProfile> chatMembers = <MemberProfile>[].obs;
   final RxnString _currentUserProfileUid = RxnString(null);
   final RxnString _currentUserUid = RxnString(null);
@@ -106,6 +112,14 @@ class JobChatController extends GetxController {
   Timer? _floatingDateTimer;
 
   final RxBool isMessageSending = false.obs;
+  final RxBool isNearBottom = true.obs;
+  String? _initialFirstUnreadMessageUid;
+  bool _hasCalculatedInitialUnread = false;
+
+  int get unreadCount {
+    final activeUnread = messages.where((m) => m.senderUid != _currentUserProfileUid.value && m.seenAt == null).length;
+    return activeUnread + pendingMessages.length;
+  }
 
   // Text inputs
   final messageController = TextEditingController();
@@ -127,11 +141,78 @@ class JobChatController extends GetxController {
     _emitJobUpdateUseCase(newJob);
   }
 
+  int get initialScrollIndex {
+    final index = flattenedItems.indexWhere((item) => item is ChatUnreadDividerItem);
+    return index != -1 ? index : 0;
+  }
+
+  double get initialScrollAlignment {
+    final index = flattenedItems.indexWhere((item) => item is ChatUnreadDividerItem);
+    return index != -1 ? 0.3 : 0.0;
+  }
+
+  void _onPositionsChanged() {
+    onScrollInteraction();
+  }
+
+  void _trackAndSendSeenMessages(Iterable<ItemPosition> positions) {
+    final List<String> unreadUidsVisible = [];
+    for (final position in positions) {
+      if (position.itemLeadingEdge < 1.0 && position.itemTrailingEdge > 0.0) {
+        if (position.index >= 0 && position.index < flattenedItems.length) {
+          final item = flattenedItems[position.index];
+          JobChatMessageEntity? msg;
+          if (item is ChatMessageBubbleItem) {
+            msg = item.message;
+          } else if (item is ChatActivityBubble) {
+            msg = item.message;
+          }
+          
+          if (msg != null && 
+              msg.senderUid != _currentUserProfileUid.value && 
+              msg.seenAt == null) {
+            unreadUidsVisible.add(msg.uid);
+          }
+        }
+      }
+    }
+
+    if (unreadUidsVisible.isNotEmpty) {
+      // Optimistically mark visible messages as seen locally
+      for (final uid in unreadUidsVisible) {
+        final idx = messages.indexWhere((m) => m.uid == uid);
+        if (idx != -1) {
+          messages[idx] = messages[idx].copyWith(seenAt: DateTime.now());
+        }
+      }
+      messages.refresh();
+
+      // Send the seen status updates to backend in batch via UseCase
+      _markMessagesSeenUseCase(
+        MarkMessagesSeenParams(
+          jobId: job.jobId,
+          messageUids: unreadUidsVisible,
+        ),
+      );
+    }
+  }
+
   void onScrollInteraction() {
     if (flattenedItems.isEmpty) return;
 
     final positions = itemPositionsListener.itemPositions.value;
     if (positions.isNotEmpty) {
+      final hasNearBottom = positions.any((p) {
+        if (p.index == 0) {
+          return p.itemLeadingEdge >= -0.15 && p.itemLeadingEdge <= 0.15;
+        }
+        return false;
+      });
+      isNearBottom.value = hasNearBottom;
+      if (isNearBottom.value && pendingMessages.isNotEmpty) {
+        messages.addAll(pendingMessages);
+        pendingMessages.clear();
+      }
       final topMostItemPosition = positions.reduce(
         (max, position) => position.index > max.index ? position : max,
       );
@@ -182,6 +263,9 @@ class JobChatController extends GetxController {
           );
         }
       }
+
+      // Track and mark visible messages as seen
+      _trackAndSendSeenMessages(positions);
     }
 
     isFloatingDateVisible.value = true;
@@ -192,6 +276,10 @@ class JobChatController extends GetxController {
   }
 
   void scrollToLast({bool animate = false}) {
+    if (pendingMessages.isNotEmpty) {
+      messages.addAll(pendingMessages);
+      pendingMessages.clear();
+    }
     _scrollToLastAfterLayout(animate: animate);
   }
 
@@ -247,6 +335,12 @@ class JobChatController extends GetxController {
 
       final isNewDate =
           lastDate == null || !messageDate.isAtSameMomentAs(lastDate);
+
+      // If this is the initial first unread message, insert the unread divider
+      if (message.uid == _initialFirstUnreadMessageUid) {
+        items.add(const ChatUnreadDividerItem());
+      }
+
       if (isNewDate) {
         items.add(ChatItem.dateHeader(date: messageDate));
         lastDate = messageDate;
@@ -566,6 +660,10 @@ class JobChatController extends GetxController {
     super.onInit();
     _job = Rx<JobEntity>(Get.arguments as JobEntity);
 
+    if (Get.isRegistered<LocalNotificationService>()) {
+      Get.find<LocalNotificationService>().clearConversationMessages(_job.value.jobId);
+    }
+
     focusNode.addListener(() {
       hasFocus.value = focusNode.hasFocus;
       if (focusNode.hasFocus) {
@@ -575,6 +673,9 @@ class JobChatController extends GetxController {
         });
       }
     });
+
+    // Register listener for viewport position changes to track message visibility
+    itemPositionsListener.itemPositions.addListener(_onPositionsChanged);
 
     _initializeData();
     _listenToEvents();
@@ -590,15 +691,58 @@ class JobChatController extends GetxController {
           if (event is ChatMessageReceivedEvent) {
             final message = event.message;
             if (message.jobId == job.jobId) {
-              final exists = messages.any((m) => m.uid == message.uid);
-              if (!exists) {
-                messages.add(
-                  message.copyWith(
-                    isMe: message.senderUid == _currentUserProfileUid.value,
-                  ),
+              final existingIndex = messages.indexWhere((m) =>
+                  m.uid == message.uid ||
+                  (m.localId != null && m.localId == message.localId));
+              if (existingIndex != -1) {
+                // Replace the temporary message with the real one from WebSocket
+                messages[existingIndex] = message.copyWith(
+                  isMe: message.senderUid == _currentUserProfileUid.value,
                 );
-                scrollToLast(animate: true);
+              } else {
+                final isMe = message.senderUid == _currentUserProfileUid.value;
+                if (isMe || isNearBottom.value) {
+                  if (pendingMessages.isNotEmpty) {
+                    messages.addAll(pendingMessages);
+                    pendingMessages.clear();
+                  }
+                  messages.add(
+                    message.copyWith(
+                      isMe: isMe,
+                    ),
+                  );
+                  scrollToLast(animate: true);
+                } else {
+                  pendingMessages.add(
+                    message.copyWith(
+                      isMe: isMe,
+                    ),
+                  );
+                }
               }
+              // Seen event is now handled dynamically by viewport visibility tracking
+            }
+          } else if (event is ChatMessageDeletedEvent) {
+            if (event.jobId == job.jobId) {
+              messages.removeWhere((m) => event.messageUids.contains(m.uid));
+            }
+          } else if (event is ChatMessageDeliveredEvent) {
+            if (event.jobId == job.jobId) {
+              for (var i = 0; i < messages.length; i++) {
+                if (event.messageUids.contains(messages[i].uid)) {
+                  messages[i] = messages[i].copyWith(deliveredAt: event.deliveredAt);
+                }
+              }
+              messages.refresh();
+            }
+          } else if (event is ChatMessageReadEvent) {
+            if (event.jobId == job.jobId) {
+              for (var i = 0; i < messages.length; i++) {
+                if (event.messageUids.contains(messages[i].uid)) {
+                  messages[i] = messages[i].copyWith(seenAt: event.seenAt);
+                }
+              }
+              messages.refresh();
             }
           }
         });
@@ -643,6 +787,9 @@ class JobChatController extends GetxController {
     errorMessage.value = null;
     hasMoreMessages.value = true;
     messages.clear();
+    pendingMessages.clear();
+    _initialFirstUnreadMessageUid = null;
+    _hasCalculatedInitialUnread = false;
 
     try {
       final membersResult = await _getChatMembersUseCase(job.jobId);
@@ -673,6 +820,19 @@ class JobChatController extends GetxController {
             final isMe = m.senderUid == _currentUserProfileUid.value;
             return m.copyWith(isMe: isMe);
           }).toList();
+
+          if (!_hasCalculatedInitialUnread) {
+            _initialFirstUnreadMessageUid = null;
+            for (int i = updatedMessages.length - 1; i >= 0; i--) {
+              final m = updatedMessages[i];
+              if (m.senderUid != _currentUserProfileUid.value && m.seenAt == null) {
+                _initialFirstUnreadMessageUid = m.uid;
+                break;
+              }
+            }
+            _hasCalculatedInitialUnread = true;
+          }
+
           messages.assignAll(updatedMessages);
         },
       );
@@ -877,6 +1037,7 @@ class JobChatController extends GetxController {
         (sendResult) {
           messageController.clear();
           replyingToMessage.value = null;
+          _initialFirstUnreadMessageUid = null;
           messages.add(sendResult.message.copyWith(isMe: true));
           scrollToLast(animate: true);
           if (sendResult.job != null) {
@@ -926,6 +1087,7 @@ class JobChatController extends GetxController {
           AppSnackbar.destructive(failure.message);
         },
         (sendResult) {
+          _initialFirstUnreadMessageUid = null;
           messages.add(sendResult.message.copyWith(isMe: true));
           scrollToLast(animate: true);
           if (sendResult.job != null) {
@@ -1017,6 +1179,7 @@ class JobChatController extends GetxController {
 
   @override
   void onClose() {
+    itemPositionsListener.itemPositions.removeListener(_onPositionsChanged);
     _chatEventsSubscription?.cancel();
     messageController.dispose();
     focusNode.dispose();

@@ -116,4 +116,16 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
     await Future.delayed(const Duration(milliseconds: 300));
     return const Right(null);
   }
+
+  @override
+  Future<Either<AppFailure, void>> markMessagesAsSeen(String jobId, {List<String>? messageUids}) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    return const Right(null);
+  }
+
+  @override
+  Future<Either<AppFailure, void>> markMessagesAsDelivered(String jobId, List<String> messageUids) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    return const Right(null);
+  }
 }

@@ -26,10 +26,12 @@ class NotificationBinding extends Bindings {
       ),
     );
 
-    Get.put<LocalNotificationService>(
-      LocalNotificationService(),
-      permanent: true,
-    );
+    if (!Get.isRegistered<LocalNotificationService>()) {
+      Get.put<LocalNotificationService>(
+        LocalNotificationService(),
+        permanent: true,
+      );
+    }
 
     Get.lazyPut<INotificationRepository>(
       () => NotificationRepositoryImpl(

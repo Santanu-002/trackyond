@@ -22,4 +22,6 @@ abstract interface class IJobChatRepository {
     required List<String> messageUids,
     required DateTime deletedByUserAt,
   });
+  Future<Either<AppFailure, void>> markMessagesAsSeen(String jobId, {List<String>? messageUids});
+  Future<Either<AppFailure, void>> markMessagesAsDelivered(String jobId, List<String> messageUids);
 }

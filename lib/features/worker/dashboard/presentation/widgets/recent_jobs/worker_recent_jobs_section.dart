@@ -21,9 +21,7 @@ class WorkerRecentJobsSection extends GetView<WorkerDashboardController> {
       onActionPressed: controller.goToJobs,
       actionLabel: strings.viewAll,
       padding: EdgeInsets.zero,
-      childPadding: EdgeInsets.symmetric(
-        horizontal: AppUIConstants.spacing.space$24,
-      ),
+      childPadding: EdgeInsets.zero,
       headerPadding: EdgeInsets.zero,
       child: Obx(() {
         final recentJobs = controller.recentJobs.toList();

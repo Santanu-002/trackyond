@@ -56,6 +56,9 @@ class JobChatMessageEntity extends Equatable {
   DateTime get timestamp => createdByAuthorAt;
 
   String get status {
+    if (uid.startsWith('temp_') || (localId != null && uid == localId)) {
+      return 'pending';
+    }
     if (seenAt != null) return 'seen';
     if (deliveredAt != null) return 'delivered';
     return 'sent';

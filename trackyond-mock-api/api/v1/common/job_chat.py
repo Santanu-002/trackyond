@@ -97,6 +97,26 @@ async def delete_messages(
     Delete messages for a job chat (delete for me / delete for everyone).
     """
     job_chat_service.delete_job_messages(db, job_id, delete_req, current_user)
+    
+    # Broadcast deletion status to active WebSocket connections
+    try:
+        from services.websocket_service import websocket_manager
+        broadcast_data = {
+            "jobId": job_id,
+            "messageUids": delete_req.message_uids
+        }
+        if delete_req.delete_type == "forMe":
+            await websocket_manager.broadcast_to_user(current_user.uid, {
+                "event": "chat",
+                "type": "deleted",
+                "headers": {},
+                "data": broadcast_data
+            })
+        else:
+            await websocket_manager.broadcast_to_job(db, job_id, "chat", "deleted", broadcast_data)
+    except Exception as e:
+        print(f"Error broadcasting REST deletion: {e}")
+
     return GenericResponse(success=True, message="Messages deleted successfully")
 
 @router.post("/{job_id}/seen", response_model=GenericResponse)

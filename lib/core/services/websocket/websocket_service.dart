@@ -11,15 +11,23 @@ import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/services/device_header/platform_info_service.dart';
 import 'package:trackyond/core/services/token/token_service.dart';
 import 'package:trackyond/core/common/models/job/job_model.dart';
-import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
+import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 
 class WebSocketService extends GetxService {
   static WebSocketService get find => Get.find<WebSocketService>();
 
-  final TokenService _tokenService = Get.find<TokenService>();
-  final PlatformInfoService _platformInfoService = Get.find<PlatformInfoService>();
-  final IEventBusRepository _eventBus = Get.find<IEventBusRepository>();
+  final TokenService _tokenService;
+  final PlatformInfoService _platformInfoService;
+  final IEventBusRepository _eventBus;
+
+  WebSocketService({
+    required TokenService tokenService,
+    required PlatformInfoService platformInfoService,
+    required IEventBusRepository eventBus,
+  })  : _tokenService = tokenService,
+        _platformInfoService = platformInfoService,
+        _eventBus = eventBus;
 
   IOWebSocketChannel? _channel;
   bool _isConnecting = false;
@@ -200,7 +208,9 @@ class WebSocketService extends GetxService {
         'data': data,
       };
 
-      _channel!.sink.add(jsonEncode(payload));
+      final String jsonPayload = jsonEncode(payload);
+      debugPrint('WebSocket: Sending event payload: $jsonPayload');
+      _channel!.sink.add(jsonPayload);
       debugPrint('WebSocket: Sent event $event/$type');
     } catch (e) {
       debugPrint('WebSocket: Failed to send event: $e');
@@ -208,6 +218,7 @@ class WebSocketService extends GetxService {
   }
 
   void _handleIncomingMessage(dynamic rawMessage) {
+    debugPrint('WebSocket: Received raw message: $rawMessage');
     try {
       final Map<String, dynamic> frame = jsonDecode(rawMessage as String) as Map<String, dynamic>;
       final event = frame['event'] as String?;

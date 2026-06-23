@@ -394,7 +394,15 @@ class WebSocketConnectionManager:
                     "jobId": job_id,
                     "messageUids": delete_req.message_uids
                 }
-                await self.broadcast_to_job(db, job_id, "chat", "deleted", broadcast_data)
+                if delete_req.delete_type == "forMe":
+                    await self.broadcast_to_user(user_uid, {
+                        "event": "chat",
+                        "type": "deleted",
+                        "headers": {},
+                        "data": broadcast_data
+                    })
+                else:
+                    await self.broadcast_to_job(db, job_id, "chat", "deleted", broadcast_data)
 
             except Exception as e:
                 logger.error(f"Error handling chat delete for user_uid={user_uid}: {e}", exc_info=True)

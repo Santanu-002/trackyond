@@ -45,7 +45,14 @@ class BubbleTimeAndStatus extends StatelessWidget {
               : colorScheme.onSurfaceVariant.withValues(alpha: 0.7));
     }
 
-    final IconData statusIcon = status == 'sent' ? Icons.done : Icons.done_all;
+    final IconData statusIcon;
+    if (status == 'pending') {
+      statusIcon = Icons.access_time_rounded;
+    } else if (status == 'sent') {
+      statusIcon = Icons.done;
+    } else {
+      statusIcon = Icons.done_all;
+    }
 
     final rowContent = Row(
       mainAxisSize: MainAxisSize.min,

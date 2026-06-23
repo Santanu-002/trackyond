@@ -11,9 +11,10 @@ import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/c
 import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/components/media_preview_top_bar.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/components/media_preview_bottom_controls.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/components/media_preview_crop_preset_bar.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/video_preview_widget.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/video_trimmer_widget.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/document_preview_widget.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/previews/video_preview_widget.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/previews/video_trimmer_widget.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/previews/document_preview_widget.dart';
+
 
 class MediaPreviewPage extends GetView<MediaPreviewController> {
   const MediaPreviewPage({super.key});

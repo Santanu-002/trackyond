@@ -8,17 +8,17 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_selection_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/message_bubble.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/input/message_input.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/input/attachment_menu.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/swipe_to_reply.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/message_bubble.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/composer/message_input.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/attachment/attachment_menu.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/interaction/swipe_to_reply.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/chips/timeline_entry.dart';
 import 'package:trackyond/features/job_chat/domain/entities/chat_item.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/chips/date_chip.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/chips/time_chip.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/chat_skeleton_list.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/skeleton/chat_skeleton_list.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/scroll/scroll_to_bottom_button.dart';
 
 class JobChatPage extends GetView<JobChatController> {

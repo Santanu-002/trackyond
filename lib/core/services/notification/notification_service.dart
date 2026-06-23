@@ -7,6 +7,9 @@ import 'package:get/get.dart';
 import 'package:trackyond/core/constants/notification_constants.dart';
 import 'package:trackyond/core/services/notification/background_ack_service.dart';
 import 'package:trackyond/core/services/notification/local_notification_service.dart';
+import 'package:trackyond/core/services/database/database_service_impl.dart';
+import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
+import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -32,8 +35,20 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         final jobId = messageJson['jobId'] as String?;
         final messageUid = messageJson['uid'] as String?;
         if (jobId != null && messageUid != null) {
-          // Send delivered status update to backend in background
-          await LocalNotificationService.markAsDelivered(jobId, [messageUid]);
+          try {
+            // Save the received message to SQLite first!
+            final dbService = DatabaseServiceImpl();
+            final localDataSource = JobChatLocalDataSourceImpl(dbService);
+            final chatMessageModel = JobChatMessageModel.fromJson(messageJson as Map<String, dynamic>);
+            
+            await localDataSource.saveMessages([chatMessageModel]);
+            debugPrint('FCM Background: Successfully cached message $messageUid in SQLite.');
+
+            // Send delivered status update to backend in background
+            await LocalNotificationService.markAsDelivered(jobId, [messageUid]);
+          } catch (dbError) {
+            debugPrint('FCM Background: Error saving message to database (suppressing ack): $dbError');
+          }
         }
       }
     }

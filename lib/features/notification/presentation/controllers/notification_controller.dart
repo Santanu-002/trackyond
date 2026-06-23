@@ -26,6 +26,7 @@ import 'package:trackyond/features/notification/domain/usecases/sync_fcm_token_u
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/features/notification/domain/usecases/update_notifications_status_usecase.dart';
+import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/controllers/worker_dashboard_controller.dart';
 
 class NotificationController extends GetxController {
@@ -85,8 +86,8 @@ class NotificationController extends GetxController {
       handleNotificationClick(message.data);
     });
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      _handleForegroundMessage(message);
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      await _handleForegroundMessage(message);
     });
   }
 
@@ -277,7 +278,7 @@ class NotificationController extends GetxController {
     }
   }
 
-  void _handleForegroundMessage(RemoteMessage message) {
+  Future<void> _handleForegroundMessage(RemoteMessage message) async {
     final notification = message.notification;
     final data = message.data;
 
@@ -300,8 +301,13 @@ class NotificationController extends GetxController {
           final messageModel = JobChatMessageModel.fromJson(messageJson);
           final messageEntity = messageModel.toEntity();
 
+          // Save message to SQLite database first!
+          final localDataSource = Get.find<IJobChatLocalDataSource>();
+          await localDataSource.saveMessages([messageModel]);
+          debugPrint('FCM Foreground: Successfully cached message ${messageEntity.uid} in SQLite.');
+
           // Mark message as delivered since we received it in foreground
-          LocalNotificationService.markAsDelivered(messageEntity.jobId, [messageEntity.uid]);
+          await LocalNotificationService.markAsDelivered(messageEntity.jobId, [messageEntity.uid]);
 
           bool isChatOpen = false;
           if (Get.isRegistered<JobChatController>()) {

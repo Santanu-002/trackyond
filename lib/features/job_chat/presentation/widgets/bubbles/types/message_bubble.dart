@@ -88,6 +88,10 @@ class MessageBubble extends StatelessWidget {
               ? AppStrings.jobChat.messageRemovedByAdmin
               : AppStrings.jobChat.messageRemoved;
 
+          final contentColor = isMe
+              ? colorScheme.onPrimary.withValues(alpha: 0.76)
+              : colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
+
           return Padding(
             padding: const EdgeInsets.fromLTRB(10.0, 8.0, 10.0, 8.0),
             child: ChatBubbleLayout(
@@ -97,7 +101,7 @@ class MessageBubble extends StatelessWidget {
                   Icon(
                     Icons.block,
                     size: 16,
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    color: contentColor.withValues(alpha: 0.6),
                   ),
                   AppUIConstants.widgets.horizontalBox$4,
                   Flexible(
@@ -105,7 +109,7 @@ class MessageBubble extends StatelessWidget {
                       displayText,
                       style: textTheme.bodyMedium?.copyWith(
                         fontStyle: FontStyle.italic,
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                        color: contentColor,
                       ),
                     ),
                   ),
@@ -503,14 +507,8 @@ class MessageBubble extends StatelessWidget {
               ),
               padding: EdgeInsets.zero,
               decoration: BoxDecoration(
-                color: message.deleted
-                    ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-                    : colorScheme.primary,
-                border: message.deleted
-                    ? Border.all(
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.15),
-                      )
-                    : null,
+                color: colorScheme.primary,
+                border: null,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(topLeftRadius),
                   topRight: Radius.circular(topRightRadius),
@@ -567,14 +565,8 @@ class MessageBubble extends StatelessWidget {
                       margin: EdgeInsets.zero,
                       padding: EdgeInsets.zero,
                       decoration: BoxDecoration(
-                        color: message.deleted
-                            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-                            : colorScheme.surfaceContainerHighest,
-                        border: message.deleted
-                            ? Border.all(
-                                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.15),
-                              )
-                            : null,
+                        color: colorScheme.surfaceContainerHighest,
+                        border: null,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(topLeftRadius),
                           topRight: Radius.circular(topRightRadius),

@@ -154,12 +154,18 @@ class PriorityQueueManager extends GetxService {
   }
 
   Future<bool> _executeHttpFallback(QueueItem item) async {
-    if (item.event == 'chat' && item.type == 'send') {
+    if (item.event == 'message' && item.type == 'send') {
       try {
-        final jobId = item.data['jobId'] as String?;
         final messagesPayload = item.data['messages'] as List?;
-        if (jobId == null || messagesPayload == null) {
-          debugPrint('PriorityQueue fallback: Invalid data format for chat send');
+        if (messagesPayload == null || messagesPayload.isEmpty) {
+          debugPrint('PriorityQueue fallback: Invalid data format for message send');
+          return false;
+        }
+
+        final firstMsg = messagesPayload.first as Map;
+        final jobId = firstMsg['jobId'] as String?;
+        if (jobId == null) {
+          debugPrint('PriorityQueue fallback: Missing jobId in messages payload');
           return false;
         }
 

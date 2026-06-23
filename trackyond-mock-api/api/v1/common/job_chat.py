@@ -41,27 +41,16 @@ async def send_message(
     """
     response_data = job_chat_service.send_job_messages(db, job_id, messages_data, current_user)
     db.commit()
-    
-    # Broadcast to WebSocket channel so active users receive it in real-time
     try:
         from services.websocket_service import websocket_manager
-        broadcast_data = {
-            "message": response_data["messages"][-1] if response_data["messages"] else None,
-            "messages": response_data["messages"],
-            "job": response_data["job"]
-        }
-        await websocket_manager.broadcast_to_job(db, job_id, "chat", "received", broadcast_data)
+        # Targeted broadcast: sender gets message/send_response, receiver gets message/new_message
+        await websocket_manager.broadcast_new_message(db, job_id, current_user.uid, response_data["messages"], response_data["job"])
 
         # Broadcast seen status for previous messages if any were marked as seen
         seen_message_uids = response_data.get("seenMessageUids", [])
         if seen_message_uids:
             from core.utils.datetime_utils import to_utc_iso
-            seen_broadcast_data = {
-                "jobId": job_id,
-                "messageUids": seen_message_uids,
-                "seenAt": to_utc_iso()
-            }
-            await websocket_manager.broadcast_to_job(db, job_id, "chat", "seen", seen_broadcast_data)
+            await websocket_manager.broadcast_seen_message(db, job_id, current_user.uid, seen_message_uids, to_utc_iso())
             
             # Send cancel notification silent FCM
             try:
@@ -98,22 +87,9 @@ async def delete_messages(
     """
     job_chat_service.delete_job_messages(db, job_id, delete_req, current_user)
     
-    # Broadcast deletion status to active WebSocket connections
     try:
         from services.websocket_service import websocket_manager
-        broadcast_data = {
-            "jobId": job_id,
-            "messageUids": delete_req.message_uids
-        }
-        if delete_req.delete_type == "forMe":
-            await websocket_manager.broadcast_to_user(current_user.uid, {
-                "event": "chat",
-                "type": "deleted",
-                "headers": {},
-                "data": broadcast_data
-            })
-        else:
-            await websocket_manager.broadcast_to_job(db, job_id, "chat", "deleted", broadcast_data)
+        await websocket_manager.broadcast_delete_message(db, job_id, current_user.uid, delete_req.message_uids, delete_req.delete_type)
     except Exception as e:
         print(f"Error broadcasting REST deletion: {e}")
 
@@ -139,12 +115,7 @@ async def mark_messages_seen(
     )
     
     if message_uids:
-        broadcast_data = {
-            "jobId": job_id,
-            "messageUids": message_uids,
-            "seenAt": to_utc_iso()
-        }
-        await websocket_manager.broadcast_to_job(db, job_id, "chat", "seen", broadcast_data)
+        await websocket_manager.broadcast_seen_message(db, job_id, current_user.uid, message_uids, to_utc_iso())
         
         # Trigger silent cancelNotification FCM to user's other devices
         try:
@@ -176,12 +147,7 @@ async def mark_messages_delivered(
     delivered_uids = job_chat_service.mark_job_messages_as_delivered(db, job_id, payload.message_uids)
     
     if delivered_uids:
-        broadcast_data = {
-            "jobId": job_id,
-            "messageUids": delivered_uids,
-            "deliveredAt": to_utc_iso()
-        }
-        await websocket_manager.broadcast_to_job(db, job_id, "chat", "delivered", broadcast_data)
+        await websocket_manager.broadcast_delivery_ack(db, job_id, current_user.uid, delivered_uids, to_utc_iso())
         
     return GenericResponse(success=True, message=f"Marked {len(delivered_uids)} messages as delivered")
 

@@ -57,7 +57,7 @@ async def websocket_endpoint(
 
     # 6. Send the initial connected event
     connected_frame = {
-        "event": "system",
+        "event": "connection",
         "type": "connected",
         "headers": {},
         "data": {

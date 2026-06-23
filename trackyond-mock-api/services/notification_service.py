@@ -344,32 +344,28 @@ def send_job_chat_notification(
     ).first()
     sender_name = sender_member.name if sender_member else "Someone"
 
-    # 2. Determine recipient user_uid
-    recipient_user_uid = None
-    if sender_user.uid == job.created_by:
-        # Sender is the owner/creator, recipient is the worker
-        worker_member = db.query(models.Member).filter(
-            models.Member.uid == job.worker_profile_uid
-        ).first()
-        if worker_member:
-            recipient_user_uid = worker_member.user_uid
-    else:
-        # Sender is the worker, recipient is the creator/admin
-        recipient_user_uid = job.created_by
+    # 2. Determine recipient user_uids (group wise)
+    from services.job_chat_service import get_job_chat_members
+    try:
+        members = get_job_chat_members(db, job.job_id)
+        recipient_user_uids = [m["userUid"] for m in members if m.get("userUid") and m["userUid"] != sender_user.uid]
+    except Exception as e:
+        print(f"Error fetching group members: {e}")
+        recipient_user_uids = []
 
-    if not recipient_user_uid:
-        print(f"DEBUG: No recipient found for job chat message {message.uid}")
+    if not recipient_user_uids:
+        print(f"DEBUG: No recipients found for job chat message {message.uid}")
         return
 
-    # 3. Fetch active FCM tokens for the recipient
+    # 3. Fetch active FCM tokens for the recipients
     tokens = db.query(models.FCMToken).filter(
-        models.FCMToken.user_uid == recipient_user_uid,
+        models.FCMToken.user_uid.in_(recipient_user_uids),
         models.FCMToken.is_active == True
     ).all()
     
     fcm_tokens = [t.fcm_token for t in tokens]
     if not fcm_tokens:
-        print(f"DEBUG: No active FCM tokens for recipient {recipient_user_uid}")
+        print(f"DEBUG: No active FCM tokens for recipients {recipient_user_uids}")
         return
 
     # 4. Construct title and body

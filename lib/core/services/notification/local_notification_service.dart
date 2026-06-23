@@ -745,7 +745,7 @@ class LocalNotificationService extends GetxService {
         if (Get.isRegistered<WebSocketService>()) {
           final wsService = Get.find<WebSocketService>();
           if (wsService.isConnected) {
-            wsService.sendEvent('chat', 'seen', {
+            wsService.sendEvent('message', 'seen', {
               'jobId': jobId,
             });
             sentViaWebSocket = true;
@@ -786,10 +786,11 @@ class LocalNotificationService extends GetxService {
         if (Get.isRegistered<WebSocketService>()) {
           final wsService = Get.find<WebSocketService>();
           if (wsService.isConnected) {
-            wsService.sendEvent('system', 'ack', {
-              'ackedEvent': 'chat',
-              'ackedType': 'received',
+            wsService.sendEvent('message', 'ack', {
+              'ackedEvent': 'message',
+              'ackedType': 'new_message',
               'messageUids': messageUids,
+              'timestamp': DateTime.now().toUtc().toIso8601String(),
             });
             sentViaWebSocket = true;
             debugPrint('LocalNotificationService: markAsDelivered sent via WebSocket');

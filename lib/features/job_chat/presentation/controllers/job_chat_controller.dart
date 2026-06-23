@@ -110,7 +110,7 @@ class JobChatController extends GetxController {
   // Background upload and progress maps
   final RxMap<String, double> uploadProgressMap = <String, double>{}.obs;
   final RxMap<String, String> uploadErrorMap = <String, String>{}.obs;
-  final Map<String, MediaPreviewItem> _pendingItemsMap = {};
+  final Map<String, List<MediaPreviewItem>> _pendingItemsMap = {};
   final Map<String, JobChatMessageEntity?> _pendingRepliesMap = {};
   final Map<String, String> _pendingCaptionsMap = {};
 
@@ -921,85 +921,55 @@ class JobChatController extends GetxController {
       }
     }
 
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
-      final tempUid = 'temp_${nanoid(10)}';
-      _pendingItemsMap[tempUid] = item;
-      _pendingRepliesMap[tempUid] = replyingTo;
-      
-      final currentCaption = i == 0 ? caption : '';
-      _pendingCaptionsMap[tempUid] = currentCaption;
+    // Separate items: images/videos go into ONE grouped message,
+    // documents/PDFs are sent as individual messages.
+    final mediaItems = items
+        .where((item) =>
+            item.type == JobChatMessageContentType.image ||
+            item.type == JobChatMessageContentType.video)
+        .toList();
+    final docItems = items
+        .where((item) =>
+            item.type == JobChatMessageContentType.document ||
+            item.type == JobChatMessageContentType.pdf)
+        .toList();
 
-      final List<JobChatMessageContentEntity> contentList = [];
+    // Send grouped images/videos as a single message
+    if (mediaItems.isNotEmpty) {
+      _sendGroupedMediaMessage(mediaItems, replyingTo: replyingTo, caption: caption);
+    }
 
-      // Add reply metadata if replying to another message
-      if (replyingTo != null) {
-        String originalText = '';
-        String contentType = 'text';
-        String? mediaUrl;
-        String? replyBlurHash;
-        int? pageCount;
+    // Send each document/PDF as an individual message
+    for (int i = 0; i < docItems.length; i++) {
+      // Only attach reply & caption to the first doc if there were no media items
+      final attachReply = (mediaItems.isEmpty && i == 0) ? replyingTo : null;
+      final attachCaption = (mediaItems.isEmpty && i == 0) ? caption : '';
+      _sendGroupedMediaMessage([docItems[i]], replyingTo: attachReply, caption: attachCaption);
+    }
+  }
 
-        final textContent = replyingTo.content.firstWhereOrNull(
-          (c) => c.type == JobChatMessageContentType.text || c.type == JobChatMessageContentType.activity,
-        );
-        originalText = textContent?.content ?? '';
+  /// Sends a list of media items as a single grouped message.
+  /// For images/videos, all items become content entries in one message,
+  /// enabling ChatImageGrid to render them in the appropriate grid layout.
+  void _sendGroupedMediaMessage(
+    List<MediaPreviewItem> items, {
+    JobChatMessageEntity? replyingTo,
+    String caption = '',
+  }) {
+    final localId = nanoid(10);
+    _pendingItemsMap[localId] = items;
+    _pendingRepliesMap[localId] = replyingTo;
+    _pendingCaptionsMap[localId] = caption;
 
-        final mediaItems = replyingTo.content
-            .where((c) =>
-                c.type == JobChatMessageContentType.image ||
-                c.type == JobChatMessageContentType.video ||
-                c.type == JobChatMessageContentType.document ||
-                c.type == JobChatMessageContentType.pdf)
-            .toList();
+    final List<JobChatMessageContentEntity> contentList = [];
 
-        if (mediaItems.isNotEmpty) {
-          final firstMedia = mediaItems.first;
-          contentType = firstMedia.type.value;
-          mediaUrl = firstMedia.content;
+    // Add reply metadata if replying to another message
+    if (replyingTo != null) {
+      contentList.add(_buildReplyContent(replyingTo));
+    }
 
-          if (firstMedia.type == JobChatMessageContentType.image) {
-            final imgMeta = firstMedia.metadata?['imageMetadata'];
-            replyBlurHash = imgMeta?['blurHash'] ?? firstMedia.metadata?['blurHash'];
-            if (originalText.isEmpty) originalText = 'Photo';
-          } else if (firstMedia.type == JobChatMessageContentType.video) {
-            final vidMeta = firstMedia.metadata?['videoMetadata'];
-            replyBlurHash = vidMeta?['thumbnailBlurHash'] ?? firstMedia.metadata?['blurHash'];
-            if (originalText.isEmpty) originalText = 'Video';
-          } else if (firstMedia.type == JobChatMessageContentType.pdf) {
-            final pdfMeta = firstMedia.metadata?['pdfMetadata'];
-            pageCount = pdfMeta?['pageCount'];
-            if (originalText.isEmpty) originalText = 'PDF';
-          } else if (firstMedia.type == JobChatMessageContentType.document) {
-            final docMeta = firstMedia.metadata?['documentMetadata'];
-            pageCount = docMeta?['pageCount'];
-            if (originalText.isEmpty) originalText = 'Document';
-          }
-        }
-
-        final remainingMediaCount = mediaItems.length > 1 ? (mediaItems.length - 1) : 0;
-
-        contentList.add(
-          JobChatMessageContentEntity(
-            type: JobChatMessageContentType.reply,
-            content: originalText,
-            metadata: {
-              'messageUid': replyingTo.uid,
-              'senderName': getSenderName(replyingTo),
-              'senderUid': replyingTo.senderUid,
-              'type': replyingTo.type.value,
-              'contentType': contentType,
-              'mediaUrl': mediaUrl,
-              'blurHash': replyBlurHash,
-              'pageCount': pageCount,
-              'remainingMediaCount': remainingMediaCount,
-              'activityType': replyingTo.metadata?['activityType'],
-            },
-          ),
-        );
-      }
-
-      // Add the pending media content
+    // Add ALL media items as content entries in the same message
+    for (final item in items) {
       contentList.add(
         JobChatMessageContentEntity(
           type: item.type,
@@ -1007,202 +977,230 @@ class JobChatController extends GetxController {
           metadata: item.metadata.toJson(),
         ),
       );
-
-      // Attach the caption to the FIRST media item
-      if (currentCaption.isNotEmpty) {
-        contentList.add(
-          JobChatMessageContentEntity(
-            type: JobChatMessageContentType.text,
-            content: currentCaption,
-          ),
-        );
-      }
-
-      final placeholderMessage = JobChatMessageEntity(
-        uid: tempUid,
-        localId: tempUid,
-        jobId: job.jobId,
-        senderUid: _currentUserProfileUid.value,
-        content: contentList,
-        createdByAuthorAt: DateTime.now(),
-        isMe: true,
-        type: JobChatMessageType.message,
-      );
-
-      // Instantly insert placeholder in UI
-      messages.add(placeholderMessage);
-      scrollToLast(animate: true);
-
-      // Start the background upload process
-      _uploadAndSendMedia(tempUid, item, replyingTo, caption: currentCaption);
     }
+
+    // Attach caption
+    if (caption.isNotEmpty) {
+      contentList.add(
+        JobChatMessageContentEntity(
+          type: JobChatMessageContentType.text,
+          content: caption,
+        ),
+      );
+    }
+
+    final placeholderMessage = JobChatMessageEntity(
+      uid: localId,
+      localId: localId,
+      jobId: job.jobId,
+      senderUid: _currentUserProfileUid.value,
+      content: contentList,
+      createdByAuthorAt: DateTime.now(),
+      isMe: true,
+      type: JobChatMessageType.message,
+    );
+
+    // Instantly insert placeholder in UI
+    messages.add(placeholderMessage);
+    scrollToLast(animate: true);
+
+    // Start the background upload process for all items in this group
+    _uploadAndSendMediaGroup(localId, items, replyingTo, caption: caption);
   }
 
-  Future<void> _uploadAndSendMedia(
-    String tempUid,
-    MediaPreviewItem item,
+  /// Builds a reply content entity from a message being replied to.
+  /// Extracted to eliminate repetition across send methods.
+  JobChatMessageContentEntity _buildReplyContent(JobChatMessageEntity repliedMsg) {
+    String originalText = '';
+    String contentType = 'text';
+    String? mediaUrl;
+    String? replyBlurHash;
+    int? pageCount;
+
+    final textContent = repliedMsg.content.firstWhereOrNull(
+      (c) => c.type == JobChatMessageContentType.text || c.type == JobChatMessageContentType.activity,
+    );
+    originalText = textContent?.content ?? '';
+
+    final mediaItems = repliedMsg.content
+        .where((c) =>
+            c.type == JobChatMessageContentType.image ||
+            c.type == JobChatMessageContentType.video ||
+            c.type == JobChatMessageContentType.document ||
+            c.type == JobChatMessageContentType.pdf)
+        .toList();
+
+    if (mediaItems.isNotEmpty) {
+      final firstMedia = mediaItems.first;
+      contentType = firstMedia.type.value;
+      mediaUrl = firstMedia.content;
+
+      if (firstMedia.type == JobChatMessageContentType.image) {
+        final imgMeta = firstMedia.metadata?['imageMetadata'];
+        replyBlurHash = imgMeta?['blurHash'] ?? firstMedia.metadata?['blurHash'];
+        if (originalText.isEmpty) originalText = 'Photo';
+      } else if (firstMedia.type == JobChatMessageContentType.video) {
+        final vidMeta = firstMedia.metadata?['videoMetadata'];
+        replyBlurHash = vidMeta?['thumbnailBlurHash'] ?? firstMedia.metadata?['blurHash'];
+        if (originalText.isEmpty) originalText = 'Video';
+      } else if (firstMedia.type == JobChatMessageContentType.pdf) {
+        final pdfMeta = firstMedia.metadata?['pdfMetadata'];
+        pageCount = pdfMeta?['pageCount'];
+        if (originalText.isEmpty) originalText = 'PDF';
+      } else if (firstMedia.type == JobChatMessageContentType.document) {
+        final docMeta = firstMedia.metadata?['documentMetadata'];
+        pageCount = docMeta?['pageCount'];
+        if (originalText.isEmpty) originalText = 'Document';
+      }
+    }
+
+    final remainingMediaCount = mediaItems.length > 1 ? (mediaItems.length - 1) : 0;
+
+    return JobChatMessageContentEntity(
+      type: JobChatMessageContentType.reply,
+      content: originalText,
+      metadata: {
+        'messageUid': repliedMsg.uid,
+        'senderName': getSenderName(repliedMsg),
+        'senderUid': repliedMsg.senderUid,
+        'type': repliedMsg.type.value,
+        'contentType': contentType,
+        'mediaUrl': mediaUrl,
+        'blurHash': replyBlurHash,
+        'pageCount': pageCount,
+        'remainingMediaCount': remainingMediaCount,
+        'activityType': repliedMsg.metadata?['activityType'],
+      },
+    );
+  }
+
+  Future<void> _uploadAndSendMediaGroup(
+    String localId,
+    List<MediaPreviewItem> items,
     JobChatMessageEntity? replyingTo, {
     String caption = '',
   }) async {
-    uploadProgressMap[tempUid] = 0.0;
-    uploadErrorMap.remove(tempUid);
+    uploadProgressMap[localId] = 0.0;
+    uploadErrorMap.remove(localId);
 
-    final file = File(item.path);
-    final uploadResult = await _uploadFileUseCase(
-      UploadFileParams(
-        file: file,
-        path: job.jobId,
-        onSendProgress: (sent, total) {
-          if (total > 0) {
-            uploadProgressMap[tempUid] = sent / total;
-          }
+    // Upload all files sequentially, collecting remote paths
+    final List<MapEntry<MediaPreviewItem, String>> uploadedEntries = [];
+    bool anyFailed = false;
+
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      final file = File(item.path);
+      final uploadResult = await _uploadFileUseCase(
+        UploadFileParams(
+          file: file,
+          path: job.jobId,
+          onSendProgress: (sent, total) {
+            if (total > 0) {
+              // Progress: fraction of current file + completed files
+              final fileProgress = sent / total;
+              uploadProgressMap[localId] = (i + fileProgress) / items.length;
+            }
+          },
+        ),
+      );
+
+      final remotePath = uploadResult.fold(
+        (failure) {
+          debugPrint('Background upload failed for $localId item $i: ${failure.message}');
+          return null;
         },
-      ),
+        (path) => path,
+      );
+
+      if (remotePath == null) {
+        anyFailed = true;
+        break;
+      }
+
+      uploadedEntries.add(MapEntry(item, remotePath));
+    }
+
+    if (anyFailed) {
+      uploadErrorMap[localId] = 'Upload failed';
+      uploadProgressMap.remove(localId);
+      return;
+    }
+
+    // Build the final content list with remote URLs
+    final List<JobChatMessageContentEntity> contentList = [];
+
+    // 1. Add reply metadata if applicable
+    if (replyingTo != null) {
+      contentList.add(_buildReplyContent(replyingTo));
+    }
+
+    // 2. Add all media content entries pointing to remote paths
+    for (final entry in uploadedEntries) {
+      contentList.add(
+        JobChatMessageContentEntity(
+          type: entry.key.type,
+          content: entry.value,
+          metadata: entry.key.metadata.toJson(),
+        ),
+      );
+    }
+
+    // 3. Attach caption
+    if (caption.isNotEmpty) {
+      contentList.add(
+        JobChatMessageContentEntity(
+          type: JobChatMessageContentType.text,
+          content: caption,
+        ),
+      );
+    }
+
+    final sendMessageEntity = SendMessageEntity(
+      localId: localId,
+      jobId: job.jobId,
+      senderUid: _currentUserProfileUid.value,
+      content: contentList,
+      createdByAuthorAt: DateTime.now(),
+      type: JobChatMessageType.message,
     );
 
-    await uploadResult.fold(
-      (failure) async {
-        debugPrint('Background upload failed for $tempUid: ${failure.message}');
-        uploadErrorMap[tempUid] = failure.message;
-        uploadProgressMap.remove(tempUid);
+    final sendResult = await _sendMessageUseCase(
+      SendMessageParams(messages: [sendMessageEntity]),
+    );
+
+    sendResult.fold(
+      (failure) {
+        debugPrint('Background message send failed for $localId: ${failure.message}');
+        uploadErrorMap[localId] = failure.message;
+        uploadProgressMap.remove(localId);
       },
-      (remotePath) async {
-        final List<JobChatMessageContentEntity> contentList = [];
+      (result) {
+        uploadProgressMap.remove(localId);
+        uploadErrorMap.remove(localId);
+        _pendingItemsMap.remove(localId);
+        _pendingRepliesMap.remove(localId);
+        _pendingCaptionsMap.remove(localId);
 
-        // 1. Re-add reply metadata if applicable
-        if (replyingTo != null) {
-          String originalText = '';
-          String contentType = 'text';
-          String? mediaUrl;
-          String? replyBlurHash;
-          int? pageCount;
-
-          final textContent = replyingTo.content.firstWhereOrNull(
-            (c) => c.type == JobChatMessageContentType.text || c.type == JobChatMessageContentType.activity,
-          );
-          originalText = textContent?.content ?? '';
-
-          final mediaItems = replyingTo.content
-              .where((c) =>
-                  c.type == JobChatMessageContentType.image ||
-                  c.type == JobChatMessageContentType.video ||
-                  c.type == JobChatMessageContentType.document ||
-                  c.type == JobChatMessageContentType.pdf)
-              .toList();
-
-          if (mediaItems.isNotEmpty) {
-            final firstMedia = mediaItems.first;
-            contentType = firstMedia.type.value;
-            mediaUrl = firstMedia.content;
-
-            if (firstMedia.type == JobChatMessageContentType.image) {
-              final imgMeta = firstMedia.metadata?['imageMetadata'];
-              replyBlurHash = imgMeta?['blurHash'] ?? firstMedia.metadata?['blurHash'];
-              if (originalText.isEmpty) originalText = 'Photo';
-            } else if (firstMedia.type == JobChatMessageContentType.video) {
-              final vidMeta = firstMedia.metadata?['videoMetadata'];
-              replyBlurHash = vidMeta?['thumbnailBlurHash'] ?? firstMedia.metadata?['blurHash'];
-              if (originalText.isEmpty) originalText = 'Video';
-            } else if (firstMedia.type == JobChatMessageContentType.pdf) {
-              final pdfMeta = firstMedia.metadata?['pdfMetadata'];
-              pageCount = pdfMeta?['pageCount'];
-              if (originalText.isEmpty) originalText = 'PDF';
-            } else if (firstMedia.type == JobChatMessageContentType.document) {
-              final docMeta = firstMedia.metadata?['documentMetadata'];
-              pageCount = docMeta?['pageCount'];
-              if (originalText.isEmpty) originalText = 'Document';
-            }
-          }
-
-          final remainingMediaCount = mediaItems.length > 1 ? (mediaItems.length - 1) : 0;
-
-          contentList.add(
-            JobChatMessageContentEntity(
-              type: JobChatMessageContentType.reply,
-              content: originalText,
-              metadata: {
-                'messageUid': replyingTo.uid,
-                'senderName': getSenderName(replyingTo),
-                'senderUid': replyingTo.senderUid,
-                'type': replyingTo.type.value,
-                'contentType': contentType,
-                'mediaUrl': mediaUrl,
-                'blurHash': replyBlurHash,
-                'pageCount': pageCount,
-                'remainingMediaCount': remainingMediaCount,
-                'activityType': replyingTo.metadata?['activityType'],
-              },
-            ),
-          );
+        // Replace placeholder message in list with the actual response message
+        final existingIndex = messages.indexWhere((m) => m.localId == localId);
+        if (existingIndex != -1) {
+          messages[existingIndex] = result.message.copyWith(isMe: true);
+          messages.refresh();
         }
 
-        // 2. Add the media content pointing to the remote path
-        contentList.add(
-          JobChatMessageContentEntity(
-            type: item.type,
-            content: remotePath,
-            metadata: item.metadata.toJson(),
-          ),
-        );
-
-        // 3. Attach caption to final message if applicable
-        if (caption.isNotEmpty) {
-          contentList.add(
-            JobChatMessageContentEntity(
-              type: JobChatMessageContentType.text,
-              content: caption,
-            ),
-          );
+        if (result.job != null) {
+          updateJob(result.job!);
         }
-
-        final sendMessageEntity = SendMessageEntity(
-          localId: tempUid,
-          jobId: job.jobId,
-          senderUid: _currentUserProfileUid.value,
-          content: contentList,
-          createdByAuthorAt: DateTime.now(),
-          type: JobChatMessageType.message,
-        );
-
-        final sendResult = await _sendMessageUseCase(
-          SendMessageParams(messages: [sendMessageEntity]),
-        );
-
-        sendResult.fold(
-          (failure) {
-            debugPrint('Background message send failed for $tempUid: ${failure.message}');
-            uploadErrorMap[tempUid] = failure.message;
-            uploadProgressMap.remove(tempUid);
-          },
-          (result) {
-            uploadProgressMap.remove(tempUid);
-            uploadErrorMap.remove(tempUid);
-            _pendingItemsMap.remove(tempUid);
-            _pendingRepliesMap.remove(tempUid);
-            _pendingCaptionsMap.remove(tempUid);
-
-            // Replace placeholder message in list with the actual response message
-            final existingIndex = messages.indexWhere((m) => m.uid == tempUid);
-            if (existingIndex != -1) {
-              messages[existingIndex] = result.message.copyWith(isMe: true);
-              messages.refresh();
-            }
-
-            if (result.job != null) {
-              updateJob(result.job!);
-            }
-          },
-        );
       },
     );
   }
 
-  void retryMessageUpload(String tempUid) {
-    final item = _pendingItemsMap[tempUid];
-    if (item == null) return;
-    final replyingTo = _pendingRepliesMap[tempUid];
-    final caption = _pendingCaptionsMap[tempUid] ?? '';
-    _uploadAndSendMedia(tempUid, item, replyingTo, caption: caption);
+  void retryMessageUpload(String localId) {
+    final items = _pendingItemsMap[localId];
+    if (items == null || items.isEmpty) return;
+    final replyingTo = _pendingRepliesMap[localId];
+    final caption = _pendingCaptionsMap[localId] ?? '';
+    _uploadAndSendMediaGroup(localId, items, replyingTo, caption: caption);
   }
 
   Future<void> sendMessage() async {
@@ -1252,78 +1250,7 @@ class JobChatController extends GetxController {
       final List<JobChatMessageContentEntity> contentList = [];
 
       if (repliedMsg != null) {
-        String originalText = '';
-        String contentType = 'text';
-        String? mediaUrl;
-        String? replyBlurHash;
-        int? pageCount;
-
-        final textContent = repliedMsg.content.firstWhereOrNull(
-          (c) =>
-              c.type == JobChatMessageContentType.text ||
-              c.type == JobChatMessageContentType.activity,
-        );
-        originalText = textContent?.content ?? '';
-
-        final mediaItems = repliedMsg.content
-            .where(
-              (c) =>
-                  c.type == JobChatMessageContentType.image ||
-                  c.type == JobChatMessageContentType.video ||
-                  c.type == JobChatMessageContentType.document ||
-                  c.type == JobChatMessageContentType.pdf,
-            )
-            .toList();
-
-        if (mediaItems.isNotEmpty) {
-          final firstMedia = mediaItems.first;
-          contentType = firstMedia.type.value;
-          mediaUrl = firstMedia.content;
-
-          if (firstMedia.type == JobChatMessageContentType.image) {
-            final imgMeta = firstMedia.metadata?['imageMetadata'];
-            replyBlurHash =
-                imgMeta?['blurHash'] ?? firstMedia.metadata?['blurHash'];
-            if (originalText.isEmpty) originalText = 'Photo';
-          } else if (firstMedia.type == JobChatMessageContentType.video) {
-            final vidMeta = firstMedia.metadata?['videoMetadata'];
-            replyBlurHash =
-                vidMeta?['thumbnailBlurHash'] ??
-                firstMedia.metadata?['blurHash'];
-            if (originalText.isEmpty) originalText = 'Video';
-          } else if (firstMedia.type == JobChatMessageContentType.pdf) {
-            final pdfMeta = firstMedia.metadata?['pdfMetadata'];
-            pageCount = pdfMeta?['pageCount'];
-            if (originalText.isEmpty) originalText = 'PDF';
-          } else if (firstMedia.type == JobChatMessageContentType.document) {
-            final docMeta = firstMedia.metadata?['documentMetadata'];
-            pageCount = docMeta?['pageCount'];
-            if (originalText.isEmpty) originalText = 'Document';
-          }
-        }
-
-        final remainingMediaCount = mediaItems.length > 1
-            ? (mediaItems.length - 1)
-            : 0;
-
-        contentList.add(
-          JobChatMessageContentEntity(
-            type: JobChatMessageContentType.reply,
-            content: originalText,
-            metadata: {
-              'messageUid': repliedMsg.uid,
-              'senderName': getSenderName(repliedMsg),
-              'senderUid': repliedMsg.senderUid,
-              'type': repliedMsg.type.value,
-              'contentType': contentType,
-              'mediaUrl': mediaUrl,
-              'blurHash': replyBlurHash,
-              'pageCount': pageCount,
-              'remainingMediaCount': remainingMediaCount,
-              'activityType': repliedMsg.metadata?['activityType'],
-            },
-          ),
-        );
+        contentList.add(_buildReplyContent(repliedMsg));
       }
 
       contentList.add(

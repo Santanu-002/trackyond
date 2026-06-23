@@ -231,7 +231,8 @@ class WebSocketService extends GetxService {
         return;
       }
 
-      if (event == 'system') {
+      // Connection events from server
+      if (event == 'connection') {
         if (type == 'connected') {
           _isConnected.value = true;
           _connectionStateController.add(true);
@@ -239,32 +240,54 @@ class WebSocketService extends GetxService {
           final interval = (data as Map<String, dynamic>?)?['heartbeatIntervalSeconds'] as int? ?? 30;
           _startHeartbeat(interval);
           debugPrint('WebSocket: Connected and heartbeat started');
-        } else if (type == 'heartbeatAck') {
-          debugPrint('WebSocket: Heartbeat acknowledged');
-        } else if (type == 'tokenRenewal') {
+        }
+      } else if (event == 'heartbeat') {
+        if (type == 'pong') {
+          debugPrint('WebSocket: Heartbeat pong received');
+        }
+      } else if (event == 'token') {
+        if (type == 'renewal') {
           _handleTokenRenewal(data as Map<String, dynamic>);
         }
-      } else if (event == 'chat') {
-        if (type == 'received') {
+      } else if (event == 'message') {
+        if (type == 'send_response') {
+          final Map<String, dynamic>? responseData = (data as Map<String, dynamic>?)?['data'] as Map<String, dynamic>?;
+          if (responseData != null) {
+            await _handleChatReceived(responseData);
+          }
+        } else if (type == 'new_message') {
           await _handleChatReceived(data as Map<String, dynamic>);
+        } else if (type == 'delete_response') {
+          final Map<String, dynamic>? responseData = (data as Map<String, dynamic>?)?['data'] as Map<String, dynamic>?;
+          if (responseData != null) {
+            await _handleChatDeleted(responseData);
+          }
         } else if (type == 'deleted') {
           await _handleChatDeleted(data as Map<String, dynamic>);
-        } else if (type == 'delivered') {
-          await _handleChatDelivered(data as Map<String, dynamic>);
-        } else if (type == 'seen') {
-          await _handleChatSeen(data as Map<String, dynamic>);
+        } else if (type == 'seen_response') {
+          final Map<String, dynamic>? responseData = (data as Map<String, dynamic>?)?['data'] as Map<String, dynamic>?;
+          if (responseData != null) {
+            await _handleChatSeen(responseData);
+          }
+        } else if (type == 'ack_received') {
+          final status = (data as Map<String, dynamic>?)?['status'] as String?;
+          if (status == 'delivered') {
+            await _handleChatDelivered(data as Map<String, dynamic>);
+          } else if (status == 'seen') {
+            await _handleChatSeen(data as Map<String, dynamic>);
+          }
         }
       }
 
-      // Send ack back to the server for non-heartbeatAck events
-      if (type != 'heartbeatAck') {
+      // Send ack back to the server only for new_message events
+      if (event == 'message' && type == 'new_message') {
         final Map<String, dynamic> ackData = {
           'ackedEvent': event,
           'ackedType': type,
           'timestamp': DateTime.now().toUtc().toIso8601String(),
         };
 
-        if (event == 'chat' && type == 'received' && data is Map<String, dynamic>) {
+        if (data is Map<String, dynamic>) {
           final List<String> messageUids = [];
           final messagesList = data['messages'] as List?;
           if (messagesList != null) {
@@ -282,7 +305,7 @@ class WebSocketService extends GetxService {
           ackData['messageUids'] = messageUids;
         }
 
-        sendEvent('system', 'ack', ackData);
+        sendEvent('message', 'ack', ackData);
       }
     } catch (e) {
       debugPrint('WebSocket error processing incoming message (ack suppressed): $e');
@@ -414,7 +437,7 @@ class WebSocketService extends GetxService {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(Duration(seconds: intervalSeconds), (timer) {
       if (isConnected) {
-        sendEvent('system', 'heartbeat', {});
+        sendEvent('heartbeat', 'ping', {});
       } else {
         timer.cancel();
       }

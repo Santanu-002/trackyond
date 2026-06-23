@@ -110,11 +110,10 @@ class JobChatRepositoryImpl implements IJobChatRepository {
 
     if (isOnline && wsService.isConnected) {
       final data = {
-        'jobId': jobId,
         'messages': payload,
       };
 
-      wsService.sendEvent('chat', 'send', data);
+      wsService.sendEvent('message', 'send', data);
 
       final previewResponse = SendMessageResponseModel(
         message: previewMessage,
@@ -292,7 +291,7 @@ class JobChatRepositoryImpl implements IJobChatRepository {
     final wsService = _webSocketService;
 
     if (isOnline && wsService.isConnected) {
-      wsService.sendEvent('chat', 'seen', {
+      wsService.sendEvent('message', 'seen', {
         'jobId': jobId,
         ...?messageUids != null ? {'messageUids': messageUids} : null,
       });
@@ -332,9 +331,11 @@ class JobChatRepositoryImpl implements IJobChatRepository {
     final wsService = _webSocketService;
 
     if (isOnline && wsService.isConnected) {
-      wsService.sendEvent('chat', 'delivered', {
-        'jobId': jobId,
+      wsService.sendEvent('message', 'ack', {
+        'ackedEvent': 'message',
+        'ackedType': 'new_message',
         'messageUids': messageUids,
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
       });
       return const Right(null);
     } else if (isOnline) {

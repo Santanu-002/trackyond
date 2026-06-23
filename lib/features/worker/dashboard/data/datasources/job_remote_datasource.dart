@@ -4,7 +4,7 @@ import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/common/models/job/job_model.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
-abstract interface class IJobDataSource {
+abstract interface class IJobRemoteDataSource {
   Future<ApiResponse<List<JobModel>>> getAssignedJobs({
     int limit = 20,
     int offset = 0,
@@ -12,10 +12,10 @@ abstract interface class IJobDataSource {
   });
 }
 
-class JobDataSourceImpl with BaseRemoteDataSource implements IJobDataSource {
+class JobRemoteDataSourceImpl with BaseRemoteDataSource implements IJobRemoteDataSource {
   final Dio _dio;
 
-  JobDataSourceImpl(this._dio);
+  JobRemoteDataSourceImpl(this._dio);
 
   @override
   Future<ApiResponse<List<JobModel>>> getAssignedJobs({

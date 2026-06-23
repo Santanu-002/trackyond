@@ -28,4 +28,6 @@ abstract interface class INotificationRepository {
   });
 
   Future<Either<AppFailure, void>> retryFailedAcks();
+
+  Future<Either<AppFailure, void>> clearConversationNotifications(String jobId);
 }

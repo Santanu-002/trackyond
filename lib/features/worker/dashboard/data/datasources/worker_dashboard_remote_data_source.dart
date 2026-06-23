@@ -6,6 +6,7 @@ import 'package:trackyond/features/worker/dashboard/data/models/dashboard/worker
 
 abstract interface class IWorkerDashboardRemoteDataSource {
   Future<ApiResponse<WorkerDashboardModel>> getDashboardData();
+  Future<ApiResponse<void>> triggerMockJobNotification();
 }
 
 class WorkerDashboardRemoteDataSourceImpl
@@ -20,6 +21,14 @@ class WorkerDashboardRemoteDataSourceImpl
     return performApiRequest(
       _dio.get(ApiEndpoints.employee.dashboard),
       (data) => WorkerDashboardModel.fromJson(data as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Future<ApiResponse<void>> triggerMockJobNotification() {
+    return performApiRequest(
+      _dio.post(ApiEndpoints.employee.jobsMock),
+      (data) {},
     );
   }
 }

@@ -19,4 +19,13 @@ class WorkerDashboardRepositoryImpl implements IWorkerDashboardRepository {
       error: (success, message, data, statusCode) => left(ServerFailure(message)),
     );
   }
+
+  @override
+  Future<Either<AppFailure, void>> sendMockJobNotification() async {
+    final ApiResponse<void> result = await _dataSource.triggerMockJobNotification();
+    return result.when(
+      success: (success, message, _) => right(null),
+      error: (success, message, data, statusCode) => left(ServerFailure(message)),
+    );
+  }
 }

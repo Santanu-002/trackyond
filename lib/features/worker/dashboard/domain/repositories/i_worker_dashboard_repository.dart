@@ -4,4 +4,5 @@ import 'package:trackyond/features/worker/dashboard/domain/entities/dashboard/wo
 
 abstract interface class IWorkerDashboardRepository {
   Future<Either<AppFailure, WorkerDashboardData>> getDashboardData();
+  Future<Either<AppFailure, void>> sendMockJobNotification();
 }

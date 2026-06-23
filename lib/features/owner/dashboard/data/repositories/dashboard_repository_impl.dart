@@ -4,7 +4,7 @@ import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/owner/dashboard/data/datasources/dashboard_remote_data_source.dart';
 import 'package:trackyond/features/owner/dashboard/domain/entities/owner_dashboard_data.dart';
 import 'package:trackyond/features/owner/dashboard/domain/repositories/i_dashboard_repository.dart';
-import 'package:trackyond/features/owner/dashboard/data/models/owner_dashboard_model.dart';
+import 'package:trackyond/features/owner/dashboard/data/models/response/owner_dashboard_model.dart';
 
 class DashboardRepositoryImpl implements IDashboardRepository {
   final IDashboardRemoteDataSource _remoteDataSource;

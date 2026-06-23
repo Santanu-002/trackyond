@@ -19,12 +19,14 @@ class NotificationRepositoryImpl implements INotificationRepository {
   final UserService _userService;
   final LocalNotificationService _localNotificationService;
   final FCMTokenService _fcmTokenService;
+  final BackgroundAckService _backgroundAckService;
 
   NotificationRepositoryImpl(
     this._dataSource,
     this._userService,
     this._localNotificationService,
     this._fcmTokenService,
+    this._backgroundAckService,
   );
 
   @override
@@ -152,8 +154,7 @@ class NotificationRepositoryImpl implements INotificationRepository {
   @override
   Future<Either<AppFailure, void>> retryFailedAcks() async {
     try {
-      final ackService = await BackgroundAckService.init();
-      await ackService.retryFailedAcks();
+      await _backgroundAckService.retryFailedAcks();
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -165,5 +166,15 @@ class NotificationRepositoryImpl implements INotificationRepository {
       success: (_, _, _) => const Right(null),
       error: (_, message, _, _) => Left(ServerFailure(message)),
     );
+  }
+
+  @override
+  Future<Either<AppFailure, void>> clearConversationNotifications(String jobId) async {
+    try {
+      _localNotificationService.clearConversationMessages(jobId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
   }
 }

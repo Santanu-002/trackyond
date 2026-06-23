@@ -14,6 +14,7 @@ import 'package:trackyond/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/refresh_auth_token_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/connect_websocket_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/disconnect_websocket_usecase.dart';
+import 'package:trackyond/core/services/websocket/websocket_service.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/auth/presentation/controllers/choose_role_controller.dart';
 
@@ -27,6 +28,7 @@ class AuthBindings extends Bindings {
         Get.find<IAuthDataSource>(),
         Get.find(),
         Get.find(),
+        Get.find<WebSocketService>(),
       ),
     );
 

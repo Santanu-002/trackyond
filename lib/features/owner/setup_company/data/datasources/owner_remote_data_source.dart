@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
-import 'package:trackyond/features/owner/setup_company/data/models/company_response_model.dart';
+import 'package:trackyond/features/owner/setup_company/data/models/response/company_response_model.dart';
 
 abstract interface class  OwnerRemoteDataSource {
   Future<ApiResponse<CompanyResponseModel>> setupCompany({

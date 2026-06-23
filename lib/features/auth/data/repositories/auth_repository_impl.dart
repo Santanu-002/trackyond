@@ -18,8 +18,14 @@ class AuthRepositoryImpl implements IAuthRepository {
   final IAuthDataSource _dataSource;
   final TokenService _tokenService;
   final UserService _userService;
+  final WebSocketService _webSocketService;
 
-  AuthRepositoryImpl(this._dataSource, this._tokenService, this._userService);
+  AuthRepositoryImpl(
+    this._dataSource,
+    this._tokenService,
+    this._userService,
+    this._webSocketService,
+  );
 
   @override
   Future<Either<AppFailure, SendOtpResponseEntity>> sendOtp({
@@ -237,7 +243,7 @@ class AuthRepositoryImpl implements IAuthRepository {
   Future<Either<AppFailure, Unit>> connectWebSocket() async {
     try {
       if (Get.isRegistered<WebSocketService>()) {
-        WebSocketService.find.connect();
+        _webSocketService.connect();
       }
       return const Right(unit);
     } catch (e) {
@@ -249,7 +255,7 @@ class AuthRepositoryImpl implements IAuthRepository {
   Future<Either<AppFailure, Unit>> disconnectWebSocket() async {
     try {
       if (Get.isRegistered<WebSocketService>()) {
-        await WebSocketService.find.disconnect();
+        await _webSocketService.disconnect();
       }
       return const Right(unit);
     } catch (e) {

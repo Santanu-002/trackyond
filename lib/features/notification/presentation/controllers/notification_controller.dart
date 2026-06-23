@@ -12,7 +12,7 @@ import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/notification_constants.dart';
-import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
+import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/emit_chat_message_received_use_case.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/notification/domain/entities/notification_entity.dart';

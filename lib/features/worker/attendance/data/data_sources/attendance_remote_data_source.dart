@@ -3,7 +3,7 @@ import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote
 import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/common/models/attendance/attendance_model.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
-import 'package:trackyond/features/worker/attendance/data/models/attendance_request_model.dart';
+import 'package:trackyond/features/worker/attendance/data/models/request/attendance_request_model.dart';
 import 'package:trackyond/core/common/models/attendance/attendance_status_model.dart';
 
 abstract interface class IAttendanceRemoteDataSource {

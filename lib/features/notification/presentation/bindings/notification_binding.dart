@@ -5,6 +5,7 @@ import 'package:trackyond/core/services/notification/fcm_token_service.dart';
 import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/emit_chat_message_received_use_case.dart';
+import 'package:trackyond/core/services/notification/background_ack_service.dart';
 import 'package:trackyond/features/notification/data/datasources/notification_data_source.dart';
 import 'package:trackyond/features/notification/data/repositories/notification_repository_impl.dart';
 import 'package:trackyond/features/notification/domain/repositories/i_notification_repository.dart';
@@ -39,6 +40,7 @@ class NotificationBinding extends Bindings {
         Get.find<UserService>(),
         Get.find<LocalNotificationService>(),
         Get.find<FCMTokenService>(),
+        Get.find<BackgroundAckService>(),
       ),
     );
 

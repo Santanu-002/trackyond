@@ -5,9 +5,9 @@ import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/common/mixins/base_remote_data_source/base_remote_data_source.dart';
 import 'package:trackyond/core/network/api/request_extras.dart';
-import 'package:trackyond/features/auth/data/models/profile_response_model.dart';
+import 'package:trackyond/features/auth/data/models/response/profile_response_model.dart';
 import 'package:trackyond/features/auth/data/models/send_otp/send_otp_response_model.dart';
-import 'package:trackyond/features/auth/data/models/verify_otp_response_model.dart';
+import 'package:trackyond/features/auth/data/models/response/verify_otp_response_model.dart';
 
 abstract interface class IAuthDataSource {
   Future<ApiResponse<SendOtpResponseModel>> sendOtp({

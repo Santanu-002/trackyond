@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -15,24 +14,27 @@ import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
 import 'package:trackyond/features/worker/dashboard/domain/entities/attendance_info_item.dart';
 import 'package:trackyond/features/worker/dashboard/domain/usecases/get_worker_dashboard_use_case.dart';
 import 'package:trackyond/features/worker/dashboard/domain/usecases/listen_job_events_use_case.dart';
+import 'package:trackyond/features/worker/dashboard/domain/usecases/send_mock_job_notification_usecase.dart';
 import 'package:trackyond/features/worker/settings/presentation/controllers/worker_settings_controller.dart';
 
 class WorkerDashboardController extends GetxController {
   final GetWorkerDashboardUseCase _getWorkerDashboardUseCase;
   final ListenJobEventsUseCase _listenJobEventsUseCase;
+  final SendMockJobNotificationUseCase _sendMockJobNotificationUseCase;
 
   WorkerDashboardController({
     required GetWorkerDashboardUseCase getWorkerDashboardUseCase,
     required ListenJobEventsUseCase listenJobEventsUseCase,
+    required SendMockJobNotificationUseCase sendMockJobNotificationUseCase,
   }) : _getWorkerDashboardUseCase = getWorkerDashboardUseCase,
-       _listenJobEventsUseCase = listenJobEventsUseCase;
+       _listenJobEventsUseCase = listenJobEventsUseCase,
+       _sendMockJobNotificationUseCase = sendMockJobNotificationUseCase;
 
   AppLifecycleListener? _lifecycleListener;
 
@@ -289,19 +291,17 @@ class WorkerDashboardController extends GetxController {
 
   Future<void> sendTestNotification() async {
     isActionLoading.value = true;
-    try {
-      final dio = Get.find<Dio>();
-      final response = await dio.post(ApiEndpoints.employee.jobsMock);
-
-      if (response.statusCode == 200) {
+    final result = await _sendMockJobNotificationUseCase(const NoParams());
+    result.fold(
+      (failure) {
+        debugPrint("Error sending mock job: ${failure.message}");
+        AppSnackbar.destructive("Failed to send mock job");
+      },
+      (_) {
         AppSnackbar.success("Mock job sent! Wait for notification.");
-      }
-    } catch (e) {
-      debugPrint("Error sending mock job: $e");
-      AppSnackbar.destructive("Failed to send mock job");
-    } finally {
-      isActionLoading.value = false;
-    }
+      },
+    );
+    isActionLoading.value = false;
   }
 
   Future<void> logout() async => await Get.find<AuthController>().logout();

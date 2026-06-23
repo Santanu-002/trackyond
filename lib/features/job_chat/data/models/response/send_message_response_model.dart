@@ -1,22 +1,25 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/core/common/models/job/job_model.dart';
-import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
+import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
 import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
-class SendMessageResponseModel {
-  final JobChatMessageModel message;
-  final List<JobChatMessageModel> messages;
-  final List<String> allowedActions;
-  final JobModel? job;
+part 'send_message_response_model.freezed.dart';
 
-  SendMessageResponseModel({
-    required this.message,
-    this.messages = const [],
-    required this.allowedActions,
-    this.job,
-  });
+@freezed
+sealed class SendMessageResponseModel with _$SendMessageResponseModel {
+  const factory SendMessageResponseModel({
+    required JobChatMessageModel message,
+    @Default([]) List<JobChatMessageModel> messages,
+    required List<String> allowedActions,
+    JobModel? job,
+  }) = _SendMessageResponseModel;
+
+  const SendMessageResponseModel._();
 
   factory SendMessageResponseModel.fromJson(Map<String, dynamic> json) {
-    final jobData = json['job'] != null ? JobModel.fromJson(json['job'] as Map<String, dynamic>) : null;
+    final jobData = json['job'] != null 
+        ? JobModel.fromJson(json['job'] as Map<String, dynamic>) 
+        : null;
     final messagesList = json['messages'] != null
         ? (json['messages'] as List)
             .map((e) => JobChatMessageModel.fromJson(e as Map<String, dynamic>))

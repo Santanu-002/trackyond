@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/core/utils/json_converters.dart';
-import 'package:trackyond/features/job_chat/data/models/job_chat_message_content_model.dart';
+import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_content_model.dart';
 import 'package:trackyond/features/job_chat/domain/entities/send_message_entity.dart';
 
 part 'send_message_model.freezed.dart';

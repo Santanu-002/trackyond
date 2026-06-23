@@ -23,4 +23,3 @@ sealed class CompanyResponseModel with _$CompanyResponseModel {
         memberProfile: memberProfile.toEntity(),
       );
 }
-

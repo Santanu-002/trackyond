@@ -226,7 +226,7 @@ return $default(_that.jobId,_that.jobTitle,_that.customerName,_that.customerPhon
 @JsonSerializable()
 
 class _JobModel extends JobModel {
-  const _JobModel({required this.jobId, required this.jobTitle, required this.customerName, required this.customerPhone, this.customerAddress, required this.workerProfileUid, this.workerName, this.workerImage, this.createdByProfileUid, this.createdByName, required this.status, required this.requirePhotoOnStart, required this.requirePhotoOnComplete, required this.captureLocation, required this.createdAt, this.assignedAt, this.updatedAt, this.completedAt, final  List<String> allowedActions = const [], this.lastMessage, this.lastMessageAt, this.lastActivityType, this.lastActivityMessage, this.lastActivityAt}): _allowedActions = allowedActions,super._();
+  const _JobModel({required this.jobId, required this.jobTitle, required this.customerName, required this.customerPhone, this.customerAddress, required this.workerProfileUid, this.workerName, this.workerImage, this.createdByProfileUid, this.createdByName, required this.status, required this.requirePhotoOnStart, required this.requirePhotoOnComplete, required this.captureLocation, required this.createdAt, this.assignedAt, this.updatedAt, this.completedAt, required final  List<String> allowedActions, this.lastMessage, this.lastMessageAt, this.lastActivityType, this.lastActivityMessage, this.lastActivityAt}): _allowedActions = allowedActions,super._();
   factory _JobModel.fromJson(Map<String, dynamic> json) => _$JobModelFromJson(json);
 
 @override final  String jobId;
@@ -248,7 +248,7 @@ class _JobModel extends JobModel {
 @override final  DateTime? updatedAt;
 @override final  DateTime? completedAt;
  final  List<String> _allowedActions;
-@override@JsonKey() List<String> get allowedActions {
+@override List<String> get allowedActions {
   if (_allowedActions is EqualUnmodifiableListView) return _allowedActions;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_allowedActions);

@@ -31,11 +31,9 @@ _JobModel _$JobModelFromJson(Map<String, dynamic> json) => _JobModel(
   completedAt: json['completedAt'] == null
       ? null
       : DateTime.parse(json['completedAt'] as String),
-  allowedActions:
-      (json['allowedActions'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
+  allowedActions: (json['allowedActions'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   lastMessage: json['lastMessage'] as String?,
   lastMessageAt: json['lastMessageAt'] == null
       ? null

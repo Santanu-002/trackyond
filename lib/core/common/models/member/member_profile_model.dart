@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/enums/gender.dart';
+import 'package:trackyond/core/services/database/tables/member_table.dart';
 
 part 'member_profile_model.freezed.dart';
 part 'member_profile_model.g.dart';
@@ -23,6 +24,34 @@ sealed class MemberProfileModel with _$MemberProfileModel {
       _$MemberProfileModelFromJson(json);
 
   const MemberProfileModel._();
+
+  Map<String, dynamic> toDbMap() {
+    return {
+      MemberTable.columnNames.uid: uid,
+      MemberTable.columnNames.userUid: userUid,
+      MemberTable.columnNames.name: name,
+      MemberTable.columnNames.phone: phone,
+      MemberTable.columnNames.designation: designation,
+      MemberTable.columnNames.gender: gender,
+      MemberTable.columnNames.image: image,
+      MemberTable.columnNames.companyUid: companyUid,
+      MemberTable.columnNames.createdBy: createdBy,
+    };
+  }
+
+  factory MemberProfileModel.fromDbMap(Map<String, dynamic> map) {
+    return MemberProfileModel(
+      uid: map[MemberTable.columnNames.uid] as String,
+      userUid: map[MemberTable.columnNames.userUid] as String,
+      name: map[MemberTable.columnNames.name] as String,
+      phone: map[MemberTable.columnNames.phone] as String,
+      designation: map[MemberTable.columnNames.designation] as String,
+      gender: map[MemberTable.columnNames.gender] as String?,
+      image: map[MemberTable.columnNames.image] as String?,
+      companyUid: map[MemberTable.columnNames.companyUid] as String?,
+      createdBy: map[MemberTable.columnNames.createdBy] as String?,
+    );
+  }
 
   MemberProfile toEntity() => MemberProfile(
         uid: uid,

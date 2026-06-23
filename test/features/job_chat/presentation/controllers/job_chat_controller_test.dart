@@ -17,14 +17,15 @@ import 'package:trackyond/features/job_chat/domain/usecases/get_job_messages_use
 import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_use_case.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/send_message_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/mark_messages_seen_usecase.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_selection_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/clear_conversation_notifications_usecase.dart';
+import 'package:trackyond/core/common/events/chat_event.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/chat_item.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_upload_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_selection_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
-import 'package:trackyond/core/common/events/chat_event.dart';
 
 class MockGetJobMessagesUseCase extends Mock implements GetJobMessagesUseCase {}
 class MockSendMessageUseCase extends Mock implements SendMessageUseCase {}
@@ -33,6 +34,7 @@ class MockEmitJobUpdateUseCase extends Mock implements EmitJobUpdateUseCase {}
 class MockUploadFileUseCase extends Mock implements UploadFileUseCase {}
 class MockListenChatEventsUseCase extends Mock implements ListenChatEventsUseCase {}
 class MockMarkMessagesSeenUseCase extends Mock implements MarkMessagesSeenUseCase {}
+class MockClearConversationNotificationsUseCase extends Mock implements ClearConversationNotificationsUseCase {}
 class MockAuthController extends Mock implements AuthController {}
 
 class MockJobChatAttachmentController extends Mock implements JobChatAttachmentController {}
@@ -61,6 +63,7 @@ void main() {
     late MockUploadFileUseCase mockUploadFileUseCase;
     late MockListenChatEventsUseCase mockListenEventsUseCase;
     late MockMarkMessagesSeenUseCase mockMarkSeenUseCase;
+    late MockClearConversationNotificationsUseCase mockClearNotificationsUseCase;
     late MockAuthController mockAuthController;
 
     late JobChatController controller;
@@ -82,6 +85,7 @@ void main() {
       mockUploadFileUseCase = MockUploadFileUseCase();
       mockListenEventsUseCase = MockListenChatEventsUseCase();
       mockMarkSeenUseCase = MockMarkMessagesSeenUseCase();
+      mockClearNotificationsUseCase = MockClearConversationNotificationsUseCase();
       mockAuthController = MockAuthController();
 
       // Mock sub-controllers
@@ -121,6 +125,7 @@ void main() {
       when(() => mockMessagesUseCase(any())).thenAnswer((_) async => const Right([]));
       when(() => mockMembersUseCase(any())).thenAnswer((_) async => const Right([]));
       when(() => mockMarkSeenUseCase(any())).thenAnswer((_) async => const Right(null));
+      when(() => mockClearNotificationsUseCase(any())).thenAnswer((_) async => const Right(null));
       when(() => mockListenEventsUseCase(any())).thenAnswer((_) async => Right(Stream.empty()));
       when(() => mockAuthController.profile).thenAnswer((_) async => const MemberProfile(
         uid: 'my_profile_uid',
@@ -145,6 +150,7 @@ void main() {
         uploadFileUseCase: mockUploadFileUseCase,
         listenChatEventsUseCase: mockListenEventsUseCase,
         markMessagesSeenUseCase: mockMarkSeenUseCase,
+        clearConversationNotificationsUseCase: mockClearNotificationsUseCase,
       );
     });
 

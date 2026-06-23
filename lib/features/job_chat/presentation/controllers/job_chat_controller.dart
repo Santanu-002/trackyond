@@ -18,7 +18,7 @@ import 'package:trackyond/core/common/events/chat_event.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
-import 'package:trackyond/core/services/notification/local_notification_service.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/clear_conversation_notifications_usecase.dart';
 import 'package:trackyond/core/utils/app_utils.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/job_chat/domain/entities/chat_item.dart';
@@ -47,6 +47,7 @@ class JobChatController extends GetxController {
   final UploadFileUseCase _uploadFileUseCase;
   final ListenChatEventsUseCase _listenChatEventsUseCase;
   final MarkMessagesSeenUseCase _markMessagesSeenUseCase;
+  final ClearConversationNotificationsUseCase _clearConversationNotificationsUseCase;
 
   JobChatController({
     required GetJobMessagesUseCase getMessagesUseCase,
@@ -56,13 +57,15 @@ class JobChatController extends GetxController {
     required UploadFileUseCase uploadFileUseCase,
     required ListenChatEventsUseCase listenChatEventsUseCase,
     required MarkMessagesSeenUseCase markMessagesSeenUseCase,
+    required ClearConversationNotificationsUseCase clearConversationNotificationsUseCase,
   }) : _getMessagesUseCase = getMessagesUseCase,
        _sendMessageUseCase = sendMessageUseCase,
        _getChatMembersUseCase = getChatMembersUseCase,
        _emitJobUpdateUseCase = emitJobUpdateUseCase,
        _uploadFileUseCase = uploadFileUseCase,
        _listenChatEventsUseCase = listenChatEventsUseCase,
-       _markMessagesSeenUseCase = markMessagesSeenUseCase;
+       _markMessagesSeenUseCase = markMessagesSeenUseCase,
+       _clearConversationNotificationsUseCase = clearConversationNotificationsUseCase;
 
   // Sub-controllers (lazy getters — resolved after all lazyPuts are registered)
   JobChatAttachmentController get attachmentController =>
@@ -660,9 +663,7 @@ class JobChatController extends GetxController {
     super.onInit();
     _job = Rx<JobEntity>(Get.arguments as JobEntity);
 
-    if (Get.isRegistered<LocalNotificationService>()) {
-      Get.find<LocalNotificationService>().clearConversationMessages(_job.value.jobId);
-    }
+    _clearConversationNotificationsUseCase(_job.value.jobId);
 
     focusNode.addListener(() {
       hasFocus.value = focusNode.hasFocus;

@@ -4,12 +4,12 @@ import 'package:trackyond/core/common/models/api_response/api_response.dart';
 import 'package:trackyond/core/common/models/job/job_model.dart';
 import 'package:trackyond/core/common/models/member/member_profile_model.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
-import 'package:trackyond/features/job_chat/data/models/job_chat_message_model.dart';
-import 'package:trackyond/features/job_chat/data/models/send_message_response_model.dart';
-import 'package:trackyond/features/job_chat/data/models/send_message_model.dart';
-import 'package:trackyond/features/job_chat/data/models/message_query_options_model.dart';
+import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
+import 'package:trackyond/features/job_chat/data/models/response/send_message_response_model.dart';
+import 'package:trackyond/features/job_chat/data/models/request/send_message_model.dart';
+import 'package:trackyond/features/job_chat/data/models/request/message_query_options_model.dart';
 
-abstract interface class IJobChatDataSource {
+abstract interface class IJobChatRemoteDataSource {
   Future<ApiResponse<List<JobChatMessageModel>>> getMessages({
     required String jobId,
     MessageQueryOptionsModel? options,
@@ -33,7 +33,7 @@ abstract interface class IJobChatDataSource {
   });
 }
 
-class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatDataSource {
+class JobChatRemoteDataSourceImpl with BaseRemoteDataSource implements IJobChatRemoteDataSource {
   final Dio _dio;
 
   JobChatRemoteDataSourceImpl(this._dio);

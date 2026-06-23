@@ -20,7 +20,7 @@ import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/utils/app_utils.dart';
-import 'package:trackyond/features/job_chat/data/models/upload_files_dto.dart';
+import 'package:trackyond/features/job_chat/data/models/request/upload_files_dto.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';

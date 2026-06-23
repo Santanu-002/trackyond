@@ -5,6 +5,7 @@ import 'package:trackyond/core/common/data/repositories/file_repository_impl.dar
 import 'package:trackyond/core/common/domain/repositories/i_file_repository.dart';
 import 'package:trackyond/core/common/domain/usecase/upload_file_usecase.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_remote_datasource.dart';
+import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
 import 'package:trackyond/features/job_chat/data/repositories/job_chat_repository_impl.dart';
 import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repository.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_chat_members_usecase.dart';
@@ -21,6 +22,11 @@ import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_u
 import 'package:trackyond/features/job_chat/domain/usecases/delete_messages_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/mark_messages_seen_usecase.dart';
 
+import 'package:trackyond/features/job_chat/domain/usecases/clear_conversation_notifications_usecase.dart';
+import 'package:trackyond/features/notification/domain/repositories/i_notification_repository.dart';
+import 'package:trackyond/core/services/websocket/websocket_service.dart';
+import 'package:trackyond/core/services/sync/sync_service.dart';
+
 class JobChatBinding extends Bindings {
   @override
   void dependencies() {
@@ -36,8 +42,22 @@ class JobChatBinding extends Bindings {
     }
 
     // ── Job Chat data layer ────────────────────────────────────────────
-    Get.lazyPut<IJobChatDataSource>(() => JobChatRemoteDataSourceImpl(Get.find()));
-    Get.lazyPut<IJobChatRepository>(() => JobChatRepositoryImpl(Get.find()));
+    if (!Get.isRegistered<IJobChatRemoteDataSource>()) {
+      Get.lazyPut<IJobChatRemoteDataSource>(() => JobChatRemoteDataSourceImpl(Get.find()));
+    }
+    if (!Get.isRegistered<IJobChatLocalDataSource>()) {
+      Get.lazyPut<IJobChatLocalDataSource>(() => JobChatLocalDataSourceImpl(Get.find()));
+    }
+    if (!Get.isRegistered<IJobChatRepository>()) {
+      Get.lazyPut<IJobChatRepository>(
+        () => JobChatRepositoryImpl(
+          Get.find<IJobChatRemoteDataSource>(),
+          Get.find<IJobChatLocalDataSource>(),
+          Get.find<WebSocketService>(),
+          Get.find<SyncService>(),
+        ),
+      );
+    }
 
     // ── Job Chat use cases ─────────────────────────────────────────────
     Get.lazyPut(() => GetJobMessagesUseCase(Get.find()));
@@ -48,6 +68,7 @@ class JobChatBinding extends Bindings {
     Get.lazyPut(() => ListenChatEventsUseCase(Get.find()));
     Get.lazyPut(() => DeleteMessagesUseCase(Get.find()));
     Get.lazyPut(() => MarkMessagesSeenUseCase(Get.find()));
+    Get.lazyPut(() => ClearConversationNotificationsUseCase(Get.find<INotificationRepository>()));
 
     // ── Controllers ─────────────────────────────────────────────────────
     Get.put(JobChatAttachmentController());
@@ -64,6 +85,7 @@ class JobChatBinding extends Bindings {
         uploadFileUseCase: Get.find(),
         listenChatEventsUseCase: Get.find(),
         markMessagesSeenUseCase: Get.find(),
+        clearConversationNotificationsUseCase: Get.find(),
       ),
     );
   }

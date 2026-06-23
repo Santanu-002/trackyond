@@ -10,7 +10,7 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:trackyond/core/common/enums/media_preview_type.dart';
-import 'package:trackyond/features/job_chat/data/models/upload_files_dto.dart';
+import 'package:trackyond/features/job_chat/data/models/request/upload_files_dto.dart';
 import 'package:mime/mime.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';

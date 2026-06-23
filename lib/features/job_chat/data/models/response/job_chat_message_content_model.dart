@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
+import 'package:trackyond/features/job_chat/data/models/response/chat_message_metadata_model.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 
 part 'job_chat_message_content_model.freezed.dart';
@@ -11,7 +12,7 @@ sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
     @JsonKey(unknownEnumValue: JobChatMessageContentType.unknown)
     required JobChatMessageContentType type,
     String? content,
-    Map<String, dynamic>? metadata,
+    ChatMessageMetadataModel? metadata,
   }) = _JobChatMessageContentModel;
 
   const JobChatMessageContentModel._();
@@ -23,7 +24,9 @@ sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
     return JobChatMessageContentModel(
       type: entity.type,
       content: entity.content,
-      metadata: entity.metadata,
+      metadata: entity.metadata != null
+          ? ChatMessageMetadataModel.fromJson(entity.metadata!)
+          : null,
     );
   }
 
@@ -31,7 +34,7 @@ sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
     return JobChatMessageContentEntity(
       type: type,
       content: content,
-      metadata: metadata,
+      metadata: metadata?.toJson(),
     );
   }
 }

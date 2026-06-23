@@ -15,7 +15,11 @@ _JobChatMessageContentModel _$JobChatMessageContentModelFromJson(
     unknownValue: JobChatMessageContentType.unknown,
   ),
   content: json['content'] as String?,
-  metadata: json['metadata'] as Map<String, dynamic>?,
+  metadata: json['metadata'] == null
+      ? null
+      : ChatMessageMetadataModel.fromJson(
+          json['metadata'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$JobChatMessageContentModelToJson(
@@ -23,7 +27,7 @@ Map<String, dynamic> _$JobChatMessageContentModelToJson(
 ) => <String, dynamic>{
   'type': instance.type.toJson(),
   'content': instance.content,
-  'metadata': instance.metadata,
+  'metadata': instance.metadata?.toJson(),
 };
 
 const _$JobChatMessageContentTypeEnumMap = {

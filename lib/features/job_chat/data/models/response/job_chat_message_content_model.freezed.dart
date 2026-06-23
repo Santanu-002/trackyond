@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$JobChatMessageContentModel {
 
-@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) JobChatMessageContentType get type; String? get content; Map<String, dynamic>? get metadata;
+@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) JobChatMessageContentType get type; String? get content; ChatMessageMetadataModel? get metadata;
 /// Create a copy of JobChatMessageContentModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,12 +28,12 @@ $JobChatMessageContentModelCopyWith<JobChatMessageContentModel> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobChatMessageContentModel&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other.metadata, metadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobChatMessageContentModel&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.metadata, metadata) || other.metadata == metadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,content,const DeepCollectionEquality().hash(metadata));
+int get hashCode => Object.hash(runtimeType,type,content,metadata);
 
 @override
 String toString() {
@@ -48,11 +48,11 @@ abstract mixin class $JobChatMessageContentModelCopyWith<$Res>  {
   factory $JobChatMessageContentModelCopyWith(JobChatMessageContentModel value, $Res Function(JobChatMessageContentModel) _then) = _$JobChatMessageContentModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) JobChatMessageContentType type, String? content, Map<String, dynamic>? metadata
+@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) JobChatMessageContentType type, String? content, ChatMessageMetadataModel? metadata
 });
 
 
-
+$ChatMessageMetadataModelCopyWith<$Res>? get metadata;
 
 }
 /// @nodoc
@@ -70,10 +70,22 @@ class _$JobChatMessageContentModelCopyWithImpl<$Res>
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as JobChatMessageContentType,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,
+as ChatMessageMetadataModel?,
   ));
 }
+/// Create a copy of JobChatMessageContentModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ChatMessageMetadataModelCopyWith<$Res>? get metadata {
+    if (_self.metadata == null) {
+    return null;
+  }
 
+  return $ChatMessageMetadataModelCopyWith<$Res>(_self.metadata!, (value) {
+    return _then(_self.copyWith(metadata: value));
+  });
+}
 }
 
 
@@ -152,7 +164,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown)  JobChatMessageContentType type,  String? content,  Map<String, dynamic>? metadata)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown)  JobChatMessageContentType type,  String? content,  ChatMessageMetadataModel? metadata)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JobChatMessageContentModel() when $default != null:
 return $default(_that.type,_that.content,_that.metadata);case _:
@@ -173,7 +185,7 @@ return $default(_that.type,_that.content,_that.metadata);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown)  JobChatMessageContentType type,  String? content,  Map<String, dynamic>? metadata)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown)  JobChatMessageContentType type,  String? content,  ChatMessageMetadataModel? metadata)  $default,) {final _that = this;
 switch (_that) {
 case _JobChatMessageContentModel():
 return $default(_that.type,_that.content,_that.metadata);}
@@ -190,7 +202,7 @@ return $default(_that.type,_that.content,_that.metadata);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown)  JobChatMessageContentType type,  String? content,  Map<String, dynamic>? metadata)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown)  JobChatMessageContentType type,  String? content,  ChatMessageMetadataModel? metadata)?  $default,) {final _that = this;
 switch (_that) {
 case _JobChatMessageContentModel() when $default != null:
 return $default(_that.type,_that.content,_that.metadata);case _:
@@ -205,20 +217,12 @@ return $default(_that.type,_that.content,_that.metadata);case _:
 @JsonSerializable()
 
 class _JobChatMessageContentModel extends JobChatMessageContentModel {
-  const _JobChatMessageContentModel({@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) required this.type, this.content, final  Map<String, dynamic>? metadata}): _metadata = metadata,super._();
+  const _JobChatMessageContentModel({@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) required this.type, this.content, this.metadata}): super._();
   factory _JobChatMessageContentModel.fromJson(Map<String, dynamic> json) => _$JobChatMessageContentModelFromJson(json);
 
 @override@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) final  JobChatMessageContentType type;
 @override final  String? content;
- final  Map<String, dynamic>? _metadata;
-@override Map<String, dynamic>? get metadata {
-  final value = _metadata;
-  if (value == null) return null;
-  if (_metadata is EqualUnmodifiableMapView) return _metadata;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(value);
-}
-
+@override final  ChatMessageMetadataModel? metadata;
 
 /// Create a copy of JobChatMessageContentModel
 /// with the given fields replaced by the non-null parameter values.
@@ -233,12 +237,12 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobChatMessageContentModel&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&const DeepCollectionEquality().equals(other._metadata, _metadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobChatMessageContentModel&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.metadata, metadata) || other.metadata == metadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,content,const DeepCollectionEquality().hash(_metadata));
+int get hashCode => Object.hash(runtimeType,type,content,metadata);
 
 @override
 String toString() {
@@ -253,11 +257,11 @@ abstract mixin class _$JobChatMessageContentModelCopyWith<$Res> implements $JobC
   factory _$JobChatMessageContentModelCopyWith(_JobChatMessageContentModel value, $Res Function(_JobChatMessageContentModel) _then) = __$JobChatMessageContentModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) JobChatMessageContentType type, String? content, Map<String, dynamic>? metadata
+@JsonKey(unknownEnumValue: JobChatMessageContentType.unknown) JobChatMessageContentType type, String? content, ChatMessageMetadataModel? metadata
 });
 
 
-
+@override $ChatMessageMetadataModelCopyWith<$Res>? get metadata;
 
 }
 /// @nodoc
@@ -274,12 +278,24 @@ class __$JobChatMessageContentModelCopyWithImpl<$Res>
   return _then(_JobChatMessageContentModel(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as JobChatMessageContentType,content: freezed == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
-as String?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>?,
+as String?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
+as ChatMessageMetadataModel?,
   ));
 }
 
+/// Create a copy of JobChatMessageContentModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ChatMessageMetadataModelCopyWith<$Res>? get metadata {
+    if (_self.metadata == null) {
+    return null;
+  }
 
+  return $ChatMessageMetadataModelCopyWith<$Res>(_self.metadata!, (value) {
+    return _then(_self.copyWith(metadata: value));
+  });
+}
 }
 
 // dart format on

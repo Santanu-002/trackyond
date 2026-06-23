@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/aspect_preset_icon.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/buttons/aspect_preset_icon.dart';
+
 
 class AspectPresetButton extends StatelessWidget {
   final String ratioLabel;

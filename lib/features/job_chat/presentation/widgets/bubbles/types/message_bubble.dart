@@ -5,15 +5,15 @@ import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activity_message_card.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/bubble_time_and_status.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_image_grid/chat_image_grid.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/reply_image_thumbnail.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activity/activity_message_card.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/bubble_time_and_status.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/chat_image_grid/chat_image_grid.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/reply_image_thumbnail.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_bubble_layout.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/document_bubble_item.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/chat_bubble_layout.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/document_bubble_item.dart';
 
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
@@ -392,6 +392,7 @@ class MessageBubble extends StatelessWidget {
                 isMe: isMe,
                 colorScheme: colorScheme,
                 textTheme: textTheme,
+                messageUid: message.uid,
               ),
             );
           }

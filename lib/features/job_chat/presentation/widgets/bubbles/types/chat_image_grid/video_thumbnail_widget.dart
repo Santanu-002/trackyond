@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
@@ -48,11 +49,17 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
   }
 
   Future<void> _loadThumbnail() async {
-    final fullUrl = AppImage.getFullUrl(widget.videoUrl);
-    if (VideoThumbnailWidget._thumbnailCache.containsKey(fullUrl)) {
+    final isLocal = !widget.videoUrl.startsWith('http://') &&
+        !widget.videoUrl.startsWith('https://') &&
+        widget.videoUrl.isNotEmpty &&
+        File(widget.videoUrl).existsSync();
+
+    final cacheKey = isLocal ? widget.videoUrl : AppImage.getFullUrl(widget.videoUrl);
+
+    if (VideoThumbnailWidget._thumbnailCache.containsKey(cacheKey)) {
       if (mounted) {
         setState(() {
-          _thumbnailBytes = VideoThumbnailWidget._thumbnailCache[fullUrl];
+          _thumbnailBytes = VideoThumbnailWidget._thumbnailCache[cacheKey];
         });
       }
       return;
@@ -60,13 +67,13 @@ class _VideoThumbnailWidgetState extends State<VideoThumbnailWidget> {
 
     try {
       final bytes = await VideoThumbnail.thumbnailData(
-        video: fullUrl,
+        video: cacheKey,
         imageFormat: ImageFormat.JPEG,
         maxHeight: 256, // Higher resolution for grid preview
         quality: 75,
       );
       if (bytes != null) {
-        VideoThumbnailWidget._thumbnailCache[fullUrl] = bytes;
+        VideoThumbnailWidget._thumbnailCache[cacheKey] = bytes;
       }
       if (mounted) {
         setState(() {

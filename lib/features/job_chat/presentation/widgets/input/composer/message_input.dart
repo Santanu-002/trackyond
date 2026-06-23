@@ -5,10 +5,11 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/input/job_actions_bar.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/input/reply_preview_bar.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/input/chat_input_field.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/input/chat_send_button.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/actions/job_actions_bar.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/reply/reply_preview_bar.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/composer/chat_input_field.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/composer/chat_send_button.dart';
+
 
 class MessageInput extends GetView<JobChatController> {
   const MessageInput({super.key});

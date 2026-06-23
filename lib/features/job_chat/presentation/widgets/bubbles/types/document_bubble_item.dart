@@ -22,6 +22,7 @@ class DocumentBubbleItem extends StatefulWidget {
   final bool isMe;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
+  final String? messageUid;
 
   const DocumentBubbleItem({
     super.key,
@@ -29,6 +30,7 @@ class DocumentBubbleItem extends StatefulWidget {
     required this.isMe,
     required this.colorScheme,
     required this.textTheme,
+    this.messageUid,
   });
 
   @override
@@ -285,122 +287,174 @@ class _DocumentBubbleItemState extends State<DocumentBubbleItem> {
     final pageCount = (pdfMeta?['pageCount'] ?? docMeta?['pageCount']) as int?;
     final subtitleText = isPdf && pageCount != null
         ? '${AppStrings.jobChat.pdfPageCount(pageCount)} • $fileSize'
-        : fileSize;
+        : fileSize;    final chatController = Get.find<JobChatController>();
+    final isPending = widget.messageUid != null && widget.messageUid!.startsWith('temp_');
 
-    return GestureDetector(
-      onTap: _openDocument,
-      child: Padding(
-        padding: EdgeInsets.all(AppUIConstants.spacing.space$4),
-        child: Container(
-          width: 240,
-          padding: EdgeInsets.symmetric(
-            horizontal: AppUIConstants.spacing.space$12,
-            vertical: AppUIConstants.spacing.space$12,
-          ),
-          decoration: BoxDecoration(
-            color: isMe 
-                ? colorScheme.onPrimary.withValues(alpha: 0.1) 
-                : colorScheme.onSurface.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
-            border: Border.all(
-              color: isMe 
-                  ? colorScheme.onPrimary.withValues(alpha: 0.2) 
-                  : colorScheme.outlineVariant,
+    return Obx(() {
+      final uploadProgress = widget.messageUid != null ? chatController.uploadProgressMap[widget.messageUid!] : null;
+      final uploadError = widget.messageUid != null ? chatController.uploadErrorMap[widget.messageUid!] : null;
+
+      final Widget rightWidget;
+      if (isPending) {
+        if (uploadError != null) {
+          rightWidget = GestureDetector(
+            onTap: () => chatController.retryMessageUpload(widget.messageUid!),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(
+                Icons.refresh_rounded,
+                color: isMe ? colorScheme.onPrimary : colorScheme.primary,
+                size: 22,
+              ),
             ),
+          );
+        } else {
+          final progress = uploadProgress ?? 0.0;
+          rightWidget = Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    value: progress > 0 ? progress : null,
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isMe ? colorScheme.onPrimary : colorScheme.primary,
+                    ),
+                    backgroundColor: isMe 
+                        ? colorScheme.onPrimary.withValues(alpha: 0.2) 
+                        : colorScheme.outlineVariant,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      } else if (!_isDownloaded) {
+        rightWidget = GestureDetector(
+          onTap: () => _toggleDownload(fileName),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: _isDownloading
+                ? Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          value: _downloadProgress,
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isMe ? colorScheme.onPrimary : colorScheme.primary,
+                          ),
+                          backgroundColor: isMe 
+                              ? colorScheme.onPrimary.withValues(alpha: 0.2) 
+                              : colorScheme.outlineVariant,
+                        ),
+                      ),
+                      Icon(
+                        CupertinoIcons.xmark,
+                        size: 12,
+                        color: isMe 
+                            ? colorScheme.onPrimary.withValues(alpha: 0.8) 
+                            : colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  )
+                : Icon(
+                    CupertinoIcons.arrow_down_to_line,
+                    color: isMe 
+                        ? colorScheme.onPrimary.withValues(alpha: 0.6) 
+                        : colorScheme.onSurfaceVariant,
+                    size: 22,
+                  ),
           ),
-          child: Row(
-            children: [
-              docIcon is FaIconData
-                  ? FaIcon(docIcon, color: docIconColor, size: 28)
-                  : Icon(docIcon as IconData, color: docIconColor, size: 28),
-              AppUIConstants.widgets.horizontalBox$12,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            firstPart,
+        );
+      } else {
+        rightWidget = const SizedBox.shrink();
+      }
+
+      return GestureDetector(
+        onTap: isPending ? null : _openDocument,
+        child: Padding(
+          padding: EdgeInsets.all(AppUIConstants.spacing.space$4),
+          child: Container(
+            width: 240,
+            padding: EdgeInsets.symmetric(
+              horizontal: AppUIConstants.spacing.space$12,
+              vertical: AppUIConstants.spacing.space$12,
+            ),
+            decoration: BoxDecoration(
+              color: isMe 
+                  ? colorScheme.onPrimary.withValues(alpha: 0.1) 
+                  : colorScheme.onSurface.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(AppUIConstants.radius.radius$12),
+              border: Border.all(
+                color: isMe 
+                    ? colorScheme.onPrimary.withValues(alpha: 0.2) 
+                    : colorScheme.outlineVariant,
+              ),
+            ),
+            child: Row(
+              children: [
+                docIcon is FaIconData
+                    ? FaIcon(docIcon, color: docIconColor, size: 28)
+                    : Icon(docIcon as IconData, color: docIconColor, size: 28),
+                AppUIConstants.widgets.horizontalBox$12,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              firstPart,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isMe ? colorScheme.onPrimary : colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            secondPart,
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                             style: textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: isMe ? colorScheme.onPrimary : colorScheme.onSurface,
                             ),
                           ),
-                        ),
-                        Text(
-                          secondPart,
-                          maxLines: 1,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isMe ? colorScheme.onPrimary : colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitleText,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: isMe 
-                            ? colorScheme.onPrimary.withValues(alpha: 0.7) 
-                            : colorScheme.onSurfaceVariant,
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              if (!_isDownloaded) ...[
-                AppUIConstants.widgets.horizontalBox$8,
-                GestureDetector(
-                  onTap: () => _toggleDownload(fileName),
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: _isDownloading
-                        ? Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SizedBox(
-                                width: 28,
-                                height: 28,
-                                child: CircularProgressIndicator(
-                                  value: _downloadProgress,
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    isMe ? colorScheme.onPrimary : colorScheme.primary,
-                                  ),
-                                  backgroundColor: isMe 
-                                      ? colorScheme.onPrimary.withValues(alpha: 0.2) 
-                                      : colorScheme.outlineVariant,
-                                ),
-                              ),
-                              Icon(
-                                CupertinoIcons.xmark,
-                                size: 12,
-                                color: isMe 
-                                    ? colorScheme.onPrimary.withValues(alpha: 0.8) 
-                                    : colorScheme.onSurfaceVariant,
-                              ),
-                            ],
-                          )
-                        : Icon(
-                            CupertinoIcons.arrow_down_to_line,
-                            color: isMe 
-                                ? colorScheme.onPrimary.withValues(alpha: 0.6) 
-                                : colorScheme.onSurfaceVariant,
-                            size: 22,
-                          ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitleText,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: isMe 
+                              ? colorScheme.onPrimary.withValues(alpha: 0.7) 
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                if (isPending || !_isDownloaded) ...[
+                  AppUIConstants.widgets.horizontalBox$8,
+                  rightWidget,
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

@@ -6,7 +6,7 @@ import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/reply_image_thumbnail.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/reply_image_thumbnail.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -16,8 +16,8 @@ import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_ent
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/chat_image_grid/chat_image_grid.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activity_meta_row.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/chat_image_grid/chat_image_grid.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activity/activity_meta_row.dart';
 
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 

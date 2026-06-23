@@ -5,10 +5,11 @@ import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/input/chat_input_field.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/input/chat_send_button.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/add_more_button.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/thumbnail_item.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/composer/chat_input_field.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/composer/chat_send_button.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/buttons/add_more_button.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/previews/thumbnail_item.dart';
+
 
 class MediaPreviewBottomControls extends StatefulWidget {
   final TextEditingController captionController;

@@ -3,8 +3,9 @@ import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/aspect_preset_button.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/edit_action_button.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/buttons/aspect_preset_button.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/media_preview/buttons/edit_action_button.dart';
+
 
 class MediaPreviewCropPresetBar extends StatelessWidget {
   final int currentIndex;

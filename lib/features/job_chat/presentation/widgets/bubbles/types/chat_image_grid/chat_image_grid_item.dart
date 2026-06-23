@@ -5,12 +5,12 @@ import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_con
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
 import 'package:trackyond/features/job_chat/presentation/screens/media_viewer_page.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/bubble_time_and_status.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/chat_image_grid/video_thumbnail_widget.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 import 'package:trackyond/core/utils/app_utils.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/bubble_time_and_status.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/chat_image_grid/video_thumbnail_widget.dart';
 
 class ChatImageGridItem extends StatelessWidget {
   final int index;
@@ -268,8 +268,9 @@ class ChatImageGridItem extends StatelessWidget {
             ],
           ),
         ),
-      ));
-    });
+      ),
+    );
+  });
   }
 }
 

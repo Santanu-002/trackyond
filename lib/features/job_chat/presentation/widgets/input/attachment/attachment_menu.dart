@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/theme/color_scheme_extension.dart';
-import 'package:trackyond/features/job_chat/presentation/widgets/input/attachment_menu_item_widget.dart';
+import 'package:trackyond/features/job_chat/presentation/widgets/input/attachment/attachment_menu_item_widget.dart';
+
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
 
 class AttachmentMenuItem {

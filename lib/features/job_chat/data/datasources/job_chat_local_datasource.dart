@@ -15,7 +15,13 @@ abstract interface class IJobChatLocalDataSource {
     int? limit,
     int? offset,
   });
-  Future<void> deleteCachedMessages(List<String> messageUids);
+  Future<void> deleteCachedMessages(
+    List<String> messageUids, {
+    required String deleteType,
+    String? deletedByUid,
+    String? deletedByUserType,
+    DateTime? deletedByUserAt,
+  });
   Future<void> markMessagesAsSeen(
     String jobId,
     List<String> messageUids,
@@ -82,20 +88,44 @@ class JobChatLocalDataSourceImpl implements IJobChatLocalDataSource {
   }
 
   @override
-  Future<void> deleteCachedMessages(List<String> messageUids) async {
+  Future<void> deleteCachedMessages(
+    List<String> messageUids, {
+    required String deleteType,
+    String? deletedByUid,
+    String? deletedByUserType,
+    DateTime? deletedByUserAt,
+  }) async {
     if (messageUids.isEmpty) return;
     await _databaseService.transaction((txn) async {
       for (final uid in messageUids) {
-        await txn.update(
-          ChatMessageTable.tableName,
-          {
-            ChatMessageTable.columnNames.active: 0,
-            ChatMessageTable.columnNames.deleted: 1,
-            ChatMessageTable.columnNames.deletedAt: DateTime.now().toUtc().toIso8601String(),
-          },
-          where: '${ChatMessageTable.columnNames.uid} = ?',
-          whereArgs: [uid],
-        );
+        if (deleteType == 'forMe') {
+          await txn.update(
+            ChatMessageTable.tableName,
+            {
+              ChatMessageTable.columnNames.active: 0,
+              ChatMessageTable.columnNames.deleted: 1,
+              ChatMessageTable.columnNames.deletedAt: DateTime.now().toUtc().toIso8601String(),
+            },
+            where: '${ChatMessageTable.columnNames.uid} = ?',
+            whereArgs: [uid],
+          );
+        } else {
+          // forEveryone
+          await txn.update(
+            ChatMessageTable.tableName,
+            {
+              ChatMessageTable.columnNames.active: 1, // Keep it active so the placeholder renders
+              ChatMessageTable.columnNames.deleted: 1,
+              ChatMessageTable.columnNames.deletedByUid: deletedByUid,
+              ChatMessageTable.columnNames.deletedByUserType: deletedByUserType,
+              ChatMessageTable.columnNames.deletedAt: DateTime.now().toUtc().toIso8601String(),
+              ChatMessageTable.columnNames.deletedByUserAt: (deletedByUserAt ?? DateTime.now()).toUtc().toIso8601String(),
+              ChatMessageTable.columnNames.content: '[]', // Clear content
+            },
+            where: '${ChatMessageTable.columnNames.uid} = ?',
+            whereArgs: [uid],
+          );
+        }
       }
     });
   }

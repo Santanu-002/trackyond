@@ -1,3 +1,5 @@
+
+
 import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/enums/media_preview_type.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
+import 'package:trackyond/features/job_chat/data/models/response/media_preview_item.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
@@ -21,20 +24,33 @@ class JobChatAttachmentController extends GetxController {
     showAttachmentMenu.value = !showAttachmentMenu.value;
   }
 
-  void navigateToMediaPreview({
+  Future<void> navigateToMediaPreview({
     String? imagePath,
     List<String>? imagePaths,
     JobChatMessageEntity? requestMessage,
     required MediaPreviewType type,
-  }) {
-    Get.toNamed(
+  }) async {
+    final result = await Get.toNamed(
       '${AppRoutes.common.mediaPreview}?type=${type.name}',
       arguments: {
         'imagePath': imagePath,
         'imagePaths': imagePaths,
         'requestMessage': requestMessage,
       },
-    );
+    ) as Map<String, dynamic>?;
+
+    if (result != null) {
+      final List<MediaPreviewItem>? items = result['items'] as List<MediaPreviewItem>?;
+      if (items != null && items.isNotEmpty) {
+        final caption = result['caption'] as String? ?? '';
+        final reqMsg = result['requestMessage'] as JobChatMessageEntity?;
+        Get.find<JobChatController>().sendMediaMessagesBackground(
+          items,
+          replyingTo: reqMsg,
+          caption: caption,
+        );
+      }
+    }
   }
 
   Future<void> attachFromCamera() async {

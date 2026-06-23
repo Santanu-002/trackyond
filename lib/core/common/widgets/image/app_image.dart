@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:blurhash_dart/blurhash_dart.dart';
@@ -88,6 +89,44 @@ class AppImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLocalFile = !imageUrl.startsWith('http://') &&
+        !imageUrl.startsWith('https://') &&
+        imageUrl.isNotEmpty &&
+        File(imageUrl).existsSync();
+
+    double? calculatedHeight = height;
+    if (calculatedHeight == null &&
+        width != null &&
+        imageWidth != null &&
+        imageHeight != null &&
+        imageWidth! > 0) {
+      calculatedHeight = width! * imageHeight! / imageWidth!;
+    }
+
+    if (isLocalFile) {
+      Widget localImg = Image.file(
+        File(imageUrl),
+        fit: fit,
+        width: width,
+        height: calculatedHeight,
+      );
+      if (matchAspectRatio &&
+          width == null &&
+          height == null &&
+          imageWidth != null &&
+          imageHeight != null &&
+          imageHeight! > 0) {
+        double calculatedAspectRatio = imageWidth! / imageHeight!;
+        if (calculatedAspectRatio < 0.8) {
+          calculatedAspectRatio = 0.8;
+        } else if (calculatedAspectRatio > 2.0) {
+          calculatedAspectRatio = 2.0;
+        }
+        localImg = AspectRatio(aspectRatio: calculatedAspectRatio, child: localImg);
+      }
+      return localImg;
+    }
+
     final fullUrl = getFullUrl(imageUrl);
     if (fullUrl.isEmpty) {
       return errorWidget?.call(context, imageUrl, 'Empty URL') ??
@@ -102,15 +141,6 @@ class AppImage extends StatelessWidget {
             imageHeight: imageHeight ?? height,
           )
         : null;
-
-    double? calculatedHeight = height;
-    if (calculatedHeight == null &&
-        width != null &&
-        imageWidth != null &&
-        imageHeight != null &&
-        imageWidth! > 0) {
-      calculatedHeight = width! * imageHeight! / imageWidth!;
-    }
 
     Widget result = OctoImage(
       image: CachedNetworkImageProvider(fullUrl),

@@ -1,6 +1,6 @@
+
+
 import 'dart:io';
-
-
 import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -10,15 +10,24 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:trackyond/core/common/enums/media_preview_type.dart';
-import 'package:trackyond/features/job_chat/data/models/request/upload_files_dto.dart';
-import 'package:mime/mime.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
-import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:flutter_native_video_trimmer/flutter_native_video_trimmer.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
+import 'package:trackyond/features/job_chat/data/models/response/media_preview_item.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_upload_controller.dart';
+
+
+
+
+
+
+
+  
+
 
 class MediaPreviewController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -75,7 +84,10 @@ class MediaPreviewController extends GetxController
       throw AssertionError('Arguments are required for MediaPreviewPage');
     }
     
-    if (args['imagePaths'] is List<String>) {
+    if (args['items'] is List<MediaPreviewItem>) {
+      final List<MediaPreviewItem> itemsList = List<MediaPreviewItem>.from(args['items'] as List);
+      mediaPaths.assignAll(itemsList.map((item) => item.path));
+    } else if (args['imagePaths'] is List<String>) {
       mediaPaths.assignAll(List<String>.from(args['imagePaths'] as List<String>));
     } else if (args['imagePaths'] is List) {
       mediaPaths.assignAll(List<String>.from(args['imagePaths'] as List));
@@ -404,46 +416,50 @@ class MediaPreviewController extends GetxController
     final args = Get.arguments as Map<String, dynamic>;
     final action = args['action'] as String?;
     final requestMessage = args['requestMessage'] as JobChatMessageEntity?;
-    final actionController = Get.find<JobChatActionController>();
 
-    bool success = false;
-    if (action != null) {
-      success = await actionController.executeActionWithMedia(
-        actionString: action,
-        mediaPaths: mediaPaths,
-        caption: captionController.text,
-      );
-    } else if (requestMessage != null) {
-      success = await actionController.sendMediaStatusProof(
-        imagePaths: mediaPaths,
-        caption: captionController.text,
-        requestMessage: requestMessage,
-      );
-    } else {
-      final uploadFilesDto = UploadFiles(
-        type: previewType,
-        files: mediaPaths.map((path) {
-          final ext = path.split('.').last.toLowerCase();
-          final mimeType = lookupMimeType(path) ?? 
-              (previewType == MediaPreviewType.video 
-                  ? 'video/mp4' 
-                  : (previewType == MediaPreviewType.image ? 'image/jpeg' : 'application/octet-stream'));
-          return UploadFile(
-            path: path,
-            extension: ext,
-            mimeType: mimeType,
-          );
-        }).toList(),
+    final uploadController = Get.find<JobChatUploadController>();
+    final List<MediaPreviewItem> finalItems = [];
+
+    localLoadingPhase.value = 'Analyzing';
+    localLoadingProgress.value = 0.0;
+
+    for (int i = 0; i < mediaPaths.length; i++) {
+      final path = mediaPaths[i];
+      localLoadingCount.value = mediaPaths.length > 1 ? '${i + 1}/${mediaPaths.length}' : '';
+      
+      JobChatMessageContentType contentType;
+      if (previewType == MediaPreviewType.video) {
+        contentType = JobChatMessageContentType.video;
+      } else if (previewType == MediaPreviewType.image) {
+        contentType = JobChatMessageContentType.image;
+      } else {
+        final isPdf = path.toLowerCase().endsWith('.pdf');
+        contentType = isPdf ? JobChatMessageContentType.pdf : JobChatMessageContentType.document;
+      }
+
+      final metadata = await uploadController.extractMetadata(path, contentType);
+      finalItems.add(
+        MediaPreviewItem(
+          path: path,
+          type: contentType,
+          metadata: metadata,
+        ),
       );
 
-      success = await actionController.sendGeneralMedia(
-        uploadFiles: uploadFilesDto,
-        caption: captionController.text,
-      );
+      localLoadingProgress.value = (i + 1) / mediaPaths.length;
     }
 
+    localLoadingPhase.value = null;
+    localLoadingCount.value = null;
+    localLoadingProgress.value = null;
     isLoading.value = false;
-    if (success) Get.back(result: true);
+
+    Get.back(result: {
+      'items': finalItems,
+      'caption': captionController.text,
+      'action': action,
+      'requestMessage': requestMessage,
+    });
   }
 
   Future<void> onCrop() async {

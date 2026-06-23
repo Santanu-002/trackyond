@@ -36,6 +36,8 @@ import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_ac
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_selection_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_upload_controller.dart';
+import 'package:trackyond/features/job_chat/data/models/response/media_preview_item.dart';
+
 import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
 import 'package:video_player/video_player.dart';
 
@@ -104,6 +106,14 @@ class JobChatController extends GetxController {
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMoreMessages = true.obs;
   final RxSet<String> activeDownloads = <String>{}.obs;
+  
+  // Background upload and progress maps
+  final RxMap<String, double> uploadProgressMap = <String, double>{}.obs;
+  final RxMap<String, String> uploadErrorMap = <String, String>{}.obs;
+  final Map<String, MediaPreviewItem> _pendingItemsMap = {};
+  final Map<String, JobChatMessageEntity?> _pendingRepliesMap = {};
+  final Map<String, String> _pendingCaptionsMap = {};
+
   static const int _messageLimit = 20;
 
   final ItemScrollController itemScrollController = ItemScrollController();
@@ -725,7 +735,16 @@ class JobChatController extends GetxController {
             }
           } else if (event is ChatMessageDeletedEvent) {
             if (event.jobId == job.jobId) {
-              messages.removeWhere((m) => event.messageUids.contains(m.uid));
+              for (var i = 0; i < messages.length; i++) {
+                final msg = messages[i];
+                if (event.messageUids.contains(msg.uid)) {
+                  messages[i] = msg.copyWith(
+                    deleted: true,
+                    content: [],
+                  );
+                }
+              }
+              messages.refresh();
             }
           } else if (event is ChatMessageDeliveredEvent) {
             if (event.jobId == job.jobId) {
@@ -877,6 +896,313 @@ class JobChatController extends GetxController {
         isLoadingMore.value = false;
       },
     );
+  }
+
+  Future<void> sendMediaMessagesBackground(
+    List<MediaPreviewItem> items, {
+    JobChatMessageEntity? replyingTo,
+    String caption = '',
+  }) async {
+    if (_currentUserProfileUid.value == null) {
+      AppSnackbar.destructive('User information not found. Please try again.');
+      return;
+    }
+
+    if (userRole == UserRole.worker) {
+      if (Get.isRegistered<AttendanceController>()) {
+        final attendanceController = Get.find<AttendanceController>();
+        if (attendanceController.attendanceStatus.value != AttendanceStatus.working) {
+          AppSnackbar.warn(AppStrings.jobChat.attendanceRequired);
+          return;
+        }
+      } else {
+        AppSnackbar.warn(AppStrings.jobChat.attendanceRequired);
+        return;
+      }
+    }
+
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      final tempUid = 'temp_${nanoid(10)}';
+      _pendingItemsMap[tempUid] = item;
+      _pendingRepliesMap[tempUid] = replyingTo;
+      
+      final currentCaption = i == 0 ? caption : '';
+      _pendingCaptionsMap[tempUid] = currentCaption;
+
+      final List<JobChatMessageContentEntity> contentList = [];
+
+      // Add reply metadata if replying to another message
+      if (replyingTo != null) {
+        String originalText = '';
+        String contentType = 'text';
+        String? mediaUrl;
+        String? replyBlurHash;
+        int? pageCount;
+
+        final textContent = replyingTo.content.firstWhereOrNull(
+          (c) => c.type == JobChatMessageContentType.text || c.type == JobChatMessageContentType.activity,
+        );
+        originalText = textContent?.content ?? '';
+
+        final mediaItems = replyingTo.content
+            .where((c) =>
+                c.type == JobChatMessageContentType.image ||
+                c.type == JobChatMessageContentType.video ||
+                c.type == JobChatMessageContentType.document ||
+                c.type == JobChatMessageContentType.pdf)
+            .toList();
+
+        if (mediaItems.isNotEmpty) {
+          final firstMedia = mediaItems.first;
+          contentType = firstMedia.type.value;
+          mediaUrl = firstMedia.content;
+
+          if (firstMedia.type == JobChatMessageContentType.image) {
+            final imgMeta = firstMedia.metadata?['imageMetadata'];
+            replyBlurHash = imgMeta?['blurHash'] ?? firstMedia.metadata?['blurHash'];
+            if (originalText.isEmpty) originalText = 'Photo';
+          } else if (firstMedia.type == JobChatMessageContentType.video) {
+            final vidMeta = firstMedia.metadata?['videoMetadata'];
+            replyBlurHash = vidMeta?['thumbnailBlurHash'] ?? firstMedia.metadata?['blurHash'];
+            if (originalText.isEmpty) originalText = 'Video';
+          } else if (firstMedia.type == JobChatMessageContentType.pdf) {
+            final pdfMeta = firstMedia.metadata?['pdfMetadata'];
+            pageCount = pdfMeta?['pageCount'];
+            if (originalText.isEmpty) originalText = 'PDF';
+          } else if (firstMedia.type == JobChatMessageContentType.document) {
+            final docMeta = firstMedia.metadata?['documentMetadata'];
+            pageCount = docMeta?['pageCount'];
+            if (originalText.isEmpty) originalText = 'Document';
+          }
+        }
+
+        final remainingMediaCount = mediaItems.length > 1 ? (mediaItems.length - 1) : 0;
+
+        contentList.add(
+          JobChatMessageContentEntity(
+            type: JobChatMessageContentType.reply,
+            content: originalText,
+            metadata: {
+              'messageUid': replyingTo.uid,
+              'senderName': getSenderName(replyingTo),
+              'senderUid': replyingTo.senderUid,
+              'type': replyingTo.type.value,
+              'contentType': contentType,
+              'mediaUrl': mediaUrl,
+              'blurHash': replyBlurHash,
+              'pageCount': pageCount,
+              'remainingMediaCount': remainingMediaCount,
+              'activityType': replyingTo.metadata?['activityType'],
+            },
+          ),
+        );
+      }
+
+      // Add the pending media content
+      contentList.add(
+        JobChatMessageContentEntity(
+          type: item.type,
+          content: item.path,
+          metadata: item.metadata.toJson(),
+        ),
+      );
+
+      // Attach the caption to the FIRST media item
+      if (currentCaption.isNotEmpty) {
+        contentList.add(
+          JobChatMessageContentEntity(
+            type: JobChatMessageContentType.text,
+            content: currentCaption,
+          ),
+        );
+      }
+
+      final placeholderMessage = JobChatMessageEntity(
+        uid: tempUid,
+        localId: tempUid,
+        jobId: job.jobId,
+        senderUid: _currentUserProfileUid.value,
+        content: contentList,
+        createdByAuthorAt: DateTime.now(),
+        isMe: true,
+        type: JobChatMessageType.message,
+      );
+
+      // Instantly insert placeholder in UI
+      messages.add(placeholderMessage);
+      scrollToLast(animate: true);
+
+      // Start the background upload process
+      _uploadAndSendMedia(tempUid, item, replyingTo, caption: currentCaption);
+    }
+  }
+
+  Future<void> _uploadAndSendMedia(
+    String tempUid,
+    MediaPreviewItem item,
+    JobChatMessageEntity? replyingTo, {
+    String caption = '',
+  }) async {
+    uploadProgressMap[tempUid] = 0.0;
+    uploadErrorMap.remove(tempUid);
+
+    final file = File(item.path);
+    final uploadResult = await _uploadFileUseCase(
+      UploadFileParams(
+        file: file,
+        path: job.jobId,
+        onSendProgress: (sent, total) {
+          if (total > 0) {
+            uploadProgressMap[tempUid] = sent / total;
+          }
+        },
+      ),
+    );
+
+    await uploadResult.fold(
+      (failure) async {
+        debugPrint('Background upload failed for $tempUid: ${failure.message}');
+        uploadErrorMap[tempUid] = failure.message;
+        uploadProgressMap.remove(tempUid);
+      },
+      (remotePath) async {
+        final List<JobChatMessageContentEntity> contentList = [];
+
+        // 1. Re-add reply metadata if applicable
+        if (replyingTo != null) {
+          String originalText = '';
+          String contentType = 'text';
+          String? mediaUrl;
+          String? replyBlurHash;
+          int? pageCount;
+
+          final textContent = replyingTo.content.firstWhereOrNull(
+            (c) => c.type == JobChatMessageContentType.text || c.type == JobChatMessageContentType.activity,
+          );
+          originalText = textContent?.content ?? '';
+
+          final mediaItems = replyingTo.content
+              .where((c) =>
+                  c.type == JobChatMessageContentType.image ||
+                  c.type == JobChatMessageContentType.video ||
+                  c.type == JobChatMessageContentType.document ||
+                  c.type == JobChatMessageContentType.pdf)
+              .toList();
+
+          if (mediaItems.isNotEmpty) {
+            final firstMedia = mediaItems.first;
+            contentType = firstMedia.type.value;
+            mediaUrl = firstMedia.content;
+
+            if (firstMedia.type == JobChatMessageContentType.image) {
+              final imgMeta = firstMedia.metadata?['imageMetadata'];
+              replyBlurHash = imgMeta?['blurHash'] ?? firstMedia.metadata?['blurHash'];
+              if (originalText.isEmpty) originalText = 'Photo';
+            } else if (firstMedia.type == JobChatMessageContentType.video) {
+              final vidMeta = firstMedia.metadata?['videoMetadata'];
+              replyBlurHash = vidMeta?['thumbnailBlurHash'] ?? firstMedia.metadata?['blurHash'];
+              if (originalText.isEmpty) originalText = 'Video';
+            } else if (firstMedia.type == JobChatMessageContentType.pdf) {
+              final pdfMeta = firstMedia.metadata?['pdfMetadata'];
+              pageCount = pdfMeta?['pageCount'];
+              if (originalText.isEmpty) originalText = 'PDF';
+            } else if (firstMedia.type == JobChatMessageContentType.document) {
+              final docMeta = firstMedia.metadata?['documentMetadata'];
+              pageCount = docMeta?['pageCount'];
+              if (originalText.isEmpty) originalText = 'Document';
+            }
+          }
+
+          final remainingMediaCount = mediaItems.length > 1 ? (mediaItems.length - 1) : 0;
+
+          contentList.add(
+            JobChatMessageContentEntity(
+              type: JobChatMessageContentType.reply,
+              content: originalText,
+              metadata: {
+                'messageUid': replyingTo.uid,
+                'senderName': getSenderName(replyingTo),
+                'senderUid': replyingTo.senderUid,
+                'type': replyingTo.type.value,
+                'contentType': contentType,
+                'mediaUrl': mediaUrl,
+                'blurHash': replyBlurHash,
+                'pageCount': pageCount,
+                'remainingMediaCount': remainingMediaCount,
+                'activityType': replyingTo.metadata?['activityType'],
+              },
+            ),
+          );
+        }
+
+        // 2. Add the media content pointing to the remote path
+        contentList.add(
+          JobChatMessageContentEntity(
+            type: item.type,
+            content: remotePath,
+            metadata: item.metadata.toJson(),
+          ),
+        );
+
+        // 3. Attach caption to final message if applicable
+        if (caption.isNotEmpty) {
+          contentList.add(
+            JobChatMessageContentEntity(
+              type: JobChatMessageContentType.text,
+              content: caption,
+            ),
+          );
+        }
+
+        final sendMessageEntity = SendMessageEntity(
+          localId: tempUid,
+          jobId: job.jobId,
+          senderUid: _currentUserProfileUid.value,
+          content: contentList,
+          createdByAuthorAt: DateTime.now(),
+          type: JobChatMessageType.message,
+        );
+
+        final sendResult = await _sendMessageUseCase(
+          SendMessageParams(messages: [sendMessageEntity]),
+        );
+
+        sendResult.fold(
+          (failure) {
+            debugPrint('Background message send failed for $tempUid: ${failure.message}');
+            uploadErrorMap[tempUid] = failure.message;
+            uploadProgressMap.remove(tempUid);
+          },
+          (result) {
+            uploadProgressMap.remove(tempUid);
+            uploadErrorMap.remove(tempUid);
+            _pendingItemsMap.remove(tempUid);
+            _pendingRepliesMap.remove(tempUid);
+            _pendingCaptionsMap.remove(tempUid);
+
+            // Replace placeholder message in list with the actual response message
+            final existingIndex = messages.indexWhere((m) => m.uid == tempUid);
+            if (existingIndex != -1) {
+              messages[existingIndex] = result.message.copyWith(isMe: true);
+              messages.refresh();
+            }
+
+            if (result.job != null) {
+              updateJob(result.job!);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  void retryMessageUpload(String tempUid) {
+    final item = _pendingItemsMap[tempUid];
+    if (item == null) return;
+    final replyingTo = _pendingRepliesMap[tempUid];
+    final caption = _pendingCaptionsMap[tempUid] ?? '';
+    _uploadAndSendMedia(tempUid, item, replyingTo, caption: caption);
   }
 
   Future<void> sendMessage() async {
@@ -1131,25 +1457,8 @@ class JobChatController extends GetxController {
 
       await uploadResult.fold(
         (failure) async {
-          debugPrint(
-            'Upload failed, falling back to mock video: ${failure.message}',
-          );
-          await sendAttachmentMessage(
-            type: JobChatMessageContentType.video,
-            contentText: fileName,
-            mediaUrl:
-                'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-            metadata: {
-              'fileName': fileName,
-              'size': AppUtils.formatFileSize(fileSize),
-              'mimeType': mimeType,
-              'videoMetadata': {
-                'aspectRatio': aspectRatio,
-                'duration': durationSec,
-                'thumbnailBlurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
-              },
-            },
-          );
+          debugPrint('Upload failed: ${failure.message}');
+          AppSnackbar.destructive('Failed to upload video: ${failure.message}');
         },
         (path) async {
           await sendAttachmentMessage(

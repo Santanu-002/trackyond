@@ -1,5 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:get/get.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
@@ -16,6 +17,7 @@ import 'package:trackyond/features/job_chat/domain/entities/message_query_option
 import 'package:trackyond/features/job_chat/domain/entities/send_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repository.dart';
+import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 
 class JobChatRepositoryImpl implements IJobChatRepository {
   final IJobChatRemoteDataSource _remoteDataSource;
@@ -227,7 +229,23 @@ class JobChatRepositoryImpl implements IJobChatRepository {
     required DateTime deletedByUserAt,
   }) async {
     // Delete locally first (optimistic UI delete)
-    await _localDataSource.deleteCachedMessages(messageUids);
+    String? deletedByUid;
+    String? deletedByUserType;
+    if (Get.isRegistered<AuthController>()) {
+      final authController = Get.find<AuthController>();
+      final userProfile = await authController.profile;
+      final role = await authController.userRole;
+      deletedByUid = userProfile?.uid;
+      deletedByUserType = role?.value;
+    }
+
+    await _localDataSource.deleteCachedMessages(
+      messageUids,
+      deleteType: deleteType,
+      deletedByUid: deletedByUid,
+      deletedByUserType: deletedByUserType,
+      deletedByUserAt: deletedByUserAt,
+    );
 
     final connectivityResults = await Connectivity().checkConnectivity();
     final isOnline = connectivityResults.any((result) => result != ConnectivityResult.none);

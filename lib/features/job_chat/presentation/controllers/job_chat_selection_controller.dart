@@ -227,6 +227,7 @@ class JobChatSelectionController extends GetxController {
                 );
               }
             }
+            _chatController.messages.refresh();
           }
           exitSelectionMode();
         },

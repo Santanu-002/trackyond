@@ -188,6 +188,55 @@ class WebSocketConnectionManager:
         headers = frame["headers"] or {}
         data = frame["data"]
 
+        # Validate headers for client request events (non-system events)
+        if event != "system":
+            auth_header = headers.get("Authorization") or headers.get("authorization")
+            if not auth_header or not auth_header.startswith("Bearer "):
+                logger.warning(f"WebSocket request rejected: missing or invalid Authorization header from user_uid={user_uid}")
+                await self.send_personal_message({
+                    "event": "system",
+                    "type": "error",
+                    "headers": {},
+                    "data": {
+                        "code": "UNAUTHORIZED",
+                        "message": "Unauthorized: Missing or invalid Authorization header"
+                    }
+                }, websocket)
+                raise Exception("Unauthorized: Missing or invalid Authorization header")
+
+            token = auth_header.split(" ")[1]
+            try:
+                payload = token_service.decode_token(token, expected_type="access")
+                token_user_uid = payload.get("sub")
+                if not token_user_uid or token_user_uid != user_uid:
+                    raise Exception("Token user mismatch or invalid sub claim.")
+            except Exception as token_err:
+                logger.warning(f"WebSocket request rejected: token validation failed for user_uid={user_uid}. Details: {token_err}")
+                await self.send_personal_message({
+                    "event": "system",
+                    "type": "error",
+                    "headers": {},
+                    "data": {
+                        "code": "UNAUTHORIZED",
+                        "message": f"Unauthorized: {token_err}"
+                    }
+                }, websocket)
+                raise Exception(f"Unauthorized: Token validation failed: {token_err}")
+
+            device_id = headers.get("x-device-id") or headers.get("device-id") or headers.get("x-device-id") or headers.get("Device-Id")
+            if not device_id:
+                logger.warning(f"WebSocket request rejected: missing device metadata header x-device-id from user_uid={user_uid}")
+                await self.send_personal_message({
+                    "event": "system",
+                    "type": "error",
+                    "headers": {},
+                    "data": {
+                        "code": "BAD_REQUEST",
+                        "message": "Bad Request: Missing x-device-id header in request event"
+                    }
+                }, websocket)
+                raise Exception("Bad Request: Missing device metadata headers")
+
         # Heartbeat check
         if event == "system" and type_ == "heartbeat":
             with self._lock:

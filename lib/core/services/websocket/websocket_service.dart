@@ -13,6 +13,7 @@ import 'package:trackyond/core/services/token/token_service.dart';
 import 'package:trackyond/core/common/models/job/job_model.dart';
 import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
 
 class WebSocketService extends GetxService {
   static WebSocketService get find => Get.find<WebSocketService>();
@@ -150,8 +151,8 @@ class WebSocketService extends GetxService {
       _channel = channel;
 
       channel.stream.listen(
-        (message) {
-          _handleIncomingMessage(message);
+        (message) async {
+          await _handleIncomingMessage(message);
         },
         onDone: () {
           _handleDisconnect();
@@ -217,7 +218,7 @@ class WebSocketService extends GetxService {
     }
   }
 
-  void _handleIncomingMessage(dynamic rawMessage) {
+  Future<void> _handleIncomingMessage(dynamic rawMessage) async {
     debugPrint('WebSocket: Received raw message: $rawMessage');
     try {
       final Map<String, dynamic> frame = jsonDecode(rawMessage as String) as Map<String, dynamic>;
@@ -245,13 +246,13 @@ class WebSocketService extends GetxService {
         }
       } else if (event == 'chat') {
         if (type == 'received') {
-          _handleChatReceived(data as Map<String, dynamic>);
+          await _handleChatReceived(data as Map<String, dynamic>);
         } else if (type == 'deleted') {
-          _handleChatDeleted(data as Map<String, dynamic>);
+          await _handleChatDeleted(data as Map<String, dynamic>);
         } else if (type == 'delivered') {
-          _handleChatDelivered(data as Map<String, dynamic>);
+          await _handleChatDelivered(data as Map<String, dynamic>);
         } else if (type == 'seen') {
-          _handleChatSeen(data as Map<String, dynamic>);
+          await _handleChatSeen(data as Map<String, dynamic>);
         }
       }
 
@@ -284,7 +285,7 @@ class WebSocketService extends GetxService {
         sendEvent('system', 'ack', ackData);
       }
     } catch (e) {
-      debugPrint('WebSocket error parsing incoming message: $e');
+      debugPrint('WebSocket error processing incoming message (ack suppressed): $e');
     }
   }
 
@@ -298,42 +299,60 @@ class WebSocketService extends GetxService {
     }
   }
 
-  void _handleChatReceived(Map<String, dynamic> data) {
+  Future<void> _handleChatReceived(Map<String, dynamic> data) async {
     try {
       final messagesList = data['messages'] as List?;
       final jobMap = data['job'] as Map<String, dynamic>?;
       final jobEntity = jobMap != null ? JobModel.fromJson(jobMap).toEntity() : null;
 
+      final List<JobChatMessageModel> messagesToSave = [];
       if (messagesList != null) {
         for (final m in messagesList) {
-          final model = JobChatMessageModel.fromJson(m as Map<String, dynamic>);
-          debugPrint('WebSocket: Received chat message: ${model.content}');
-          _eventBus.fire(ChatMessageReceivedEvent(model.toEntity(), job: jobEntity));
+          messagesToSave.add(JobChatMessageModel.fromJson(m as Map<String, dynamic>));
         }
       } else if (data['message'] != null) {
-        final model = JobChatMessageModel.fromJson(data['message'] as Map<String, dynamic>);
-        debugPrint('WebSocket: Received chat message: ${model.content}');
-        _eventBus.fire(ChatMessageReceivedEvent(model.toEntity(), job: jobEntity));
+        messagesToSave.add(JobChatMessageModel.fromJson(data['message'] as Map<String, dynamic>));
+      }
+
+      if (messagesToSave.isNotEmpty) {
+        final localDataSource = Get.find<IJobChatLocalDataSource>();
+        await localDataSource.saveMessages(messagesToSave);
+        debugPrint('WebSocket: Cached ${messagesToSave.length} received message(s) to SQLite.');
+
+        for (final model in messagesToSave) {
+          debugPrint('WebSocket: Dispatched ChatMessageReceivedEvent for: ${model.content}');
+          _eventBus.fire(ChatMessageReceivedEvent(model.toEntity(), job: jobEntity));
+        }
       }
     } catch (e) {
-      debugPrint('WebSocket: Failed to parse chat received: $e');
+      debugPrint('WebSocket: Failed to parse or save chat received: $e');
+      rethrow;
     }
   }
 
-  void _handleChatDeleted(Map<String, dynamic> data) {
+  Future<void> _handleChatDeleted(Map<String, dynamic> data) async {
     try {
       final jobId = data['jobId'] as String;
       final messageUids = List<String>.from(data['messageUids'] ?? []);
+
+      final localDataSource = Get.find<IJobChatLocalDataSource>();
+      await localDataSource.deleteCachedMessages(
+        messageUids,
+        deleteType: 'forEveryone',
+      );
+      debugPrint('WebSocket: Deleted ${messageUids.length} message(s) from SQLite.');
+
       _eventBus.fire(ChatMessageDeletedEvent(
         jobId: jobId,
         messageUids: messageUids,
       ));
     } catch (e) {
-      debugPrint('WebSocket: Failed to parse chat deleted: $e');
+      debugPrint('WebSocket: Failed to parse or delete chat locally: $e');
+      rethrow;
     }
   }
 
-  void _handleChatDelivered(Map<String, dynamic> data) {
+  Future<void> _handleChatDelivered(Map<String, dynamic> data) async {
     try {
       final jobId = data['jobId'] as String?;
       final uidsList = data['messageUids'] as List?;
@@ -341,6 +360,14 @@ class WebSocketService extends GetxService {
         final messageUids = List<String>.from(uidsList);
         final deliveredAtStr = data['deliveredAt'] as String?;
         final deliveredAt = deliveredAtStr != null ? DateTime.parse(deliveredAtStr) : DateTime.now();
+
+        final localDataSource = Get.find<IJobChatLocalDataSource>();
+        await localDataSource.markMessagesAsDelivered(
+          jobId,
+          messageUids,
+          deliveredAt,
+        );
+        debugPrint('WebSocket: Marked ${messageUids.length} message(s) as delivered in SQLite.');
         
         _eventBus.fire(ChatMessageDeliveredEvent(
           jobId: jobId,
@@ -349,11 +376,12 @@ class WebSocketService extends GetxService {
         ));
       }
     } catch (e) {
-      debugPrint('WebSocket: Error handling chat delivered event: $e');
+      debugPrint('WebSocket: Error handling or saving chat delivered event: $e');
+      rethrow;
     }
   }
 
-  void _handleChatSeen(Map<String, dynamic> data) {
+  Future<void> _handleChatSeen(Map<String, dynamic> data) async {
     try {
       final jobId = data['jobId'] as String?;
       final uidsList = data['messageUids'] as List?;
@@ -361,6 +389,14 @@ class WebSocketService extends GetxService {
         final messageUids = List<String>.from(uidsList);
         final seenAtStr = data['seenAt'] as String?;
         final seenAt = seenAtStr != null ? DateTime.parse(seenAtStr) : DateTime.now();
+
+        final localDataSource = Get.find<IJobChatLocalDataSource>();
+        await localDataSource.markMessagesAsSeen(
+          jobId,
+          messageUids,
+          seenAt,
+        );
+        debugPrint('WebSocket: Marked ${messageUids.length} message(s) as seen in SQLite.');
         
         _eventBus.fire(ChatMessageReadEvent(
           jobId: jobId,
@@ -369,7 +405,8 @@ class WebSocketService extends GetxService {
         ));
       }
     } catch (e) {
-      debugPrint('WebSocket: Error handling chat seen event: $e');
+      debugPrint('WebSocket: Error handling or saving chat seen event: $e');
+      rethrow;
     }
   }
 

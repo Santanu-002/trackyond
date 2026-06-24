@@ -15,4 +15,9 @@ class JobDeletedEvent extends JobEvent {
   const JobDeletedEvent(this.jobId);
 }
 
+class JobInsertedEvent extends JobEvent {
+  final List<JobEntity> jobs;
+  const JobInsertedEvent(this.jobs);
+}
+
 

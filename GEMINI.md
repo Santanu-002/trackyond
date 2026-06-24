@@ -95,7 +95,7 @@ Common utilities are located in `lib/core/utils/`.
 ### 10. Code Generation & Analysis
 - **Build Runner**: Always running in watch mode. Models should use `@freezed` and `@JsonSerializable`.
 - **Sealed Classes**: As per latest Freezed documentation, use `sealed class` for your models to ensure exhaustive matching and better structure.
-- **Mappers**: Models should include `toEntity()` mappers to keep the Domain layer clean.
+- **Implicit Mapping via Inheritance**: Models should implement the corresponding Entity class so the compiler can implicitly cast and map models to entities without manual `.toEntity()` mapper functions.
 - **Analyze**: Run `flutter analyze` regularly to ensure code quality.
 - **Entities**: Domain entities should be simple Dart classes and are NOT allowed to use `@freezed`. Use `Equatable` for value equality if needed.
 
@@ -164,10 +164,10 @@ class MyController extends GetxController {
 }
 ```
 
-### Model with Mapper
+### Model implementing Entity
 ```dart
 @freezed
-sealed class MyModel with _$MyModel {
+sealed class MyModel with _$MyModel implements MyEntity {
   const factory MyModel({
     required String id,
     required String name,
@@ -177,8 +177,8 @@ sealed class MyModel with _$MyModel {
 
   factory MyModel.fromJson(Map<String, dynamic> json) => _$MyModelFromJson(json);
 
-  // Mapper to clean Domain Entity
-  MyEntity toEntity() => MyEntity(id: id, name: name);
+  @override
+  List<Object?> get props => [id, name];
 }
 ```
 
@@ -194,7 +194,7 @@ class MyRepositoryImpl implements IMyRepository {
     final response = await _dataSource.getData(id: id);
     return response.fold(
       (error) => left(error.toFailure()),
-      (model) => right(model.toEntity()),
+      (model) => right(model), // Implicitly matched/upcast by compiler!
     );
   }
 }

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, AliasChoices
 from typing import List, Optional
 from datetime import datetime
 from core.responses.models import BaseSchema
@@ -26,7 +26,7 @@ class JobChatMessageContentResponse(JobChatMessageContentBase):
         return data
 
 class JobChatMessageBase(BaseSchema):
-    local_id: Optional[str] = Field(None, serialization_alias="localId", validation_alias="localId")
+    local_uid: Optional[str] = Field(None, serialization_alias="localUid", validation_alias=AliasChoices("localUid", "local_uid", "localId", "local_id"))
     job_id: str = Field(..., serialization_alias="jobId", validation_alias="jobId")
     sender_uid: Optional[str] = Field(None, serialization_alias="senderUid", validation_alias="senderUid")
     type: str = "message" # 'message' or 'activity'

@@ -401,10 +401,10 @@ class AuthService:
         # 1. Extract access token from Authorization header
         try:
             if not authorization.startswith("Bearer "):
-                 raise AppException(message="Invalid authorization header.", error_code="invalid_auth_header")
+                 raise AppException(message="Invalid authorization header.", error_code="invalid_auth_header", status_code=400)
             prev_access_token = authorization.split(" ")[1]
         except Exception:
-            raise AppException(message="Invalid authorization header.", error_code="invalid_auth_header")
+            raise AppException(message="Invalid authorization header.", error_code="invalid_auth_header", status_code=400)
 
         # 2. Decode access token (skip expiry check to allow refresh)
         access_payload = token_service.decode_token(prev_access_token, expected_type="access", verify_exp=False)
@@ -414,7 +414,7 @@ class AuthService:
         
         # 4. Verify identity continuity
         if access_payload.get("sub") != refresh_payload.get("sub"):
-             raise AppException(message="Token mismatch.", error_code="token_mismatch")
+             raise AppException(message="Token mismatch.", error_code="token_mismatch", status_code=400)
 
         user_uid = refresh_payload.get("sub")
         phone = refresh_payload.get("phone")
@@ -429,7 +429,7 @@ class AuthService:
         if not session:
              # Fallback to just user/device check if token rotated but old one is sent? 
              # No, strict session tracking:
-             raise AppException(message="Session invalid or expired.", error_code="session_invalid")
+             raise AppException(message="Session invalid or expired.", error_code="session_invalid", status_code=401)
 
         # 6. Issue fresh tokens
         tokens = self.generate_tokens(user_uid, phone)

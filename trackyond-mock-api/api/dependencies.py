@@ -17,7 +17,7 @@ async def get_current_user(
         raise AppException(
             message="Invalid authorization header format. Expected 'Bearer <token>'",
             error_code="invalid_auth_header",
-            status_code=status.HTTP_401_UNAUTHORIZED
+            status_code=status.HTTP_400_BAD_REQUEST
         )
     
     token = authorization.split(" ")[1]
@@ -30,7 +30,7 @@ async def get_current_user(
         raise AppException(
             message="Token payload missing user identity.",
             error_code="invalid_token",
-            status_code=status.HTTP_401_UNAUTHORIZED
+            status_code=status.HTTP_400_BAD_REQUEST
         )
     
     user = db.query(models.User).filter(models.User.uid == user_uid).first()
@@ -38,7 +38,7 @@ async def get_current_user(
         raise AppException(
             message="User not found.",
             error_code="user_not_found",
-            status_code=status.HTTP_401_UNAUTHORIZED
+            status_code=status.HTTP_400_BAD_REQUEST
         )
     
     return user

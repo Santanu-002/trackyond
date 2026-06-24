@@ -116,7 +116,7 @@ class WebSocketConnectionManager:
         for user_uid in user_uids:
             await self.broadcast_to_user(user_uid, payload)
 
-    async def broadcast_new_message(self, db: Session, job_id: str, sender_user_uid: str, messages_data: list, job_data: dict):
+    async def broadcast_new_message(self, db: Session, job_id: str, sender_user_uid: str, messages_data: list, job_data: dict, request_id: Optional[str] = None):
         job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
         if not job:
             logger.warning(f"Job {job_id} not found for broadcast_new_message.")
@@ -141,6 +141,7 @@ class WebSocketConnectionManager:
             "data": {
                 "success": True,
                 "message": "Messages sent successfully",
+                "requestId": request_id,
                 "data": {
                     "messages": messages_data,
                     "job": job_data
@@ -165,7 +166,7 @@ class WebSocketConnectionManager:
             else:
                 await self.broadcast_to_user(uid, receiver_payload)
 
-    async def broadcast_delete_message(self, db: Session, job_id: str, sender_user_uid: str, message_uids: list, delete_type: str):
+    async def broadcast_delete_message(self, db: Session, job_id: str, sender_user_uid: str, message_uids: list, delete_type: str, request_id: Optional[str] = None):
         job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
         if not job:
             logger.warning(f"Job {job_id} not found for broadcast_delete_message.")
@@ -190,6 +191,7 @@ class WebSocketConnectionManager:
             "data": {
                 "success": True,
                 "message": "Messages deleted successfully",
+                "requestId": request_id,
                 "data": {
                     "jobId": job_id,
                     "messageUids": message_uids
@@ -213,7 +215,7 @@ class WebSocketConnectionManager:
             elif delete_type == "forEveryone":
                 await self.broadcast_to_user(uid, receiver_payload)
 
-    async def broadcast_seen_message(self, db: Session, job_id: str, reader_user_uid: str, message_uids: list, seen_at_iso: str):
+    async def broadcast_seen_message(self, db: Session, job_id: str, reader_user_uid: str, message_uids: list, seen_at_iso: str, request_id: Optional[str] = None):
         job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
         if not job:
             logger.warning(f"Job {job_id} not found for broadcast_seen_message.")
@@ -238,6 +240,7 @@ class WebSocketConnectionManager:
             "data": {
                 "success": True,
                 "message": "Messages marked as seen successfully",
+                "requestId": request_id,
                 "data": {
                     "jobId": job_id,
                     "messageUids": message_uids,
@@ -314,12 +317,29 @@ class WebSocketConnectionManager:
                                     new_tokens = token_service.generate_tokens(user_uid, conn["phone"])
                                     payload = token_service.decode_token(new_tokens["accessToken"], "access")
                                     new_exp = payload["exp"]
-                                    renewals.append((user_uid, conn["websocket"], new_tokens, new_exp))
+                                    renewals.append((user_uid, conn["websocket"], new_tokens, new_exp, conn["device_id"]))
                                 except Exception as e:
                                     logger.error(f"Failed to generate renewal tokens for {user_uid}: {e}")
 
                 # Send renewal messages outside the lock
-                for user_uid, websocket, new_tokens, new_exp in renewals:
+                for user_uid, websocket, new_tokens, new_exp, device_id in renewals:
+                    # Update database session with the new refresh token
+                    db = SessionLocal()
+                    try:
+                        session = db.query(models.Session).filter(
+                            models.Session.user_uid == user_uid,
+                            models.Session.device_id == device_id
+                        ).first()
+                        if session:
+                            session.refresh_token = new_tokens["refreshToken"]
+                            session.session_updated_at = now_utc()
+                            db.commit()
+                            logger.info(f"Updated DB session refresh token for user_uid={user_uid} via WebSocket renewal")
+                    except Exception as db_err:
+                        logger.error(f"Failed to update session in DB during WS renewal: {db_err}")
+                    finally:
+                        db.close()
+
                     renewal_frame = {
                         "event": "token",
                         "type": "renewal",
@@ -369,6 +389,11 @@ class WebSocketConnectionManager:
         type_ = frame["type"]
         headers = frame["headers"] or {}
         data = frame["data"]
+
+        request_id = None
+        if isinstance(data, dict) and "action" in data and "data" in data:
+            request_id = data.get("requestId") or data.get("localUid") or data.get("localId")
+            data = data.get("data")
 
         # Validate headers on ALL incoming client events
         auth_header = headers.get("Authorization") or headers.get("authorization")
@@ -539,12 +564,12 @@ class WebSocketConnectionManager:
                 db.commit()
 
                 # Targeted broadcast: sender gets message/send_response, receiver gets message/new_message
-                await self.broadcast_new_message(db, job_id, user_uid, response_data["messages"], response_data["job"])
+                await self.broadcast_new_message(db, job_id, user_uid, response_data["messages"], response_data["job"], request_id=request_id)
 
                 # Broadcast seen status for previous messages if any were marked as seen
                 seen_message_uids = response_data.get("seenMessageUids", [])
                 if seen_message_uids:
-                    await self.broadcast_seen_message(db, job_id, user_uid, seen_message_uids, to_utc_iso())
+                    await self.broadcast_seen_message(db, job_id, user_uid, seen_message_uids, to_utc_iso(), request_id=request_id)
                     
                     try:
                         from services.notification_service import send_cancel_notification_push
@@ -646,7 +671,7 @@ class WebSocketConnectionManager:
 
                 job_chat_service.delete_job_messages(db, job_id, delete_req, current_user)
 
-                await self.broadcast_delete_message(db, job_id, user_uid, delete_req.message_uids, delete_req.delete_type)
+                await self.broadcast_delete_message(db, job_id, user_uid, delete_req.message_uids, delete_req.delete_type, request_id=request_id)
 
             except Exception as e:
                 logger.error(f"Error handling chat delete for user_uid={user_uid}: {e}", exc_info=True)
@@ -756,7 +781,7 @@ class WebSocketConnectionManager:
                 db.commit()
 
                 # Always respond with seen_response to reader, and broadcast ack_received status=seen to sender if any messages were read
-                await self.broadcast_seen_message(db, job_id, user_uid, message_uids, to_utc_iso(now_dt))
+                await self.broadcast_seen_message(db, job_id, user_uid, message_uids, to_utc_iso(now_dt), request_id=request_id)
                 
                 if message_uids:
                     # Send cancel notification silent FCM to current user's other devices

@@ -52,11 +52,11 @@ def create_job_message(db: Session, job_id: str, message_data: schemas.JobChatMe
         created_by_uid = current_user.uid
 
     msg_uid = uuid.uuid4().hex
-    msg_local_id = msg_uid if is_system else message_data.local_id
+    msg_local_uid = msg_uid if is_system else message_data.local_uid
 
     db_message = models.JobChatMessage(
         uid=msg_uid,
-        local_id=msg_local_id,
+        local_uid=msg_local_uid,
         job_id=job_id,
         author_type=author_type,
         created_by_uid=created_by_uid,
@@ -180,7 +180,7 @@ def create_system_activity_message(
     
     db_message = models.JobChatMessage(
         uid=message_uid,
-        local_id=message_uid,
+        local_uid=message_uid,
         job_id=job_id,
         author_type="user" if (sender_uid and sender_uid != "system") else "system",
         created_by_uid=created_by_uid,

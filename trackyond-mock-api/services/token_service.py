@@ -75,11 +75,13 @@ class TokenService:
             raise AppException(
                 message="Token has expired.",
                 error_code="token_expired",
+                status_code=401,
             )
         except jwt.InvalidTokenError as e:
             raise AppException(
                 message=f"Invalid token: {e}",
                 error_code="invalid_token",
+                status_code=400,
             )
 
         # Validate token type claim

@@ -11,7 +11,6 @@ import 'package:trackyond/core/common/enums/job_status.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:trackyond/features/job_chat/domain/usecases/emit_job_update_use_case.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_chat_members_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_messages_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_use_case.dart';
@@ -30,7 +29,6 @@ import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_up
 class MockGetJobMessagesUseCase extends Mock implements GetJobMessagesUseCase {}
 class MockSendMessageUseCase extends Mock implements SendMessageUseCase {}
 class MockGetJobChatMembersUseCase extends Mock implements GetJobChatMembersUseCase {}
-class MockEmitJobUpdateUseCase extends Mock implements EmitJobUpdateUseCase {}
 class MockUploadFileUseCase extends Mock implements UploadFileUseCase {}
 class MockListenChatEventsUseCase extends Mock implements ListenChatEventsUseCase {}
 class MockMarkMessagesSeenUseCase extends Mock implements MarkMessagesSeenUseCase {}
@@ -59,7 +57,6 @@ void main() {
     late MockGetJobMessagesUseCase mockMessagesUseCase;
     late MockSendMessageUseCase mockSendMessageUseCase;
     late MockGetJobChatMembersUseCase mockMembersUseCase;
-    late MockEmitJobUpdateUseCase mockEmitJobUpdateUseCase;
     late MockUploadFileUseCase mockUploadFileUseCase;
     late MockListenChatEventsUseCase mockListenEventsUseCase;
     late MockMarkMessagesSeenUseCase mockMarkSeenUseCase;
@@ -81,7 +78,6 @@ void main() {
       mockMessagesUseCase = MockGetJobMessagesUseCase();
       mockSendMessageUseCase = MockSendMessageUseCase();
       mockMembersUseCase = MockGetJobChatMembersUseCase();
-      mockEmitJobUpdateUseCase = MockEmitJobUpdateUseCase();
       mockUploadFileUseCase = MockUploadFileUseCase();
       mockListenEventsUseCase = MockListenChatEventsUseCase();
       mockMarkSeenUseCase = MockMarkMessagesSeenUseCase();
@@ -146,7 +142,6 @@ void main() {
         getMessagesUseCase: mockMessagesUseCase,
         sendMessageUseCase: mockSendMessageUseCase,
         getChatMembersUseCase: mockMembersUseCase,
-        emitJobUpdateUseCase: mockEmitJobUpdateUseCase,
         uploadFileUseCase: mockUploadFileUseCase,
         listenChatEventsUseCase: mockListenEventsUseCase,
         markMessagesSeenUseCase: mockMarkSeenUseCase,

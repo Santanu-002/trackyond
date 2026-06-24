@@ -14,6 +14,7 @@ import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/chat_bubble_layout.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/document_bubble_item.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_status.dart';
 
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 
@@ -39,10 +40,10 @@ class MessageBubble extends StatelessWidget {
 
     if ((isActivityMessage || activityContentIndex != -1) && !message.deleted) {
       final content = isActivityMessage
-          ? message.content.firstWhere(
-              (c) => c.type == JobChatMessageContentType.text,
-              orElse: () => message.content.first,
-            )
+          ? (message.content.firstWhereOrNull(
+                (c) => c.type == JobChatMessageContentType.text,
+              ) ??
+              message.content.first)
           : message.content[activityContentIndex];
       return ActivityMessageCard(
         message: message,
@@ -155,28 +156,69 @@ class MessageBubble extends StatelessWidget {
           final replyBlurHash = metadata['blurHash'] as String?;
           final remainingMediaCount = metadata['remainingMediaCount'] as int? ?? 0;
 
-          final resolvedSenderName = chatController.resolveMemberName(
-            replySenderUid,
-            replySenderName,
-          );
+          final originalMsg = chatController.messages.firstWhereOrNull((m) => m.uid == replyToUid);
+          final isActivity = replyType == JobChatMessageType.activity || originalMsg?.type == JobChatMessageType.activity;
+
+          // --- Name resolution matching ReplyPreviewBar ---
           final replyToMe = replySenderUid == chatController.currentUserProfileUid;
-          final displayName = replyToMe ? 'You' : resolvedSenderName;
+          String displayName;
+          if (replyToMe) {
+            displayName = 'You';
+          } else if (isActivity) {
+            // For activity messages senderUid is 'system' which isn't in chatMembers.
+            // Resolve the actual person from metadata like ReplyPreviewBar does.
+            final metaWorkerName = originalMsg?.metadata?['workerName'] as String?;
+            if (metaWorkerName != null && metaWorkerName.isNotEmpty) {
+              displayName = metaWorkerName;
+            } else {
+              final resolved = chatController.resolveMemberName(replySenderUid, replySenderName);
+              if (resolved == 'System' || resolved.isEmpty) {
+                final activityTypeStr = metadata['activityType'] as String? ?? originalMsg?.metadata?['activityType'] as String?;
+                final aType = JobActivityType.fromString(activityTypeStr);
+                final isOwnerAction =
+                    aType == JobActivityType.askLocation ||
+                    aType == JobActivityType.askStatus ||
+                    aType == JobActivityType.askStatusProofs ||
+                    aType == JobActivityType.cancelJob ||
+                    aType == JobActivityType.reopenJob ||
+                    aType == JobActivityType.jobCreated;
+                displayName = isOwnerAction
+                    ? (chatController.job.createdByName ?? 'Admin')
+                    : (chatController.job.workerName ?? 'Worker');
+              } else {
+                displayName = resolved;
+              }
+            }
+          } else {
+            displayName = chatController.resolveMemberName(replySenderUid, replySenderName);
+            if (displayName.toLowerCase() == 'user') {
+              displayName = chatController.job.workerName ?? 'Worker';
+            }
+          }
 
           Widget replyBodyWidget;
-          if (replyType == JobChatMessageType.activity) {
-            final originalMsg = chatController.messages.firstWhereOrNull((m) => m.uid == replyToUid);
+          if (isActivity) {
             final activityTypeStr = metadata['activityType'] as String? ?? originalMsg?.metadata?['activityType'] as String?;
             final activityType = JobActivityType.fromString(activityTypeStr);
 
             replyBodyWidget = Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  activityType.icon,
-                  size: 14,
-                  color: isMe
-                      ? colorScheme.onPrimary.withValues(alpha: 0.7)
-                      : colorScheme.primary,
+                Container(
+                  padding: const EdgeInsets.all(4.0),
+                  decoration: BoxDecoration(
+                    color: isMe
+                        ? colorScheme.onPrimary.withValues(alpha: 0.15)
+                        : colorScheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    activityType.icon,
+                    size: 12,
+                    color: isMe
+                        ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                        : colorScheme.primary,
+                  ),
                 ),
                 AppUIConstants.widgets.horizontalBox$4,
                 Flexible(
@@ -186,9 +228,10 @@ class MessageBubble extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.bodySmall?.copyWith(
                       fontSize: 12,
+                      fontWeight: FontWeight.bold,
                       color: isMe
                           ? colorScheme.onPrimary.withValues(alpha: 0.8)
-                          : colorScheme.onSurfaceVariant,
+                          : colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -279,7 +322,7 @@ class MessageBubble extends StatelessWidget {
             );
           } else {
             replyBodyWidget = Text(
-              replyContent.content ?? '',
+              chatController.parseMentions(replyContent.content),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: textTheme.bodySmall?.copyWith(
@@ -397,6 +440,7 @@ class MessageBubble extends StatelessWidget {
                 colorScheme: colorScheme,
                 textTheme: textTheme,
                 messageUid: message.uid,
+                isPending: message.status == JobChatMessageStatus.pending,
               ),
             );
           }
@@ -436,7 +480,7 @@ class MessageBubble extends StatelessWidget {
                   time: BubbleTimeAndStatus(
                     timestamp: message.timestamp,
                     isMe: isMe,
-                    status: message.status,
+                    status: message.status.name,
                   ),
                 ),
               ),
@@ -466,7 +510,7 @@ class MessageBubble extends StatelessWidget {
                 child: BubbleTimeAndStatus(
                   timestamp: message.timestamp,
                   isMe: isMe,
-                  status: message.status,
+                  status: message.status.name,
                 ),
               ),
             ),

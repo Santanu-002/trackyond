@@ -12,6 +12,8 @@ import 'package:trackyond/core/utils/app_utils.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 
+import 'package:trackyond/core/common/enums/job_chat_message_status.dart';
+
 class ChatImageGridItem extends StatelessWidget {
   final int index;
   final JobChatMessageEntity message;
@@ -19,6 +21,7 @@ class ChatImageGridItem extends StatelessWidget {
   final bool isLast;
   final double imageRadius;
   final bool showTimeOverlay;
+  final bool skipPendingOverlay;
 
   const ChatImageGridItem({
     super.key,
@@ -28,13 +31,16 @@ class ChatImageGridItem extends StatelessWidget {
     this.isLast = false,
     required this.imageRadius,
     this.showTimeOverlay = false,
+    this.skipPendingOverlay = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final chatController = Get.find<JobChatController>();
+    final isPending = message.status == JobChatMessageStatus.pending;
     final content = imageContents[index];
     final path = content.content ?? '';
-    final url = path.startsWith('http') ? path : ApiEndpoints.common.download(path);
+    final url = (isPending || path.startsWith('http')) ? path : ApiEndpoints.common.download(path);
     final isVideo = content.type == JobChatMessageContentType.video;
 
     double? imageWidth;
@@ -107,15 +113,12 @@ class ChatImageGridItem extends StatelessWidget {
       );
     }
 
-    final chatController = Get.find<JobChatController>();
-    final isPending = message.uid.startsWith('temp_');
-
     return Obx(() {
       final uploadProgress = chatController.uploadProgressMap[message.uid];
       final uploadError = chatController.uploadErrorMap[message.uid];
 
       Widget mainWidget = img;
-      if (isPending) {
+      if (isPending && !skipPendingOverlay) {
         mainWidget = Stack(
           fit: StackFit.expand,
           children: [
@@ -126,9 +129,19 @@ class ChatImageGridItem extends StatelessWidget {
                 child: Center(
                   child: Material(
                     type: MaterialType.transparency,
-                    child: IconButton(
-                      icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 28),
-                      onPressed: () => chatController.retryMessageUpload(message.uid),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 16,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 28),
+                          onPressed: () => chatController.retryMessageUpload(message.uid),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+                          onPressed: () => chatController.cancelMessageUpload(message.uid),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -141,22 +154,25 @@ class ChatImageGridItem extends StatelessWidget {
                     alignment: Alignment.center,
                     children: [
                       CircularProgressIndicator(
-                        value: uploadProgress != null && uploadProgress > 0 ? uploadProgress : null,
+                        value: uploadProgress ?? 0.0,
                         color: Colors.white,
                         strokeWidth: 3,
                       ),
-                      if (uploadProgress != null && uploadProgress > 0)
-                        Material(
+
+                      Positioned(
+                        bottom: 4,
+                        child: Material(
                           type: MaterialType.transparency,
-                          child: Text(
-                            '${(uploadProgress * 100).toInt()}%',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                          child: InkWell(
+                            onTap: () => chatController.cancelMessageUpload(message.uid),
+                            borderRadius: BorderRadius.circular(12),
+                            child: const Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Icon(Icons.close_rounded, color: Colors.white, size: 16),
                             ),
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -256,7 +272,7 @@ class ChatImageGridItem extends StatelessWidget {
                           BubbleTimeAndStatus(
                             timestamp: message.timestamp,
                             isMe: message.isMe,
-                            status: message.status,
+                            status: message.status.name,
                             isOverlaid: true,
                           )
                         else

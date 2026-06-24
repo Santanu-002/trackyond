@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mime/mime.dart';
@@ -26,7 +28,6 @@ import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_con
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/message_query_options.dart';
 import 'package:trackyond/features/job_chat/domain/entities/send_message_entity.dart';
-import 'package:trackyond/features/job_chat/domain/usecases/emit_job_update_use_case.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_chat_members_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_messages_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_use_case.dart';
@@ -37,6 +38,7 @@ import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_at
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_selection_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_upload_controller.dart';
 import 'package:trackyond/features/job_chat/data/models/response/media_preview_item.dart';
+import 'package:trackyond/features/job_chat/presentation/utils/reply_content_builder.dart';
 
 import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
 import 'package:video_player/video_player.dart';
@@ -45,7 +47,6 @@ class JobChatController extends GetxController {
   final GetJobMessagesUseCase _getMessagesUseCase;
   final SendMessageUseCase _sendMessageUseCase;
   final GetJobChatMembersUseCase _getChatMembersUseCase;
-  final EmitJobUpdateUseCase _emitJobUpdateUseCase;
   final UploadFileUseCase _uploadFileUseCase;
   final ListenChatEventsUseCase _listenChatEventsUseCase;
   final MarkMessagesSeenUseCase _markMessagesSeenUseCase;
@@ -55,7 +56,6 @@ class JobChatController extends GetxController {
     required GetJobMessagesUseCase getMessagesUseCase,
     required SendMessageUseCase sendMessageUseCase,
     required GetJobChatMembersUseCase getChatMembersUseCase,
-    required EmitJobUpdateUseCase emitJobUpdateUseCase,
     required UploadFileUseCase uploadFileUseCase,
     required ListenChatEventsUseCase listenChatEventsUseCase,
     required MarkMessagesSeenUseCase markMessagesSeenUseCase,
@@ -63,7 +63,6 @@ class JobChatController extends GetxController {
   }) : _getMessagesUseCase = getMessagesUseCase,
        _sendMessageUseCase = sendMessageUseCase,
        _getChatMembersUseCase = getChatMembersUseCase,
-       _emitJobUpdateUseCase = emitJobUpdateUseCase,
        _uploadFileUseCase = uploadFileUseCase,
        _listenChatEventsUseCase = listenChatEventsUseCase,
        _markMessagesSeenUseCase = markMessagesSeenUseCase,
@@ -111,6 +110,7 @@ class JobChatController extends GetxController {
   final RxMap<String, double> uploadProgressMap = <String, double>{}.obs;
   final RxMap<String, String> uploadErrorMap = <String, String>{}.obs;
   final Map<String, List<MediaPreviewItem>> _pendingItemsMap = {};
+  final Map<String, CancelToken> _uploadCancelTokens = {};
   final Map<String, JobChatMessageEntity?> _pendingRepliesMap = {};
   final Map<String, String> _pendingCaptionsMap = {};
 
@@ -151,7 +151,6 @@ class JobChatController extends GetxController {
 
   void updateJob(JobEntity newJob) {
     _job.value = newJob;
-    _emitJobUpdateUseCase(newJob);
   }
 
   int get initialScrollIndex {
@@ -422,6 +421,43 @@ class JobChatController extends GetxController {
     );
   }
 
+  void addOrUpdateMessage(JobChatMessageEntity message) {
+    final isMe = message.senderUid == _currentUserProfileUid.value;
+    final finalMessage = message.copyWith(isMe: isMe);
+
+    final existingIndex = messages.indexWhere((m) =>
+        (finalMessage.serverUid != null && m.serverUid == finalMessage.serverUid) ||
+        (m.uid == finalMessage.uid));
+
+    if (existingIndex != -1) {
+      final existingMsg = messages[existingIndex];
+      if (existingMsg != finalMessage) {
+        messages[existingIndex] = finalMessage;
+        messages.refresh();
+      }
+    } else {
+      final pendingIndex = pendingMessages.indexWhere((m) =>
+          (finalMessage.serverUid != null && m.serverUid == finalMessage.serverUid) ||
+          (m.uid == finalMessage.uid));
+      if (pendingIndex != -1) {
+        if (pendingMessages[pendingIndex] != finalMessage) {
+          pendingMessages[pendingIndex] = finalMessage;
+        }
+      } else {
+        if (isMe || isNearBottom.value) {
+          if (pendingMessages.isNotEmpty) {
+            messages.addAll(pendingMessages);
+            pendingMessages.clear();
+          }
+          messages.add(finalMessage);
+          scrollToLast(animate: true);
+        } else {
+          pendingMessages.add(finalMessage);
+        }
+      }
+    }
+  }
+
   void setReplyingTo(JobChatMessageEntity message) {
     replyingToMessage.value = message;
     focusNode.requestFocus();
@@ -679,9 +715,14 @@ class JobChatController extends GetxController {
       hasFocus.value = focusNode.hasFocus;
       if (focusNode.hasFocus) {
         attachmentController.showAttachmentMenu.value = false;
-        Future.delayed(const Duration(milliseconds: 150), () {
-          scrollToLast(animate: true);
-        });
+        // Only scroll to last when the keyboard opens if the user is already
+        // near the bottom. If they scrolled up to read history, don't yank
+        // them back down.
+        if (isNearBottom.value) {
+          Future.delayed(const Duration(milliseconds: 150), () {
+            scrollToLast(animate: true);
+          });
+        }
       }
     });
 
@@ -702,36 +743,7 @@ class JobChatController extends GetxController {
           if (event is ChatMessageReceivedEvent) {
             final message = event.message;
             if (message.jobId == job.jobId) {
-              final existingIndex = messages.indexWhere((m) =>
-                  m.uid == message.uid ||
-                  (m.localId != null && m.localId == message.localId));
-              if (existingIndex != -1) {
-                // Replace the temporary message with the real one from WebSocket
-                messages[existingIndex] = message.copyWith(
-                  isMe: message.senderUid == _currentUserProfileUid.value,
-                );
-              } else {
-                final isMe = message.senderUid == _currentUserProfileUid.value;
-                if (isMe || isNearBottom.value) {
-                  if (pendingMessages.isNotEmpty) {
-                    messages.addAll(pendingMessages);
-                    pendingMessages.clear();
-                  }
-                  messages.add(
-                    message.copyWith(
-                      isMe: isMe,
-                    ),
-                  );
-                  scrollToLast(animate: true);
-                } else {
-                  pendingMessages.add(
-                    message.copyWith(
-                      isMe: isMe,
-                    ),
-                  );
-                }
-              }
-              // Seen event is now handled dynamically by viewport visibility tracking
+              addOrUpdateMessage(message);
             }
           } else if (event is ChatMessageDeletedEvent) {
             if (event.jobId == job.jobId) {
@@ -892,7 +904,27 @@ class JobChatController extends GetxController {
           return m.copyWith(isMe: isMe);
         }).toList();
 
-        messages.insertAll(0, updatedMessages);
+        // Deduplicate against already-loaded messages.
+        final List<JobChatMessageEntity> uniqueNewMessages = [];
+        for (final m in updatedMessages) {
+          final exists = messages.any((existing) =>
+              (m.serverUid != null && existing.serverUid == m.serverUid) ||
+              (existing.uid == m.uid));
+          if (!exists) {
+            uniqueNewMessages.add(m);
+          }
+        }
+
+        if (uniqueNewMessages.isNotEmpty) {
+          messages.addAll(uniqueNewMessages);
+          // Always keep the list in chronological order (oldest first).
+          // Without this sort, out-of-order messages break flattenedItems
+          // and produce duplicate date headers.
+          messages.sort(
+            (a, b) => a.createdByAuthorAt.compareTo(b.createdByAuthorAt),
+          );
+        }
+
         isLoadingMore.value = false;
       },
     );
@@ -956,7 +988,7 @@ class JobChatController extends GetxController {
     JobChatMessageEntity? replyingTo,
     String caption = '',
   }) {
-    final localId = nanoid(10);
+    final localId = 'temp_${nanoid(10)}';
     _pendingItemsMap[localId] = items;
     _pendingRepliesMap[localId] = replyingTo;
     _pendingCaptionsMap[localId] = caption;
@@ -965,7 +997,7 @@ class JobChatController extends GetxController {
 
     // Add reply metadata if replying to another message
     if (replyingTo != null) {
-      contentList.add(_buildReplyContent(replyingTo));
+      contentList.add(buildReplyContent(replyingTo, senderName: getSenderName(replyingTo)));
     }
 
     // Add ALL media items as content entries in the same message
@@ -991,7 +1023,6 @@ class JobChatController extends GetxController {
 
     final placeholderMessage = JobChatMessageEntity(
       uid: localId,
-      localId: localId,
       jobId: job.jobId,
       senderUid: _currentUserProfileUid.value,
       content: contentList,
@@ -1008,71 +1039,6 @@ class JobChatController extends GetxController {
     _uploadAndSendMediaGroup(localId, items, replyingTo, caption: caption);
   }
 
-  /// Builds a reply content entity from a message being replied to.
-  /// Extracted to eliminate repetition across send methods.
-  JobChatMessageContentEntity _buildReplyContent(JobChatMessageEntity repliedMsg) {
-    String originalText = '';
-    String contentType = 'text';
-    String? mediaUrl;
-    String? replyBlurHash;
-    int? pageCount;
-
-    final textContent = repliedMsg.content.firstWhereOrNull(
-      (c) => c.type == JobChatMessageContentType.text || c.type == JobChatMessageContentType.activity,
-    );
-    originalText = textContent?.content ?? '';
-
-    final mediaItems = repliedMsg.content
-        .where((c) =>
-            c.type == JobChatMessageContentType.image ||
-            c.type == JobChatMessageContentType.video ||
-            c.type == JobChatMessageContentType.document ||
-            c.type == JobChatMessageContentType.pdf)
-        .toList();
-
-    if (mediaItems.isNotEmpty) {
-      final firstMedia = mediaItems.first;
-      contentType = firstMedia.type.value;
-      mediaUrl = firstMedia.content;
-
-      if (firstMedia.type == JobChatMessageContentType.image) {
-        final imgMeta = firstMedia.metadata?['imageMetadata'];
-        replyBlurHash = imgMeta?['blurHash'] ?? firstMedia.metadata?['blurHash'];
-        if (originalText.isEmpty) originalText = 'Photo';
-      } else if (firstMedia.type == JobChatMessageContentType.video) {
-        final vidMeta = firstMedia.metadata?['videoMetadata'];
-        replyBlurHash = vidMeta?['thumbnailBlurHash'] ?? firstMedia.metadata?['blurHash'];
-        if (originalText.isEmpty) originalText = 'Video';
-      } else if (firstMedia.type == JobChatMessageContentType.pdf) {
-        final pdfMeta = firstMedia.metadata?['pdfMetadata'];
-        pageCount = pdfMeta?['pageCount'];
-        if (originalText.isEmpty) originalText = 'PDF';
-      } else if (firstMedia.type == JobChatMessageContentType.document) {
-        final docMeta = firstMedia.metadata?['documentMetadata'];
-        pageCount = docMeta?['pageCount'];
-        if (originalText.isEmpty) originalText = 'Document';
-      }
-    }
-
-    final remainingMediaCount = mediaItems.length > 1 ? (mediaItems.length - 1) : 0;
-
-    return JobChatMessageContentEntity(
-      type: JobChatMessageContentType.reply,
-      content: originalText,
-      metadata: {
-        'messageUid': repliedMsg.uid,
-        'senderName': getSenderName(repliedMsg),
-        'senderUid': repliedMsg.senderUid,
-        'type': repliedMsg.type.value,
-        'contentType': contentType,
-        'mediaUrl': mediaUrl,
-        'blurHash': replyBlurHash,
-        'pageCount': pageCount,
-        'remainingMediaCount': remainingMediaCount,
-        'activityType': repliedMsg.metadata?['activityType'],
-      },
-    );
-  }
 
   Future<void> _uploadAndSendMediaGroup(
     String localId,
@@ -1082,6 +1048,9 @@ class JobChatController extends GetxController {
   }) async {
     uploadProgressMap[localId] = 0.0;
     uploadErrorMap.remove(localId);
+
+    final cancelToken = CancelToken();
+    _uploadCancelTokens[localId] = cancelToken;
 
     // Upload all files sequentially, collecting remote paths
     final List<MapEntry<MediaPreviewItem, String>> uploadedEntries = [];
@@ -1094,8 +1063,9 @@ class JobChatController extends GetxController {
         UploadFileParams(
           file: file,
           path: job.jobId,
+          cancelToken: cancelToken,
           onSendProgress: (sent, total) {
-            if (total > 0) {
+            if (total > 0 && !cancelToken.isCancelled) {
               // Progress: fraction of current file + completed files
               final fileProgress = sent / total;
               uploadProgressMap[localId] = (i + fileProgress) / items.length;
@@ -1103,6 +1073,10 @@ class JobChatController extends GetxController {
           },
         ),
       );
+
+      if (cancelToken.isCancelled) {
+        return;
+      }
 
       final remotePath = uploadResult.fold(
         (failure) {
@@ -1120,6 +1094,8 @@ class JobChatController extends GetxController {
       uploadedEntries.add(MapEntry(item, remotePath));
     }
 
+    _uploadCancelTokens.remove(localId);
+
     if (anyFailed) {
       uploadErrorMap[localId] = 'Upload failed';
       uploadProgressMap.remove(localId);
@@ -1131,7 +1107,7 @@ class JobChatController extends GetxController {
 
     // 1. Add reply metadata if applicable
     if (replyingTo != null) {
-      contentList.add(_buildReplyContent(replyingTo));
+      contentList.add(buildReplyContent(replyingTo, senderName: getSenderName(replyingTo)));
     }
 
     // 2. Add all media content entries pointing to remote paths
@@ -1156,7 +1132,7 @@ class JobChatController extends GetxController {
     }
 
     final sendMessageEntity = SendMessageEntity(
-      localId: localId,
+      localUid: localId,
       jobId: job.jobId,
       senderUid: _currentUserProfileUid.value,
       content: contentList,
@@ -1182,11 +1158,7 @@ class JobChatController extends GetxController {
         _pendingCaptionsMap.remove(localId);
 
         // Replace placeholder message in list with the actual response message
-        final existingIndex = messages.indexWhere((m) => m.localId == localId);
-        if (existingIndex != -1) {
-          messages[existingIndex] = result.message.copyWith(isMe: true);
-          messages.refresh();
-        }
+        addOrUpdateMessage(result.message);
 
         if (result.job != null) {
           updateJob(result.job!);
@@ -1203,6 +1175,21 @@ class JobChatController extends GetxController {
     _uploadAndSendMediaGroup(localId, items, replyingTo, caption: caption);
   }
 
+  void cancelMessageUpload(String localId) {
+    final cancelToken = _uploadCancelTokens[localId];
+    if (cancelToken != null) {
+      cancelToken.cancel('Upload cancelled by user');
+      _uploadCancelTokens.remove(localId);
+    }
+    uploadProgressMap.remove(localId);
+    uploadErrorMap.remove(localId);
+    _pendingItemsMap.remove(localId);
+    _pendingRepliesMap.remove(localId);
+    _pendingCaptionsMap.remove(localId);
+    messages.removeWhere((m) => m.uid == localId);
+    messages.refresh();
+  }
+
   Future<void> sendMessage() async {
     final text = messageController.text.trim();
     if (text.isEmpty) return;
@@ -1215,8 +1202,7 @@ class JobChatController extends GetxController {
     if (userRole == UserRole.worker) {
       if (Get.isRegistered<AttendanceController>()) {
         final attendanceController = Get.find<AttendanceController>();
-        if (attendanceController.attendanceStatus.value !=
-            AttendanceStatus.working) {
+        if (attendanceController.attendanceStatus.value != AttendanceStatus.working) {
           AppSnackbar.warn(AppStrings.jobChat.attendanceRequired);
           return;
         }
@@ -1227,81 +1213,63 @@ class JobChatController extends GetxController {
     }
 
     final repliedMsg = replyingToMessage.value;
-    isMessageSending.value = true;
     Map<String, dynamic> locationData = {};
 
-    try {
-      if (userRole == UserRole.worker &&
-          repliedMsg != null &&
-          repliedMsg.type == JobChatMessageType.activity) {
-        final activityType = JobActivityType.fromString(
-          repliedMsg.metadata?['activityType'],
-        );
-        if (activityType == JobActivityType.askStatus) {
-          try {
-            locationData = await actionController.acquireLocationAndAddress();
-          } catch (e) {
-            debugPrint('Background location fetch failed: $e');
-          }
+    if (userRole == UserRole.worker &&
+        repliedMsg != null &&
+        repliedMsg.type == JobChatMessageType.activity) {
+      final activityType = JobActivityType.fromString(repliedMsg.metadata?['activityType']);
+      if (activityType == JobActivityType.askStatus) {
+        try {
+          locationData = await actionController.acquireLocationAndAddress();
+        } catch (e) {
+          debugPrint('Location fetch failed: $e');
         }
       }
-
-      final tempLocalId = nanoid(10);
-      final List<JobChatMessageContentEntity> contentList = [];
-
-      if (repliedMsg != null) {
-        contentList.add(_buildReplyContent(repliedMsg));
-      }
-
-      contentList.add(
-        JobChatMessageContentEntity(
-          type: JobChatMessageContentType.text,
-          content: text,
-        ),
-      );
-
-      final isActivityReply = locationData.isNotEmpty;
-      final finalMetadata = {
-        ...locationData,
-        if (isActivityReply) ...{
-          'activityType': JobActivityType.sendStatus.value,
-        },
-      };
-
-      final sendMessageEntity = SendMessageEntity(
-        localId: tempLocalId,
-        jobId: job.jobId,
-        senderUid: _currentUserProfileUid.value,
-        content: contentList,
-        createdByAuthorAt: DateTime.now(),
-        type: isActivityReply
-            ? JobChatMessageType.activity
-            : JobChatMessageType.message,
-        metadata: finalMetadata.isNotEmpty ? finalMetadata : null,
-      );
-
-      final result = await _sendMessageUseCase(
-        SendMessageParams(messages: [sendMessageEntity]),
-      );
-
-      result.fold(
-        (failure) {
-          AppSnackbar.destructive(failure.message);
-        },
-        (sendResult) {
-          messageController.clear();
-          replyingToMessage.value = null;
-          _initialFirstUnreadMessageUid = null;
-          messages.add(sendResult.message.copyWith(isMe: true));
-          scrollToLast(animate: true);
-          if (sendResult.job != null) {
-            updateJob(sendResult.job!);
-          }
-        },
-      );
-    } finally {
-      isMessageSending.value = false;
     }
+
+    final List<JobChatMessageContentEntity> contentList = [
+      if (repliedMsg != null) buildReplyContent(repliedMsg, senderName: getSenderName(repliedMsg)),
+      JobChatMessageContentEntity(
+        type: JobChatMessageContentType.text,
+        content: text,
+      ),
+    ];
+
+    final isActivityReply = locationData.isNotEmpty;
+    final metadata = {
+      ...locationData,
+      if (isActivityReply) 'activityType': JobActivityType.sendStatus.value,
+    };
+
+    // Clear input immediately so the user can keep typing.
+    messageController.clear();
+    replyingToMessage.value = null;
+    _initialFirstUnreadMessageUid = null;
+
+    final result = await _sendMessageUseCase(
+      SendMessageParams(
+        messages: [
+          SendMessageEntity(
+            localUid: nanoid(10),
+            jobId: job.jobId,
+            senderUid: _currentUserProfileUid.value,
+            content: contentList,
+            createdByAuthorAt: DateTime.now(),
+            type: isActivityReply ? JobChatMessageType.activity : JobChatMessageType.message,
+            metadata: metadata.isNotEmpty ? metadata : null,
+          ),
+        ],
+      ),
+    );
+
+    result.fold(
+      (failure) => AppSnackbar.destructive(failure.message),
+      (sendResult) {
+        addOrUpdateMessage(sendResult.message);
+        if (sendResult.job != null) updateJob(sendResult.job!);
+      },
+    );
   }
 
   Future<void> sendAttachmentMessage({
@@ -1324,7 +1292,7 @@ class JobChatController extends GetxController {
       ];
 
       final sendMessageEntity = SendMessageEntity(
-        localId: tempLocalId,
+        localUid: tempLocalId,
         jobId: job.jobId,
         senderUid: _currentUserProfileUid.value,
         content: contentList,
@@ -1342,8 +1310,7 @@ class JobChatController extends GetxController {
         },
         (sendResult) {
           _initialFirstUnreadMessageUid = null;
-          messages.add(sendResult.message.copyWith(isMe: true));
-          scrollToLast(animate: true);
+          addOrUpdateMessage(sendResult.message);
           if (sendResult.job != null) {
             updateJob(sendResult.job!);
           }

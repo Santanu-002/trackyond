@@ -241,8 +241,8 @@ class AppCameraController extends GetxController {
       },
     );
 
-    if (result == true) {
-      Get.back();
+    if (result != null) {
+      Get.back(result: result);
     } else {
       await resumeCamera();
     }

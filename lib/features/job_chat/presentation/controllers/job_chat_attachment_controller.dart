@@ -15,6 +15,7 @@ import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
+import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
 
 class JobChatAttachmentController extends GetxController {
   final showAttachmentMenu = false.obs;
@@ -22,6 +23,38 @@ class JobChatAttachmentController extends GetxController {
 
   void toggleAttachmentMenu() {
     showAttachmentMenu.value = !showAttachmentMenu.value;
+  }
+
+  void _handlePreviewResult(Map<String, dynamic> result) {
+    final List<MediaPreviewItem>? items =
+        result['items'] as List<MediaPreviewItem>?;
+    if (items != null && items.isNotEmpty) {
+      final caption = result['caption'] as String? ?? '';
+      final reqMsg = result['requestMessage'] as JobChatMessageEntity?;
+      final action = result['action'] as String?;
+
+      if (action != null && action.isNotEmpty) {
+        final mediaPaths = items.map((e) => e.path).toList();
+        Get.find<JobChatActionController>().executeActionWithMedia(
+          actionString: action,
+          mediaPaths: mediaPaths,
+          caption: caption,
+        );
+      } else if (reqMsg != null) {
+        final mediaPaths = items.map((e) => e.path).toList();
+        Get.find<JobChatActionController>().sendMediaStatusProof(
+          imagePaths: mediaPaths,
+          caption: caption,
+          requestMessage: reqMsg,
+        );
+      } else {
+        Get.find<JobChatController>().sendMediaMessagesBackground(
+          items,
+          replyingTo: reqMsg,
+          caption: caption,
+        );
+      }
+    }
   }
 
   Future<void> navigateToMediaPreview({
@@ -40,16 +73,7 @@ class JobChatAttachmentController extends GetxController {
     ) as Map<String, dynamic>?;
 
     if (result != null) {
-      final List<MediaPreviewItem>? items = result['items'] as List<MediaPreviewItem>?;
-      if (items != null && items.isNotEmpty) {
-        final caption = result['caption'] as String? ?? '';
-        final reqMsg = result['requestMessage'] as JobChatMessageEntity?;
-        Get.find<JobChatController>().sendMediaMessagesBackground(
-          items,
-          replyingTo: reqMsg,
-          caption: caption,
-        );
-      }
+      _handlePreviewResult(result);
     }
   }
 
@@ -62,14 +86,18 @@ class JobChatAttachmentController extends GetxController {
       ) as Map<String, dynamic>?;
       if (result == null) return;
 
-      final String? imagePath = result['path'] as String?;
-      if (imagePath == null) return;
+      if (result.containsKey('items')) {
+        _handlePreviewResult(result);
+      } else {
+        final String? imagePath = result['path'] as String?;
+        if (imagePath == null) return;
 
-      navigateToMediaPreview(
-        imagePath: imagePath,
-        requestMessage: null,
-        type: MediaPreviewType.image,
-      );
+        navigateToMediaPreview(
+          imagePath: imagePath,
+          requestMessage: null,
+          type: MediaPreviewType.image,
+        );
+      }
     } catch (e) {
       AppSnackbar.destructive('Error navigating to preview: $e');
     }

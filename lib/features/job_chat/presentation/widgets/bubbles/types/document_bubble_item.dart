@@ -23,6 +23,7 @@ class DocumentBubbleItem extends StatefulWidget {
   final ColorScheme colorScheme;
   final TextTheme textTheme;
   final String? messageUid;
+  final bool isPending;
 
   const DocumentBubbleItem({
     super.key,
@@ -31,6 +32,7 @@ class DocumentBubbleItem extends StatefulWidget {
     required this.colorScheme,
     required this.textTheme,
     this.messageUid,
+    this.isPending = false,
   });
 
   @override
@@ -287,8 +289,9 @@ class _DocumentBubbleItemState extends State<DocumentBubbleItem> {
     final pageCount = (pdfMeta?['pageCount'] ?? docMeta?['pageCount']) as int?;
     final subtitleText = isPdf && pageCount != null
         ? '${AppStrings.jobChat.pdfPageCount(pageCount)} • $fileSize'
-        : fileSize;    final chatController = Get.find<JobChatController>();
-    final isPending = widget.messageUid != null && widget.messageUid!.startsWith('temp_');
+        : fileSize;
+    final chatController = Get.find<JobChatController>();
+    final isPending = widget.isPending;
 
     return Obx(() {
       final uploadProgress = widget.messageUid != null ? chatController.uploadProgressMap[widget.messageUid!] : null;
@@ -297,17 +300,35 @@ class _DocumentBubbleItemState extends State<DocumentBubbleItem> {
       final Widget rightWidget;
       if (isPending) {
         if (uploadError != null) {
-          rightWidget = GestureDetector(
-            onTap: () => chatController.retryMessageUpload(widget.messageUid!),
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Icon(
-                Icons.refresh_rounded,
-                color: isMe ? colorScheme.onPrimary : colorScheme.primary,
-                size: 22,
+          rightWidget = Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 8,
+            children: [
+              GestureDetector(
+                onTap: () => chatController.retryMessageUpload(widget.messageUid!),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Icon(
+                    Icons.refresh_rounded,
+                    color: isMe ? colorScheme.onPrimary : colorScheme.primary,
+                    size: 22,
+                  ),
+                ),
               ),
-            ),
+              GestureDetector(
+                onTap: () => chatController.cancelMessageUpload(widget.messageUid!),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: isMe ? colorScheme.onPrimary : colorScheme.primary,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ],
           );
         } else {
           final progress = uploadProgress ?? 0.0;
@@ -317,10 +338,10 @@ class _DocumentBubbleItemState extends State<DocumentBubbleItem> {
               alignment: Alignment.center,
               children: [
                 SizedBox(
-                  width: 24,
-                  height: 24,
+                  width: 28,
+                  height: 28,
                   child: CircularProgressIndicator(
-                    value: progress > 0 ? progress : null,
+                    value: progress,
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
                       isMe ? colorScheme.onPrimary : colorScheme.primary,
@@ -328,6 +349,15 @@ class _DocumentBubbleItemState extends State<DocumentBubbleItem> {
                     backgroundColor: isMe 
                         ? colorScheme.onPrimary.withValues(alpha: 0.2) 
                         : colorScheme.outlineVariant,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => chatController.cancelMessageUpload(widget.messageUid!),
+                  behavior: HitTestBehavior.opaque,
+                  child: Icon(
+                    Icons.close_rounded,
+                    color: isMe ? colorScheme.onPrimary : colorScheme.primary,
+                    size: 14,
                   ),
                 ),
               ],

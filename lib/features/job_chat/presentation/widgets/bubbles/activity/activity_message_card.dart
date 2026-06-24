@@ -222,12 +222,6 @@ class ActivityMessageCard extends StatelessWidget {
               final replyToUid = metadata['messageUid'] as String? ?? '';
               final replySenderUid = metadata['senderUid'] as String?;
               final replySenderName = metadata['senderName'] as String? ?? '';
-              final resolvedSenderName = chatController.resolveMemberName(
-                replySenderUid,
-                replySenderName,
-              );
-              final replyToMe = replySenderUid == chatController.currentUserProfileUid;
-              final displayName = replyToMe ? 'You' : resolvedSenderName;
               final contentTypeStr = metadata['contentType'] as String?;
               final contentType = JobChatMessageContentType.fromString(contentTypeStr);
               final mediaUrl = metadata['mediaUrl'] as String?;
@@ -235,32 +229,79 @@ class ActivityMessageCard extends StatelessWidget {
               final remainingMediaCount = metadata['remainingMediaCount'] as int? ?? 0;
               final replyType = JobChatMessageType.fromString(metadata['type'] as String?);
 
+              final originalMsg = chatController.messages.firstWhereOrNull((m) => m.uid == replyToUid);
+              final isReplyActivity = replyType == JobChatMessageType.activity || originalMsg?.type == JobChatMessageType.activity;
+
+              // --- Name resolution matching ReplyPreviewBar ---
+              final replyToMe = replySenderUid == chatController.currentUserProfileUid;
+              String displayName;
+              if (replyToMe) {
+                displayName = 'You';
+              } else if (isReplyActivity) {
+                final metaWorkerName = originalMsg?.metadata?['workerName'] as String?;
+                if (metaWorkerName != null && metaWorkerName.isNotEmpty) {
+                  displayName = metaWorkerName;
+                } else {
+                  final resolved = chatController.resolveMemberName(replySenderUid, replySenderName);
+                  if (resolved == 'System' || resolved.isEmpty) {
+                    final activityTypeStr = metadata['activityType'] as String? ?? originalMsg?.metadata?['activityType'] as String?;
+                    final aType = JobActivityType.fromString(activityTypeStr);
+                    final isOwnerAction =
+                        aType == JobActivityType.askLocation ||
+                        aType == JobActivityType.askStatus ||
+                        aType == JobActivityType.askStatusProofs ||
+                        aType == JobActivityType.cancelJob ||
+                        aType == JobActivityType.reopenJob ||
+                        aType == JobActivityType.jobCreated;
+                    displayName = isOwnerAction
+                        ? (chatController.job.createdByName ?? 'Admin')
+                        : (chatController.job.workerName ?? 'Worker');
+                  } else {
+                    displayName = resolved;
+                  }
+                }
+              } else {
+                displayName = chatController.resolveMemberName(replySenderUid, replySenderName);
+                if (displayName.toLowerCase() == 'user') {
+                  displayName = chatController.job.workerName ?? 'Worker';
+                }
+              }
+
               Widget replyBodyWidget;
-              if (replyType == JobChatMessageType.activity) {
-                final originalMsg = chatController.messages.firstWhereOrNull((m) => m.uid == replyToUid);
+              if (isReplyActivity) {
                 final activityTypeStr = metadata['activityType'] as String? ?? originalMsg?.metadata?['activityType'] as String?;
-                final activityType = JobActivityType.fromString(activityTypeStr);
+                final replyActivityType = JobActivityType.fromString(activityTypeStr);
 
                 replyBodyWidget = Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      activityType.icon,
-                      size: 12,
-                      color: isMe
-                          ? colorScheme.onPrimary.withValues(alpha: 0.7)
-                          : colorScheme.primary,
+                    Container(
+                      padding: const EdgeInsets.all(4.0),
+                      decoration: BoxDecoration(
+                        color: isMe
+                            ? colorScheme.onPrimary.withValues(alpha: 0.15)
+                            : colorScheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        replyActivityType.icon,
+                        size: 12,
+                        color: isMe
+                            ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                            : colorScheme.primary,
+                      ),
                     ),
                     AppUIConstants.widgets.horizontalBox$4,
                     Flexible(
                       child: Text(
-                        activityType.title,
+                        replyActivityType.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
                           color: isMe
-                              ? colorScheme.onPrimary.withValues(alpha: 0.7)
-                              : colorScheme.onSurfaceVariant,
+                              ? colorScheme.onPrimary.withValues(alpha: 0.8)
+                              : colorScheme.onSurface,
                           fontSize: 12,
                         ),
                       ),
@@ -352,7 +393,7 @@ class ActivityMessageCard extends StatelessWidget {
                 );
               } else {
                 replyBodyWidget = Text(
-                  replyContent.content ?? '',
+                  chatController.parseMentions(replyContent.content),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.bodySmall?.copyWith(

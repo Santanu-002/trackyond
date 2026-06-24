@@ -20,7 +20,7 @@ import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/widgets/snackbar/app_snackbar.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/utils/app_utils.dart';
-import 'package:trackyond/features/job_chat/data/models/request/upload_files_dto.dart';
+import 'package:trackyond/features/job_chat/data/models/request/upload_files_model.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
@@ -30,6 +30,7 @@ import 'package:trackyond/features/job_chat/domain/usecases/send_message_usecase
 import 'package:trackyond/features/worker/attendance/presentation/controllers/attendance_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_upload_controller.dart';
+import 'package:trackyond/features/job_chat/data/models/response/media_preview_item.dart';
 
 class JobChatActionController extends GetxController {
   final SendMessageUseCase _sendMessageUseCase;
@@ -195,10 +196,24 @@ class JobChatActionController extends GetxController {
         isActionLoading.value = false;
         loadingActionLabel.value = null;
         loadingActionMessageUid.value = null;
-        Get.toNamed(
+        final result = await Get.toNamed(
           AppRoutes.common.camera,
           arguments: {'skipPreview': false, 'action': actionString},
-        );
+        ) as Map<String, dynamic>?;
+
+        if (result != null) {
+          final List<MediaPreviewItem>? items =
+              result['items'] as List<MediaPreviewItem>?;
+          if (items != null && items.isNotEmpty) {
+            final caption = result['caption'] as String? ?? '';
+            final mediaPaths = items.map((e) => e.path).toList();
+            await executeActionWithMedia(
+              actionString: actionString,
+              mediaPaths: mediaPaths,
+              caption: caption,
+            );
+          }
+        }
         return;
       }
 
@@ -298,7 +313,7 @@ class JobChatActionController extends GetxController {
           };
 
           final activityMsg = SendMessageEntity(
-            localId: tempLocalId,
+            localUid: tempLocalId,
             jobId: _chatController.job.jobId,
             senderUid: _chatController.currentUserProfileUid,
             content: content,
@@ -315,8 +330,8 @@ class JobChatActionController extends GetxController {
           result.fold((failure) => AppSnackbar.destructive(failure.message), (
             sendResult,
           ) {
-            _chatController.messages.add(
-              sendResult.message.copyWith(isMe: true),
+            _chatController.addOrUpdateMessage(
+              sendResult.message,
             );
             _chatController.scrollToLast(animate: true);
             if (sendResult.job != null) {
@@ -540,7 +555,7 @@ class JobChatActionController extends GetxController {
 
       final tempLocalId = nanoid(10);
       final sendMessageEntity = SendMessageEntity(
-        localId: tempLocalId,
+        localUid: tempLocalId,
         jobId: _chatController.job.jobId,
         senderUid: _chatController.currentUserProfileUid,
         content: content,
@@ -561,7 +576,7 @@ class JobChatActionController extends GetxController {
         },
         (sendResult) {
           sendSuccess = true;
-          _chatController.messages.add(sendResult.message.copyWith(isMe: true));
+          _chatController.addOrUpdateMessage(sendResult.message);
           _chatController.scrollToLast(animate: true);
           if (sendResult.job != null) {
             _chatController.updateJob(sendResult.job!);
@@ -766,7 +781,7 @@ class JobChatActionController extends GetxController {
 
       final tempLocalId = nanoid(10);
       final sendMessageEntity = SendMessageEntity(
-        localId: tempLocalId,
+        localUid: tempLocalId,
         jobId: _chatController.job.jobId,
         senderUid: _chatController.currentUserProfileUid,
         content: content,
@@ -786,7 +801,7 @@ class JobChatActionController extends GetxController {
         },
         (sendResult) {
           sendSuccess = true;
-          _chatController.messages.add(sendResult.message.copyWith(isMe: true));
+          _chatController.addOrUpdateMessage(sendResult.message);
           _chatController.scrollToLast(animate: true);
           if (sendResult.job != null) {
             _chatController.updateJob(sendResult.job!);
@@ -843,8 +858,8 @@ class JobChatActionController extends GetxController {
       }
 
       Future<void> uploadFile(int index) async {
-        final uploadFileDto = uploadFiles.files[index];
-        final path = uploadFileDto.path;
+        final uploadFileModel = uploadFiles.files[index];
+        final path = uploadFileModel.path;
         final isVideo = previewType == MediaPreviewType.video;
         final isDoc =
             previewType == MediaPreviewType.document ||
@@ -856,7 +871,7 @@ class JobChatActionController extends GetxController {
 
         try {
           if (isDoc) {
-            final mimeType = uploadFileDto.mimeType;
+            final mimeType = uploadFileModel.mimeType;
             final isPdf =
                 previewType == MediaPreviewType.pdf ||
                 path.toLowerCase().endsWith('.pdf') ||
@@ -904,7 +919,7 @@ class JobChatActionController extends GetxController {
                     }
                   else
                     'documentMetadata': {
-                      'extension': uploadFileDto.extension,
+                      'extension': uploadFileModel.extension,
                       'pageCount': null,
                     },
                 },
@@ -1083,7 +1098,7 @@ class JobChatActionController extends GetxController {
 
         messageEntities.add(
           SendMessageEntity(
-            localId: tempLocalId,
+            localUid: tempLocalId,
             jobId: _chatController.job.jobId,
             senderUid: _chatController.currentUserProfileUid,
             content: messageContent,

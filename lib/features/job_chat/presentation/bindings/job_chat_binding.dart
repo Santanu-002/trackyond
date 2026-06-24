@@ -12,7 +12,6 @@ import 'package:trackyond/features/job_chat/domain/usecases/get_job_chat_members
 import 'package:trackyond/features/job_chat/domain/usecases/get_job_messages_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/send_message_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/update_job_status_usecase.dart';
-import 'package:trackyond/features/job_chat/domain/usecases/emit_job_update_use_case.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_attachment_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_upload_controller.dart';
@@ -64,7 +63,6 @@ class JobChatBinding extends Bindings {
     Get.lazyPut(() => SendMessageUseCase(Get.find()));
     Get.lazyPut(() => UpdateJobStatusUseCase(Get.find()));
     Get.lazyPut(() => GetJobChatMembersUseCase(Get.find()));
-    Get.lazyPut(() => EmitJobUpdateUseCase(Get.find()));
     Get.lazyPut(() => ListenChatEventsUseCase(Get.find()));
     Get.lazyPut(() => DeleteMessagesUseCase(Get.find()));
     Get.lazyPut(() => MarkMessagesSeenUseCase(Get.find()));
@@ -81,7 +79,6 @@ class JobChatBinding extends Bindings {
         getMessagesUseCase: Get.find(),
         sendMessageUseCase: Get.find(),
         getChatMembersUseCase: Get.find(),
-        emitJobUpdateUseCase: Get.find(),
         uploadFileUseCase: Get.find(),
         listenChatEventsUseCase: Get.find(),
         markMessagesSeenUseCase: Get.find(),

@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'package:get/get.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:trackyond/app/routes/app_routes.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
+import 'package:trackyond/core/common/events/auth_event.dart';
+import 'package:trackyond/core/common/repositories/i_event_bus_repository.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_auth_status_usecase.dart';
 import 'package:trackyond/features/auth/domain/usecases/check_onboarding_status_usecase.dart';
@@ -29,6 +33,8 @@ class AuthController extends GetxController {
   final RefreshAuthTokenUseCase _refreshAuthTokenUseCase;
   final ConnectWebSocketUseCase _connectWebSocketUseCase;
   final DisconnectWebSocketUseCase _disconnectWebSocketUseCase;
+  final IEventBusRepository _eventBus;
+  StreamSubscription<SessionExpiredEvent>? _sessionExpiredSubscription;
 
   AuthController({
     required CheckAuthStatusUseCase checkAuthStatusUseCase,
@@ -42,6 +48,7 @@ class AuthController extends GetxController {
     required RefreshAuthTokenUseCase refreshAuthTokenUseCase,
     required ConnectWebSocketUseCase connectWebSocketUseCase,
     required DisconnectWebSocketUseCase disconnectWebSocketUseCase,
+    required IEventBusRepository eventBus,
   }) : _checkAuthStatusUseCase = checkAuthStatusUseCase,
        _getAuthenticatedUserUseCase = getAuthenticatedUserUseCase,
        _getUserRoleUseCase = getUserRoleUseCase,
@@ -52,12 +59,27 @@ class AuthController extends GetxController {
        _checkOnboardingStatusUseCase = checkOnboardingStatusUseCase,
        _refreshAuthTokenUseCase = refreshAuthTokenUseCase,
        _connectWebSocketUseCase = connectWebSocketUseCase,
-       _disconnectWebSocketUseCase = disconnectWebSocketUseCase;
+       _disconnectWebSocketUseCase = disconnectWebSocketUseCase,
+       _eventBus = eventBus;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _sessionExpiredSubscription = _eventBus.on<SessionExpiredEvent>().listen((event) {
+      logout();
+    });
+  }
 
   @override
   void onReady() async {
     await bootstrap();
     super.onReady();
+  }
+
+  @override
+  void onClose() {
+    _sessionExpiredSubscription?.cancel();
+    super.onClose();
   }
 
   // ------------------ STATE ------------------
@@ -150,13 +172,24 @@ class AuthController extends GetxController {
     }
   }
 
+  final _logoutLock = Lock();
+
   Future<void> logout() async {
-    if (Get.isRegistered<NotificationController>()) {
-      await Get.find<NotificationController>().deleteFcmToken();
-    }
-    await _disconnectWebSocketUseCase(const NoParams());
-    await _logoutUseCase(const NoParams());
-    Get.offAllNamed(AppRoutes.common.auth.chooseRole);
+    await _logoutLock.synchronized(() async {
+      final loggedIn = await isLoggedIn;
+      if (!loggedIn) {
+        if (Get.currentRoute != AppRoutes.common.auth.chooseRole) {
+          Get.offAllNamed(AppRoutes.common.auth.chooseRole);
+        }
+        return;
+      }
+      if (Get.isRegistered<NotificationController>()) {
+        await Get.find<NotificationController>().deleteFcmToken();
+      }
+      await _disconnectWebSocketUseCase(const NoParams());
+      await _logoutUseCase(const NoParams());
+      Get.offAllNamed(AppRoutes.common.auth.chooseRole);
+    });
   }
 
   // ------------------ HELPERS ------------------

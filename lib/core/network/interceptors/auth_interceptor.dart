@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:get/get.dart' hide Response, MultipartFile, FormData;
 import 'package:synchronized/synchronized.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
+import 'package:trackyond/core/common/events/auth_event.dart';
 import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
+import 'package:trackyond/core/common/repositories/i_event_bus_repository.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/network/api/request_extras.dart';
 import 'package:trackyond/core/network/interceptors/platform_info_interceptor.dart';
@@ -122,10 +125,24 @@ class AuthInterceptor extends Interceptor {
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         await tokenService.clearTokens();
+        if (Get.isRegistered<IEventBusRepository>()) {
+          Get.find<IEventBusRepository>().fire(const SessionExpiredEvent());
+        }
       }
       rethrow;
     } catch (e) {
       rethrow;
     }
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401) {
+      await tokenService.clearTokens();
+      if (Get.isRegistered<IEventBusRepository>()) {
+        Get.find<IEventBusRepository>().fire(const SessionExpiredEvent());
+      }
+    }
+    super.onError(err, handler);
   }
 }

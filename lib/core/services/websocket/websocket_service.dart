@@ -4,7 +4,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:web_socket_channel/io.dart';
+import 'package:trackyond/core/common/enums/websocket_events.dart';
+import 'package:trackyond/core/common/models/websocket/websocket_event_model.dart';
 import 'package:trackyond/core/common/events/chat_event.dart';
+import 'package:trackyond/core/common/events/auth_event.dart';
 import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
 import 'package:trackyond/core/common/repositories/i_event_bus_repository.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
@@ -14,6 +17,10 @@ import 'package:trackyond/core/common/models/job/job_model.dart';
 import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
 import 'package:trackyond/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
+import 'package:trackyond/features/worker/dashboard/data/datasources/job_local_datasource.dart';
+import 'package:trackyond/core/services/sync/models/enqueue_task.dart';
+import 'package:trackyond/core/services/sync/models/queue_response.dart';
+
 
 class WebSocketService extends GetxService {
   static WebSocketService get find => Get.find<WebSocketService>();
@@ -44,6 +51,7 @@ class WebSocketService extends GetxService {
   Stream<bool> get connectionStatusStream => _connectionStateController.stream;
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  StreamSubscription<AuthTokensUpdatedEvent>? _tokensUpdatedSubscription;
 
   @override
   void onInit() {
@@ -57,11 +65,26 @@ class WebSocketService extends GetxService {
         connect();
       }
     });
+
+    _tokensUpdatedSubscription = _eventBus.on<AuthTokensUpdatedEvent>().listen((event) {
+      debugPrint('WebSocket: Auth tokens updated, reconnecting WebSocket instantly...');
+      _reconnectDelaySeconds = 2;
+      _reconnectTimer?.cancel();
+      
+      if (_channel != null) {
+        _channel!.sink.close();
+        _channel = null;
+      }
+      _isConnected.value = false;
+      _isConnecting = false;
+      connect();
+    });
   }
 
   @override
   void onClose() {
     _connectivitySubscription?.cancel();
+    _tokensUpdatedSubscription?.cancel();
     _reconnectTimer?.cancel();
     _heartbeatTimer?.cancel();
     _channel?.sink.close();
@@ -103,14 +126,10 @@ class WebSocketService extends GetxService {
 
       final isTokenAboutToExpired = await _tokenService.isAccessTokenAboutToExpired();
       if (isTokenAboutToExpired) {
-        debugPrint('WebSocket: Access token is expired/about to expire. Refreshing token...');
-        final refreshed = await authController.refreshAuthToken();
-        if (!refreshed) {
-          debugPrint('WebSocket: Token refresh failed. Delaying connection.');
-          _isConnecting = false;
-          _scheduleReconnect();
-          return;
-        }
+        debugPrint('WebSocket: Access token is expired/about to expire. Delaying connection.');
+        _isConnecting = false;
+        _scheduleReconnect();
+        return;
       }
 
       final base = ApiEndpoints.baseUrl;
@@ -187,7 +206,9 @@ class WebSocketService extends GetxService {
     debugPrint('WebSocket: Disconnected manually');
   }
 
-  void sendEvent(String event, String type, Map<String, dynamic> data) async {
+  final List<_PendingRequest> _pendingRequests = [];
+
+  void sendEvent(WebSocketEvents event, dynamic type, Map<String, dynamic> data) async {
     if (_channel == null || !isConnected) {
       debugPrint('WebSocket: Cannot send event. WebSocket is not connected.');
       return;
@@ -202,38 +223,88 @@ class WebSocketService extends GetxService {
         ...platformInfo,
       };
 
-      final payload = {
-        'event': event,
-        'type': type,
-        'headers': headers,
-        'data': data,
-      };
+      final eventModel = WebSocketEventModel<Map<String, dynamic>>(
+        event: event,
+        type: type,
+        headers: headers,
+        data: data,
+      );
 
-      final String jsonPayload = jsonEncode(payload);
+      final String jsonPayload = jsonEncode(eventModel.toJson((d) => d));
       debugPrint('WebSocket: Sending event payload: $jsonPayload');
       _channel!.sink.add(jsonPayload);
-      debugPrint('WebSocket: Sent event $event/$type');
+      debugPrint('WebSocket: Sent event ${event.value}/${eventModel.toJson((d) => d)['type']}');
     } catch (e) {
       debugPrint('WebSocket: Failed to send event: $e');
     }
   }
 
+  Future<QueueResponse> sendRequestWithResponse(
+    EnqueueTask task, {
+    required WebSocketEvents event,
+    required dynamic type,
+    Duration timeout = const Duration(seconds: 8),
+  }) async {
+    if (!isConnected) {
+      throw StateError('WebSocket is not connected');
+    }
+
+    final completer = Completer<QueueResponse>();
+    final pendingRequest = _PendingRequest(
+      requestId: task.requestId,
+      completer: completer,
+      expiry: DateTime.now().add(timeout),
+    );
+
+    _pendingRequests.add(pendingRequest);
+
+    // Clean up expired requests
+    _pendingRequests.removeWhere((r) => DateTime.now().isAfter(r.expiry));
+
+    // Send the task data to the socket
+    sendEvent(event, type, task.toJson());
+
+    try {
+      return await completer.future.timeout(timeout);
+    } catch (e) {
+      _pendingRequests.remove(pendingRequest);
+      rethrow;
+    }
+  }
+
+
   Future<void> _handleIncomingMessage(dynamic rawMessage) async {
     debugPrint('WebSocket: Received raw message: $rawMessage');
     try {
       final Map<String, dynamic> frame = jsonDecode(rawMessage as String) as Map<String, dynamic>;
-      final event = frame['event'] as String?;
-      final type = frame['type'] as String?;
-      final data = frame['data'];
+      
+      final eventModel = WebSocketEventModel<dynamic>.fromJson(frame, (json) => json);
+      final event = eventModel.event;
+      final type = eventModel.type;
+      final data = eventModel.data;
 
-      if (event == null || type == null) {
-        debugPrint('WebSocket: Invalid frame structure: $frame');
-        return;
+      // Match outgoing request completers
+      if (data is Map<String, dynamic>) {
+        final matchIds = _extractMatchIds(data);
+        _PendingRequest? pending;
+        for (final id in matchIds) {
+          pending = _pendingRequests.firstWhereOrNull((r) => r.requestId == id);
+          if (pending != null) break;
+        }
+
+        if (pending != null) {
+          final actionTypeStr = data['action'] as String? ?? type.toString();
+          final qResponse = QueueResponse.fromWebSocketFrame(actionTypeStr, data);
+          pending.completer.complete(qResponse);
+          _pendingRequests.remove(pending);
+          debugPrint('WebSocket: Resolved pending request ${pending.requestId}');
+        }
       }
 
+
       // Connection events from server
-      if (event == 'connection') {
-        if (type == 'connected') {
+      if (event == WebSocketEvents.connection) {
+        if (type == WebSocketConnectionType.connected) {
           _isConnected.value = true;
           _connectionStateController.add(true);
           _reconnectDelaySeconds = 2;
@@ -241,35 +312,35 @@ class WebSocketService extends GetxService {
           _startHeartbeat(interval);
           debugPrint('WebSocket: Connected and heartbeat started');
         }
-      } else if (event == 'heartbeat') {
-        if (type == 'pong') {
+      } else if (event == WebSocketEvents.heartbeat) {
+        if (type == WebSocketHeartbeatType.pong) {
           debugPrint('WebSocket: Heartbeat pong received');
         }
-      } else if (event == 'token') {
-        if (type == 'renewal') {
+      } else if (event == WebSocketEvents.token) {
+        if (type == WebSocketTokenType.renewal) {
           _handleTokenRenewal(data as Map<String, dynamic>);
         }
-      } else if (event == 'message') {
-        if (type == 'send_response') {
+      } else if (event == WebSocketEvents.message) {
+        if (type == WebSocketMessageType.sendResponse) {
           final Map<String, dynamic>? responseData = (data as Map<String, dynamic>?)?['data'] as Map<String, dynamic>?;
           if (responseData != null) {
             await _handleChatReceived(responseData);
           }
-        } else if (type == 'new_message') {
+        } else if (type == WebSocketMessageType.newMessage) {
           await _handleChatReceived(data as Map<String, dynamic>);
-        } else if (type == 'delete_response') {
+        } else if (type == WebSocketMessageType.deleteResponse) {
           final Map<String, dynamic>? responseData = (data as Map<String, dynamic>?)?['data'] as Map<String, dynamic>?;
           if (responseData != null) {
             await _handleChatDeleted(responseData);
           }
-        } else if (type == 'deleted') {
+        } else if (type == WebSocketMessageType.deleted) {
           await _handleChatDeleted(data as Map<String, dynamic>);
-        } else if (type == 'seen_response') {
+        } else if (type == WebSocketMessageType.seenResponse) {
           final Map<String, dynamic>? responseData = (data as Map<String, dynamic>?)?['data'] as Map<String, dynamic>?;
           if (responseData != null) {
             await _handleChatSeen(responseData);
           }
-        } else if (type == 'ack_received') {
+        } else if (type == WebSocketMessageType.ackReceived) {
           final status = (data as Map<String, dynamic>?)?['status'] as String?;
           if (status == 'delivered') {
             await _handleChatDelivered(data as Map<String, dynamic>);
@@ -280,10 +351,10 @@ class WebSocketService extends GetxService {
       }
 
       // Send ack back to the server only for new_message events
-      if (event == 'message' && type == 'new_message') {
+      if (event == WebSocketEvents.message && type == WebSocketMessageType.newMessage) {
         final Map<String, dynamic> ackData = {
-          'ackedEvent': event,
-          'ackedType': type,
+          'ackedEvent': event.value,
+          'ackedType': (type as WebSocketMessageType).value,
           'timestamp': DateTime.now().toUtc().toIso8601String(),
         };
 
@@ -305,7 +376,11 @@ class WebSocketService extends GetxService {
           ackData['messageUids'] = messageUids;
         }
 
-        sendEvent('message', 'ack', ackData);
+        sendEvent(
+          WebSocketEvents.message,
+          WebSocketEvents.message.types.ack,
+          ackData,
+        );
       }
     } catch (e) {
       debugPrint('WebSocket error processing incoming message (ack suppressed): $e');
@@ -326,8 +401,16 @@ class WebSocketService extends GetxService {
     try {
       final messagesList = data['messages'] as List?;
       final jobMap = data['job'] as Map<String, dynamic>?;
-      final jobEntity = jobMap != null ? JobModel.fromJson(jobMap).toEntity() : null;
 
+      // 1. Save Job details first if present
+      if (jobMap != null) {
+        final jobModel = JobModel.fromJson(jobMap);
+        final jobLocalDataSource = Get.find<IJobLocalDataSource>();
+        await jobLocalDataSource.saveJobs([jobModel]);
+        debugPrint('WebSocket: Cached job ${jobModel.jobId} details to SQLite.');
+      }
+
+      // 2. Parse chat messages
       final List<JobChatMessageModel> messagesToSave = [];
       if (messagesList != null) {
         for (final m in messagesList) {
@@ -337,15 +420,11 @@ class WebSocketService extends GetxService {
         messagesToSave.add(JobChatMessageModel.fromJson(data['message'] as Map<String, dynamic>));
       }
 
+      // 3. Save chat messages to DB (this will automatically notify the EventBus)
       if (messagesToSave.isNotEmpty) {
         final localDataSource = Get.find<IJobChatLocalDataSource>();
         await localDataSource.saveMessages(messagesToSave);
         debugPrint('WebSocket: Cached ${messagesToSave.length} received message(s) to SQLite.');
-
-        for (final model in messagesToSave) {
-          debugPrint('WebSocket: Dispatched ChatMessageReceivedEvent for: ${model.content}');
-          _eventBus.fire(ChatMessageReceivedEvent(model.toEntity(), job: jobEntity));
-        }
       }
     } catch (e) {
       debugPrint('WebSocket: Failed to parse or save chat received: $e');
@@ -437,7 +516,11 @@ class WebSocketService extends GetxService {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(Duration(seconds: intervalSeconds), (timer) {
       if (isConnected) {
-        sendEvent('heartbeat', 'ping', {});
+        sendEvent(
+          WebSocketEvents.heartbeat,
+          WebSocketEvents.heartbeat.types.ping,
+          {},
+        );
       } else {
         timer.cancel();
       }
@@ -468,4 +551,79 @@ class WebSocketService extends GetxService {
 
     _reconnectDelaySeconds = (_reconnectDelaySeconds * 2).clamp(2, 60);
   }
+
+  List<String> _extractMatchIds(Map<String, dynamic> data) {
+    final ids = <String>[];
+
+    // 1. Direct requestId or localId
+    if (data['requestId'] != null) ids.add(data['requestId'].toString());
+    if (data['localId'] != null) ids.add(data['localId'].toString());
+
+    // 2. Nested data mapping
+    final nestedData = data['data'];
+    if (nestedData is Map<String, dynamic>) {
+      if (nestedData['requestId'] != null) ids.add(nestedData['requestId'].toString());
+      if (nestedData['localId'] != null) ids.add(nestedData['localId'].toString());
+      
+      // Check messageUids in nested data
+      final messageUids = nestedData['messageUids'];
+      if (messageUids is List) {
+        ids.addAll(messageUids.map((e) => e.toString()));
+      }
+
+      // Check single message in nested data
+      final message = nestedData['message'];
+      if (message is Map<String, dynamic>) {
+        if (message['localId'] != null) ids.add(message['localId'].toString());
+        if (message['uid'] != null) ids.add(message['uid'].toString());
+      }
+
+      // Check messages list in nested data
+      final messages = nestedData['messages'];
+      if (messages is List) {
+        for (final m in messages) {
+          if (m is Map<String, dynamic>) {
+            if (m['localId'] != null) ids.add(m['localId'].toString());
+            if (m['uid'] != null) ids.add(m['uid'].toString());
+          }
+        }
+      }
+    }
+
+    // 3. Root messages/messageUids check
+    final rootMessage = data['message'];
+    if (rootMessage is Map<String, dynamic>) {
+      if (rootMessage['localId'] != null) ids.add(rootMessage['localId'].toString());
+      if (rootMessage['uid'] != null) ids.add(rootMessage['uid'].toString());
+    }
+
+    final rootMessages = data['messages'];
+    if (rootMessages is List) {
+      for (final m in rootMessages) {
+        if (m is Map<String, dynamic>) {
+          if (m['localId'] != null) ids.add(m['localId'].toString());
+          if (m['uid'] != null) ids.add(m['uid'].toString());
+        }
+      }
+    }
+
+    final rootMessageUids = data['messageUids'];
+    if (rootMessageUids is List) {
+      ids.addAll(rootMessageUids.map((e) => e.toString()));
+    }
+
+    return ids.where((id) => id.isNotEmpty).toList();
+  }
+}
+
+class _PendingRequest {
+  final String requestId;
+  final Completer<QueueResponse> completer;
+  final DateTime expiry;
+
+  _PendingRequest({
+    required this.requestId,
+    required this.completer,
+    required this.expiry,
+  });
 }

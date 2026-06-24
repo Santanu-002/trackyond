@@ -26,6 +26,7 @@ import 'package:trackyond/core/services/device_header/device_id_service.dart';
 import 'package:trackyond/core/services/device_header/device_info_service.dart';
 import 'package:trackyond/core/services/device_header/platform_info_service.dart';
 import 'package:trackyond/core/services/token/token_service_impl.dart';
+import 'package:trackyond/core/common/enums/websocket_events.dart';
 import 'package:trackyond/core/services/websocket/websocket_service.dart';
 import 'package:trackyond/core/services/user/user_service.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
@@ -745,9 +746,13 @@ class LocalNotificationService extends GetxService {
         if (Get.isRegistered<WebSocketService>()) {
           final wsService = Get.find<WebSocketService>();
           if (wsService.isConnected) {
-            wsService.sendEvent('message', 'seen', {
-              'jobId': jobId,
-            });
+            wsService.sendEvent(
+              WebSocketEvents.message,
+              WebSocketEvents.message.types.readMessage,
+              {
+                'jobId': jobId,
+              },
+            );
             sentViaWebSocket = true;
             debugPrint('LocalNotificationService: markAsRead sent via WebSocket');
           }
@@ -786,12 +791,16 @@ class LocalNotificationService extends GetxService {
         if (Get.isRegistered<WebSocketService>()) {
           final wsService = Get.find<WebSocketService>();
           if (wsService.isConnected) {
-            wsService.sendEvent('message', 'ack', {
-              'ackedEvent': 'message',
-              'ackedType': 'new_message',
-              'messageUids': messageUids,
-              'timestamp': DateTime.now().toUtc().toIso8601String(),
-            });
+            wsService.sendEvent(
+              WebSocketEvents.message,
+              WebSocketEvents.message.types.ack,
+              {
+                'ackedEvent': WebSocketEvents.message.value,
+                'ackedType': WebSocketEvents.message.types.newMessage.value,
+                'messageUids': messageUids,
+                'timestamp': DateTime.now().toUtc().toIso8601String(),
+              },
+            );
             sentViaWebSocket = true;
             debugPrint('LocalNotificationService: markAsDelivered sent via WebSocket');
           }

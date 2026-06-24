@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/enums/websocket_events.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
 import 'package:trackyond/core/services/websocket/websocket_service.dart';
 
@@ -25,8 +26,8 @@ enum QueuePriority {
 
 class QueueItem {
   final String id;
-  final String event;
-  final String type;
+  final WebSocketEvents event;
+  final dynamic type;
   final Map<String, dynamic> data;
   final QueuePriority priority;
 
@@ -78,8 +79,8 @@ class PriorityQueueManager extends GetxService {
   }
 
   void enqueue({
-    required String event,
-    required String type,
+    required WebSocketEvents event,
+    required dynamic type,
     required Map<String, dynamic> data,
     required QueuePriority priority,
   }) {
@@ -93,7 +94,9 @@ class PriorityQueueManager extends GetxService {
     _queue.add(item);
     // Sort by priority descending so high priority is first
     _queue.sort((a, b) => b.priority.value.compareTo(a.priority.value));
-    debugPrint('PriorityQueue: Enqueued event $event/$type with priority $priority. Queue size: ${_queue.length}');
+    
+    final typeStr = type is WebSocketMessageType ? type.value : type.toString();
+    debugPrint('PriorityQueue: Enqueued event ${event.value}/$typeStr with priority $priority. Queue size: ${_queue.length}');
 
     _drainQueue();
   }
@@ -154,7 +157,7 @@ class PriorityQueueManager extends GetxService {
   }
 
   Future<bool> _executeHttpFallback(QueueItem item) async {
-    if (item.event == 'message' && item.type == 'send') {
+    if (item.event == WebSocketEvents.message && item.type == WebSocketEvents.message.types.sendMessage) {
       try {
         final messagesPayload = item.data['messages'] as List?;
         if (messagesPayload == null || messagesPayload.isEmpty) {

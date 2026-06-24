@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get/get.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:trackyond/core/common/events/auth_event.dart';
 import 'package:trackyond/core/common/models/auth_tokens/auth_tokens.dart';
+import 'package:trackyond/core/common/repositories/i_event_bus_repository.dart';
 import 'package:trackyond/core/services/token/token_service.dart';
 
 class TokenServiceImpl implements TokenService {
@@ -16,6 +19,8 @@ class TokenServiceImpl implements TokenService {
   @override
   Future<void> saveTokens(AuthTokens tokens) async {
     await _lock.synchronized(() async {
+      debugPrint("");
+      debugPrint("");
       final existingIssuedAt = await _storage.read(key: _keys.tokenIssuedAt);
       debugPrint('DEBUG TokenService: saveTokens called with accessExpireAt=${tokens.accessExpireAt}, tokenIssuedAt=${tokens.tokenIssuedAt}');
 
@@ -24,7 +29,9 @@ class TokenServiceImpl implements TokenService {
         try {
           final existing = DateTime.parse(existingIssuedAt).toUtc();
           final incoming = DateTime.parse(tokens.tokenIssuedAt).toUtc();
-          debugPrint('DEBUG TokenService: comparing existingIssuedAt (UTC)=$existing vs incoming (UTC)=$incoming');
+          debugPrint(
+            'DEBUG TokenService: comparing existingIssuedAt (Local)=${existing.toLocal()} vs incoming (Local)=${incoming.toLocal()}',
+          );
 
           // If incoming is older → ignore
           if (incoming.isBefore(existing)) {
@@ -50,6 +57,9 @@ class TokenServiceImpl implements TokenService {
         _storage.write(key: _keys.tokenIssuedAt, value: tokens.tokenIssuedAt),
       ]);
       debugPrint('DEBUG TokenService: Tokens written successfully.');
+      if (Get.isRegistered<IEventBusRepository>()) {
+        Get.find<IEventBusRepository>().fire(AuthTokensUpdatedEvent(tokens));
+      }
     });
   }
 

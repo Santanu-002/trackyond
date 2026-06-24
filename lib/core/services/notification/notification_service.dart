@@ -11,6 +11,9 @@ import 'package:trackyond/core/services/database/database_service_impl.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
 import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
 
+import 'package:trackyond/core/common/models/job/job_model.dart';
+import 'package:trackyond/features/worker/dashboard/data/datasources/job_local_datasource.dart';
+
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -26,6 +29,20 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         debugPrint('FCM: Cancelled background notification for job $jobId');
       }
       return;
+    }
+
+    final jobJsonStr = message.data['job'];
+    if (jobJsonStr != null) {
+      try {
+        final jobJson = jsonDecode(jobJsonStr);
+        final dbService = DatabaseServiceImpl();
+        final jobLocalDataSource = JobLocalDataSourceImpl(dbService);
+        final jobModel = JobModel.fromJson(jobJson as Map<String, dynamic>);
+        await jobLocalDataSource.saveJobs([jobModel]);
+        debugPrint('FCM Background: Cached job ${jobModel.jobId} details in SQLite.');
+      } catch (e) {
+        debugPrint('FCM Background: Error saving job to database: $e');
+      }
     }
 
     if (type == NotificationConstants.types.jobChatMessage) {

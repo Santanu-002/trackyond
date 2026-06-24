@@ -26,6 +26,7 @@ import 'package:trackyond/features/notification/domain/usecases/sync_fcm_token_u
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/features/notification/domain/usecases/update_notifications_status_usecase.dart';
+import 'package:trackyond/features/worker/dashboard/data/datasources/job_local_datasource.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/controllers/worker_dashboard_controller.dart';
 
@@ -293,13 +294,26 @@ class NotificationController extends GetxController {
       return;
     }
 
+    final jobJsonStr = data['job'];
+    if (jobJsonStr != null) {
+      try {
+        final jobJson = jsonDecode(jobJsonStr);
+        final jobModel = JobModel.fromJson(jobJson as Map<String, dynamic>);
+        final jobLocalDataSource = Get.find<IJobLocalDataSource>();
+        await jobLocalDataSource.saveJobs([jobModel]);
+        debugPrint('FCM Foreground: Cached job ${jobModel.jobId} details in SQLite.');
+      } catch (e) {
+        debugPrint('FCM Foreground: Error saving job to database: $e');
+      }
+    }
+
     if (type == NotificationConstants.types.jobChatMessage) {
       final messageJsonStr = data['message'];
       if (messageJsonStr != null) {
         try {
           final messageJson = jsonDecode(messageJsonStr);
           final messageModel = JobChatMessageModel.fromJson(messageJson);
-          final messageEntity = messageModel.toEntity();
+          final messageEntity = messageModel;
 
           // Save message to SQLite database first!
           final localDataSource = Get.find<IJobChatLocalDataSource>();

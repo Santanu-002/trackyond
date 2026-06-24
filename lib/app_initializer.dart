@@ -21,6 +21,8 @@ import 'package:trackyond/core/services/user/user_service.dart';
 import 'package:trackyond/core/services/websocket/websocket_service.dart';
 import 'package:trackyond/core/services/database/database_service.dart';
 import 'package:trackyond/core/services/database/database_service_impl.dart';
+import 'package:trackyond/core/services/database/notifying_database_service.dart';
+import 'package:trackyond/features/worker/dashboard/data/datasources/job_local_datasource.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_remote_datasource.dart';
 import 'package:trackyond/core/common/data/datasources/file_remote_datasource.dart';
@@ -28,6 +30,9 @@ import 'package:trackyond/core/common/data/repositories/file_repository_impl.dar
 import 'package:trackyond/core/common/domain/repositories/i_file_repository.dart';
 import 'package:trackyond/core/common/domain/usecase/upload_file_usecase.dart';
 import 'package:trackyond/core/services/sync/sync_service.dart';
+import 'package:trackyond/core/services/sync/queue/i_sync_queue.dart';
+import 'package:trackyond/core/services/sync/queue/sync_queue_impl.dart';
+import 'package:trackyond/features/job_chat/data/sync/job_chat_sync_initializer.dart';
 
 class AppInitializer {
   const AppInitializer._();
@@ -115,11 +120,15 @@ class AppInitializer {
     debugPrint('INIT: WebSocketService initialized');
 
     // SQLite Database Service
-    final databaseService = DatabaseServiceImpl();
+    final innerDatabaseService = DatabaseServiceImpl();
+    final databaseService = NotifyingDatabaseService(innerDatabaseService, Get.find<IEventBusRepository>());
     Get.put<IDatabaseService>(databaseService, permanent: true);
     debugPrint('INIT: DatabaseService initialized');
 
-    // Local & Remote DataSources needed globally by SyncService
+    // Local & Remote DataSources needed globally by SyncService and FCM/WebSockets
+    final jobLocalDataSource = JobLocalDataSourceImpl(Get.find<IDatabaseService>());
+    Get.put<IJobLocalDataSource>(jobLocalDataSource, permanent: true);
+
     final jobChatLocalDataSource = JobChatLocalDataSourceImpl(Get.find<IDatabaseService>());
     Get.put<IJobChatLocalDataSource>(jobChatLocalDataSource, permanent: true);
     
@@ -132,16 +141,17 @@ class AppInitializer {
     Get.put<UploadFileUseCase>(UploadFileUseCase(Get.find<IFileRepository>()), permanent: true);
 
     // Sync Service (permanent service)
+    Get.put<ISyncQueue>(SyncQueueImpl(Get.find<IDatabaseService>()), permanent: true);
     Get.put<SyncService>(
       SyncService(
-        localDataSource: Get.find<IJobChatLocalDataSource>(),
-        remoteDataSource: Get.find<IJobChatRemoteDataSource>(),
-        uploadFileUseCase: Get.find<UploadFileUseCase>(),
-        databaseService: Get.find<IDatabaseService>(),
+        syncQueue: Get.find<ISyncQueue>(),
       ),
       permanent: true,
     );
     debugPrint('INIT: SyncService initialized');
+
+    JobChatSyncInitializer.initialize();
+    debugPrint('INIT: Command handlers registered');
 
     Get.put<LocalNotificationService>(LocalNotificationService(), permanent: true);
     debugPrint('INIT: LocalNotificationService initialized');

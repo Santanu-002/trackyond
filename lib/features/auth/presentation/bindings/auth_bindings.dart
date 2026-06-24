@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:trackyond/core/common/repositories/i_event_bus_repository.dart';
 import 'package:trackyond/features/auth/data/datasources/auth_datasource.dart';
 import 'package:trackyond/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:trackyond/features/auth/domain/repositories/i_auth_repository.dart';
@@ -59,6 +60,7 @@ class AuthBindings extends Bindings {
         refreshAuthTokenUseCase: Get.find(),
         connectWebSocketUseCase: Get.find(),
         disconnectWebSocketUseCase: Get.find(),
+        eventBus: Get.find<IEventBusRepository>(),
       ),
       permanent: true,
     );

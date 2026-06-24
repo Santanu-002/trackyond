@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_status.dart';
 import 'package:trackyond/core/services/database/tables/chat_message_table.dart';
 import 'package:trackyond/core/utils/json_converters.dart';
 import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_content_model.dart';
@@ -10,10 +11,10 @@ part 'job_chat_message_model.freezed.dart';
 part 'job_chat_message_model.g.dart';
 
 @freezed
-sealed class JobChatMessageModel with _$JobChatMessageModel {
+sealed class JobChatMessageModel with _$JobChatMessageModel implements JobChatMessageEntity {
   const factory JobChatMessageModel({
-    @JsonKey(includeToJson: false) required String uid,
-    String? localId,
+    @JsonKey(includeToJson: false, readValue: JobChatMessageModel._readUid) required String uid,
+    @JsonKey(readValue: JobChatMessageModel._readServerUid) String? serverUid,
     required String jobId,
     String? senderUid,
     required List<JobChatMessageContentModel> content,
@@ -31,8 +32,9 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
     @JsonKey(includeToJson: false) @DateTimeNullableConverter() DateTime? seenAt,
     @JsonKey(includeToJson: false) @DateTimeNullableConverter() DateTime? deliveredAt,
     
-    @JsonKey(includeToJson: false) @Default(true) bool? active,
-    @JsonKey(includeToJson: false) @Default(false) bool? deleted,
+    @JsonKey(includeToJson: false, includeFromJson: false) @Default(false) bool isMe,
+    @JsonKey(includeToJson: false) @Default(true) bool active,
+    @JsonKey(includeToJson: false) @Default(false) bool deleted,
     
     String? deletedByUid,
     String? deletedByUserType,
@@ -43,15 +45,23 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
 
   const JobChatMessageModel._();
 
+  static Object? _readUid(Map json, String key) =>
+      json['localUid'] ?? json['local_uid'] ?? json['localId'] ?? json['local_id'] ?? json['uid'];
+
+  static Object? _readServerUid(Map json, String key) =>
+      json['serverUid'] ?? json['server_uid'] ?? json['uid'];
+
+  @override
   DateTime get timestamp => createdByAuthorAt;
 
-  String get status {
-    if (uid.startsWith('temp_') || (localId != null && uid == localId)) {
-      return 'pending';
+  @override
+  JobChatMessageStatus get status {
+    if (serverUid == null) {
+      return JobChatMessageStatus.pending;
     }
-    if (seenAt != null) return 'seen';
-    if (deliveredAt != null) return 'delivered';
-    return 'sent';
+    if (seenAt != null) return JobChatMessageStatus.seen;
+    if (deliveredAt != null) return JobChatMessageStatus.delivered;
+    return JobChatMessageStatus.sent;
   }
 
   factory JobChatMessageModel.fromJson(Map<String, dynamic> json) =>
@@ -60,7 +70,7 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
   Map<String, dynamic> toDbMap() {
     return {
       ChatMessageTable.columnNames.uid: uid,
-      ChatMessageTable.columnNames.localId: localId,
+      ChatMessageTable.columnNames.serverUid: serverUid,
       ChatMessageTable.columnNames.jobId: jobId,
       ChatMessageTable.columnNames.senderUid: senderUid,
       ChatMessageTable.columnNames.type: type.value,
@@ -70,8 +80,8 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
       ChatMessageTable.columnNames.updatedAt: updatedAt?.toUtc().toIso8601String(),
       ChatMessageTable.columnNames.seenAt: seenAt?.toUtc().toIso8601String(),
       ChatMessageTable.columnNames.deliveredAt: deliveredAt?.toUtc().toIso8601String(),
-      ChatMessageTable.columnNames.active: (active ?? true) ? 1 : 0,
-      ChatMessageTable.columnNames.deleted: (deleted ?? false) ? 1 : 0,
+      ChatMessageTable.columnNames.active: active ? 1 : 0,
+      ChatMessageTable.columnNames.deleted: deleted ? 1 : 0,
       ChatMessageTable.columnNames.deletedByUid: deletedByUid,
       ChatMessageTable.columnNames.deletedByUserType: deletedByUserType,
       ChatMessageTable.columnNames.deletedFor: jsonEncode(deletedFor),
@@ -91,7 +101,7 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
 
     return JobChatMessageModel(
       uid: map[ChatMessageTable.columnNames.uid] as String,
-      localId: map[ChatMessageTable.columnNames.localId] as String?,
+      serverUid: map[ChatMessageTable.columnNames.serverUid] as String?,
       jobId: map[ChatMessageTable.columnNames.jobId] as String,
       senderUid: map[ChatMessageTable.columnNames.senderUid] as String?,
       type: JobChatMessageType.values.firstWhere(
@@ -130,29 +140,31 @@ sealed class JobChatMessageModel with _$JobChatMessageModel {
     );
   }
 
-  JobChatMessageEntity toEntity({bool? isMe}) {
-    return JobChatMessageEntity(
-      uid: uid,
-      localId: localId,
-      jobId: jobId,
-      senderUid: senderUid,
-      content: content.map((e) => e.toEntity()).toList(),
-      type: type,
-      metadata: metadata,
-      actionPerformed: actionPerformed,
-      createdByAuthorAt: createdByAuthorAt,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      seenAt: seenAt,
-      deliveredAt: deliveredAt,
-      isMe: isMe ?? false,
-      active: active ?? true,
-      deleted: deleted ?? false,
-      deletedByUid: deletedByUid,
-      deletedByUserType: deletedByUserType,
-      deletedFor: deletedFor,
-      deletedAt: deletedAt,
-      deletedByUserAt: deletedByUserAt,
-    );
-  }
+  @override
+  List<Object?> get props => [
+        uid,
+        serverUid,
+        jobId,
+        senderUid,
+        content,
+        type,
+        metadata,
+        actionPerformed,
+        createdByAuthorAt,
+        createdAt,
+        updatedAt,
+        seenAt,
+        deliveredAt,
+        isMe,
+        active,
+        deleted,
+        deletedByUid,
+        deletedByUserType,
+        deletedFor,
+        deletedAt,
+        deletedByUserAt,
+      ];
+
+  @override
+  bool? get stringify => true;
 }

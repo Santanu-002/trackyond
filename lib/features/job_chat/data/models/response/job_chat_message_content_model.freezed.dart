@@ -28,17 +28,13 @@ $JobChatMessageContentModelCopyWith<JobChatMessageContentModel> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobChatMessageContentModel&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.metadata, metadata) || other.metadata == metadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobChatMessageContentModel&&super == other&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.metadata, metadata) || other.metadata == metadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,content,metadata);
+int get hashCode => Object.hash(runtimeType,super.hashCode,type,content,metadata);
 
-@override
-String toString() {
-  return 'JobChatMessageContentModel(type: $type, content: $content, metadata: $metadata)';
-}
 
 
 }
@@ -237,17 +233,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobChatMessageContentModel&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.metadata, metadata) || other.metadata == metadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobChatMessageContentModel&&super == other&&(identical(other.type, type) || other.type == type)&&(identical(other.content, content) || other.content == content)&&(identical(other.metadata, metadata) || other.metadata == metadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,content,metadata);
+int get hashCode => Object.hash(runtimeType,super.hashCode,type,content,metadata);
 
-@override
-String toString() {
-  return 'JobChatMessageContentModel(type: $type, content: $content, metadata: $metadata)';
-}
 
 
 }

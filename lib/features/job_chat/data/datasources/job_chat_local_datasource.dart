@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'package:trackyond/core/common/models/member/member_profile_model.dart';
 import 'package:trackyond/core/services/database/tables/job_table.dart';
 import 'package:trackyond/core/services/database/tables/chat_message_table.dart';
 import 'package:trackyond/core/services/database/tables/member_table.dart';
-import 'package:trackyond/core/services/database/tables/sync_queue_table.dart';
 import 'package:trackyond/core/services/database/database_service.dart';
 import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
 
@@ -36,12 +34,6 @@ abstract interface class IJobChatLocalDataSource {
   // Members
   Future<void> saveChatMembers(List<MemberProfileModel> members);
   Future<List<MemberProfileModel>> getCachedChatMembers(String jobId);
-
-  // Outbox / Sync Queue
-  Future<void> enqueueSyncTask(String actionType, Map<String, dynamic> payload);
-  Future<List<Map<String, dynamic>>> getPendingSyncTasks();
-  Future<void> deleteSyncTask(int id);
-  Future<void> incrementSyncTaskAttempts(int id);
 }
 
 class JobChatLocalDataSourceImpl implements IJobChatLocalDataSource {
@@ -53,11 +45,11 @@ class JobChatLocalDataSourceImpl implements IJobChatLocalDataSource {
   Future<void> saveMessages(List<JobChatMessageModel> messages) async {
     await _databaseService.transaction((txn) async {
       for (final msg in messages) {
-        if (msg.localId != null) {
+        if (msg.serverUid != null) {
           await txn.delete(
             ChatMessageTable.tableName,
-            where: '${ChatMessageTable.columnNames.localId} = ? AND ${ChatMessageTable.columnNames.uid} != ?',
-            whereArgs: [msg.localId, msg.uid],
+            where: '${ChatMessageTable.columnNames.serverUid} = ? AND ${ChatMessageTable.columnNames.uid} != ?',
+            whereArgs: [msg.serverUid, msg.uid],
           );
         }
         await txn.insert(
@@ -79,12 +71,15 @@ class JobChatLocalDataSourceImpl implements IJobChatLocalDataSource {
       ChatMessageTable.tableName,
       where: '${ChatMessageTable.columnNames.jobId} = ?',
       whereArgs: [jobId],
-      orderBy: '${ChatMessageTable.columnNames.createdByAuthorAt} ASC',
+      // DESC so that with LIMIT+OFFSET we get the most-recent window of messages.
+      // Callers reverse the result to restore chronological (ASC) order.
+      orderBy: '${ChatMessageTable.columnNames.createdByAuthorAt} DESC',
       limit: limit,
       offset: offset,
     );
 
-    return maps.map((map) => JobChatMessageModel.fromDbMap(map)).toList();
+    // Reverse DESC → ASC so the list is always chronologically sorted (oldest first).
+    return maps.reversed.map((map) => JobChatMessageModel.fromDbMap(map)).toList();
   }
 
   @override
@@ -225,47 +220,5 @@ class JobChatLocalDataSourceImpl implements IJobChatLocalDataSource {
     );
 
     return memberMaps.map((map) => MemberProfileModel.fromDbMap(map)).toList();
-  }
-
-  @override
-  Future<void> enqueueSyncTask(
-    String actionType,
-    Map<String, dynamic> payload,
-  ) async {
-    await _databaseService.insert(
-      SyncQueueTable.tableName,
-      {
-        SyncQueueTable.columnNames.actionType: actionType,
-        SyncQueueTable.columnNames.payload: jsonEncode(payload),
-        SyncQueueTable.columnNames.createdAt: DateTime.now().millisecondsSinceEpoch,
-        SyncQueueTable.columnNames.attempts: 0,
-      },
-    );
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> getPendingSyncTasks() async {
-    return await _databaseService.query(
-      SyncQueueTable.tableName,
-      orderBy: '${SyncQueueTable.columnNames.createdAt} ASC',
-    );
-  }
-
-  @override
-  Future<void> deleteSyncTask(int id) async {
-    await _databaseService.delete(
-      SyncQueueTable.tableName,
-      where: '${SyncQueueTable.columnNames.id} = ?',
-      whereArgs: [id],
-    );
-  }
-
-  @override
-  Future<void> incrementSyncTaskAttempts(int id) async {
-    await _databaseService.rawUpdate('''
-      UPDATE ${SyncQueueTable.tableName}
-      SET ${SyncQueueTable.columnNames.attempts} = ${SyncQueueTable.columnNames.attempts} + 1
-      WHERE ${SyncQueueTable.columnNames.id} = ?
-    ''', [id]);
   }
 }

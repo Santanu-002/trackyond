@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/models/job/job_model.dart';
 import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
 import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
@@ -6,12 +7,12 @@ import 'package:trackyond/features/job_chat/domain/entities/send_message_result.
 part 'send_message_response_model.freezed.dart';
 
 @freezed
-sealed class SendMessageResponseModel with _$SendMessageResponseModel {
+sealed class SendMessageResponseModel with _$SendMessageResponseModel implements SendMessageResult {
   const factory SendMessageResponseModel({
     required JobChatMessageModel message,
     @Default([]) List<JobChatMessageModel> messages,
     required List<String> allowedActions,
-    JobModel? job,
+    @JsonKey(name: 'job') JobModel? jobModel,
   }) = _SendMessageResponseModel;
 
   const SendMessageResponseModel._();
@@ -32,16 +33,10 @@ sealed class SendMessageResponseModel with _$SendMessageResponseModel {
           : (messagesList.isNotEmpty ? messagesList.last : throw Exception('No message data found')),
       messages: messagesList,
       allowedActions: List<String>.from(json['allowedActions'] ?? jobData?.allowedActions ?? []),
-      job: jobData,
+      jobModel: jobData,
     );
   }
 
-  SendMessageResult toEntity() {
-    return SendMessageResult(
-      message: message.toEntity(),
-      messages: messages.map((m) => m.toEntity()).toList(),
-      allowedActions: allowedActions,
-      job: job?.toEntity(),
-    );
-  }
+  @override
+  JobEntity? get job => jobModel?.toEntity();
 }

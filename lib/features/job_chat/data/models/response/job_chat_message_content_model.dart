@@ -7,7 +7,7 @@ part 'job_chat_message_content_model.freezed.dart';
 part 'job_chat_message_content_model.g.dart';
 
 @freezed
-sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
+sealed class JobChatMessageContentModel with _$JobChatMessageContentModel implements JobChatMessageContentEntity {
   const factory JobChatMessageContentModel({
     @JsonKey(unknownEnumValue: JobChatMessageContentType.unknown)
     required JobChatMessageContentType type,
@@ -20,21 +20,9 @@ sealed class JobChatMessageContentModel with _$JobChatMessageContentModel {
   factory JobChatMessageContentModel.fromJson(Map<String, dynamic> json) =>
       _$JobChatMessageContentModelFromJson(json);
 
-  factory JobChatMessageContentModel.fromEntity(JobChatMessageContentEntity entity) {
-    return JobChatMessageContentModel(
-      type: entity.type,
-      content: entity.content,
-      metadata: entity.metadata != null
-          ? ChatMessageMetadataModel.fromJson(entity.metadata!)
-          : null,
-    );
-  }
+  @override
+  List<Object?> get props => [type, content, metadata];
 
-  JobChatMessageContentEntity toEntity() {
-    return JobChatMessageContentEntity(
-      type: type,
-      content: content,
-      metadata: metadata?.toJson(),
-    );
-  }
+  @override
+  bool? get stringify => true;
 }

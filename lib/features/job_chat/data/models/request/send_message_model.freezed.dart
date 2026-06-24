@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SendMessageModel {
 
- String? get localId; String get jobId; String? get senderUid;@JsonKey(unknownEnumValue: JobChatMessageType.message) JobChatMessageType get type; Map<String, dynamic>? get metadata; String? get actionPerformed;@DateTimeConverter() DateTime get createdByAuthorAt; List<JobChatMessageContentModel> get content;
+@JsonKey(readValue: SendMessageModel._readLocalUid) String? get localUid; String get jobId; String? get senderUid;@JsonKey(unknownEnumValue: JobChatMessageType.message) JobChatMessageType get type; Map<String, dynamic>? get metadata; String? get actionPerformed;@DateTimeConverter() DateTime get createdByAuthorAt; List<JobChatMessageContentModel> get content;
 /// Create a copy of SendMessageModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,17 +28,13 @@ $SendMessageModelCopyWith<SendMessageModel> get copyWith => _$SendMessageModelCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SendMessageModel&&(identical(other.localId, localId) || other.localId == localId)&&(identical(other.jobId, jobId) || other.jobId == jobId)&&(identical(other.senderUid, senderUid) || other.senderUid == senderUid)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&(identical(other.actionPerformed, actionPerformed) || other.actionPerformed == actionPerformed)&&(identical(other.createdByAuthorAt, createdByAuthorAt) || other.createdByAuthorAt == createdByAuthorAt)&&const DeepCollectionEquality().equals(other.content, content));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SendMessageModel&&super == other&&(identical(other.localUid, localUid) || other.localUid == localUid)&&(identical(other.jobId, jobId) || other.jobId == jobId)&&(identical(other.senderUid, senderUid) || other.senderUid == senderUid)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&(identical(other.actionPerformed, actionPerformed) || other.actionPerformed == actionPerformed)&&(identical(other.createdByAuthorAt, createdByAuthorAt) || other.createdByAuthorAt == createdByAuthorAt)&&const DeepCollectionEquality().equals(other.content, content));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,localId,jobId,senderUid,type,const DeepCollectionEquality().hash(metadata),actionPerformed,createdByAuthorAt,const DeepCollectionEquality().hash(content));
+int get hashCode => Object.hash(runtimeType,super.hashCode,localUid,jobId,senderUid,type,const DeepCollectionEquality().hash(metadata),actionPerformed,createdByAuthorAt,const DeepCollectionEquality().hash(content));
 
-@override
-String toString() {
-  return 'SendMessageModel(localId: $localId, jobId: $jobId, senderUid: $senderUid, type: $type, metadata: $metadata, actionPerformed: $actionPerformed, createdByAuthorAt: $createdByAuthorAt, content: $content)';
-}
 
 
 }
@@ -48,7 +44,7 @@ abstract mixin class $SendMessageModelCopyWith<$Res>  {
   factory $SendMessageModelCopyWith(SendMessageModel value, $Res Function(SendMessageModel) _then) = _$SendMessageModelCopyWithImpl;
 @useResult
 $Res call({
- String? localId, String jobId, String? senderUid,@JsonKey(unknownEnumValue: JobChatMessageType.message) JobChatMessageType type, Map<String, dynamic>? metadata, String? actionPerformed,@DateTimeConverter() DateTime createdByAuthorAt, List<JobChatMessageContentModel> content
+@JsonKey(readValue: SendMessageModel._readLocalUid) String? localUid, String jobId, String? senderUid,@JsonKey(unknownEnumValue: JobChatMessageType.message) JobChatMessageType type, Map<String, dynamic>? metadata, String? actionPerformed,@DateTimeConverter() DateTime createdByAuthorAt, List<JobChatMessageContentModel> content
 });
 
 
@@ -65,9 +61,9 @@ class _$SendMessageModelCopyWithImpl<$Res>
 
 /// Create a copy of SendMessageModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? localId = freezed,Object? jobId = null,Object? senderUid = freezed,Object? type = null,Object? metadata = freezed,Object? actionPerformed = freezed,Object? createdByAuthorAt = null,Object? content = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? localUid = freezed,Object? jobId = null,Object? senderUid = freezed,Object? type = null,Object? metadata = freezed,Object? actionPerformed = freezed,Object? createdByAuthorAt = null,Object? content = null,}) {
   return _then(_self.copyWith(
-localId: freezed == localId ? _self.localId : localId // ignore: cast_nullable_to_non_nullable
+localUid: freezed == localUid ? _self.localUid : localUid // ignore: cast_nullable_to_non_nullable
 as String?,jobId: null == jobId ? _self.jobId : jobId // ignore: cast_nullable_to_non_nullable
 as String,senderUid: freezed == senderUid ? _self.senderUid : senderUid // ignore: cast_nullable_to_non_nullable
 as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -157,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? localId,  String jobId,  String? senderUid, @JsonKey(unknownEnumValue: JobChatMessageType.message)  JobChatMessageType type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt,  List<JobChatMessageContentModel> content)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(readValue: SendMessageModel._readLocalUid)  String? localUid,  String jobId,  String? senderUid, @JsonKey(unknownEnumValue: JobChatMessageType.message)  JobChatMessageType type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt,  List<JobChatMessageContentModel> content)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SendMessageModel() when $default != null:
-return $default(_that.localId,_that.jobId,_that.senderUid,_that.type,_that.metadata,_that.actionPerformed,_that.createdByAuthorAt,_that.content);case _:
+return $default(_that.localUid,_that.jobId,_that.senderUid,_that.type,_that.metadata,_that.actionPerformed,_that.createdByAuthorAt,_that.content);case _:
   return orElse();
 
 }
@@ -178,10 +174,10 @@ return $default(_that.localId,_that.jobId,_that.senderUid,_that.type,_that.metad
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? localId,  String jobId,  String? senderUid, @JsonKey(unknownEnumValue: JobChatMessageType.message)  JobChatMessageType type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt,  List<JobChatMessageContentModel> content)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(readValue: SendMessageModel._readLocalUid)  String? localUid,  String jobId,  String? senderUid, @JsonKey(unknownEnumValue: JobChatMessageType.message)  JobChatMessageType type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt,  List<JobChatMessageContentModel> content)  $default,) {final _that = this;
 switch (_that) {
 case _SendMessageModel():
-return $default(_that.localId,_that.jobId,_that.senderUid,_that.type,_that.metadata,_that.actionPerformed,_that.createdByAuthorAt,_that.content);}
+return $default(_that.localUid,_that.jobId,_that.senderUid,_that.type,_that.metadata,_that.actionPerformed,_that.createdByAuthorAt,_that.content);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -195,10 +191,10 @@ return $default(_that.localId,_that.jobId,_that.senderUid,_that.type,_that.metad
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? localId,  String jobId,  String? senderUid, @JsonKey(unknownEnumValue: JobChatMessageType.message)  JobChatMessageType type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt,  List<JobChatMessageContentModel> content)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(readValue: SendMessageModel._readLocalUid)  String? localUid,  String jobId,  String? senderUid, @JsonKey(unknownEnumValue: JobChatMessageType.message)  JobChatMessageType type,  Map<String, dynamic>? metadata,  String? actionPerformed, @DateTimeConverter()  DateTime createdByAuthorAt,  List<JobChatMessageContentModel> content)?  $default,) {final _that = this;
 switch (_that) {
 case _SendMessageModel() when $default != null:
-return $default(_that.localId,_that.jobId,_that.senderUid,_that.type,_that.metadata,_that.actionPerformed,_that.createdByAuthorAt,_that.content);case _:
+return $default(_that.localUid,_that.jobId,_that.senderUid,_that.type,_that.metadata,_that.actionPerformed,_that.createdByAuthorAt,_that.content);case _:
   return null;
 
 }
@@ -210,10 +206,10 @@ return $default(_that.localId,_that.jobId,_that.senderUid,_that.type,_that.metad
 @JsonSerializable()
 
 class _SendMessageModel extends SendMessageModel {
-  const _SendMessageModel({this.localId, required this.jobId, this.senderUid, @JsonKey(unknownEnumValue: JobChatMessageType.message) this.type = JobChatMessageType.message, final  Map<String, dynamic>? metadata, this.actionPerformed, @DateTimeConverter() required this.createdByAuthorAt, required final  List<JobChatMessageContentModel> content}): _metadata = metadata,_content = content,super._();
+  const _SendMessageModel({@JsonKey(readValue: SendMessageModel._readLocalUid) this.localUid, required this.jobId, this.senderUid, @JsonKey(unknownEnumValue: JobChatMessageType.message) this.type = JobChatMessageType.message, final  Map<String, dynamic>? metadata, this.actionPerformed, @DateTimeConverter() required this.createdByAuthorAt, required final  List<JobChatMessageContentModel> content}): _metadata = metadata,_content = content,super._();
   factory _SendMessageModel.fromJson(Map<String, dynamic> json) => _$SendMessageModelFromJson(json);
 
-@override final  String? localId;
+@override@JsonKey(readValue: SendMessageModel._readLocalUid) final  String? localUid;
 @override final  String jobId;
 @override final  String? senderUid;
 @override@JsonKey(unknownEnumValue: JobChatMessageType.message) final  JobChatMessageType type;
@@ -249,17 +245,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SendMessageModel&&(identical(other.localId, localId) || other.localId == localId)&&(identical(other.jobId, jobId) || other.jobId == jobId)&&(identical(other.senderUid, senderUid) || other.senderUid == senderUid)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&(identical(other.actionPerformed, actionPerformed) || other.actionPerformed == actionPerformed)&&(identical(other.createdByAuthorAt, createdByAuthorAt) || other.createdByAuthorAt == createdByAuthorAt)&&const DeepCollectionEquality().equals(other._content, _content));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SendMessageModel&&super == other&&(identical(other.localUid, localUid) || other.localUid == localUid)&&(identical(other.jobId, jobId) || other.jobId == jobId)&&(identical(other.senderUid, senderUid) || other.senderUid == senderUid)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&(identical(other.actionPerformed, actionPerformed) || other.actionPerformed == actionPerformed)&&(identical(other.createdByAuthorAt, createdByAuthorAt) || other.createdByAuthorAt == createdByAuthorAt)&&const DeepCollectionEquality().equals(other._content, _content));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,localId,jobId,senderUid,type,const DeepCollectionEquality().hash(_metadata),actionPerformed,createdByAuthorAt,const DeepCollectionEquality().hash(_content));
+int get hashCode => Object.hash(runtimeType,super.hashCode,localUid,jobId,senderUid,type,const DeepCollectionEquality().hash(_metadata),actionPerformed,createdByAuthorAt,const DeepCollectionEquality().hash(_content));
 
-@override
-String toString() {
-  return 'SendMessageModel(localId: $localId, jobId: $jobId, senderUid: $senderUid, type: $type, metadata: $metadata, actionPerformed: $actionPerformed, createdByAuthorAt: $createdByAuthorAt, content: $content)';
-}
 
 
 }
@@ -269,7 +261,7 @@ abstract mixin class _$SendMessageModelCopyWith<$Res> implements $SendMessageMod
   factory _$SendMessageModelCopyWith(_SendMessageModel value, $Res Function(_SendMessageModel) _then) = __$SendMessageModelCopyWithImpl;
 @override @useResult
 $Res call({
- String? localId, String jobId, String? senderUid,@JsonKey(unknownEnumValue: JobChatMessageType.message) JobChatMessageType type, Map<String, dynamic>? metadata, String? actionPerformed,@DateTimeConverter() DateTime createdByAuthorAt, List<JobChatMessageContentModel> content
+@JsonKey(readValue: SendMessageModel._readLocalUid) String? localUid, String jobId, String? senderUid,@JsonKey(unknownEnumValue: JobChatMessageType.message) JobChatMessageType type, Map<String, dynamic>? metadata, String? actionPerformed,@DateTimeConverter() DateTime createdByAuthorAt, List<JobChatMessageContentModel> content
 });
 
 
@@ -286,9 +278,9 @@ class __$SendMessageModelCopyWithImpl<$Res>
 
 /// Create a copy of SendMessageModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? localId = freezed,Object? jobId = null,Object? senderUid = freezed,Object? type = null,Object? metadata = freezed,Object? actionPerformed = freezed,Object? createdByAuthorAt = null,Object? content = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? localUid = freezed,Object? jobId = null,Object? senderUid = freezed,Object? type = null,Object? metadata = freezed,Object? actionPerformed = freezed,Object? createdByAuthorAt = null,Object? content = null,}) {
   return _then(_SendMessageModel(
-localId: freezed == localId ? _self.localId : localId // ignore: cast_nullable_to_non_nullable
+localUid: freezed == localUid ? _self.localUid : localUid // ignore: cast_nullable_to_non_nullable
 as String?,jobId: null == jobId ? _self.jobId : jobId // ignore: cast_nullable_to_non_nullable
 as String,senderUid: freezed == senderUid ? _self.senderUid : senderUid // ignore: cast_nullable_to_non_nullable
 as String?,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable

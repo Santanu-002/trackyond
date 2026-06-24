@@ -17,6 +17,27 @@ sealed class ChatMessageMetadataModel with _$ChatMessageMetadataModel {
 
   const ChatMessageMetadataModel._();
 
+  dynamic operator [](String key) {
+    switch (key) {
+      case 'fileName':
+        return fileName;
+      case 'size':
+        return size;
+      case 'mimeType':
+        return mimeType;
+      case 'videoMetadata':
+        return videoMetadata?.toJson();
+      case 'imageMetadata':
+        return imageMetadata?.toJson();
+      case 'pdfMetadata':
+        return pdfMetadata?.toJson();
+      case 'documentMetadata':
+        return documentMetadata?.toJson();
+      default:
+        return null;
+    }
+  }
+
   factory ChatMessageMetadataModel.fromJson(Map<String, dynamic> json) =>
       _$ChatMessageMetadataModelFromJson(json);
 }

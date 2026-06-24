@@ -24,7 +24,7 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
     return Right([
       JobChatMessageEntity(
         uid: '1',
-        localId: null,
+        serverUid: 'server_1',
         jobId: jobId,
         senderUid: 'system',
         type: JobChatMessageType.activity,
@@ -39,7 +39,7 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
       ),
       JobChatMessageEntity(
         uid: '2',
-        localId: null,
+        serverUid: 'server_2',
         jobId: jobId,
         senderUid: 'worker',
         type: JobChatMessageType.message,
@@ -63,8 +63,8 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
     }
     final msg = messages.last;
     final mockMessage = JobChatMessageEntity(
-      uid: 'mock_${DateTime.now().millisecondsSinceEpoch}',
-      localId: msg.localId,
+      uid: msg.localUid ?? 'mock_${DateTime.now().millisecondsSinceEpoch}',
+      serverUid: 'server_mock_${DateTime.now().millisecondsSinceEpoch}',
       jobId: msg.jobId,
       senderUid: msg.senderUid,
       content: msg.content,

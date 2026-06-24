@@ -4,7 +4,7 @@ import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 class JobChatMessageContentEntity extends Equatable {
   final JobChatMessageContentType type;
   final String? content;
-  final Map<String, dynamic>? metadata;
+  final dynamic metadata;
 
   const JobChatMessageContentEntity({
     required this.type,

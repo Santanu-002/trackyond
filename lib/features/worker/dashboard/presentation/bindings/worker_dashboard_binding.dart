@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/services/database/database_service.dart';
 import 'package:trackyond/features/worker/dashboard/data/datasources/job_remote_datasource.dart';
 import 'package:trackyond/features/worker/dashboard/data/datasources/job_local_datasource.dart';
 import 'package:trackyond/features/worker/dashboard/data/datasources/worker_dashboard_remote_data_source.dart';
@@ -19,7 +18,6 @@ class WorkerDashboardBinding extends Bindings {
   void dependencies() {
     // DataSources
     Get.lazyPut<IJobRemoteDataSource>(() => JobRemoteDataSourceImpl(Get.find<Dio>()));
-    Get.lazyPut<IJobLocalDataSource>(() => JobLocalDataSourceImpl(Get.find<IDatabaseService>()));
     Get.lazyPut<IWorkerDashboardRemoteDataSource>(
       () => WorkerDashboardRemoteDataSourceImpl(Get.find<Dio>()),
     );

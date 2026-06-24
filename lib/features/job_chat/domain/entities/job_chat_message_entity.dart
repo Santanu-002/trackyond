@@ -1,10 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_status.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 
 class JobChatMessageEntity extends Equatable {
   final String uid;
-  final String? localId;
+  final String? serverUid;
   final String jobId;
   final String? senderUid;
   
@@ -31,7 +32,7 @@ class JobChatMessageEntity extends Equatable {
 
   const JobChatMessageEntity({
     required this.uid,
-    this.localId,
+    this.serverUid,
     required this.jobId,
     this.senderUid,
     required this.content,
@@ -55,18 +56,45 @@ class JobChatMessageEntity extends Equatable {
 
   DateTime get timestamp => createdByAuthorAt;
 
-  String get status {
-    if (uid.startsWith('temp_') || (localId != null && uid == localId)) {
-      return 'pending';
+  JobChatMessageStatus get status {
+    if (serverUid == null) {
+      return JobChatMessageStatus.pending;
     }
-    if (seenAt != null) return 'seen';
-    if (deliveredAt != null) return 'delivered';
-    return 'sent';
+    if (seenAt != null) return JobChatMessageStatus.seen;
+    if (deliveredAt != null) return JobChatMessageStatus.delivered;
+    return JobChatMessageStatus.sent;
   }
 
+  @override
+  List<Object?> get props => [
+        uid,
+        serverUid,
+        jobId,
+        senderUid,
+        content,
+        type,
+        metadata,
+        actionPerformed,
+        createdByAuthorAt,
+        createdAt,
+        updatedAt,
+        seenAt,
+        deliveredAt,
+        isMe,
+        active,
+        deleted,
+        deletedByUid,
+        deletedByUserType,
+        deletedFor,
+        deletedAt,
+        deletedByUserAt,
+      ];
+}
+
+extension JobChatMessageEntityExtension on JobChatMessageEntity {
   JobChatMessageEntity copyWith({
     String? uid,
-    String? localId,
+    String? serverUid,
     String? jobId,
     String? senderUid,
     List<JobChatMessageContentEntity>? content,
@@ -89,7 +117,7 @@ class JobChatMessageEntity extends Equatable {
   }) {
     return JobChatMessageEntity(
       uid: uid ?? this.uid,
-      localId: localId ?? this.localId,
+      serverUid: serverUid ?? this.serverUid,
       jobId: jobId ?? this.jobId,
       senderUid: senderUid ?? this.senderUid,
       content: content ?? this.content,
@@ -111,29 +139,4 @@ class JobChatMessageEntity extends Equatable {
       deletedByUserAt: deletedByUserAt ?? this.deletedByUserAt,
     );
   }
-
-  @override
-  List<Object?> get props => [
-        uid,
-        localId,
-        jobId,
-        senderUid,
-        content,
-        type,
-        metadata,
-        actionPerformed,
-        createdByAuthorAt,
-        createdAt,
-        updatedAt,
-        seenAt,
-        deliveredAt,
-        isMe,
-        active,
-        deleted,
-        deletedByUid,
-        deletedByUserType,
-        deletedFor,
-        deletedAt,
-        deletedByUserAt,
-      ];
 }

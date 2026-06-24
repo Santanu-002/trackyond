@@ -3,7 +3,7 @@ import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 
 class SendMessageEntity extends Equatable {
-  final String? localId;
+  final String? localUid;
   final String jobId;
   final String? senderUid;
   final JobChatMessageType type;
@@ -13,7 +13,7 @@ class SendMessageEntity extends Equatable {
   final List<JobChatMessageContentEntity> content;
 
   const SendMessageEntity({
-    this.localId,
+    this.localUid,
     required this.jobId,
     this.senderUid,
     required this.type,
@@ -25,7 +25,7 @@ class SendMessageEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        localId,
+        localUid,
         jobId,
         senderUid,
         type,

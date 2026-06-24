@@ -8,7 +8,7 @@ part of 'send_message_model.dart';
 
 _SendMessageModel _$SendMessageModelFromJson(Map<String, dynamic> json) =>
     _SendMessageModel(
-      localId: json['localId'] as String?,
+      localUid: SendMessageModel._readLocalUid(json, 'localUid') as String?,
       jobId: json['jobId'] as String,
       senderUid: json['senderUid'] as String?,
       type:
@@ -33,7 +33,7 @@ _SendMessageModel _$SendMessageModelFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SendMessageModelToJson(_SendMessageModel instance) =>
     <String, dynamic>{
-      'localId': instance.localId,
+      'localUid': instance.localUid,
       'jobId': instance.jobId,
       'senderUid': instance.senderUid,
       'type': instance.type.toJson(),

@@ -114,6 +114,10 @@ class WorkerDashboardController extends GetxController {
               onJobUpdated(job);
             case JobDeletedEvent(:final jobId):
               onJobDeleted(jobId);
+            case JobInsertedEvent(:final jobs):
+              for (final job in jobs) {
+                onNewJobReceived(job);
+              }
           }
         });
       },

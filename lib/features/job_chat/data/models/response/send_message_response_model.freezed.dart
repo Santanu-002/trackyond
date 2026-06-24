@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SendMessageResponseModel {
 
- JobChatMessageModel get message; List<JobChatMessageModel> get messages; List<String> get allowedActions; JobModel? get job;
+ JobChatMessageModel get message; List<JobChatMessageModel> get messages; List<String> get allowedActions;@JsonKey(name: 'job') JobModel? get jobModel;
 /// Create a copy of SendMessageResponseModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $SendMessageResponseModelCopyWith<SendMessageResponseModel> get copyWith => _$Se
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SendMessageResponseModel&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.messages, messages)&&const DeepCollectionEquality().equals(other.allowedActions, allowedActions)&&(identical(other.job, job) || other.job == job));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SendMessageResponseModel&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other.messages, messages)&&const DeepCollectionEquality().equals(other.allowedActions, allowedActions)&&(identical(other.jobModel, jobModel) || other.jobModel == jobModel));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,message,const DeepCollectionEquality().hash(messages),const DeepCollectionEquality().hash(allowedActions),job);
+int get hashCode => Object.hash(runtimeType,message,const DeepCollectionEquality().hash(messages),const DeepCollectionEquality().hash(allowedActions),jobModel);
 
 @override
 String toString() {
-  return 'SendMessageResponseModel(message: $message, messages: $messages, allowedActions: $allowedActions, job: $job)';
+  return 'SendMessageResponseModel(message: $message, messages: $messages, allowedActions: $allowedActions, jobModel: $jobModel)';
 }
 
 
@@ -45,11 +45,11 @@ abstract mixin class $SendMessageResponseModelCopyWith<$Res>  {
   factory $SendMessageResponseModelCopyWith(SendMessageResponseModel value, $Res Function(SendMessageResponseModel) _then) = _$SendMessageResponseModelCopyWithImpl;
 @useResult
 $Res call({
- JobChatMessageModel message, List<JobChatMessageModel> messages, List<String> allowedActions, JobModel? job
+ JobChatMessageModel message, List<JobChatMessageModel> messages, List<String> allowedActions,@JsonKey(name: 'job') JobModel? jobModel
 });
 
 
-$JobChatMessageModelCopyWith<$Res> get message;$JobModelCopyWith<$Res>? get job;
+$JobChatMessageModelCopyWith<$Res> get message;$JobModelCopyWith<$Res>? get jobModel;
 
 }
 /// @nodoc
@@ -62,12 +62,12 @@ class _$SendMessageResponseModelCopyWithImpl<$Res>
 
 /// Create a copy of SendMessageResponseModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? message = null,Object? messages = null,Object? allowedActions = null,Object? job = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? message = null,Object? messages = null,Object? allowedActions = null,Object? jobModel = freezed,}) {
   return _then(_self.copyWith(
 message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as JobChatMessageModel,messages: null == messages ? _self.messages : messages // ignore: cast_nullable_to_non_nullable
 as List<JobChatMessageModel>,allowedActions: null == allowedActions ? _self.allowedActions : allowedActions // ignore: cast_nullable_to_non_nullable
-as List<String>,job: freezed == job ? _self.job : job // ignore: cast_nullable_to_non_nullable
+as List<String>,jobModel: freezed == jobModel ? _self.jobModel : jobModel // ignore: cast_nullable_to_non_nullable
 as JobModel?,
   ));
 }
@@ -84,13 +84,13 @@ $JobChatMessageModelCopyWith<$Res> get message {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$JobModelCopyWith<$Res>? get job {
-    if (_self.job == null) {
+$JobModelCopyWith<$Res>? get jobModel {
+    if (_self.jobModel == null) {
     return null;
   }
 
-  return $JobModelCopyWith<$Res>(_self.job!, (value) {
-    return _then(_self.copyWith(job: value));
+  return $JobModelCopyWith<$Res>(_self.jobModel!, (value) {
+    return _then(_self.copyWith(jobModel: value));
   });
 }
 }
@@ -171,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( JobChatMessageModel message,  List<JobChatMessageModel> messages,  List<String> allowedActions,  JobModel? job)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( JobChatMessageModel message,  List<JobChatMessageModel> messages,  List<String> allowedActions, @JsonKey(name: 'job')  JobModel? jobModel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SendMessageResponseModel() when $default != null:
-return $default(_that.message,_that.messages,_that.allowedActions,_that.job);case _:
+return $default(_that.message,_that.messages,_that.allowedActions,_that.jobModel);case _:
   return orElse();
 
 }
@@ -192,10 +192,10 @@ return $default(_that.message,_that.messages,_that.allowedActions,_that.job);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( JobChatMessageModel message,  List<JobChatMessageModel> messages,  List<String> allowedActions,  JobModel? job)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( JobChatMessageModel message,  List<JobChatMessageModel> messages,  List<String> allowedActions, @JsonKey(name: 'job')  JobModel? jobModel)  $default,) {final _that = this;
 switch (_that) {
 case _SendMessageResponseModel():
-return $default(_that.message,_that.messages,_that.allowedActions,_that.job);}
+return $default(_that.message,_that.messages,_that.allowedActions,_that.jobModel);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -209,10 +209,10 @@ return $default(_that.message,_that.messages,_that.allowedActions,_that.job);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( JobChatMessageModel message,  List<JobChatMessageModel> messages,  List<String> allowedActions,  JobModel? job)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( JobChatMessageModel message,  List<JobChatMessageModel> messages,  List<String> allowedActions, @JsonKey(name: 'job')  JobModel? jobModel)?  $default,) {final _that = this;
 switch (_that) {
 case _SendMessageResponseModel() when $default != null:
-return $default(_that.message,_that.messages,_that.allowedActions,_that.job);case _:
+return $default(_that.message,_that.messages,_that.allowedActions,_that.jobModel);case _:
   return null;
 
 }
@@ -224,7 +224,7 @@ return $default(_that.message,_that.messages,_that.allowedActions,_that.job);cas
 
 
 class _SendMessageResponseModel extends SendMessageResponseModel {
-  const _SendMessageResponseModel({required this.message, final  List<JobChatMessageModel> messages = const [], required final  List<String> allowedActions, this.job}): _messages = messages,_allowedActions = allowedActions,super._();
+  const _SendMessageResponseModel({required this.message, final  List<JobChatMessageModel> messages = const [], required final  List<String> allowedActions, @JsonKey(name: 'job') this.jobModel}): _messages = messages,_allowedActions = allowedActions,super._();
   
 
 @override final  JobChatMessageModel message;
@@ -242,7 +242,7 @@ class _SendMessageResponseModel extends SendMessageResponseModel {
   return EqualUnmodifiableListView(_allowedActions);
 }
 
-@override final  JobModel? job;
+@override@JsonKey(name: 'job') final  JobModel? jobModel;
 
 /// Create a copy of SendMessageResponseModel
 /// with the given fields replaced by the non-null parameter values.
@@ -254,16 +254,16 @@ _$SendMessageResponseModelCopyWith<_SendMessageResponseModel> get copyWith => __
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SendMessageResponseModel&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other._messages, _messages)&&const DeepCollectionEquality().equals(other._allowedActions, _allowedActions)&&(identical(other.job, job) || other.job == job));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SendMessageResponseModel&&(identical(other.message, message) || other.message == message)&&const DeepCollectionEquality().equals(other._messages, _messages)&&const DeepCollectionEquality().equals(other._allowedActions, _allowedActions)&&(identical(other.jobModel, jobModel) || other.jobModel == jobModel));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,message,const DeepCollectionEquality().hash(_messages),const DeepCollectionEquality().hash(_allowedActions),job);
+int get hashCode => Object.hash(runtimeType,message,const DeepCollectionEquality().hash(_messages),const DeepCollectionEquality().hash(_allowedActions),jobModel);
 
 @override
 String toString() {
-  return 'SendMessageResponseModel(message: $message, messages: $messages, allowedActions: $allowedActions, job: $job)';
+  return 'SendMessageResponseModel(message: $message, messages: $messages, allowedActions: $allowedActions, jobModel: $jobModel)';
 }
 
 
@@ -274,11 +274,11 @@ abstract mixin class _$SendMessageResponseModelCopyWith<$Res> implements $SendMe
   factory _$SendMessageResponseModelCopyWith(_SendMessageResponseModel value, $Res Function(_SendMessageResponseModel) _then) = __$SendMessageResponseModelCopyWithImpl;
 @override @useResult
 $Res call({
- JobChatMessageModel message, List<JobChatMessageModel> messages, List<String> allowedActions, JobModel? job
+ JobChatMessageModel message, List<JobChatMessageModel> messages, List<String> allowedActions,@JsonKey(name: 'job') JobModel? jobModel
 });
 
 
-@override $JobChatMessageModelCopyWith<$Res> get message;@override $JobModelCopyWith<$Res>? get job;
+@override $JobChatMessageModelCopyWith<$Res> get message;@override $JobModelCopyWith<$Res>? get jobModel;
 
 }
 /// @nodoc
@@ -291,12 +291,12 @@ class __$SendMessageResponseModelCopyWithImpl<$Res>
 
 /// Create a copy of SendMessageResponseModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? message = null,Object? messages = null,Object? allowedActions = null,Object? job = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? message = null,Object? messages = null,Object? allowedActions = null,Object? jobModel = freezed,}) {
   return _then(_SendMessageResponseModel(
 message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as JobChatMessageModel,messages: null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
 as List<JobChatMessageModel>,allowedActions: null == allowedActions ? _self._allowedActions : allowedActions // ignore: cast_nullable_to_non_nullable
-as List<String>,job: freezed == job ? _self.job : job // ignore: cast_nullable_to_non_nullable
+as List<String>,jobModel: freezed == jobModel ? _self.jobModel : jobModel // ignore: cast_nullable_to_non_nullable
 as JobModel?,
   ));
 }
@@ -314,13 +314,13 @@ $JobChatMessageModelCopyWith<$Res> get message {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$JobModelCopyWith<$Res>? get job {
-    if (_self.job == null) {
+$JobModelCopyWith<$Res>? get jobModel {
+    if (_self.jobModel == null) {
     return null;
   }
 
-  return $JobModelCopyWith<$Res>(_self.job!, (value) {
-    return _then(_self.copyWith(job: value));
+  return $JobModelCopyWith<$Res>(_self.jobModel!, (value) {
+    return _then(_self.copyWith(jobModel: value));
   });
 }
 }

@@ -21,14 +21,32 @@ class DatabaseServiceImpl implements IDatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute(JobTable.tableCreate);
         await db.execute(ChatMessageTable.tableCreate);
         await db.execute(MemberTable.tableCreate);
         await db.execute(SyncQueueTable.tableCreate);
       },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(SyncQueueTable.v1toV2);
+        }
+        if (oldVersion < 3) {
+          // Drop tables to apply new schema and truncate records
+          await db.execute('DROP TABLE IF EXISTS ${JobTable.tableName}');
+          await db.execute('DROP TABLE IF EXISTS ${ChatMessageTable.tableName}');
+          await db.execute('DROP TABLE IF EXISTS ${MemberTable.tableName}');
+          await db.execute('DROP TABLE IF EXISTS ${SyncQueueTable.tableName}');
+          
+          await db.execute(JobTable.tableCreate);
+          await db.execute(ChatMessageTable.tableCreate);
+          await db.execute(MemberTable.tableCreate);
+          await db.execute(SyncQueueTable.tableCreate);
+        }
+      },
     );
+
   }
 
   @override

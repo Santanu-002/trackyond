@@ -8,7 +8,7 @@ class ChatMessageTable {
   static String get tableCreate => '''
     CREATE TABLE $tableName (
       ${columnNames.uid} TEXT PRIMARY KEY,
-      ${columnNames.localId} TEXT,
+      ${columnNames.serverUid} TEXT,
       ${columnNames.jobId} TEXT NOT NULL,
       ${columnNames.senderUid} TEXT,
       ${columnNames.type} TEXT NOT NULL,
@@ -35,7 +35,7 @@ class _ChatMessageTableColumns {
   const _ChatMessageTableColumns._();
 
   final String uid = 'uid';
-  final String localId = 'local_id';
+  final String serverUid = 'server_uid';
   final String jobId = 'job_id';
   final String senderUid = 'sender_uid';
   final String type = 'type';

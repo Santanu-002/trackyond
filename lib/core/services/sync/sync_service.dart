@@ -1,36 +1,57 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:trackyond/core/common/domain/usecase/upload_file_usecase.dart';
-import 'package:trackyond/core/services/database/tables/chat_message_table.dart';
-import 'package:trackyond/core/services/database/tables/sync_queue_table.dart';
-import 'package:trackyond/core/services/database/database_service.dart';
-import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
-import 'package:trackyond/features/job_chat/data/datasources/job_chat_remote_datasource.dart';
-import 'package:trackyond/features/job_chat/data/models/request/send_message_model.dart';
-import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_content_model.dart';
-import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
+import 'package:trackyond/core/services/sync/models/sync_command.dart';
+import 'package:trackyond/core/services/sync/models/sync_result.dart';
+import 'package:trackyond/core/services/sync/models/sync_task.dart';
+import 'package:trackyond/core/services/sync/queue/i_sync_queue.dart';
+import 'package:trackyond/core/services/sync/worker/sync_worker.dart';
+import 'package:trackyond/core/services/sync/models/enqueue_task.dart';
+import 'package:trackyond/core/services/sync/models/sync_priority.dart';
 
 class SyncService extends GetxService {
-  final IJobChatLocalDataSource _localDataSource;
-  final IJobChatRemoteDataSource _remoteDataSource;
-  final UploadFileUseCase _uploadFileUseCase;
-  final IDatabaseService _databaseService;
+  final ISyncQueue _syncQueue;
+  static final Map<Type, SyncCommandHandler<SyncCommand>> _handlers = {};
+  static final Map<String, SyncCommand Function(Map<String, dynamic> json)> _deserializers = {};
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   bool _isSyncing = false;
 
   SyncService({
-    required IJobChatLocalDataSource localDataSource,
-    required IJobChatRemoteDataSource remoteDataSource,
-    required UploadFileUseCase uploadFileUseCase,
-    required IDatabaseService databaseService,
-  })  : _localDataSource = localDataSource,
-        _remoteDataSource = remoteDataSource,
-        _uploadFileUseCase = uploadFileUseCase,
-        _databaseService = databaseService;
+    required ISyncQueue syncQueue,
+  }) : _syncQueue = syncQueue;
+
+  static SyncService get find => Get.find<SyncService>();
+
+  static void registerCommand<T extends SyncCommand>({
+    required String actionType,
+    required T Function(Map<String, dynamic> json) deserializer,
+    required SyncCommandHandler<T> handler,
+  }) {
+    _deserializers[actionType] = (json) => deserializer(json);
+    _handlers[T] = handler as SyncCommandHandler<SyncCommand>;
+    debugPrint('SyncService: Registered command "$actionType" with type "$T"');
+  }
+
+  static SyncCommandHandler<SyncCommand>? getHandler(Type commandType) {
+    return _handlers[commandType];
+  }
+
+  static SyncCommand deserializeCommand(String actionType, Map<String, dynamic> payload) {
+    final deserializer = _deserializers[actionType];
+    if (deserializer == null) {
+      throw ArgumentError('Unknown action type: $actionType');
+    }
+    return deserializer(payload);
+  }
+
+  Future<void> enqueue(SyncCommand command, {SyncPriority priority = SyncPriority.normal}) async {
+    final task = EnqueueTask.fromCommand(command);
+    await _syncQueue.enqueue(task, priority: priority);
+    triggerSync();
+  }
+
 
   @override
   void onInit() {
@@ -38,6 +59,7 @@ class SyncService extends GetxService {
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
       final isOnline = results.any((r) => r != ConnectivityResult.none);
       if (isOnline) {
+        debugPrint('SyncService: Connectivity restored. Triggering sync.');
         triggerSync();
       }
     });
@@ -62,214 +84,42 @@ class SyncService extends GetxService {
   }
 
   Future<void> _processQueue() async {
+    final worker = SyncWorker(_syncQueue);
+
     while (true) {
-      // Check connectivity first
+      // 1. Check network connectivity before peeking/processing tasks
       final connectivityResults = await Connectivity().checkConnectivity();
       final isOnline = connectivityResults.any((r) => r != ConnectivityResult.none);
-      if (!isOnline) break;
+      if (!isOnline) {
+        debugPrint('SyncService: Offline. Pausing queue processing.');
+        break;
+      }
 
-      final tasks = await _localDataSource.getPendingSyncTasks();
-      if (tasks.isEmpty) break;
+      // 2. Fetch pending tasks
+      final List<SyncTask> tasks = await _syncQueue.getPendingTasks();
+      if (tasks.isEmpty) {
+        debugPrint('SyncService: Queue is empty.');
+        break;
+      }
 
       final task = tasks.first;
-      final int taskId = task[SyncQueueTable.columnNames.id] as int;
-      final String actionType = task[SyncQueueTable.columnNames.actionType] as String;
-      final int attempts = task[SyncQueueTable.columnNames.attempts] as int? ?? 0;
-      final Map<String, dynamic> payload = jsonDecode(task[SyncQueueTable.columnNames.payload] as String) as Map<String, dynamic>;
 
-      if (attempts >= 5) {
-        // Move task to a dead-letter log or simply discard to avoid poison pill loop
-        await _localDataSource.deleteSyncTask(taskId);
+      // Poison pill prevention
+      if (task.attempts >= 5) {
+        debugPrint('SyncService: Task ${task.id} (${task.enqueueTask.action}) exceeded max retry attempts. Discarding.');
+        await _syncQueue.deleteTask(task.id);
         continue;
       }
 
-      bool success = false;
-      try {
-        success = await _executeTask(actionType, payload, taskId);
-      } catch (e) {
-        success = false;
-      }
+      // 3. Process the task
+      final result = await worker.processTask(task);
 
-      if (success) {
-        await _localDataSource.deleteSyncTask(taskId);
-      } else {
-        await _localDataSource.incrementSyncTaskAttempts(taskId);
-        
-        // Break the loop on network failure to retry later.
-        // We only continue if it was a validation failure (which increments attempts).
-        final checkResults = await Connectivity().checkConnectivity();
-        final checkOnline = checkResults.any((r) => r != ConnectivityResult.none);
-        if (!checkOnline) {
-          break;
-        }
+      if (result is SyncRetry) {
+        // If a task requests a retry, it means a temporary failure occurred.
+        // We pause queue processing to prevent processing subsequent tasks out of order.
+        debugPrint('SyncService: Temporary failure detected. Pausing queue processing.');
+        break;
       }
     }
-  }
-
-  Future<bool> _executeTask(String actionType, Map<String, dynamic> payload, int taskId) async {
-    switch (actionType) {
-      case 'send_message':
-        return await _handleSendMessage(payload, taskId);
-      case 'delete_messages':
-        return await _handleDeleteMessages(payload);
-      case 'seen_messages':
-        return await _handleSeenMessages(payload);
-      case 'delivered_messages':
-        return await _handleDeliveredMessages(payload);
-      case 'update_job_status':
-        return await _handleUpdateJobStatus(payload);
-      default:
-        // Unknown action, discard it
-        return true;
-    }
-  }
-
-  Future<bool> _handleSendMessage(Map<String, dynamic> payload, int taskId) async {
-    final jobId = payload['jobId'] as String;
-    final messagesList = payload['messages'] as List<dynamic>;
-    if (messagesList.isEmpty) return true;
-
-    final messageMap = Map<String, dynamic>.from(messagesList.first as Map<String, dynamic>);
-    final messageModel = SendMessageModel.fromJson(messageMap);
-
-    // 1. Check if any file attachments need uploading
-    final updatedContent = <JobChatMessageContentModel>[];
-    bool payloadChanged = false;
-
-    for (final contentModel in messageModel.content) {
-      final path = contentModel.content;
-      if (path != null && _isLocalFilePath(path)) {
-        final remoteUrl = await _uploadLocalFile(path);
-        if (remoteUrl != null) {
-          updatedContent.add(contentModel.copyWith(content: remoteUrl));
-          payloadChanged = true;
-        } else {
-          // File upload failed, return false to retry later
-          return false;
-        }
-      } else {
-        updatedContent.add(contentModel);
-      }
-    }
-
-    var finalMessageModel = messageModel;
-    if (payloadChanged) {
-      finalMessageModel = messageModel.copyWith(content: updatedContent);
-      
-      // Update local task payload so we don't upload file again on retry
-      final updatedPayload = {
-        'jobId': jobId,
-        'messages': [finalMessageModel.toJson()],
-      };
-      await _databaseService.update(
-        SyncQueueTable.tableName,
-        {SyncQueueTable.columnNames.payload: jsonEncode(updatedPayload)},
-        where: '${SyncQueueTable.columnNames.id} = ?',
-        whereArgs: [taskId],
-      );
-
-      // Update the optimistic preview message in the local DB with the remote URLs
-      final tempUid = messageModel.localId;
-      if (tempUid != null) {
-        final localMaps = await _databaseService.query(
-          ChatMessageTable.tableName,
-          where: '${ChatMessageTable.columnNames.uid} = ? OR ${ChatMessageTable.columnNames.localId} = ?',
-          whereArgs: [tempUid, tempUid],
-        );
-        if (localMaps.isNotEmpty) {
-          final localMessage = JobChatMessageModel.fromDbMap(localMaps.first);
-          final updatedLocalMessage = localMessage.copyWith(
-            content: updatedContent,
-          );
-          await _localDataSource.saveMessages([updatedLocalMessage]);
-        }
-      }
-    }
-
-    // 2. Send the message via remote data source
-    final response = await _remoteDataSource.sendMessage(messages: [finalMessageModel]);
-    return response.fold(
-      (failure) => false,
-      (data) async {
-        if (data != null) {
-          await _localDataSource.saveMessages(data.messages);
-        }
-        return true;
-      },
-    );
-  }
-
-  Future<bool> _handleDeleteMessages(Map<String, dynamic> payload) async {
-    final jobId = payload['jobId'] as String;
-    final deleteType = payload['deleteType'] as String;
-    final messageUids = List<String>.from(payload['messageUids'] as List<dynamic>);
-    final deletedByUserAt = DateTime.parse(payload['deletedByUserAt'] as String);
-
-    final response = await _remoteDataSource.deleteMessages(
-      jobId: jobId,
-      deleteType: deleteType,
-      messageUids: messageUids,
-      deletedByUserAt: deletedByUserAt,
-    );
-    return response.fold((failure) => false, (_) => true);
-  }
-
-  Future<bool> _handleSeenMessages(Map<String, dynamic> payload) async {
-    final jobId = payload['jobId'] as String;
-    final messageUids = payload['messageUids'] != null
-        ? List<String>.from(payload['messageUids'] as List<dynamic>)
-        : null;
-
-    final response = await _remoteDataSource.markMessagesAsSeen(
-      jobId: jobId,
-      messageUids: messageUids,
-    );
-    return response.fold((failure) => false, (_) => true);
-  }
-
-  Future<bool> _handleDeliveredMessages(Map<String, dynamic> payload) async {
-    final jobId = payload['jobId'] as String;
-    final messageUids = List<String>.from(payload['messageUids'] as List<dynamic>);
-
-    final response = await _remoteDataSource.markMessagesAsDelivered(
-      jobId: jobId,
-      messageUids: messageUids,
-    );
-    return response.fold((failure) => false, (_) => true);
-  }
-
-  Future<bool> _handleUpdateJobStatus(Map<String, dynamic> payload) async {
-    final jobId = payload['jobId'] as String;
-    final status = payload['status'] as String;
-
-    final response = await _remoteDataSource.updateJobStatus(
-      jobId: jobId,
-      status: status,
-    );
-    return response.fold((failure) => false, (_) => true);
-  }
-
-  bool _isLocalFilePath(String path) {
-    if (path.isEmpty) return false;
-    if (path.startsWith('http://') || path.startsWith('https://')) return false;
-    final cleanPath = path.startsWith('file://') ? path.substring(7) : path;
-    return File(cleanPath).existsSync();
-  }
-
-  Future<String?> _uploadLocalFile(String localPath) async {
-    final cleanPath = localPath.startsWith('file://') ? localPath.substring(7) : localPath;
-    final file = File(cleanPath);
-    if (!file.existsSync()) return null;
-
-    final params = UploadFileParams(
-      file: file,
-      path: 'chat_attachments/${DateTime.now().millisecondsSinceEpoch}_${file.uri.pathSegments.last}',
-    );
-
-    final result = await _uploadFileUseCase(params);
-    return result.fold(
-      (failure) => null,
-      (url) => url,
-    );
   }
 }

@@ -8,16 +8,16 @@ part of 'company_model.dart';
 
 _CompanyModel _$CompanyModelFromJson(Map<String, dynamic> json) =>
     _CompanyModel(
-      companyId: json['companyId'] as String,
-      companyName: json['companyName'] as String,
+      uid: json['companyId'] as String,
+      name: json['companyName'] as String,
       teamSize: (json['teamSize'] as num).toInt(),
       ownerUid: json['ownerUid'] as String,
     );
 
 Map<String, dynamic> _$CompanyModelToJson(_CompanyModel instance) =>
     <String, dynamic>{
-      'companyId': instance.companyId,
-      'companyName': instance.companyName,
+      'companyId': instance.uid,
+      'companyName': instance.name,
       'teamSize': instance.teamSize,
       'ownerUid': instance.ownerUid,
     };

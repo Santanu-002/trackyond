@@ -7,7 +7,7 @@ part 'attendance_model.freezed.dart';
 part 'attendance_model.g.dart';
 
 @freezed
-sealed class AttendanceModel with _$AttendanceModel {
+sealed class AttendanceModel with _$AttendanceModel implements AttendanceEntity {
   const factory AttendanceModel({
     required int id,
     required String profileUid,
@@ -22,7 +22,7 @@ sealed class AttendanceModel with _$AttendanceModel {
     double? workHours,
     String? startAddress,
     String? endAddress,
-    required String status,
+    @AttendanceStatusConverter() required AttendanceStatus status,
   }) = _AttendanceModel;
 
   const AttendanceModel._();
@@ -30,13 +30,17 @@ sealed class AttendanceModel with _$AttendanceModel {
   factory AttendanceModel.fromJson(Map<String, dynamic> json) =>
       _$AttendanceModelFromJson(json);
 
-  AttendanceEntity toEntity() => AttendanceEntity(
-    id: id,
-    status: AttendanceStatus.fromString(status),
-    startAt: startAt,
-    endAt: endAt,
-    workHours: workHours,
-    startAddress: startAddress,
-    endAddress: endAddress,
-  );
+  @override
+  List<Object?> get props => [
+        id,
+        status,
+        startAt,
+        endAt,
+        workHours,
+        startAddress,
+        endAddress,
+      ];
+
+  @override
+  bool? get stringify => true;
 }

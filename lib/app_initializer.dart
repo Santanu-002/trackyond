@@ -30,9 +30,6 @@ import 'package:trackyond/core/common/data/repositories/file_repository_impl.dar
 import 'package:trackyond/core/common/domain/repositories/i_file_repository.dart';
 import 'package:trackyond/core/common/domain/usecase/upload_file_usecase.dart';
 import 'package:trackyond/core/services/sync/sync_service.dart';
-import 'package:trackyond/core/services/sync/queue/i_sync_queue.dart';
-import 'package:trackyond/core/services/sync/queue/sync_queue_impl.dart';
-import 'package:trackyond/features/job_chat/data/sync/job_chat_sync_initializer.dart';
 
 class AppInitializer {
   const AppInitializer._();
@@ -141,17 +138,11 @@ class AppInitializer {
     Get.put<UploadFileUseCase>(UploadFileUseCase(Get.find<IFileRepository>()), permanent: true);
 
     // Sync Service (permanent service)
-    Get.put<ISyncQueue>(SyncQueueImpl(Get.find<IDatabaseService>()), permanent: true);
     Get.put<SyncService>(
-      SyncService(
-        syncQueue: Get.find<ISyncQueue>(),
-      ),
+      SyncService(),
       permanent: true,
     );
     debugPrint('INIT: SyncService initialized');
-
-    JobChatSyncInitializer.initialize();
-    debugPrint('INIT: Command handlers registered');
 
     Get.put<LocalNotificationService>(LocalNotificationService(), permanent: true);
     debugPrint('INIT: LocalNotificationService initialized');

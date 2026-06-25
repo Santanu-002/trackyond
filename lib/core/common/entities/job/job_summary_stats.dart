@@ -19,7 +19,7 @@ class JobSummaryStats extends Equatable {
     this.totalAssigned = 0,
   });
 
-  JobSummaryStats copyWith({
+  JobSummaryStats copyWithEntity({
     int? pending,
     int? inProgress,
     int? completed,

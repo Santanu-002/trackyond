@@ -51,3 +51,26 @@ class ChatMessageReadEvent extends ChatEvent {
   });
 }
 
+class ChatUploadProgressEvent extends ChatEvent {
+  final String messageUid;
+  final double progress; // 0.0 -> 1.0
+  const ChatUploadProgressEvent(this.messageUid, this.progress);
+}
+
+class ChatUploadErrorEvent extends ChatEvent {
+  final String messageUid;
+  final String error;
+  const ChatUploadErrorEvent(this.messageUid, this.error);
+}
+
+class ChatUploadCompleteEvent extends ChatEvent {
+  final String messageUid;
+  const ChatUploadCompleteEvent(this.messageUid);
+}
+
+class ChatSendCompleteEvent extends ChatEvent {
+  final String messageUid;
+  const ChatSendCompleteEvent(this.messageUid);
+}
+
+

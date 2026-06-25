@@ -7,8 +7,11 @@ import 'package:trackyond/core/services/database/tables/job_table.dart';
 part 'job_model.freezed.dart';
 part 'job_model.g.dart';
 
+JobStatus _jobStatusFromJson(String value) => JobStatus.fromString(value);
+String _jobStatusToJson(JobStatus status) => status.value;
+
 @freezed
-sealed class JobModel with _$JobModel {
+sealed class JobModel with _$JobModel implements JobEntity {
   const factory JobModel({
     required String jobId,
     required String jobTitle,
@@ -20,7 +23,7 @@ sealed class JobModel with _$JobModel {
     String? workerImage,
     String? createdByProfileUid,
     String? createdByName,
-    required String status,
+    @JsonKey(fromJson: _jobStatusFromJson, toJson: _jobStatusToJson) required JobStatus status,
     required bool requirePhotoOnStart,
     required bool requirePhotoOnComplete,
     required bool captureLocation,
@@ -52,7 +55,7 @@ sealed class JobModel with _$JobModel {
       JobTable.columnNames.workerImage: workerImage,
       JobTable.columnNames.createdByProfileUid: createdByProfileUid,
       JobTable.columnNames.createdByName: createdByName,
-      JobTable.columnNames.jobStatus: status,
+      JobTable.columnNames.jobStatus: status.value,
       JobTable.columnNames.requirePhotoOnStart: requirePhotoOnStart ? 1 : 0,
       JobTable.columnNames.requirePhotoOnComplete: requirePhotoOnComplete ? 1 : 0,
       JobTable.columnNames.captureLocation: captureLocation ? 1 : 0,
@@ -81,7 +84,7 @@ sealed class JobModel with _$JobModel {
       workerImage: map[JobTable.columnNames.workerImage] as String?,
       createdByProfileUid: map[JobTable.columnNames.createdByProfileUid] as String?,
       createdByName: map[JobTable.columnNames.createdByName] as String?,
-      status: map[JobTable.columnNames.jobStatus] as String,
+      status: JobStatus.fromString(map[JobTable.columnNames.jobStatus] as String),
       requirePhotoOnStart: (map[JobTable.columnNames.requirePhotoOnStart] as int) == 1,
       requirePhotoOnComplete: (map[JobTable.columnNames.requirePhotoOnComplete] as int) == 1,
       captureLocation: (map[JobTable.columnNames.captureLocation] as int) == 1,
@@ -110,30 +113,61 @@ sealed class JobModel with _$JobModel {
     );
   }
 
-  JobEntity toEntity() => JobEntity(
-        jobId: jobId,
-        jobTitle: jobTitle,
-        customerName: customerName,
-        customerPhone: customerPhone,
-        customerAddress: customerAddress,
-        workerProfileUid: workerProfileUid,
-        workerName: workerName,
-        workerImage: workerImage,
-        createdByProfileUid: createdByProfileUid,
-        createdByName: createdByName,
-        status: JobStatus.fromString(status),
-        requirePhotoOnStart: requirePhotoOnStart,
-        requirePhotoOnComplete: requirePhotoOnComplete,
-        captureLocation: captureLocation,
-        createdAt: createdAt,
-        assignedAt: assignedAt,
-        updatedAt: updatedAt,
-        completedAt: completedAt,
-        allowedActions: allowedActions,
-        lastMessage: lastMessage,
-        lastMessageAt: lastMessageAt,
-        lastActivityType: lastActivityType,
-        lastActivityMessage: lastActivityMessage,
-        lastActivityAt: lastActivityAt,
+  factory JobModel.fromEntity(JobEntity entity) => JobModel(
+        jobId: entity.jobId,
+        jobTitle: entity.jobTitle,
+        customerName: entity.customerName,
+        customerPhone: entity.customerPhone,
+        customerAddress: entity.customerAddress,
+        workerProfileUid: entity.workerProfileUid,
+        workerName: entity.workerName,
+        workerImage: entity.workerImage,
+        createdByProfileUid: entity.createdByProfileUid,
+        createdByName: entity.createdByName,
+        status: entity.status,
+        requirePhotoOnStart: entity.requirePhotoOnStart,
+        requirePhotoOnComplete: entity.requirePhotoOnComplete,
+        captureLocation: entity.captureLocation,
+        createdAt: entity.createdAt,
+        assignedAt: entity.assignedAt,
+        updatedAt: entity.updatedAt,
+        completedAt: entity.completedAt,
+        allowedActions: entity.allowedActions,
+        lastMessage: entity.lastMessage,
+        lastMessageAt: entity.lastMessageAt,
+        lastActivityType: entity.lastActivityType,
+        lastActivityMessage: entity.lastActivityMessage,
+        lastActivityAt: entity.lastActivityAt,
       );
+
+  @override
+  List<Object?> get props => [
+        jobId,
+        jobTitle,
+        customerName,
+        customerPhone,
+        customerAddress,
+        workerProfileUid,
+        workerName,
+        workerImage,
+        createdByProfileUid,
+        createdByName,
+        status,
+        requirePhotoOnStart,
+        requirePhotoOnComplete,
+        captureLocation,
+        createdAt,
+        assignedAt,
+        updatedAt,
+        completedAt,
+        allowedActions,
+        lastMessage,
+        lastMessageAt,
+        lastActivityType,
+        lastActivityMessage,
+        lastActivityAt,
+      ];
+
+  @override
+  bool? get stringify => true;
 }

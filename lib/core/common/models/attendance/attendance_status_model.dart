@@ -8,7 +8,7 @@ part 'attendance_status_model.freezed.dart';
 part 'attendance_status_model.g.dart';
 
 @freezed
-sealed class AttendanceStatusModel with _$AttendanceStatusModel {
+sealed class AttendanceStatusModel with _$AttendanceStatusModel implements AttendanceStatusEntity {
   const factory AttendanceStatusModel({
     @AttendanceStatusConverter() required AttendanceStatus status,
     AttendanceModel? attendance,
@@ -18,9 +18,4 @@ sealed class AttendanceStatusModel with _$AttendanceStatusModel {
 
   factory AttendanceStatusModel.fromJson(Map<String, dynamic> json) =>
       _$AttendanceStatusModelFromJson(json);
-
-  AttendanceStatusEntity toEntity() => AttendanceStatusEntity(
-    status: status,
-    attendance: attendance?.toEntity(),
-  );
 }

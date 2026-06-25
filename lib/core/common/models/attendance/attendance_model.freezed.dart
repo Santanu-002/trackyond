@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AttendanceModel {
 
- int get id; String get profileUid; String get userUid; String get companyUid;@DateTimeConverter() DateTime get startAt;@DateTimeNullableConverter() DateTime? get endAt; double? get startLatitude; double? get startLongitude; double? get endLatitude; double? get endLongitude; double? get workHours; String? get startAddress; String? get endAddress; String get status;
+ int get id; String get profileUid; String get userUid; String get companyUid;@DateTimeConverter() DateTime get startAt;@DateTimeNullableConverter() DateTime? get endAt; double? get startLatitude; double? get startLongitude; double? get endLatitude; double? get endLongitude; double? get workHours; String? get startAddress; String? get endAddress;@AttendanceStatusConverter() AttendanceStatus get status;
 /// Create a copy of AttendanceModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,17 +28,13 @@ $AttendanceModelCopyWith<AttendanceModel> get copyWith => _$AttendanceModelCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.profileUid, profileUid) || other.profileUid == profileUid)&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.companyUid, companyUid) || other.companyUid == companyUid)&&(identical(other.startAt, startAt) || other.startAt == startAt)&&(identical(other.endAt, endAt) || other.endAt == endAt)&&(identical(other.startLatitude, startLatitude) || other.startLatitude == startLatitude)&&(identical(other.startLongitude, startLongitude) || other.startLongitude == startLongitude)&&(identical(other.endLatitude, endLatitude) || other.endLatitude == endLatitude)&&(identical(other.endLongitude, endLongitude) || other.endLongitude == endLongitude)&&(identical(other.workHours, workHours) || other.workHours == workHours)&&(identical(other.startAddress, startAddress) || other.startAddress == startAddress)&&(identical(other.endAddress, endAddress) || other.endAddress == endAddress)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AttendanceModel&&super == other&&(identical(other.id, id) || other.id == id)&&(identical(other.profileUid, profileUid) || other.profileUid == profileUid)&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.companyUid, companyUid) || other.companyUid == companyUid)&&(identical(other.startAt, startAt) || other.startAt == startAt)&&(identical(other.endAt, endAt) || other.endAt == endAt)&&(identical(other.startLatitude, startLatitude) || other.startLatitude == startLatitude)&&(identical(other.startLongitude, startLongitude) || other.startLongitude == startLongitude)&&(identical(other.endLatitude, endLatitude) || other.endLatitude == endLatitude)&&(identical(other.endLongitude, endLongitude) || other.endLongitude == endLongitude)&&(identical(other.workHours, workHours) || other.workHours == workHours)&&(identical(other.startAddress, startAddress) || other.startAddress == startAddress)&&(identical(other.endAddress, endAddress) || other.endAddress == endAddress)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,profileUid,userUid,companyUid,startAt,endAt,startLatitude,startLongitude,endLatitude,endLongitude,workHours,startAddress,endAddress,status);
+int get hashCode => Object.hash(runtimeType,super.hashCode,id,profileUid,userUid,companyUid,startAt,endAt,startLatitude,startLongitude,endLatitude,endLongitude,workHours,startAddress,endAddress,status);
 
-@override
-String toString() {
-  return 'AttendanceModel(id: $id, profileUid: $profileUid, userUid: $userUid, companyUid: $companyUid, startAt: $startAt, endAt: $endAt, startLatitude: $startLatitude, startLongitude: $startLongitude, endLatitude: $endLatitude, endLongitude: $endLongitude, workHours: $workHours, startAddress: $startAddress, endAddress: $endAddress, status: $status)';
-}
 
 
 }
@@ -48,7 +44,7 @@ abstract mixin class $AttendanceModelCopyWith<$Res>  {
   factory $AttendanceModelCopyWith(AttendanceModel value, $Res Function(AttendanceModel) _then) = _$AttendanceModelCopyWithImpl;
 @useResult
 $Res call({
- int id, String profileUid, String userUid, String companyUid,@DateTimeConverter() DateTime startAt,@DateTimeNullableConverter() DateTime? endAt, double? startLatitude, double? startLongitude, double? endLatitude, double? endLongitude, double? workHours, String? startAddress, String? endAddress, String status
+ int id, String profileUid, String userUid, String companyUid,@DateTimeConverter() DateTime startAt,@DateTimeNullableConverter() DateTime? endAt, double? startLatitude, double? startLongitude, double? endLatitude, double? endLongitude, double? workHours, String? startAddress, String? endAddress,@AttendanceStatusConverter() AttendanceStatus status
 });
 
 
@@ -81,7 +77,7 @@ as double?,workHours: freezed == workHours ? _self.workHours : workHours // igno
 as double?,startAddress: freezed == startAddress ? _self.startAddress : startAddress // ignore: cast_nullable_to_non_nullable
 as String?,endAddress: freezed == endAddress ? _self.endAddress : endAddress // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,
+as AttendanceStatus,
   ));
 }
 
@@ -163,7 +159,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String profileUid,  String userUid,  String companyUid, @DateTimeConverter()  DateTime startAt, @DateTimeNullableConverter()  DateTime? endAt,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  double? workHours,  String? startAddress,  String? endAddress,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String profileUid,  String userUid,  String companyUid, @DateTimeConverter()  DateTime startAt, @DateTimeNullableConverter()  DateTime? endAt,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  double? workHours,  String? startAddress,  String? endAddress, @AttendanceStatusConverter()  AttendanceStatus status)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AttendanceModel() when $default != null:
 return $default(_that.id,_that.profileUid,_that.userUid,_that.companyUid,_that.startAt,_that.endAt,_that.startLatitude,_that.startLongitude,_that.endLatitude,_that.endLongitude,_that.workHours,_that.startAddress,_that.endAddress,_that.status);case _:
@@ -184,7 +180,7 @@ return $default(_that.id,_that.profileUid,_that.userUid,_that.companyUid,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String profileUid,  String userUid,  String companyUid, @DateTimeConverter()  DateTime startAt, @DateTimeNullableConverter()  DateTime? endAt,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  double? workHours,  String? startAddress,  String? endAddress,  String status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String profileUid,  String userUid,  String companyUid, @DateTimeConverter()  DateTime startAt, @DateTimeNullableConverter()  DateTime? endAt,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  double? workHours,  String? startAddress,  String? endAddress, @AttendanceStatusConverter()  AttendanceStatus status)  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceModel():
 return $default(_that.id,_that.profileUid,_that.userUid,_that.companyUid,_that.startAt,_that.endAt,_that.startLatitude,_that.startLongitude,_that.endLatitude,_that.endLongitude,_that.workHours,_that.startAddress,_that.endAddress,_that.status);}
@@ -201,7 +197,7 @@ return $default(_that.id,_that.profileUid,_that.userUid,_that.companyUid,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String profileUid,  String userUid,  String companyUid, @DateTimeConverter()  DateTime startAt, @DateTimeNullableConverter()  DateTime? endAt,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  double? workHours,  String? startAddress,  String? endAddress,  String status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String profileUid,  String userUid,  String companyUid, @DateTimeConverter()  DateTime startAt, @DateTimeNullableConverter()  DateTime? endAt,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  double? workHours,  String? startAddress,  String? endAddress, @AttendanceStatusConverter()  AttendanceStatus status)?  $default,) {final _that = this;
 switch (_that) {
 case _AttendanceModel() when $default != null:
 return $default(_that.id,_that.profileUid,_that.userUid,_that.companyUid,_that.startAt,_that.endAt,_that.startLatitude,_that.startLongitude,_that.endLatitude,_that.endLongitude,_that.workHours,_that.startAddress,_that.endAddress,_that.status);case _:
@@ -216,7 +212,7 @@ return $default(_that.id,_that.profileUid,_that.userUid,_that.companyUid,_that.s
 @JsonSerializable()
 
 class _AttendanceModel extends AttendanceModel {
-  const _AttendanceModel({required this.id, required this.profileUid, required this.userUid, required this.companyUid, @DateTimeConverter() required this.startAt, @DateTimeNullableConverter() this.endAt, this.startLatitude, this.startLongitude, this.endLatitude, this.endLongitude, this.workHours, this.startAddress, this.endAddress, required this.status}): super._();
+  const _AttendanceModel({required this.id, required this.profileUid, required this.userUid, required this.companyUid, @DateTimeConverter() required this.startAt, @DateTimeNullableConverter() this.endAt, this.startLatitude, this.startLongitude, this.endLatitude, this.endLongitude, this.workHours, this.startAddress, this.endAddress, @AttendanceStatusConverter() required this.status}): super._();
   factory _AttendanceModel.fromJson(Map<String, dynamic> json) => _$AttendanceModelFromJson(json);
 
 @override final  int id;
@@ -232,7 +228,7 @@ class _AttendanceModel extends AttendanceModel {
 @override final  double? workHours;
 @override final  String? startAddress;
 @override final  String? endAddress;
-@override final  String status;
+@override@AttendanceStatusConverter() final  AttendanceStatus status;
 
 /// Create a copy of AttendanceModel
 /// with the given fields replaced by the non-null parameter values.
@@ -247,17 +243,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceModel&&(identical(other.id, id) || other.id == id)&&(identical(other.profileUid, profileUid) || other.profileUid == profileUid)&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.companyUid, companyUid) || other.companyUid == companyUid)&&(identical(other.startAt, startAt) || other.startAt == startAt)&&(identical(other.endAt, endAt) || other.endAt == endAt)&&(identical(other.startLatitude, startLatitude) || other.startLatitude == startLatitude)&&(identical(other.startLongitude, startLongitude) || other.startLongitude == startLongitude)&&(identical(other.endLatitude, endLatitude) || other.endLatitude == endLatitude)&&(identical(other.endLongitude, endLongitude) || other.endLongitude == endLongitude)&&(identical(other.workHours, workHours) || other.workHours == workHours)&&(identical(other.startAddress, startAddress) || other.startAddress == startAddress)&&(identical(other.endAddress, endAddress) || other.endAddress == endAddress)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AttendanceModel&&super == other&&(identical(other.id, id) || other.id == id)&&(identical(other.profileUid, profileUid) || other.profileUid == profileUid)&&(identical(other.userUid, userUid) || other.userUid == userUid)&&(identical(other.companyUid, companyUid) || other.companyUid == companyUid)&&(identical(other.startAt, startAt) || other.startAt == startAt)&&(identical(other.endAt, endAt) || other.endAt == endAt)&&(identical(other.startLatitude, startLatitude) || other.startLatitude == startLatitude)&&(identical(other.startLongitude, startLongitude) || other.startLongitude == startLongitude)&&(identical(other.endLatitude, endLatitude) || other.endLatitude == endLatitude)&&(identical(other.endLongitude, endLongitude) || other.endLongitude == endLongitude)&&(identical(other.workHours, workHours) || other.workHours == workHours)&&(identical(other.startAddress, startAddress) || other.startAddress == startAddress)&&(identical(other.endAddress, endAddress) || other.endAddress == endAddress)&&(identical(other.status, status) || other.status == status));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,profileUid,userUid,companyUid,startAt,endAt,startLatitude,startLongitude,endLatitude,endLongitude,workHours,startAddress,endAddress,status);
+int get hashCode => Object.hash(runtimeType,super.hashCode,id,profileUid,userUid,companyUid,startAt,endAt,startLatitude,startLongitude,endLatitude,endLongitude,workHours,startAddress,endAddress,status);
 
-@override
-String toString() {
-  return 'AttendanceModel(id: $id, profileUid: $profileUid, userUid: $userUid, companyUid: $companyUid, startAt: $startAt, endAt: $endAt, startLatitude: $startLatitude, startLongitude: $startLongitude, endLatitude: $endLatitude, endLongitude: $endLongitude, workHours: $workHours, startAddress: $startAddress, endAddress: $endAddress, status: $status)';
-}
 
 
 }
@@ -267,7 +259,7 @@ abstract mixin class _$AttendanceModelCopyWith<$Res> implements $AttendanceModel
   factory _$AttendanceModelCopyWith(_AttendanceModel value, $Res Function(_AttendanceModel) _then) = __$AttendanceModelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String profileUid, String userUid, String companyUid,@DateTimeConverter() DateTime startAt,@DateTimeNullableConverter() DateTime? endAt, double? startLatitude, double? startLongitude, double? endLatitude, double? endLongitude, double? workHours, String? startAddress, String? endAddress, String status
+ int id, String profileUid, String userUid, String companyUid,@DateTimeConverter() DateTime startAt,@DateTimeNullableConverter() DateTime? endAt, double? startLatitude, double? startLongitude, double? endLatitude, double? endLongitude, double? workHours, String? startAddress, String? endAddress,@AttendanceStatusConverter() AttendanceStatus status
 });
 
 
@@ -300,7 +292,7 @@ as double?,workHours: freezed == workHours ? _self.workHours : workHours // igno
 as double?,startAddress: freezed == startAddress ? _self.startAddress : startAddress // ignore: cast_nullable_to_non_nullable
 as String?,endAddress: freezed == endAddress ? _self.endAddress : endAddress // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,
+as AttendanceStatus,
   ));
 }
 

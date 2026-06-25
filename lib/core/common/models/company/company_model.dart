@@ -5,10 +5,10 @@ part 'company_model.freezed.dart';
 part 'company_model.g.dart';
 
 @freezed
-sealed class CompanyModel with _$CompanyModel {
+sealed class CompanyModel with _$CompanyModel implements CompanyEntity {
   const factory CompanyModel({
-    required String companyId,
-    required String companyName,
+    @JsonKey(name: 'companyId') required String uid,
+    @JsonKey(name: 'companyName') required String name,
     required int teamSize,
     required String ownerUid,
   }) = _CompanyModel;
@@ -18,15 +18,9 @@ sealed class CompanyModel with _$CompanyModel {
 
   const CompanyModel._();
 
-  CompanyEntity toEntity() => CompanyEntity(
-      uid: companyId,
-      name: companyName,
-      teamSize: teamSize,
-      ownerUid: ownerUid);
-
   factory CompanyModel.fromEntity(CompanyEntity entity) => CompanyModel(
-        companyId: entity.uid,
-        companyName: entity.name,
+        uid: entity.uid,
+        name: entity.name,
         teamSize: entity.teamSize,
         ownerUid: entity.ownerUid,
       );

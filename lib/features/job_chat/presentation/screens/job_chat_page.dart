@@ -11,6 +11,7 @@ import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_at
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/message_bubble.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/composer/message_input.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/input/attachment/attachment_menu.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_status.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/interaction/swipe_to_reply.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/chips/timeline_entry.dart';
 import 'package:trackyond/features/job_chat/domain/entities/chat_item.dart';
@@ -250,6 +251,7 @@ class JobChatPage extends GetView<JobChatController> {
                                     ),
                                     ChatActivityBubble(:final message) => SwipeToReply(
                                       messageUid: message.uid,
+                                      isSwipeEnabled: message.status != JobChatMessageStatus.pending,
                                       onReply: () => controller.setReplyingTo(message),
                                       child: Padding(
                                         padding: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$16),
@@ -262,6 +264,7 @@ class JobChatPage extends GetView<JobChatController> {
                                     ),
                                     ChatMessageBubbleItem(:final message) => SwipeToReply(
                                       messageUid: message.uid,
+                                      isSwipeEnabled: message.status != JobChatMessageStatus.pending,
                                       onReply: () => controller.setReplyingTo(message),
                                       child: Padding(
                                         padding: EdgeInsets.symmetric(horizontal: AppUIConstants.spacing.space$16),

@@ -8,12 +8,14 @@ class SwipeToReply extends StatefulWidget {
   final Widget child;
   final VoidCallback onReply;
   final String messageUid;
+  final bool isSwipeEnabled;
 
   const SwipeToReply({
     super.key,
     required this.child,
     required this.onReply,
     required this.messageUid,
+    this.isSwipeEnabled = true,
   });
 
   @override
@@ -135,9 +137,9 @@ class _SwipeToReplyState extends State<SwipeToReply>
           onLongPress: isSelectionMode
               ? null
               : () => selectionController.enterSelectionMode(widget.messageUid),
-          onHorizontalDragUpdate: (isSelectionMode || isDeleted) ? null : _onDragUpdate,
-          onHorizontalDragEnd: (isSelectionMode || isDeleted) ? null : _onDragEnd,
-          onHorizontalDragCancel: (isSelectionMode || isDeleted) ? null : _onDragCancel,
+          onHorizontalDragUpdate: (isSelectionMode || isDeleted || !widget.isSwipeEnabled) ? null : _onDragUpdate,
+          onHorizontalDragEnd: (isSelectionMode || isDeleted || !widget.isSwipeEnabled) ? null : _onDragEnd,
+          onHorizontalDragCancel: (isSelectionMode || isDeleted || !widget.isSwipeEnabled) ? null : _onDragCancel,
           behavior: HitTestBehavior.translucent,
           child: Stack(
             clipBehavior: Clip.none,

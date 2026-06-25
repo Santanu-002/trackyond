@@ -18,6 +18,7 @@ import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
 import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_status.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/media_viewer/media_video_player_widget.dart';
@@ -878,7 +879,7 @@ class _MediaViewerPageState extends State<MediaViewerPage>
                                 TextSpan(text: displayCaption),
                                 if (hasReadMore)
                                   TextSpan(
-                                    text: ' Read more',
+                                    text: AppStrings.jobChat.readMore,
                                     style: TextStyle(
                                       color: context.theme.colorScheme.primary,
                                       fontWeight: FontWeight.bold,
@@ -901,23 +902,23 @@ class _MediaViewerPageState extends State<MediaViewerPage>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            // Reply button
-                            AppButton.filled(
-                              text: AppStrings.jobChat.reply,
-                              leading: const Icon(Icons.reply_rounded),
-                              onPressed: () {
-                                if (message != null) {
+                            if (message != null && message!.status != JobChatMessageStatus.pending) ...[
+                              // Reply button
+                              AppButton.filled(
+                                text: AppStrings.jobChat.reply,
+                                leading: const Icon(Icons.reply_rounded),
+                                onPressed: () {
                                   final chatController = Get.find<JobChatController>();
-                                  chatController.replyingToMessage.value = message;
+                                  chatController.setReplyingTo(message!);
                                   Navigator.of(context).pop();
-                                }
-                              },
-                              width: null,
-                              height: 38,
-                              color: colorScheme.onPrimary.withValues(alpha: 0.15),
-                              shape: AppButtonShape.capsule,
-                            ),
-                            AppUIConstants.widgets.horizontalBox$12,
+                                },
+                                width: null,
+                                height: 38,
+                                color: colorScheme.onPrimary.withValues(alpha: 0.15),
+                                shape: AppButtonShape.capsule,
+                              ),
+                              AppUIConstants.widgets.horizontalBox$12,
+                            ],
                             // Download/Save button
                             AppButton.filled(
                               text: AppStrings.common.save,

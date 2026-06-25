@@ -30,6 +30,11 @@ _ChatMessageMetadataModel _$ChatMessageMetadataModelFromJson(
       : DocumentMetadataModel.fromJson(
           json['documentMetadata'] as Map<String, dynamic>,
         ),
+  replyMetadata: json['replyMetadata'] == null
+      ? null
+      : ReplyMetadataModel.fromJson(
+          json['replyMetadata'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$ChatMessageMetadataModelToJson(
@@ -42,6 +47,7 @@ Map<String, dynamic> _$ChatMessageMetadataModelToJson(
   'imageMetadata': instance.imageMetadata?.toJson(),
   'pdfMetadata': instance.pdfMetadata?.toJson(),
   'documentMetadata': instance.documentMetadata?.toJson(),
+  'replyMetadata': instance.replyMetadata?.toJson(),
 };
 
 _VideoMetadataModel _$VideoMetadataModelFromJson(Map<String, dynamic> json) =>
@@ -97,3 +103,31 @@ Map<String, dynamic> _$DocumentMetadataModelToJson(
   'extension': instance.extension,
   'pageCount': instance.pageCount,
 };
+
+_ReplyMetadataModel _$ReplyMetadataModelFromJson(Map<String, dynamic> json) =>
+    _ReplyMetadataModel(
+      messageUid: json['messageUid'] as String,
+      senderName: json['senderName'] as String,
+      senderUid: json['senderUid'] as String,
+      type: json['type'] as String,
+      contentType: json['contentType'] as String?,
+      mediaUrl: json['mediaUrl'] as String?,
+      blurHash: json['blurHash'] as String?,
+      pageCount: (json['pageCount'] as num?)?.toInt(),
+      remainingMediaCount: (json['remainingMediaCount'] as num?)?.toInt(),
+      activityType: json['activityType'] as String?,
+    );
+
+Map<String, dynamic> _$ReplyMetadataModelToJson(_ReplyMetadataModel instance) =>
+    <String, dynamic>{
+      'messageUid': instance.messageUid,
+      'senderName': instance.senderName,
+      'senderUid': instance.senderUid,
+      'type': instance.type,
+      'contentType': instance.contentType,
+      'mediaUrl': instance.mediaUrl,
+      'blurHash': instance.blurHash,
+      'pageCount': instance.pageCount,
+      'remainingMediaCount': instance.remainingMediaCount,
+      'activityType': instance.activityType,
+    };

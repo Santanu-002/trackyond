@@ -1,19 +1,24 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mime/mime.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:trackyond/core/common/domain/usecase/upload_file_usecase.dart';
+import 'package:trackyond/core/services/database/database_service.dart';
+import 'package:trackyond/core/services/database/tables/queue_tasks_table.dart';
+import 'package:trackyond/core/common/enums/queue_task_status.dart';
+import 'package:trackyond/core/common/enums/queue_task_type.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/cancel_message_upload_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/retry_message_upload_usecase.dart';
+import 'package:trackyond/features/job_chat/data/models/response/chat_message_metadata_model.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/enums/attendance_status.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_status.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/core/common/events/chat_event.dart';
@@ -47,26 +52,29 @@ class JobChatController extends GetxController {
   final GetJobMessagesUseCase _getMessagesUseCase;
   final SendMessageUseCase _sendMessageUseCase;
   final GetJobChatMembersUseCase _getChatMembersUseCase;
-  final UploadFileUseCase _uploadFileUseCase;
   final ListenChatEventsUseCase _listenChatEventsUseCase;
   final MarkMessagesSeenUseCase _markMessagesSeenUseCase;
   final ClearConversationNotificationsUseCase _clearConversationNotificationsUseCase;
+  final CancelMessageUploadUseCase _cancelMessageUploadUseCase;
+  final RetryMessageUploadUseCase _retryMessageUploadUseCase;
 
   JobChatController({
     required GetJobMessagesUseCase getMessagesUseCase,
     required SendMessageUseCase sendMessageUseCase,
     required GetJobChatMembersUseCase getChatMembersUseCase,
-    required UploadFileUseCase uploadFileUseCase,
     required ListenChatEventsUseCase listenChatEventsUseCase,
     required MarkMessagesSeenUseCase markMessagesSeenUseCase,
     required ClearConversationNotificationsUseCase clearConversationNotificationsUseCase,
+    required CancelMessageUploadUseCase cancelMessageUploadUseCase,
+    required RetryMessageUploadUseCase retryMessageUploadUseCase,
   }) : _getMessagesUseCase = getMessagesUseCase,
        _sendMessageUseCase = sendMessageUseCase,
        _getChatMembersUseCase = getChatMembersUseCase,
-       _uploadFileUseCase = uploadFileUseCase,
        _listenChatEventsUseCase = listenChatEventsUseCase,
        _markMessagesSeenUseCase = markMessagesSeenUseCase,
-       _clearConversationNotificationsUseCase = clearConversationNotificationsUseCase;
+       _clearConversationNotificationsUseCase = clearConversationNotificationsUseCase,
+       _cancelMessageUploadUseCase = cancelMessageUploadUseCase,
+       _retryMessageUploadUseCase = retryMessageUploadUseCase;
 
   // Sub-controllers (lazy getters — resolved after all lazyPuts are registered)
   JobChatAttachmentController get attachmentController =>
@@ -106,13 +114,15 @@ class JobChatController extends GetxController {
   final RxBool hasMoreMessages = true.obs;
   final RxSet<String> activeDownloads = <String>{}.obs;
   
+  // Queue task status tracking sets
+  final RxSet<String> pendingUploads = <String>{}.obs;
+  final RxSet<String> uploadingMedia = <String>{}.obs;
+  final RxSet<String> failedUploads = <String>{}.obs;
+  
   // Background upload and progress maps
   final RxMap<String, double> uploadProgressMap = <String, double>{}.obs;
   final RxMap<String, String> uploadErrorMap = <String, String>{}.obs;
-  final Map<String, List<MediaPreviewItem>> _pendingItemsMap = {};
-  final Map<String, CancelToken> _uploadCancelTokens = {};
-  final Map<String, JobChatMessageEntity?> _pendingRepliesMap = {};
-  final Map<String, String> _pendingCaptionsMap = {};
+
 
   static const int _messageLimit = 20;
 
@@ -450,15 +460,22 @@ class JobChatController extends GetxController {
             pendingMessages.clear();
           }
           messages.add(finalMessage);
+          messages.sort(
+            (a, b) => a.createdByAuthorAt.compareTo(b.createdByAuthorAt),
+          );
           scrollToLast(animate: true);
         } else {
           pendingMessages.add(finalMessage);
+          pendingMessages.sort(
+            (a, b) => a.createdByAuthorAt.compareTo(b.createdByAuthorAt),
+          );
         }
       }
     }
   }
 
   void setReplyingTo(JobChatMessageEntity message) {
+    if (message.status == JobChatMessageStatus.pending) return;
     replyingToMessage.value = message;
     focusNode.requestFocus();
   }
@@ -532,11 +549,16 @@ class JobChatController extends GetxController {
 
   void scrollToMessage(String uid) {
     final index = flattenedItems.indexWhere((item) {
-      if (item is ChatMessageBubbleItem && item.message.uid == uid) return true;
-      if (item is ChatActivityBubble && item.message.uid == uid) return true;
+      if (item is ChatMessageBubbleItem && (item.message.uid == uid || item.message.serverUid == uid)) return true;
+      if (item is ChatActivityBubble && (item.message.uid == uid || item.message.serverUid == uid)) return true;
       return false;
     });
     if (index != -1) {
+      final targetItem = flattenedItems[index];
+      final String localUid = targetItem is ChatMessageBubbleItem
+          ? targetItem.message.uid
+          : (targetItem is ChatActivityBubble ? targetItem.message.uid : uid);
+
       itemScrollController.scrollTo(
         index: index,
         duration: const Duration(milliseconds: 300),
@@ -544,7 +566,7 @@ class JobChatController extends GetxController {
         curve: Curves.easeInOut,
       );
       Future.delayed(const Duration(milliseconds: 350), () {
-        _triggerHighlight(uid);
+        _triggerHighlight(localUid);
       });
     }
   }
@@ -776,6 +798,26 @@ class JobChatController extends GetxController {
               }
               messages.refresh();
             }
+          } else if (event is ChatUploadProgressEvent) {
+            pendingUploads.remove(event.messageUid);
+            uploadingMedia.add(event.messageUid);
+            failedUploads.remove(event.messageUid);
+            uploadProgressMap[event.messageUid] = event.progress;
+          } else if (event is ChatUploadErrorEvent) {
+            pendingUploads.remove(event.messageUid);
+            uploadingMedia.remove(event.messageUid);
+            failedUploads.add(event.messageUid);
+            uploadErrorMap[event.messageUid] = event.error;
+            uploadProgressMap.remove(event.messageUid);
+          } else if (event is ChatUploadCompleteEvent) {
+            uploadProgressMap.remove(event.messageUid);
+            uploadErrorMap.remove(event.messageUid);
+          } else if (event is ChatSendCompleteEvent) {
+            pendingUploads.remove(event.messageUid);
+            uploadingMedia.remove(event.messageUid);
+            failedUploads.remove(event.messageUid);
+            uploadProgressMap.remove(event.messageUid);
+            uploadErrorMap.remove(event.messageUid);
           }
         });
       },
@@ -788,10 +830,54 @@ class JobChatController extends GetxController {
       await _fetchUserRole();
       await _fetchProfileUid();
       await fetchMessages();
+      await _syncQueueTasksWithState();
     } catch (e) {
       debugPrint('Initialization error: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> _syncQueueTasksWithState() async {
+    try {
+      final db = Get.find<IDatabaseService>();
+      
+      // Query ALL tasks for debugging
+      final allRows = await db.query(QueueTasksTable.tableName);
+      debugPrint('SyncQueue: TOTAL tasks in DB: ${allRows.length}');
+      for (final r in allRows) {
+        debugPrint('SyncQueue DB Task: id=${r['id']}, type=${r['type']}, status=${r['status']}, payload=${r['payload']}');
+      }
+
+      final rows = await db.query(
+        QueueTasksTable.tableName,
+        where: 'payload LIKE ? AND (type = ? OR type = ?)',
+        whereArgs: [
+          '%"jobId":"${job.jobId}"%',
+          QueueTaskType.uploadMedia.name,
+          QueueTaskType.sendMessage.name,
+        ],
+      );
+
+      pendingUploads.clear();
+      uploadingMedia.clear();
+      failedUploads.clear();
+
+      for (final row in rows) {
+        final taskId = row['id'] as String;
+        final status = row['status'] as String;
+
+        if (status == QueueTaskStatus.pending.name) {
+          pendingUploads.add(taskId);
+        } else if (status == QueueTaskStatus.processing.name) {
+          uploadingMedia.add(taskId);
+        } else if (status == QueueTaskStatus.failed.name) {
+          failedUploads.add(taskId);
+          uploadErrorMap[taskId] = 'Failed to send';
+        }
+      }
+    } catch (e) {
+      debugPrint('JobChatController: Error syncing queue tasks: $e');
     }
   }
 
@@ -953,8 +1039,6 @@ class JobChatController extends GetxController {
       }
     }
 
-    // Separate items: images/videos go into ONE grouped message,
-    // documents/PDFs are sent as individual messages.
     final mediaItems = items
         .where((item) =>
             item.type == JobChatMessageContentType.image ||
@@ -966,228 +1050,70 @@ class JobChatController extends GetxController {
             item.type == JobChatMessageContentType.pdf)
         .toList();
 
-    // Send grouped images/videos as a single message
     if (mediaItems.isNotEmpty) {
-      _sendGroupedMediaMessage(mediaItems, replyingTo: replyingTo, caption: caption);
+      _composeAndSend(mediaItems, replyingTo: replyingTo, caption: caption);
     }
 
-    // Send each document/PDF as an individual message
     for (int i = 0; i < docItems.length; i++) {
-      // Only attach reply & caption to the first doc if there were no media items
       final attachReply = (mediaItems.isEmpty && i == 0) ? replyingTo : null;
       final attachCaption = (mediaItems.isEmpty && i == 0) ? caption : '';
-      _sendGroupedMediaMessage([docItems[i]], replyingTo: attachReply, caption: attachCaption);
+      _composeAndSend([docItems[i]], replyingTo: attachReply, caption: attachCaption);
     }
   }
 
-  /// Sends a list of media items as a single grouped message.
-  /// For images/videos, all items become content entries in one message,
-  /// enabling ChatImageGrid to render them in the appropriate grid layout.
-  void _sendGroupedMediaMessage(
+  void _composeAndSend(
     List<MediaPreviewItem> items, {
     JobChatMessageEntity? replyingTo,
     String caption = '',
   }) {
     final localId = 'temp_${nanoid(10)}';
-    _pendingItemsMap[localId] = items;
-    _pendingRepliesMap[localId] = replyingTo;
-    _pendingCaptionsMap[localId] = caption;
-
-    final List<JobChatMessageContentEntity> contentList = [];
-
-    // Add reply metadata if replying to another message
-    if (replyingTo != null) {
-      contentList.add(buildReplyContent(replyingTo, senderName: getSenderName(replyingTo)));
-    }
-
-    // Add ALL media items as content entries in the same message
-    for (final item in items) {
-      contentList.add(
-        JobChatMessageContentEntity(
-          type: item.type,
-          content: item.path,
-          metadata: item.metadata.toJson(),
-        ),
-      );
-    }
-
-    // Attach caption
-    if (caption.isNotEmpty) {
-      contentList.add(
+    pendingUploads.add(localId);
+    final contentList = <JobChatMessageContentEntity>[
+      if (replyingTo != null)
+        buildReplyContent(replyingTo, senderName: getSenderName(replyingTo)),
+      ...items.map((item) => JobChatMessageContentEntity(
+            type: item.type,
+            content: item.path,
+            metadata: item.metadata.toJson(),
+          )),
+      if (caption.isNotEmpty)
         JobChatMessageContentEntity(
           type: JobChatMessageContentType.text,
           content: caption,
         ),
-      );
-    }
+    ];
 
-    final placeholderMessage = JobChatMessageEntity(
-      uid: localId,
-      jobId: job.jobId,
-      senderUid: _currentUserProfileUid.value,
-      content: contentList,
-      createdByAuthorAt: DateTime.now(),
-      isMe: true,
-      type: JobChatMessageType.message,
-    );
-
-    // Instantly insert placeholder in UI
-    messages.add(placeholderMessage);
-    scrollToLast(animate: true);
-
-    // Start the background upload process for all items in this group
-    _uploadAndSendMediaGroup(localId, items, replyingTo, caption: caption);
-  }
-
-
-  Future<void> _uploadAndSendMediaGroup(
-    String localId,
-    List<MediaPreviewItem> items,
-    JobChatMessageEntity? replyingTo, {
-    String caption = '',
-  }) async {
-    uploadProgressMap[localId] = 0.0;
-    uploadErrorMap.remove(localId);
-
-    final cancelToken = CancelToken();
-    _uploadCancelTokens[localId] = cancelToken;
-
-    // Upload all files sequentially, collecting remote paths
-    final List<MapEntry<MediaPreviewItem, String>> uploadedEntries = [];
-    bool anyFailed = false;
-
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
-      final file = File(item.path);
-      final uploadResult = await _uploadFileUseCase(
-        UploadFileParams(
-          file: file,
-          path: job.jobId,
-          cancelToken: cancelToken,
-          onSendProgress: (sent, total) {
-            if (total > 0 && !cancelToken.isCancelled) {
-              // Progress: fraction of current file + completed files
-              final fileProgress = sent / total;
-              uploadProgressMap[localId] = (i + fileProgress) / items.length;
-            }
-          },
-        ),
-      );
-
-      if (cancelToken.isCancelled) {
-        return;
-      }
-
-      final remotePath = uploadResult.fold(
-        (failure) {
-          debugPrint('Background upload failed for $localId item $i: ${failure.message}');
-          return null;
-        },
-        (path) => path,
-      );
-
-      if (remotePath == null) {
-        anyFailed = true;
-        break;
-      }
-
-      uploadedEntries.add(MapEntry(item, remotePath));
-    }
-
-    _uploadCancelTokens.remove(localId);
-
-    if (anyFailed) {
-      uploadErrorMap[localId] = 'Upload failed';
-      uploadProgressMap.remove(localId);
-      return;
-    }
-
-    // Build the final content list with remote URLs
-    final List<JobChatMessageContentEntity> contentList = [];
-
-    // 1. Add reply metadata if applicable
-    if (replyingTo != null) {
-      contentList.add(buildReplyContent(replyingTo, senderName: getSenderName(replyingTo)));
-    }
-
-    // 2. Add all media content entries pointing to remote paths
-    for (final entry in uploadedEntries) {
-      contentList.add(
-        JobChatMessageContentEntity(
-          type: entry.key.type,
-          content: entry.value,
-          metadata: entry.key.metadata.toJson(),
-        ),
-      );
-    }
-
-    // 3. Attach caption
-    if (caption.isNotEmpty) {
-      contentList.add(
-        JobChatMessageContentEntity(
-          type: JobChatMessageContentType.text,
-          content: caption,
-        ),
-      );
-    }
-
-    final sendMessageEntity = SendMessageEntity(
-      localUid: localId,
-      jobId: job.jobId,
-      senderUid: _currentUserProfileUid.value,
-      content: contentList,
-      createdByAuthorAt: DateTime.now(),
-      type: JobChatMessageType.message,
-    );
-
-    final sendResult = await _sendMessageUseCase(
-      SendMessageParams(messages: [sendMessageEntity]),
-    );
-
-    sendResult.fold(
-      (failure) {
-        debugPrint('Background message send failed for $localId: ${failure.message}');
-        uploadErrorMap[localId] = failure.message;
-        uploadProgressMap.remove(localId);
-      },
-      (result) {
-        uploadProgressMap.remove(localId);
-        uploadErrorMap.remove(localId);
-        _pendingItemsMap.remove(localId);
-        _pendingRepliesMap.remove(localId);
-        _pendingCaptionsMap.remove(localId);
-
-        // Replace placeholder message in list with the actual response message
-        addOrUpdateMessage(result.message);
-
-        if (result.job != null) {
-          updateJob(result.job!);
-        }
-      },
+    _sendMessageUseCase(
+      SendMessageParams(
+        messages: [
+          SendMessageEntity(
+            localUid: localId,
+            jobId: job.jobId,
+            senderUid: _currentUserProfileUid.value,
+            content: contentList,
+            createdByAuthorAt: DateTime.now(),
+            type: JobChatMessageType.message,
+          ),
+        ],
+      ),
     );
   }
 
   void retryMessageUpload(String localId) {
-    final items = _pendingItemsMap[localId];
-    if (items == null || items.isEmpty) return;
-    final replyingTo = _pendingRepliesMap[localId];
-    final caption = _pendingCaptionsMap[localId] ?? '';
-    _uploadAndSendMediaGroup(localId, items, replyingTo, caption: caption);
+    uploadErrorMap.remove(localId);
+    uploadProgressMap[localId] = 0.0;
+    failedUploads.remove(localId);
+    pendingUploads.add(localId);
+    _retryMessageUploadUseCase(RetryMessageUploadParams(messageUid: localId));
   }
 
   void cancelMessageUpload(String localId) {
-    final cancelToken = _uploadCancelTokens[localId];
-    if (cancelToken != null) {
-      cancelToken.cancel('Upload cancelled by user');
-      _uploadCancelTokens.remove(localId);
-    }
     uploadProgressMap.remove(localId);
     uploadErrorMap.remove(localId);
-    _pendingItemsMap.remove(localId);
-    _pendingRepliesMap.remove(localId);
-    _pendingCaptionsMap.remove(localId);
-    messages.removeWhere((m) => m.uid == localId);
-    messages.refresh();
+    pendingUploads.remove(localId);
+    uploadingMedia.remove(localId);
+    failedUploads.remove(localId);
+    _cancelMessageUploadUseCase(CancelMessageUploadParams(messageUid: localId));
   }
 
   Future<void> sendMessage() async {
@@ -1247,11 +1173,14 @@ class JobChatController extends GetxController {
     replyingToMessage.value = null;
     _initialFirstUnreadMessageUid = null;
 
+    final localUid = nanoid(10);
+    pendingUploads.add(localUid);
+
     final result = await _sendMessageUseCase(
       SendMessageParams(
         messages: [
           SendMessageEntity(
-            localUid: nanoid(10),
+            localUid: localUid,
             jobId: job.jobId,
             senderUid: _currentUserProfileUid.value,
             content: contentList,
@@ -1265,62 +1194,8 @@ class JobChatController extends GetxController {
 
     result.fold(
       (failure) => AppSnackbar.destructive(failure.message),
-      (sendResult) {
-        addOrUpdateMessage(sendResult.message);
-        if (sendResult.job != null) updateJob(sendResult.job!);
-      },
+      (_) {},
     );
-  }
-
-  Future<void> sendAttachmentMessage({
-    required JobChatMessageContentType type,
-    required String contentText,
-    required String mediaUrl,
-    required Map<String, dynamic> metadata,
-  }) async {
-    if (_currentUserProfileUid.value == null) return;
-
-    isMessageSending.value = true;
-    final tempLocalId = nanoid(10);
-    try {
-      final List<JobChatMessageContentEntity> contentList = [
-        JobChatMessageContentEntity(
-          type: type,
-          content: contentText,
-          metadata: metadata,
-        ),
-      ];
-
-      final sendMessageEntity = SendMessageEntity(
-        localUid: tempLocalId,
-        jobId: job.jobId,
-        senderUid: _currentUserProfileUid.value,
-        content: contentList,
-        createdByAuthorAt: DateTime.now(),
-        type: JobChatMessageType.message,
-      );
-
-      final result = await _sendMessageUseCase(
-        SendMessageParams(messages: [sendMessageEntity]),
-      );
-
-      result.fold(
-        (failure) {
-          AppSnackbar.destructive(failure.message);
-        },
-        (sendResult) {
-          _initialFirstUnreadMessageUid = null;
-          addOrUpdateMessage(sendResult.message);
-          if (sendResult.job != null) {
-            updateJob(sendResult.job!);
-          }
-        },
-      );
-    } catch (e) {
-      AppSnackbar.destructive(e.toString());
-    } finally {
-      isMessageSending.value = false;
-    }
   }
 
   Future<void> sendCapturedVideo(String videoPath) async {
@@ -1345,33 +1220,22 @@ class JobChatController extends GetxController {
         debugPrint('Error getting video metadata: $e');
       }
 
-      final uploadResult = await _uploadFileUseCase(
-        UploadFileParams(file: file, path: job.jobId),
+      final item = MediaPreviewItem(
+        path: videoPath,
+        type: JobChatMessageContentType.video,
+        metadata: ChatMessageMetadataModel(
+          fileName: fileName,
+          size: AppUtils.formatFileSize(fileSize),
+          mimeType: mimeType,
+          videoMetadata: VideoMetadataModel(
+            aspectRatio: aspectRatio,
+            duration: durationSec,
+            thumbnailBlurHash: 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
+          ),
+        ),
       );
 
-      await uploadResult.fold(
-        (failure) async {
-          debugPrint('Upload failed: ${failure.message}');
-          AppSnackbar.destructive('Failed to upload video: ${failure.message}');
-        },
-        (path) async {
-          await sendAttachmentMessage(
-            type: JobChatMessageContentType.video,
-            contentText: path,
-            mediaUrl: Uri.encodeFull(path),
-            metadata: {
-              'fileName': fileName,
-              'size': AppUtils.formatFileSize(fileSize),
-              'mimeType': mimeType,
-              'videoMetadata': {
-                'aspectRatio': aspectRatio,
-                'duration': durationSec,
-                'thumbnailBlurHash': 'L5H2EC=PM+yV0g-mq.wG9c010J}I',
-              },
-            },
-          );
-        },
-      );
+      await sendMediaMessagesBackground([item]);
     } catch (e) {
       AppSnackbar.destructive('Error sending captured video: $e');
     } finally {

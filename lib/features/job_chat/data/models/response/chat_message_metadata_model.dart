@@ -13,6 +13,7 @@ sealed class ChatMessageMetadataModel with _$ChatMessageMetadataModel {
     ImageMetadataModel? imageMetadata,
     PdfMetadataModel? pdfMetadata,
     DocumentMetadataModel? documentMetadata,
+    ReplyMetadataModel? replyMetadata,
   }) = _ChatMessageMetadataModel;
 
   const ChatMessageMetadataModel._();
@@ -33,6 +34,8 @@ sealed class ChatMessageMetadataModel with _$ChatMessageMetadataModel {
         return pdfMetadata?.toJson();
       case 'documentMetadata':
         return documentMetadata?.toJson();
+      case 'replyMetadata':
+        return replyMetadata?.toJson();
       default:
         return null;
     }
@@ -94,4 +97,25 @@ sealed class DocumentMetadataModel with _$DocumentMetadataModel {
 
   factory DocumentMetadataModel.fromJson(Map<String, dynamic> json) =>
       _$DocumentMetadataModelFromJson(json);
+}
+
+@freezed
+sealed class ReplyMetadataModel with _$ReplyMetadataModel {
+  const factory ReplyMetadataModel({
+    required String messageUid,
+    required String senderName,
+    required String senderUid,
+    required String type,
+    String? contentType,
+    String? mediaUrl,
+    String? blurHash,
+    int? pageCount,
+    int? remainingMediaCount,
+    String? activityType,
+  }) = _ReplyMetadataModel;
+
+  const ReplyMetadataModel._();
+
+  factory ReplyMetadataModel.fromJson(Map<String, dynamic> json) =>
+      _$ReplyMetadataModelFromJson(json);
 }

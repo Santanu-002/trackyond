@@ -9,6 +9,7 @@ import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/activit
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/bubble_time_and_status.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/chat_image_grid/chat_image_grid.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/reply_image_thumbnail.dart';
+import 'package:trackyond/features/job_chat/data/models/response/chat_message_metadata_model.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
@@ -145,7 +146,14 @@ class MessageBubble extends StatelessWidget {
         );
 
         if (replyContent != null) {
-          final metadata = replyContent.metadata ?? {};
+          final dynamic rawMetadata = replyContent.metadata;
+          final Map<String, dynamic> metadata = rawMetadata is ChatMessageMetadataModel
+              ? (rawMetadata.replyMetadata?.toJson() ?? {})
+              : (rawMetadata is Map
+                  ? (rawMetadata['replyMetadata'] is Map
+                      ? Map<String, dynamic>.from(rawMetadata['replyMetadata'] as Map)
+                      : Map<String, dynamic>.from(rawMetadata))
+                  : {});
           final replyToUid = metadata['messageUid'] as String? ?? '';
           final replySenderUid = metadata['senderUid'] as String?;
           final replySenderName = metadata['senderName'] as String? ?? '';
@@ -214,7 +222,7 @@ class MessageBubble extends StatelessWidget {
                   ),
                   child: Icon(
                     activityType.icon,
-                    size: 12,
+                    size: 14,
                     color: isMe
                         ? colorScheme.onPrimary.withValues(alpha: 0.7)
                         : colorScheme.primary,
@@ -364,8 +372,8 @@ class MessageBubble extends StatelessWidget {
                             imageUrl: mediaUrl.startsWith('http') ? mediaUrl : ApiEndpoints.common.download(mediaUrl),
                             blurHash: replyBlurHash,
                             remainingCount: remainingMediaCount,
-                            size: 30.0,
-                            borderRadius: 2.0,
+                            size: 36.0,
+                            borderRadius: AppUIConstants.radius.radius$4,
                             isVideo: contentType == JobChatMessageContentType.video,
                           ),
                           AppUIConstants.widgets.horizontalBox$8,
@@ -424,7 +432,7 @@ class MessageBubble extends StatelessWidget {
                 message: message,
                 imageContents: mediaContents,
                 isMe: isMe,
-                width: 240,
+                width: maxBubbleWidth - 8.0,
                 showTimeOverlay: isSingleMediaNoCaption,
               ),
             ),

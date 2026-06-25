@@ -52,16 +52,20 @@ class ReplyPreviewBar extends GetView<JobChatController> {
         }
       }
 
-      // Check if it has an image or video
+      // Check if it has an image, video, document, or pdf
       final mediaContents = replyMsg.content
           .where((c) =>
               c.type == JobChatMessageContentType.image ||
-              c.type == JobChatMessageContentType.video)
+              c.type == JobChatMessageContentType.video ||
+              c.type == JobChatMessageContentType.document ||
+              c.type == JobChatMessageContentType.pdf)
           .toList();
       final firstMedia = mediaContents.firstOrNull;
       String? imageUrl;
       String? blurHash;
-      if (firstMedia != null) {
+      if (firstMedia != null &&
+          (firstMedia.type == JobChatMessageContentType.image ||
+           firstMedia.type == JobChatMessageContentType.video)) {
         final path = firstMedia.content ?? '';
         imageUrl = path.startsWith('http') ? path : ApiEndpoints.common.download(path);
         
@@ -87,7 +91,7 @@ class ReplyPreviewBar extends GetView<JobChatController> {
             blurHash: blurHash,
             remainingCount:
                 mediaContents.length > 1 ? (mediaContents.length - 1) : 0,
-            size: 40.0,
+            size: 36.0,
             borderRadius: AppUIConstants.radius.radius$4,
             isVideo: firstMedia?.type == JobChatMessageContentType.video,
           ),
@@ -102,23 +106,24 @@ class ReplyPreviewBar extends GetView<JobChatController> {
         final activityIcon = activityType.icon;
 
         contentWidget = Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(6.0),
-              // fine-tuned icon container padding
+              padding: const EdgeInsets.all(4.0),
               decoration: BoxDecoration(
                 color: colorScheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(activityIcon, size: 16, color: colorScheme.primary),
+              child: Icon(activityIcon, size: 14, color: colorScheme.primary),
             ),
-            AppUIConstants.widgets.horizontalBox$8,
-            Expanded(
+            AppUIConstants.widgets.horizontalBox$4,
+            Flexible(
               child: Text(
                 activityTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.bodySmall?.copyWith(
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurface,
                 ),
@@ -133,8 +138,16 @@ class ReplyPreviewBar extends GetView<JobChatController> {
                 ?.content ??
             '';
         String displayBody = textContent;
-        if (imageUrl != null && textContent.isEmpty) {
-          displayBody = firstMedia?.type == JobChatMessageContentType.video ? 'Video' : 'Photo';
+        if (firstMedia != null && textContent.isEmpty) {
+          if (firstMedia.type == JobChatMessageContentType.video) {
+            displayBody = 'Video';
+          } else if (firstMedia.type == JobChatMessageContentType.image) {
+            displayBody = 'Photo';
+          } else if (firstMedia.type == JobChatMessageContentType.pdf) {
+            displayBody = 'PDF';
+          } else {
+            displayBody = 'Document';
+          }
         }
 
         if (firstMedia?.type == JobChatMessageContentType.video) {
@@ -153,6 +166,7 @@ class ReplyPreviewBar extends GetView<JobChatController> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -175,6 +189,31 @@ class ReplyPreviewBar extends GetView<JobChatController> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          );
+        } else if (firstMedia?.type == JobChatMessageContentType.document || firstMedia?.type == JobChatMessageContentType.pdf) {
+          final isPdf = firstMedia?.type == JobChatMessageContentType.pdf;
+          contentWidget = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isPdf ? Icons.picture_as_pdf : Icons.description,
+                size: 14,
+                color: colorScheme.primary,
+              ),
+              AppUIConstants.widgets.horizontalBox$4,
+              Flexible(
+                child: Text(
+                  displayBody,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontSize: 12,
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -187,6 +226,7 @@ class ReplyPreviewBar extends GetView<JobChatController> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: textTheme.bodySmall?.copyWith(
+              fontSize: 12,
               color: colorScheme.onSurfaceVariant,
             ),
           );

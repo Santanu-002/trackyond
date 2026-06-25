@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ChatMessageMetadataModel {
 
- String? get fileName; String? get size; String? get mimeType; VideoMetadataModel? get videoMetadata; ImageMetadataModel? get imageMetadata; PdfMetadataModel? get pdfMetadata; DocumentMetadataModel? get documentMetadata;
+ String? get fileName; String? get size; String? get mimeType; VideoMetadataModel? get videoMetadata; ImageMetadataModel? get imageMetadata; PdfMetadataModel? get pdfMetadata; DocumentMetadataModel? get documentMetadata; ReplyMetadataModel? get replyMetadata;
 /// Create a copy of ChatMessageMetadataModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ChatMessageMetadataModelCopyWith<ChatMessageMetadataModel> get copyWith => _$Ch
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatMessageMetadataModel&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.size, size) || other.size == size)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.videoMetadata, videoMetadata) || other.videoMetadata == videoMetadata)&&(identical(other.imageMetadata, imageMetadata) || other.imageMetadata == imageMetadata)&&(identical(other.pdfMetadata, pdfMetadata) || other.pdfMetadata == pdfMetadata)&&(identical(other.documentMetadata, documentMetadata) || other.documentMetadata == documentMetadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChatMessageMetadataModel&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.size, size) || other.size == size)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.videoMetadata, videoMetadata) || other.videoMetadata == videoMetadata)&&(identical(other.imageMetadata, imageMetadata) || other.imageMetadata == imageMetadata)&&(identical(other.pdfMetadata, pdfMetadata) || other.pdfMetadata == pdfMetadata)&&(identical(other.documentMetadata, documentMetadata) || other.documentMetadata == documentMetadata)&&(identical(other.replyMetadata, replyMetadata) || other.replyMetadata == replyMetadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fileName,size,mimeType,videoMetadata,imageMetadata,pdfMetadata,documentMetadata);
+int get hashCode => Object.hash(runtimeType,fileName,size,mimeType,videoMetadata,imageMetadata,pdfMetadata,documentMetadata,replyMetadata);
 
 @override
 String toString() {
-  return 'ChatMessageMetadataModel(fileName: $fileName, size: $size, mimeType: $mimeType, videoMetadata: $videoMetadata, imageMetadata: $imageMetadata, pdfMetadata: $pdfMetadata, documentMetadata: $documentMetadata)';
+  return 'ChatMessageMetadataModel(fileName: $fileName, size: $size, mimeType: $mimeType, videoMetadata: $videoMetadata, imageMetadata: $imageMetadata, pdfMetadata: $pdfMetadata, documentMetadata: $documentMetadata, replyMetadata: $replyMetadata)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $ChatMessageMetadataModelCopyWith<$Res>  {
   factory $ChatMessageMetadataModelCopyWith(ChatMessageMetadataModel value, $Res Function(ChatMessageMetadataModel) _then) = _$ChatMessageMetadataModelCopyWithImpl;
 @useResult
 $Res call({
- String? fileName, String? size, String? mimeType, VideoMetadataModel? videoMetadata, ImageMetadataModel? imageMetadata, PdfMetadataModel? pdfMetadata, DocumentMetadataModel? documentMetadata
+ String? fileName, String? size, String? mimeType, VideoMetadataModel? videoMetadata, ImageMetadataModel? imageMetadata, PdfMetadataModel? pdfMetadata, DocumentMetadataModel? documentMetadata, ReplyMetadataModel? replyMetadata
 });
 
 
-$VideoMetadataModelCopyWith<$Res>? get videoMetadata;$ImageMetadataModelCopyWith<$Res>? get imageMetadata;$PdfMetadataModelCopyWith<$Res>? get pdfMetadata;$DocumentMetadataModelCopyWith<$Res>? get documentMetadata;
+$VideoMetadataModelCopyWith<$Res>? get videoMetadata;$ImageMetadataModelCopyWith<$Res>? get imageMetadata;$PdfMetadataModelCopyWith<$Res>? get pdfMetadata;$DocumentMetadataModelCopyWith<$Res>? get documentMetadata;$ReplyMetadataModelCopyWith<$Res>? get replyMetadata;
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$ChatMessageMetadataModelCopyWithImpl<$Res>
 
 /// Create a copy of ChatMessageMetadataModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? fileName = freezed,Object? size = freezed,Object? mimeType = freezed,Object? videoMetadata = freezed,Object? imageMetadata = freezed,Object? pdfMetadata = freezed,Object? documentMetadata = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? fileName = freezed,Object? size = freezed,Object? mimeType = freezed,Object? videoMetadata = freezed,Object? imageMetadata = freezed,Object? pdfMetadata = freezed,Object? documentMetadata = freezed,Object? replyMetadata = freezed,}) {
   return _then(_self.copyWith(
 fileName: freezed == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
 as String?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,8 @@ as String?,videoMetadata: freezed == videoMetadata ? _self.videoMetadata : video
 as VideoMetadataModel?,imageMetadata: freezed == imageMetadata ? _self.imageMetadata : imageMetadata // ignore: cast_nullable_to_non_nullable
 as ImageMetadataModel?,pdfMetadata: freezed == pdfMetadata ? _self.pdfMetadata : pdfMetadata // ignore: cast_nullable_to_non_nullable
 as PdfMetadataModel?,documentMetadata: freezed == documentMetadata ? _self.documentMetadata : documentMetadata // ignore: cast_nullable_to_non_nullable
-as DocumentMetadataModel?,
+as DocumentMetadataModel?,replyMetadata: freezed == replyMetadata ? _self.replyMetadata : replyMetadata // ignore: cast_nullable_to_non_nullable
+as ReplyMetadataModel?,
   ));
 }
 /// Create a copy of ChatMessageMetadataModel
@@ -124,6 +125,18 @@ $DocumentMetadataModelCopyWith<$Res>? get documentMetadata {
 
   return $DocumentMetadataModelCopyWith<$Res>(_self.documentMetadata!, (value) {
     return _then(_self.copyWith(documentMetadata: value));
+  });
+}/// Create a copy of ChatMessageMetadataModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ReplyMetadataModelCopyWith<$Res>? get replyMetadata {
+    if (_self.replyMetadata == null) {
+    return null;
+  }
+
+  return $ReplyMetadataModelCopyWith<$Res>(_self.replyMetadata!, (value) {
+    return _then(_self.copyWith(replyMetadata: value));
   });
 }
 }
@@ -204,10 +217,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? fileName,  String? size,  String? mimeType,  VideoMetadataModel? videoMetadata,  ImageMetadataModel? imageMetadata,  PdfMetadataModel? pdfMetadata,  DocumentMetadataModel? documentMetadata)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? fileName,  String? size,  String? mimeType,  VideoMetadataModel? videoMetadata,  ImageMetadataModel? imageMetadata,  PdfMetadataModel? pdfMetadata,  DocumentMetadataModel? documentMetadata,  ReplyMetadataModel? replyMetadata)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ChatMessageMetadataModel() when $default != null:
-return $default(_that.fileName,_that.size,_that.mimeType,_that.videoMetadata,_that.imageMetadata,_that.pdfMetadata,_that.documentMetadata);case _:
+return $default(_that.fileName,_that.size,_that.mimeType,_that.videoMetadata,_that.imageMetadata,_that.pdfMetadata,_that.documentMetadata,_that.replyMetadata);case _:
   return orElse();
 
 }
@@ -225,10 +238,10 @@ return $default(_that.fileName,_that.size,_that.mimeType,_that.videoMetadata,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? fileName,  String? size,  String? mimeType,  VideoMetadataModel? videoMetadata,  ImageMetadataModel? imageMetadata,  PdfMetadataModel? pdfMetadata,  DocumentMetadataModel? documentMetadata)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? fileName,  String? size,  String? mimeType,  VideoMetadataModel? videoMetadata,  ImageMetadataModel? imageMetadata,  PdfMetadataModel? pdfMetadata,  DocumentMetadataModel? documentMetadata,  ReplyMetadataModel? replyMetadata)  $default,) {final _that = this;
 switch (_that) {
 case _ChatMessageMetadataModel():
-return $default(_that.fileName,_that.size,_that.mimeType,_that.videoMetadata,_that.imageMetadata,_that.pdfMetadata,_that.documentMetadata);}
+return $default(_that.fileName,_that.size,_that.mimeType,_that.videoMetadata,_that.imageMetadata,_that.pdfMetadata,_that.documentMetadata,_that.replyMetadata);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -242,10 +255,10 @@ return $default(_that.fileName,_that.size,_that.mimeType,_that.videoMetadata,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? fileName,  String? size,  String? mimeType,  VideoMetadataModel? videoMetadata,  ImageMetadataModel? imageMetadata,  PdfMetadataModel? pdfMetadata,  DocumentMetadataModel? documentMetadata)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? fileName,  String? size,  String? mimeType,  VideoMetadataModel? videoMetadata,  ImageMetadataModel? imageMetadata,  PdfMetadataModel? pdfMetadata,  DocumentMetadataModel? documentMetadata,  ReplyMetadataModel? replyMetadata)?  $default,) {final _that = this;
 switch (_that) {
 case _ChatMessageMetadataModel() when $default != null:
-return $default(_that.fileName,_that.size,_that.mimeType,_that.videoMetadata,_that.imageMetadata,_that.pdfMetadata,_that.documentMetadata);case _:
+return $default(_that.fileName,_that.size,_that.mimeType,_that.videoMetadata,_that.imageMetadata,_that.pdfMetadata,_that.documentMetadata,_that.replyMetadata);case _:
   return null;
 
 }
@@ -257,7 +270,7 @@ return $default(_that.fileName,_that.size,_that.mimeType,_that.videoMetadata,_th
 @JsonSerializable()
 
 class _ChatMessageMetadataModel extends ChatMessageMetadataModel {
-  const _ChatMessageMetadataModel({this.fileName, this.size, this.mimeType, this.videoMetadata, this.imageMetadata, this.pdfMetadata, this.documentMetadata}): super._();
+  const _ChatMessageMetadataModel({this.fileName, this.size, this.mimeType, this.videoMetadata, this.imageMetadata, this.pdfMetadata, this.documentMetadata, this.replyMetadata}): super._();
   factory _ChatMessageMetadataModel.fromJson(Map<String, dynamic> json) => _$ChatMessageMetadataModelFromJson(json);
 
 @override final  String? fileName;
@@ -267,6 +280,7 @@ class _ChatMessageMetadataModel extends ChatMessageMetadataModel {
 @override final  ImageMetadataModel? imageMetadata;
 @override final  PdfMetadataModel? pdfMetadata;
 @override final  DocumentMetadataModel? documentMetadata;
+@override final  ReplyMetadataModel? replyMetadata;
 
 /// Create a copy of ChatMessageMetadataModel
 /// with the given fields replaced by the non-null parameter values.
@@ -281,16 +295,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatMessageMetadataModel&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.size, size) || other.size == size)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.videoMetadata, videoMetadata) || other.videoMetadata == videoMetadata)&&(identical(other.imageMetadata, imageMetadata) || other.imageMetadata == imageMetadata)&&(identical(other.pdfMetadata, pdfMetadata) || other.pdfMetadata == pdfMetadata)&&(identical(other.documentMetadata, documentMetadata) || other.documentMetadata == documentMetadata));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChatMessageMetadataModel&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.size, size) || other.size == size)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.videoMetadata, videoMetadata) || other.videoMetadata == videoMetadata)&&(identical(other.imageMetadata, imageMetadata) || other.imageMetadata == imageMetadata)&&(identical(other.pdfMetadata, pdfMetadata) || other.pdfMetadata == pdfMetadata)&&(identical(other.documentMetadata, documentMetadata) || other.documentMetadata == documentMetadata)&&(identical(other.replyMetadata, replyMetadata) || other.replyMetadata == replyMetadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fileName,size,mimeType,videoMetadata,imageMetadata,pdfMetadata,documentMetadata);
+int get hashCode => Object.hash(runtimeType,fileName,size,mimeType,videoMetadata,imageMetadata,pdfMetadata,documentMetadata,replyMetadata);
 
 @override
 String toString() {
-  return 'ChatMessageMetadataModel(fileName: $fileName, size: $size, mimeType: $mimeType, videoMetadata: $videoMetadata, imageMetadata: $imageMetadata, pdfMetadata: $pdfMetadata, documentMetadata: $documentMetadata)';
+  return 'ChatMessageMetadataModel(fileName: $fileName, size: $size, mimeType: $mimeType, videoMetadata: $videoMetadata, imageMetadata: $imageMetadata, pdfMetadata: $pdfMetadata, documentMetadata: $documentMetadata, replyMetadata: $replyMetadata)';
 }
 
 
@@ -301,11 +315,11 @@ abstract mixin class _$ChatMessageMetadataModelCopyWith<$Res> implements $ChatMe
   factory _$ChatMessageMetadataModelCopyWith(_ChatMessageMetadataModel value, $Res Function(_ChatMessageMetadataModel) _then) = __$ChatMessageMetadataModelCopyWithImpl;
 @override @useResult
 $Res call({
- String? fileName, String? size, String? mimeType, VideoMetadataModel? videoMetadata, ImageMetadataModel? imageMetadata, PdfMetadataModel? pdfMetadata, DocumentMetadataModel? documentMetadata
+ String? fileName, String? size, String? mimeType, VideoMetadataModel? videoMetadata, ImageMetadataModel? imageMetadata, PdfMetadataModel? pdfMetadata, DocumentMetadataModel? documentMetadata, ReplyMetadataModel? replyMetadata
 });
 
 
-@override $VideoMetadataModelCopyWith<$Res>? get videoMetadata;@override $ImageMetadataModelCopyWith<$Res>? get imageMetadata;@override $PdfMetadataModelCopyWith<$Res>? get pdfMetadata;@override $DocumentMetadataModelCopyWith<$Res>? get documentMetadata;
+@override $VideoMetadataModelCopyWith<$Res>? get videoMetadata;@override $ImageMetadataModelCopyWith<$Res>? get imageMetadata;@override $PdfMetadataModelCopyWith<$Res>? get pdfMetadata;@override $DocumentMetadataModelCopyWith<$Res>? get documentMetadata;@override $ReplyMetadataModelCopyWith<$Res>? get replyMetadata;
 
 }
 /// @nodoc
@@ -318,7 +332,7 @@ class __$ChatMessageMetadataModelCopyWithImpl<$Res>
 
 /// Create a copy of ChatMessageMetadataModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? fileName = freezed,Object? size = freezed,Object? mimeType = freezed,Object? videoMetadata = freezed,Object? imageMetadata = freezed,Object? pdfMetadata = freezed,Object? documentMetadata = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? fileName = freezed,Object? size = freezed,Object? mimeType = freezed,Object? videoMetadata = freezed,Object? imageMetadata = freezed,Object? pdfMetadata = freezed,Object? documentMetadata = freezed,Object? replyMetadata = freezed,}) {
   return _then(_ChatMessageMetadataModel(
 fileName: freezed == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
 as String?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
@@ -327,7 +341,8 @@ as String?,videoMetadata: freezed == videoMetadata ? _self.videoMetadata : video
 as VideoMetadataModel?,imageMetadata: freezed == imageMetadata ? _self.imageMetadata : imageMetadata // ignore: cast_nullable_to_non_nullable
 as ImageMetadataModel?,pdfMetadata: freezed == pdfMetadata ? _self.pdfMetadata : pdfMetadata // ignore: cast_nullable_to_non_nullable
 as PdfMetadataModel?,documentMetadata: freezed == documentMetadata ? _self.documentMetadata : documentMetadata // ignore: cast_nullable_to_non_nullable
-as DocumentMetadataModel?,
+as DocumentMetadataModel?,replyMetadata: freezed == replyMetadata ? _self.replyMetadata : replyMetadata // ignore: cast_nullable_to_non_nullable
+as ReplyMetadataModel?,
   ));
 }
 
@@ -378,6 +393,18 @@ $DocumentMetadataModelCopyWith<$Res>? get documentMetadata {
 
   return $DocumentMetadataModelCopyWith<$Res>(_self.documentMetadata!, (value) {
     return _then(_self.copyWith(documentMetadata: value));
+  });
+}/// Create a copy of ChatMessageMetadataModel
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ReplyMetadataModelCopyWith<$Res>? get replyMetadata {
+    if (_self.replyMetadata == null) {
+    return null;
+  }
+
+  return $ReplyMetadataModelCopyWith<$Res>(_self.replyMetadata!, (value) {
+    return _then(_self.copyWith(replyMetadata: value));
   });
 }
 }
@@ -1422,6 +1449,290 @@ class __$DocumentMetadataModelCopyWithImpl<$Res>
 extension: null == extension ? _self.extension : extension // ignore: cast_nullable_to_non_nullable
 as String,pageCount: freezed == pageCount ? _self.pageCount : pageCount // ignore: cast_nullable_to_non_nullable
 as int?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$ReplyMetadataModel {
+
+ String get messageUid; String get senderName; String get senderUid; String get type; String? get contentType; String? get mediaUrl; String? get blurHash; int? get pageCount; int? get remainingMediaCount; String? get activityType;
+/// Create a copy of ReplyMetadataModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ReplyMetadataModelCopyWith<ReplyMetadataModel> get copyWith => _$ReplyMetadataModelCopyWithImpl<ReplyMetadataModel>(this as ReplyMetadataModel, _$identity);
+
+  /// Serializes this ReplyMetadataModel to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReplyMetadataModel&&(identical(other.messageUid, messageUid) || other.messageUid == messageUid)&&(identical(other.senderName, senderName) || other.senderName == senderName)&&(identical(other.senderUid, senderUid) || other.senderUid == senderUid)&&(identical(other.type, type) || other.type == type)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.mediaUrl, mediaUrl) || other.mediaUrl == mediaUrl)&&(identical(other.blurHash, blurHash) || other.blurHash == blurHash)&&(identical(other.pageCount, pageCount) || other.pageCount == pageCount)&&(identical(other.remainingMediaCount, remainingMediaCount) || other.remainingMediaCount == remainingMediaCount)&&(identical(other.activityType, activityType) || other.activityType == activityType));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,messageUid,senderName,senderUid,type,contentType,mediaUrl,blurHash,pageCount,remainingMediaCount,activityType);
+
+@override
+String toString() {
+  return 'ReplyMetadataModel(messageUid: $messageUid, senderName: $senderName, senderUid: $senderUid, type: $type, contentType: $contentType, mediaUrl: $mediaUrl, blurHash: $blurHash, pageCount: $pageCount, remainingMediaCount: $remainingMediaCount, activityType: $activityType)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ReplyMetadataModelCopyWith<$Res>  {
+  factory $ReplyMetadataModelCopyWith(ReplyMetadataModel value, $Res Function(ReplyMetadataModel) _then) = _$ReplyMetadataModelCopyWithImpl;
+@useResult
+$Res call({
+ String messageUid, String senderName, String senderUid, String type, String? contentType, String? mediaUrl, String? blurHash, int? pageCount, int? remainingMediaCount, String? activityType
+});
+
+
+
+
+}
+/// @nodoc
+class _$ReplyMetadataModelCopyWithImpl<$Res>
+    implements $ReplyMetadataModelCopyWith<$Res> {
+  _$ReplyMetadataModelCopyWithImpl(this._self, this._then);
+
+  final ReplyMetadataModel _self;
+  final $Res Function(ReplyMetadataModel) _then;
+
+/// Create a copy of ReplyMetadataModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? messageUid = null,Object? senderName = null,Object? senderUid = null,Object? type = null,Object? contentType = freezed,Object? mediaUrl = freezed,Object? blurHash = freezed,Object? pageCount = freezed,Object? remainingMediaCount = freezed,Object? activityType = freezed,}) {
+  return _then(_self.copyWith(
+messageUid: null == messageUid ? _self.messageUid : messageUid // ignore: cast_nullable_to_non_nullable
+as String,senderName: null == senderName ? _self.senderName : senderName // ignore: cast_nullable_to_non_nullable
+as String,senderUid: null == senderUid ? _self.senderUid : senderUid // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
+as String?,mediaUrl: freezed == mediaUrl ? _self.mediaUrl : mediaUrl // ignore: cast_nullable_to_non_nullable
+as String?,blurHash: freezed == blurHash ? _self.blurHash : blurHash // ignore: cast_nullable_to_non_nullable
+as String?,pageCount: freezed == pageCount ? _self.pageCount : pageCount // ignore: cast_nullable_to_non_nullable
+as int?,remainingMediaCount: freezed == remainingMediaCount ? _self.remainingMediaCount : remainingMediaCount // ignore: cast_nullable_to_non_nullable
+as int?,activityType: freezed == activityType ? _self.activityType : activityType // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ReplyMetadataModel].
+extension ReplyMetadataModelPatterns on ReplyMetadataModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ReplyMetadataModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ReplyMetadataModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ReplyMetadataModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _ReplyMetadataModel():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ReplyMetadataModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ReplyMetadataModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String messageUid,  String senderName,  String senderUid,  String type,  String? contentType,  String? mediaUrl,  String? blurHash,  int? pageCount,  int? remainingMediaCount,  String? activityType)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ReplyMetadataModel() when $default != null:
+return $default(_that.messageUid,_that.senderName,_that.senderUid,_that.type,_that.contentType,_that.mediaUrl,_that.blurHash,_that.pageCount,_that.remainingMediaCount,_that.activityType);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String messageUid,  String senderName,  String senderUid,  String type,  String? contentType,  String? mediaUrl,  String? blurHash,  int? pageCount,  int? remainingMediaCount,  String? activityType)  $default,) {final _that = this;
+switch (_that) {
+case _ReplyMetadataModel():
+return $default(_that.messageUid,_that.senderName,_that.senderUid,_that.type,_that.contentType,_that.mediaUrl,_that.blurHash,_that.pageCount,_that.remainingMediaCount,_that.activityType);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String messageUid,  String senderName,  String senderUid,  String type,  String? contentType,  String? mediaUrl,  String? blurHash,  int? pageCount,  int? remainingMediaCount,  String? activityType)?  $default,) {final _that = this;
+switch (_that) {
+case _ReplyMetadataModel() when $default != null:
+return $default(_that.messageUid,_that.senderName,_that.senderUid,_that.type,_that.contentType,_that.mediaUrl,_that.blurHash,_that.pageCount,_that.remainingMediaCount,_that.activityType);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _ReplyMetadataModel extends ReplyMetadataModel {
+  const _ReplyMetadataModel({required this.messageUid, required this.senderName, required this.senderUid, required this.type, this.contentType, this.mediaUrl, this.blurHash, this.pageCount, this.remainingMediaCount, this.activityType}): super._();
+  factory _ReplyMetadataModel.fromJson(Map<String, dynamic> json) => _$ReplyMetadataModelFromJson(json);
+
+@override final  String messageUid;
+@override final  String senderName;
+@override final  String senderUid;
+@override final  String type;
+@override final  String? contentType;
+@override final  String? mediaUrl;
+@override final  String? blurHash;
+@override final  int? pageCount;
+@override final  int? remainingMediaCount;
+@override final  String? activityType;
+
+/// Create a copy of ReplyMetadataModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ReplyMetadataModelCopyWith<_ReplyMetadataModel> get copyWith => __$ReplyMetadataModelCopyWithImpl<_ReplyMetadataModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ReplyMetadataModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReplyMetadataModel&&(identical(other.messageUid, messageUid) || other.messageUid == messageUid)&&(identical(other.senderName, senderName) || other.senderName == senderName)&&(identical(other.senderUid, senderUid) || other.senderUid == senderUid)&&(identical(other.type, type) || other.type == type)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.mediaUrl, mediaUrl) || other.mediaUrl == mediaUrl)&&(identical(other.blurHash, blurHash) || other.blurHash == blurHash)&&(identical(other.pageCount, pageCount) || other.pageCount == pageCount)&&(identical(other.remainingMediaCount, remainingMediaCount) || other.remainingMediaCount == remainingMediaCount)&&(identical(other.activityType, activityType) || other.activityType == activityType));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,messageUid,senderName,senderUid,type,contentType,mediaUrl,blurHash,pageCount,remainingMediaCount,activityType);
+
+@override
+String toString() {
+  return 'ReplyMetadataModel(messageUid: $messageUid, senderName: $senderName, senderUid: $senderUid, type: $type, contentType: $contentType, mediaUrl: $mediaUrl, blurHash: $blurHash, pageCount: $pageCount, remainingMediaCount: $remainingMediaCount, activityType: $activityType)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ReplyMetadataModelCopyWith<$Res> implements $ReplyMetadataModelCopyWith<$Res> {
+  factory _$ReplyMetadataModelCopyWith(_ReplyMetadataModel value, $Res Function(_ReplyMetadataModel) _then) = __$ReplyMetadataModelCopyWithImpl;
+@override @useResult
+$Res call({
+ String messageUid, String senderName, String senderUid, String type, String? contentType, String? mediaUrl, String? blurHash, int? pageCount, int? remainingMediaCount, String? activityType
+});
+
+
+
+
+}
+/// @nodoc
+class __$ReplyMetadataModelCopyWithImpl<$Res>
+    implements _$ReplyMetadataModelCopyWith<$Res> {
+  __$ReplyMetadataModelCopyWithImpl(this._self, this._then);
+
+  final _ReplyMetadataModel _self;
+  final $Res Function(_ReplyMetadataModel) _then;
+
+/// Create a copy of ReplyMetadataModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? messageUid = null,Object? senderName = null,Object? senderUid = null,Object? type = null,Object? contentType = freezed,Object? mediaUrl = freezed,Object? blurHash = freezed,Object? pageCount = freezed,Object? remainingMediaCount = freezed,Object? activityType = freezed,}) {
+  return _then(_ReplyMetadataModel(
+messageUid: null == messageUid ? _self.messageUid : messageUid // ignore: cast_nullable_to_non_nullable
+as String,senderName: null == senderName ? _self.senderName : senderName // ignore: cast_nullable_to_non_nullable
+as String,senderUid: null == senderUid ? _self.senderUid : senderUid // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,contentType: freezed == contentType ? _self.contentType : contentType // ignore: cast_nullable_to_non_nullable
+as String?,mediaUrl: freezed == mediaUrl ? _self.mediaUrl : mediaUrl // ignore: cast_nullable_to_non_nullable
+as String?,blurHash: freezed == blurHash ? _self.blurHash : blurHash // ignore: cast_nullable_to_non_nullable
+as String?,pageCount: freezed == pageCount ? _self.pageCount : pageCount // ignore: cast_nullable_to_non_nullable
+as int?,remainingMediaCount: freezed == remainingMediaCount ? _self.remainingMediaCount : remainingMediaCount // ignore: cast_nullable_to_non_nullable
+as int?,activityType: freezed == activityType ? _self.activityType : activityType // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

@@ -5,8 +5,10 @@ import 'package:trackyond/core/common/enums/job_action.dart';
 import 'package:trackyond/core/common/enums/job_activity_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_status.dart';
 import 'package:trackyond/core/common/enums/user_role.dart';
 import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/layout/reply_image_thumbnail.dart';
+import 'package:trackyond/features/job_chat/data/models/response/chat_message_metadata_model.dart';
 import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/constants/app_icons.dart';
 import 'package:trackyond/core/constants/app_strings.dart';
@@ -218,7 +220,14 @@ class ActivityMessageCard extends StatelessWidget {
               );
               if (replyContent == null) return const SizedBox.shrink();
 
-              final metadata = replyContent.metadata ?? {};
+              final dynamic rawMetadata = replyContent.metadata;
+              final Map<String, dynamic> metadata = rawMetadata is ChatMessageMetadataModel
+                  ? (rawMetadata.replyMetadata?.toJson() ?? {})
+                  : (rawMetadata is Map
+                      ? (rawMetadata['replyMetadata'] is Map
+                          ? Map<String, dynamic>.from(rawMetadata['replyMetadata'] as Map)
+                          : Map<String, dynamic>.from(rawMetadata))
+                      : {});
               final replyToUid = metadata['messageUid'] as String? ?? '';
               final replySenderUid = metadata['senderUid'] as String?;
               final replySenderName = metadata['senderName'] as String? ?? '';
@@ -285,7 +294,7 @@ class ActivityMessageCard extends StatelessWidget {
                       ),
                       child: Icon(
                         replyActivityType.icon,
-                        size: 12,
+                        size: 14,
                         color: isMe
                             ? colorScheme.onPrimary.withValues(alpha: 0.7)
                             : colorScheme.primary,
@@ -374,7 +383,7 @@ class ActivityMessageCard extends StatelessWidget {
                   children: [
                     Icon(
                       contentType == JobChatMessageContentType.pdf ? Icons.picture_as_pdf : Icons.description,
-                      size: 12,
+                      size: 14,
                       color: isMe
                           ? colorScheme.onPrimary.withValues(alpha: 0.7)
                           : colorScheme.primary,
@@ -434,8 +443,8 @@ class ActivityMessageCard extends StatelessWidget {
                               imageUrl: mediaUrl.startsWith('http') ? mediaUrl : ApiEndpoints.common.download(mediaUrl),
                               blurHash: replyBlurHash,
                               remainingCount: remainingMediaCount,
-                              size: 30.0,
-                              borderRadius: 2.0,
+                              size: 36.0,
+                              borderRadius: AppUIConstants.radius.radius$4,
                               isVideo: contentType == JobChatMessageContentType.video,
                             ),
                             AppUIConstants.widgets.horizontalBox$8,
@@ -703,7 +712,7 @@ class ActivityMessageCard extends StatelessWidget {
                       color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                     ),
                     GestureDetector(
-                      onTap: isFulfilled
+                      onTap: (isFulfilled || message.status == JobChatMessageStatus.pending)
                           ? null
                           : () => chatController.setReplyingTo(message),
                       behavior: HitTestBehavior.opaque,

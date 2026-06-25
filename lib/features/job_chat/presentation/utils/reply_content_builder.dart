@@ -66,16 +66,18 @@ JobChatMessageContentEntity buildReplyContent(
     type: JobChatMessageContentType.reply,
     content: originalText,
     metadata: {
-      'messageUid': repliedMsg.uid,
-      'senderName': senderName,
-      'senderUid': repliedMsg.senderUid,
-      'type': repliedMsg.type.value,
-      'contentType': contentType,
-      'mediaUrl': mediaUrl,
-      'blurHash': replyBlurHash,
-      'pageCount': pageCount,
-      'remainingMediaCount': remainingMediaCount,
-      'activityType': repliedMsg.metadata?['activityType'],
+      'replyMetadata': {
+        'messageUid': repliedMsg.uid,
+        'senderName': senderName,
+        'senderUid': repliedMsg.senderUid,
+        'type': repliedMsg.type.value,
+        'contentType': contentType,
+        'mediaUrl': mediaUrl,
+        'blurHash': replyBlurHash,
+        'pageCount': pageCount,
+        'remainingMediaCount': remainingMediaCount,
+        'activityType': repliedMsg.metadata?['activityType'],
+      }
     },
   );
 }

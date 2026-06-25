@@ -29,20 +29,20 @@ class OwnerSettingsRepositoryImpl implements IOwnerSettingsRepository {
   }
 
   @override
-  Future<Either<AppFailure, void>> saveBool(String key, bool value) async {
+  Future<Either<AppFailure, Unit>> saveBool(String key, bool value) async {
     try {
       await _prefService.setBool(key, value);
-      return right(null);
+      return right(unit);
     } catch (e) {
       return left(CacheFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<AppFailure, void>> saveString(String key, String value) async {
+  Future<Either<AppFailure, Unit>> saveString(String key, String value) async {
     try {
       await _prefService.setString(key, value);
-      return right(null);
+      return right(unit);
     } catch (e) {
       return left(CacheFailure(e.toString()));
     }
@@ -54,7 +54,7 @@ class OwnerSettingsRepositoryImpl implements IOwnerSettingsRepository {
   }
 
   @override
-  Future<Either<AppFailure, void>> saveDashboardStatsFilter(String value) {
+  Future<Either<AppFailure, Unit>> saveDashboardStatsFilter(String value) {
     return saveString(_keys.dashboardStatsFilter, value);
   }
 }

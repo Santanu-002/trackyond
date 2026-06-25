@@ -7,7 +7,7 @@ part 'company_response_model.freezed.dart';
 part 'company_response_model.g.dart';
 
 @freezed
-sealed class CompanyResponseModel with _$CompanyResponseModel {
+sealed class CompanyResponseModel with _$CompanyResponseModel implements SetupCompanyResultEntity {
   const factory CompanyResponseModel({
     @JsonKey(name: 'ownerProfile') required MemberProfileModel memberProfile,
     required CompanyModel company,
@@ -18,8 +18,9 @@ sealed class CompanyResponseModel with _$CompanyResponseModel {
   factory CompanyResponseModel.fromJson(Map<String, dynamic> json) =>
       _$CompanyResponseModelFromJson(json);
 
-  SetupCompanyResultEntity toEntity() => SetupCompanyResultEntity(
-        company: company.toEntity(),
-        memberProfile: memberProfile.toEntity(),
-      );
+  @override
+  List<Object?> get props => [company, memberProfile];
+
+  @override
+  bool? get stringify => true;
 }

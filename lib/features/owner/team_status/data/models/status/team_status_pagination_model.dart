@@ -5,7 +5,7 @@ part 'team_status_pagination_model.freezed.dart';
 part 'team_status_pagination_model.g.dart';
 
 @freezed
-sealed class TeamStatusPaginationModel with _$TeamStatusPaginationModel {
+sealed class TeamStatusPaginationModel with _$TeamStatusPaginationModel implements TeamStatusPaginationEntity {
   const factory TeamStatusPaginationModel({
     required int limit,
     required int totalItems,
@@ -15,10 +15,5 @@ sealed class TeamStatusPaginationModel with _$TeamStatusPaginationModel {
 
   factory TeamStatusPaginationModel.fromJson(Map<String, dynamic> json) =>
       _$TeamStatusPaginationModelFromJson(json);
-
-  TeamStatusPaginationEntity toEntity() => TeamStatusPaginationEntity(
-        limit: limit,
-        totalItems: totalItems,
-      );
 }
 

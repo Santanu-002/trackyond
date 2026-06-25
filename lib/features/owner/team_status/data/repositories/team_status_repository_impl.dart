@@ -24,7 +24,7 @@ class TeamStatusRepositoryImpl implements ITeamStatusRepository {
 
     return response.when(
       success: (_, _, model) {
-        if (model != null) return Right(model.toEntity());
+        if (model != null) return Right(model);
         return Left(ServerFailure('No data received'));
       },
       error: (_, message, _, _) => Left(ServerFailure(message)),

@@ -18,7 +18,7 @@ class JobsRepositoryImpl implements IJobsRepository {
   ) async {
     final ApiResponse<dynamic> response = await _remoteDataSource.createJob(jobData);
     return response.when(
-      success: (_, _, model) => right((model as dynamic).toEntity()),
+      success: (_, _, model) => right(model),
       error: (_, message, _, _) => left(ServerFailure(message)),
     );
   }
@@ -37,8 +37,7 @@ class JobsRepositoryImpl implements IJobsRepository {
       sort: sort,
     );
     return response.when(
-      success: (_, _, models) =>
-          right(models!.map((e) => e.toEntity()).toList()),
+      success: (_, _, models) => right(models ?? []),
       error: (_, message, _, _) => left(ServerFailure(message)),
     );
   }

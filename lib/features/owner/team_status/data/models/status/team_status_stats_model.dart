@@ -5,7 +5,7 @@ part 'team_status_stats_model.freezed.dart';
 part 'team_status_stats_model.g.dart';
 
 @freezed
-sealed class TeamStatusStatsModel with _$TeamStatusStatsModel {
+sealed class TeamStatusStatsModel with _$TeamStatusStatsModel implements TeamStatusStatsEntity {
   const factory TeamStatusStatsModel({
     required int total,
     required int working,
@@ -16,11 +16,5 @@ sealed class TeamStatusStatsModel with _$TeamStatusStatsModel {
 
   factory TeamStatusStatsModel.fromJson(Map<String, dynamic> json) =>
       _$TeamStatusStatsModelFromJson(json);
-
-  TeamStatusStatsEntity toEntity() => TeamStatusStatsEntity(
-        total: total,
-        working: working,
-        notStarted: notStarted,
-      );
 }
 

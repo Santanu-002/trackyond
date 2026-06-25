@@ -43,7 +43,7 @@ class TeamRepositoryImpl implements ITeamRepository {
       return response.when(
         success: (success, message, data) {
           if (data != null) {
-            return right(data.toEntity());
+            return right(data);
           }
           return left(ServerFailure('Member data missing in response'));
         },
@@ -62,8 +62,7 @@ class TeamRepositoryImpl implements ITeamRepository {
 
       return response.when(
         success: (success, message, data) {
-          final members = (data ?? []).map((e) => e.toEntity()).toList();
-          return right(members);
+          return right(data ?? []);
         },
         error: (success, message, data, statusCode) =>
             left(ServerFailure(message)),
@@ -79,7 +78,7 @@ class TeamRepositoryImpl implements ITeamRepository {
       // 1. Check local UserService
       final localCompany = _userService.getCompany();
       if (localCompany != null) {
-        return right(localCompany.toEntity());
+        return right(localCompany);
       }
 
       // 2. Fetch from remote
@@ -90,7 +89,7 @@ class TeamRepositoryImpl implements ITeamRepository {
           if (data != null) {
             // Save to local service for future use
             await _userService.setCompany(data);
-            return right(data.toEntity());
+            return right(data);
           }
           return left(ServerFailure('Company not found on server'));
         },

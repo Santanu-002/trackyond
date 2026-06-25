@@ -172,7 +172,7 @@ class JobsPage extends GetView<JobsController> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     AppButton.ghost(
-                      text: 'Clear',
+                      text: AppStrings.jobs.clear,
                       onPressed: controller.clearFilters,
                       width: null,
                       height: null,

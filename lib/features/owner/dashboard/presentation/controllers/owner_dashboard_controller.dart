@@ -178,8 +178,8 @@ class OwnerDashboardController extends GetxController {
       recentJobs.insert(0, result);
 
       // Update stats (both today and overall)
-      _todayStats.value = _todayStats.value.copyWith(pending: _todayStats.value.pending + 1);
-      _overallStats.value = _overallStats.value.copyWith(pending: _overallStats.value.pending + 1);
+      _todayStats.value = _todayStats.value.copyWithEntity(pending: _todayStats.value.pending + 1);
+      _overallStats.value = _overallStats.value.copyWithEntity(pending: _overallStats.value.pending + 1);
 
       // Optional: limit the list size
       if (recentJobs.length > 10) {

@@ -28,17 +28,13 @@ $JobSummaryStatsModelCopyWith<JobSummaryStatsModel> get copyWith => _$JobSummary
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobSummaryStatsModel&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.inProgress, inProgress) || other.inProgress == inProgress)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.cancelled, cancelled) || other.cancelled == cancelled)&&(identical(other.completedToday, completedToday) || other.completedToday == completedToday)&&(identical(other.totalAssigned, totalAssigned) || other.totalAssigned == totalAssigned));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobSummaryStatsModel&&super == other&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.inProgress, inProgress) || other.inProgress == inProgress)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.cancelled, cancelled) || other.cancelled == cancelled)&&(identical(other.completedToday, completedToday) || other.completedToday == completedToday)&&(identical(other.totalAssigned, totalAssigned) || other.totalAssigned == totalAssigned));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,pending,inProgress,completed,cancelled,completedToday,totalAssigned);
+int get hashCode => Object.hash(runtimeType,super.hashCode,pending,inProgress,completed,cancelled,completedToday,totalAssigned);
 
-@override
-String toString() {
-  return 'JobSummaryStatsModel(pending: $pending, inProgress: $inProgress, completed: $completed, cancelled: $cancelled, completedToday: $completedToday, totalAssigned: $totalAssigned)';
-}
 
 
 }
@@ -231,17 +227,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobSummaryStatsModel&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.inProgress, inProgress) || other.inProgress == inProgress)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.cancelled, cancelled) || other.cancelled == cancelled)&&(identical(other.completedToday, completedToday) || other.completedToday == completedToday)&&(identical(other.totalAssigned, totalAssigned) || other.totalAssigned == totalAssigned));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobSummaryStatsModel&&super == other&&(identical(other.pending, pending) || other.pending == pending)&&(identical(other.inProgress, inProgress) || other.inProgress == inProgress)&&(identical(other.completed, completed) || other.completed == completed)&&(identical(other.cancelled, cancelled) || other.cancelled == cancelled)&&(identical(other.completedToday, completedToday) || other.completedToday == completedToday)&&(identical(other.totalAssigned, totalAssigned) || other.totalAssigned == totalAssigned));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,pending,inProgress,completed,cancelled,completedToday,totalAssigned);
+int get hashCode => Object.hash(runtimeType,super.hashCode,pending,inProgress,completed,cancelled,completedToday,totalAssigned);
 
-@override
-String toString() {
-  return 'JobSummaryStatsModel(pending: $pending, inProgress: $inProgress, completed: $completed, cancelled: $cancelled, completedToday: $completedToday, totalAssigned: $totalAssigned)';
-}
 
 
 }

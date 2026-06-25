@@ -28,17 +28,13 @@ $CompanyResponseModelCopyWith<CompanyResponseModel> get copyWith => _$CompanyRes
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompanyResponseModel&&(identical(other.memberProfile, memberProfile) || other.memberProfile == memberProfile)&&(identical(other.company, company) || other.company == company));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompanyResponseModel&&super == other&&(identical(other.memberProfile, memberProfile) || other.memberProfile == memberProfile)&&(identical(other.company, company) || other.company == company));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,memberProfile,company);
+int get hashCode => Object.hash(runtimeType,super.hashCode,memberProfile,company);
 
-@override
-String toString() {
-  return 'CompanyResponseModel(memberProfile: $memberProfile, company: $company)';
-}
 
 
 }
@@ -241,17 +237,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompanyResponseModel&&(identical(other.memberProfile, memberProfile) || other.memberProfile == memberProfile)&&(identical(other.company, company) || other.company == company));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompanyResponseModel&&super == other&&(identical(other.memberProfile, memberProfile) || other.memberProfile == memberProfile)&&(identical(other.company, company) || other.company == company));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,memberProfile,company);
+int get hashCode => Object.hash(runtimeType,super.hashCode,memberProfile,company);
 
-@override
-String toString() {
-  return 'CompanyResponseModel(memberProfile: $memberProfile, company: $company)';
-}
 
 
 }

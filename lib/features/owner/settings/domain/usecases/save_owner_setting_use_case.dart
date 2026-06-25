@@ -11,13 +11,13 @@ class SaveOwnerSettingParams {
 }
 
 class SaveOwnerSettingUseCase
-    implements BaseUseCase<void, SaveOwnerSettingParams> {
+    implements BaseUseCase<Unit, SaveOwnerSettingParams> {
   final IOwnerSettingsRepository _repository;
 
   SaveOwnerSettingUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, void>> call(SaveOwnerSettingParams params) {
+  Future<Either<AppFailure, Unit>> call(SaveOwnerSettingParams params) {
     if (params.value is bool) {
       return _repository.saveBool(params.key, params.value as bool);
     } else if (params.value is String) {

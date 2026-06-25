@@ -9,7 +9,7 @@ part 'team_status_model.freezed.dart';
 part 'team_status_model.g.dart';
 
 @freezed
-sealed class TeamStatusModel with _$TeamStatusModel {
+sealed class TeamStatusModel with _$TeamStatusModel implements TeamStatusEntity {
   const factory TeamStatusModel({
     required List<TeamMemberStatusModel> members,
     required TeamStatusStatsModel stats,
@@ -21,12 +21,5 @@ sealed class TeamStatusModel with _$TeamStatusModel {
 
   factory TeamStatusModel.fromJson(Map<String, dynamic> json) =>
       _$TeamStatusModelFromJson(json);
-
-  TeamStatusEntity toEntity() => TeamStatusEntity(
-        members: members.map((e) => e.toEntity()).toList(),
-        stats: stats.toEntity(),
-        options: options.toEntity(),
-        pagination: pagination.toEntity(),
-      );
 }
 

@@ -8,7 +8,7 @@ part 'owner_dashboard_model.freezed.dart';
 part 'owner_dashboard_model.g.dart';
 
 @freezed
-sealed class OwnerDashboardModel with _$OwnerDashboardModel {
+sealed class OwnerDashboardModel with _$OwnerDashboardModel implements OwnerDashboardData {
   const factory OwnerDashboardModel({
     required List<TeamMemberStatusModel> teamMembersStatus,
     required OwnerDashboardModelStats jobCounts,
@@ -21,16 +21,15 @@ sealed class OwnerDashboardModel with _$OwnerDashboardModel {
   factory OwnerDashboardModel.fromJson(Map<String, dynamic> json) =>
       _$OwnerDashboardModelFromJson(json);
 
-  OwnerDashboardData toEntity() => OwnerDashboardData(
-    teamMembersStatus: teamMembersStatus.map((e) => e.toEntity()).toList(),
-    jobCounts: jobCounts.toEntity(),
-    recentJobs: recentJobs.map((e) => e.toEntity()).toList(),
-    unreadNotificationCount: unreadNotificationCount,
-  );
+  @override
+  List<Object?> get props => [teamMembersStatus, jobCounts, recentJobs, unreadNotificationCount];
+
+  @override
+  bool? get stringify => true;
 }
 
 @freezed
-sealed class OwnerDashboardModelStats with _$OwnerDashboardModelStats {
+sealed class OwnerDashboardModelStats with _$OwnerDashboardModelStats implements JobCountsEntity {
   const factory OwnerDashboardModelStats({
     required JobSummaryStatsModel todayStats,
     required JobSummaryStatsModel overallStats,
@@ -41,8 +40,9 @@ sealed class OwnerDashboardModelStats with _$OwnerDashboardModelStats {
   factory OwnerDashboardModelStats.fromJson(Map<String, dynamic> json) =>
       _$OwnerDashboardModelStatsFromJson(json);
 
-  JobCountsEntity toEntity() => JobCountsEntity(
-    todayStats: todayStats.toEntity(),
-    overallStats: overallStats.toEntity(),
-  );
+  @override
+  List<Object?> get props => [todayStats, overallStats];
+
+  @override
+  bool? get stringify => true;
 }

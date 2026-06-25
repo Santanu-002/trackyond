@@ -115,7 +115,7 @@ class JobDetailsPage extends GetView<JobDetailsController> {
               ),
               AppUIConstants.widgets.verticalBox$32,
               AppButton.filled(
-                text: 'Edit Job',
+                text: AppStrings.jobDetails.editJob,
                 onPressed: () {
                   // TODO: Implement Edit
                   AppSnackbar.warn(AppStrings.common.underDevelopment);

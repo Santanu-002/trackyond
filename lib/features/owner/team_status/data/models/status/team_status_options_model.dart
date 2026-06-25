@@ -5,7 +5,7 @@ part 'team_status_options_model.freezed.dart';
 part 'team_status_options_model.g.dart';
 
 @freezed
-sealed class TeamStatusOptionsModel with _$TeamStatusOptionsModel {
+sealed class TeamStatusOptionsModel with _$TeamStatusOptionsModel implements TeamStatusOptionsEntity {
   const factory TeamStatusOptionsModel({
     String? statusFilter,
     String? order,
@@ -15,10 +15,5 @@ sealed class TeamStatusOptionsModel with _$TeamStatusOptionsModel {
 
   factory TeamStatusOptionsModel.fromJson(Map<String, dynamic> json) =>
       _$TeamStatusOptionsModelFromJson(json);
-
-  TeamStatusOptionsEntity toEntity() => TeamStatusOptionsEntity(
-        statusFilter: statusFilter,
-        order: order,
-      );
 }
 

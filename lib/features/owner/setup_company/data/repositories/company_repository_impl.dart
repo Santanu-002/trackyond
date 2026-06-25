@@ -39,7 +39,7 @@ class CompanyRepositoryImpl implements ICompanyRepository {
 
       return response.when(
         success: (_, message, data) {
-          if (data != null) return Right(data.toEntity());
+          if (data != null) return Right(data);
           return Left(ServerFailure(message));
         },
         error: (success, message, data, statusCode) {

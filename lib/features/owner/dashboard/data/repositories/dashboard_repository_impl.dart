@@ -15,7 +15,7 @@ class DashboardRepositoryImpl implements IDashboardRepository {
   Future<Either<AppFailure, OwnerDashboardData>> getOwnerDashboard() async {
     final ApiResponse<OwnerDashboardModel> response = await _remoteDataSource.getOwnerDashboard();
     return response.when(
-      success: (success, message, model) => right(model!.toEntity()),
+      success: (success, message, model) => right(model!),
       error: (success, message, data, statusCode) => left(ServerFailure(message)),
     );
   }

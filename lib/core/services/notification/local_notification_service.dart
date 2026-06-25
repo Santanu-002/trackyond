@@ -350,32 +350,7 @@ class LocalNotificationService extends GetxService {
     };
     if (job != null) {
       // Convert JobEntity to JobModel so we can serialize it to json
-      final jobModel = JobModel(
-        jobId: job.jobId,
-        jobTitle: job.jobTitle,
-        customerName: job.customerName,
-        customerPhone: job.customerPhone,
-        customerAddress: job.customerAddress,
-        workerProfileUid: job.workerProfileUid,
-        workerName: job.workerName,
-        workerImage: job.workerImage,
-        createdByProfileUid: job.createdByProfileUid,
-        createdByName: job.createdByName,
-        status: job.status.value,
-        requirePhotoOnStart: job.requirePhotoOnStart,
-        requirePhotoOnComplete: job.requirePhotoOnComplete,
-        captureLocation: job.captureLocation,
-        createdAt: job.createdAt,
-        assignedAt: job.assignedAt,
-        updatedAt: job.updatedAt,
-        completedAt: job.completedAt,
-        allowedActions: job.allowedActions,
-        lastMessage: job.lastMessage,
-        lastMessageAt: job.lastMessageAt,
-        lastActivityType: job.lastActivityType,
-        lastActivityMessage: job.lastActivityMessage,
-        lastActivityAt: job.lastActivityAt,
-      );
+      final jobModel = JobModel.fromEntity(job);
       payloadMap['job'] = jobModel.toJson();
     }
 
@@ -554,7 +529,7 @@ class LocalNotificationService extends GetxService {
           }
           final jobMap = data['job'];
           if (jobMap != null) {
-            final jobEntity = JobModel.fromJson(Map<String, dynamic>.from(jobMap as Map)).toEntity();
+            final jobEntity = JobModel.fromJson(Map<String, dynamic>.from(jobMap as Map));
             Get.toNamed(AppRoutes.common.jobChat, arguments: jobEntity);
           }
         }

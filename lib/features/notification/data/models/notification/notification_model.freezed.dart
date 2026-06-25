@@ -28,17 +28,13 @@ $NotificationModelCopyWith<NotificationModel> get copyWith => _$NotificationMode
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationModel&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.dataPayload, dataPayload) || other.dataPayload == dataPayload)&&(identical(other.status, status) || other.status == status)&&(identical(other.isRead, isRead) || other.isRead == isRead)&&(identical(other.isSeen, isSeen) || other.isSeen == isSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationModel&&super == other&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.dataPayload, dataPayload) || other.dataPayload == dataPayload)&&(identical(other.status, status) || other.status == status)&&(identical(other.isRead, isRead) || other.isRead == isRead)&&(identical(other.isSeen, isSeen) || other.isSeen == isSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,body,dataPayload,status,isRead,isSeen,createdAt);
+int get hashCode => Object.hash(runtimeType,super.hashCode,id,title,body,dataPayload,status,isRead,isSeen,createdAt);
 
-@override
-String toString() {
-  return 'NotificationModel(id: $id, title: $title, body: $body, dataPayload: $dataPayload, status: $status, isRead: $isRead, isSeen: $isSeen, createdAt: $createdAt)';
-}
 
 
 }
@@ -235,17 +231,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationModel&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.dataPayload, dataPayload) || other.dataPayload == dataPayload)&&(identical(other.status, status) || other.status == status)&&(identical(other.isRead, isRead) || other.isRead == isRead)&&(identical(other.isSeen, isSeen) || other.isSeen == isSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationModel&&super == other&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.dataPayload, dataPayload) || other.dataPayload == dataPayload)&&(identical(other.status, status) || other.status == status)&&(identical(other.isRead, isRead) || other.isRead == isRead)&&(identical(other.isSeen, isSeen) || other.isSeen == isSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,body,dataPayload,status,isRead,isSeen,createdAt);
+int get hashCode => Object.hash(runtimeType,super.hashCode,id,title,body,dataPayload,status,isRead,isSeen,createdAt);
 
-@override
-String toString() {
-  return 'NotificationModel(id: $id, title: $title, body: $body, dataPayload: $dataPayload, status: $status, isRead: $isRead, isSeen: $isSeen, createdAt: $createdAt)';
-}
 
 
 }

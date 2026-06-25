@@ -3,13 +3,13 @@ import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/notification/domain/repositories/i_notification_repository.dart';
 
-class DeleteNotificationsUseCase implements BaseUseCase<void, DeleteNotificationsParams> {
+class DeleteNotificationsUseCase implements BaseUseCase<Unit, DeleteNotificationsParams> {
   final INotificationRepository _repository;
 
   DeleteNotificationsUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, void>> call(DeleteNotificationsParams params) async {
+  Future<Either<AppFailure, Unit>> call(DeleteNotificationsParams params) async {
     return _repository.deleteNotifications(notificationIds: params.notificationIds);
   }
 }

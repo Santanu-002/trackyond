@@ -4,11 +4,11 @@ import 'package:trackyond/features/notification/domain/entities/notification_ent
 import 'package:trackyond/features/notification/domain/entities/notification_filter_options.dart';
 
 abstract interface class INotificationRepository {
-  Future<Either<AppFailure, void>> syncFcmToken();
+  Future<Either<AppFailure, Unit>> syncFcmToken();
 
-  Future<Either<AppFailure, void>> deleteFcmToken();
+  Future<Either<AppFailure, Unit>> deleteFcmToken();
 
-  Future<Either<AppFailure, void>> showLocalNotification({
+  Future<Either<AppFailure, Unit>> showLocalNotification({
     required String title,
     required String body,
     Map<String, dynamic>? payload,
@@ -18,16 +18,16 @@ abstract interface class INotificationRepository {
     required NotificationFilterOptions options,
   });
 
-  Future<Either<AppFailure, void>> updateNotificationsStatus({
+  Future<Either<AppFailure, Unit>> updateNotificationsStatus({
     required List<String> notificationIds,
     required String status,
   });
 
-  Future<Either<AppFailure, void>> deleteNotifications({
+  Future<Either<AppFailure, Unit>> deleteNotifications({
     required List<String> notificationIds,
   });
 
-  Future<Either<AppFailure, void>> retryFailedAcks();
+  Future<Either<AppFailure, Unit>> retryFailedAcks();
 
-  Future<Either<AppFailure, void>> clearConversationNotifications(String jobId);
+  Future<Either<AppFailure, Unit>> clearConversationNotifications(String jobId);
 }

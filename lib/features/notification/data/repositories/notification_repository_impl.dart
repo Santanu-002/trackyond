@@ -30,7 +30,7 @@ class NotificationRepositoryImpl implements INotificationRepository {
   );
 
   @override
-  Future<Either<AppFailure, void>> syncFcmToken() async {
+  Future<Either<AppFailure, Unit>> syncFcmToken() async {
     final role = _userService.getUserRole();
     if (role == null) {
       return Left(CacheFailure(AppStrings.notifications.userRoleNotFound));
@@ -46,7 +46,7 @@ class NotificationRepositoryImpl implements INotificationRepository {
 
     // Check if token is already synced and hasn't changed
     if (fcmToken == lastToken && isSynced) {
-      return const Right(null);
+      return const Right(unit);
     }
 
     final response = await _dataSource.syncFcmToken(
@@ -57,7 +57,7 @@ class NotificationRepositoryImpl implements INotificationRepository {
     return response.when(
       success: (_, message, _) {
         _fcmTokenService.markTokenAsSynced(fcmToken);
-        return const Right(null);
+        return const Right(unit);
       },
       error: (_, message, _, _) {
         _fcmTokenService.markTokenAsUnsynced();
@@ -67,17 +67,17 @@ class NotificationRepositoryImpl implements INotificationRepository {
   }
 
   @override
-  Future<Either<AppFailure, void>> deleteFcmToken() async {
+  Future<Either<AppFailure, Unit>> deleteFcmToken() async {
     try {
       await _fcmTokenService.deleteToken();
-      return const Right(null);
+      return const Right(unit);
     } catch (e) {
       return Left(CacheFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<AppFailure, void>> showLocalNotification({
+  Future<Either<AppFailure, Unit>> showLocalNotification({
     required String title,
     required String body,
     Map<String, dynamic>? payload,
@@ -89,7 +89,7 @@ class NotificationRepositoryImpl implements INotificationRepository {
         body: body,
         payload: payload != null ? jsonEncode(payload) : null,
       );
-      return const Right(null);
+      return const Right(unit);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -111,14 +111,14 @@ class NotificationRepositoryImpl implements INotificationRepository {
     return response.when(
       success: (_, message, models) {
         if (models == null) return Left(ServerFailure(message));
-        return Right(models.map((model) => model.toEntity()).toList());
+        return Right(models);
       },
       error: (_, message, _, _) => Left(ServerFailure(message)),
     );
   }
 
   @override
-  Future<Either<AppFailure, void>> updateNotificationsStatus({
+  Future<Either<AppFailure, Unit>> updateNotificationsStatus({
     required List<String> notificationIds,
     required String status,
   }) async {
@@ -136,7 +136,7 @@ class NotificationRepositoryImpl implements INotificationRepository {
   }
 
   @override
-  Future<Either<AppFailure, void>> deleteNotifications({
+  Future<Either<AppFailure, Unit>> deleteNotifications({
     required List<String> notificationIds,
   }) async {
     final role = _userService.getUserRole();
@@ -152,27 +152,27 @@ class NotificationRepositoryImpl implements INotificationRepository {
   }
 
   @override
-  Future<Either<AppFailure, void>> retryFailedAcks() async {
+  Future<Either<AppFailure, Unit>> retryFailedAcks() async {
     try {
       await _backgroundAckService.retryFailedAcks();
-      return const Right(null);
+      return const Right(unit);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
 
-  Either<AppFailure, void> _mapVoidResponse(ApiResponse<void> response) {
+  Either<AppFailure, Unit> _mapVoidResponse(ApiResponse<void> response) {
     return response.when(
-      success: (_, _, _) => const Right(null),
+      success: (_, _, _) => const Right(unit),
       error: (_, message, _, _) => Left(ServerFailure(message)),
     );
   }
 
   @override
-  Future<Either<AppFailure, void>> clearConversationNotifications(String jobId) async {
+  Future<Either<AppFailure, Unit>> clearConversationNotifications(String jobId) async {
     try {
       _localNotificationService.clearConversationMessages(jobId);
-      return const Right(null);
+      return const Right(unit);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

@@ -18,6 +18,20 @@ import 'package:trackyond/features/notification/domain/usecases/sync_fcm_token_u
 import 'package:trackyond/features/notification/domain/usecases/update_notifications_status_usecase.dart';
 import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 
+import 'package:trackyond/features/worker/dashboard/domain/repositories/i_job_repository.dart';
+import 'package:trackyond/features/worker/dashboard/data/repositories/job_repository_impl.dart';
+import 'package:trackyond/features/worker/dashboard/data/datasources/job_remote_datasource.dart';
+import 'package:trackyond/features/worker/dashboard/data/datasources/job_local_datasource.dart';
+import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repository.dart';
+import 'package:trackyond/features/job_chat/data/repositories/job_chat_repository_impl.dart';
+import 'package:trackyond/features/job_chat/data/datasources/job_chat_remote_datasource.dart';
+import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
+import 'package:trackyond/core/services/websocket/websocket_service.dart';
+import 'package:trackyond/features/worker/dashboard/domain/usecases/save_jobs_use_case.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/save_messages_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/mark_messages_as_delivered_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/clear_conversation_notifications_usecase.dart';
+
 class NotificationBinding extends Bindings {
   @override
   void dependencies() {
@@ -43,6 +57,27 @@ class NotificationBinding extends Bindings {
         Get.find<BackgroundAckService>(),
       ),
     );
+
+    // Register Job and JobChat repository dependencies if not already registered
+    if (!Get.isRegistered<IJobRepository>()) {
+      Get.lazyPut<IJobRemoteDataSource>(() => JobRemoteDataSourceImpl(Get.find<Dio>()));
+      Get.lazyPut<IJobRepository>(
+        () => JobRepositoryImpl(
+          Get.find<IJobRemoteDataSource>(),
+          Get.find<IJobLocalDataSource>(),
+        ),
+      );
+    }
+
+    if (!Get.isRegistered<IJobChatRepository>()) {
+      Get.lazyPut<IJobChatRepository>(
+        () => JobChatRepositoryImpl(
+          Get.find<IJobChatRemoteDataSource>(),
+          Get.find<IJobChatLocalDataSource>(),
+          Get.find<WebSocketService>(),
+        ),
+      );
+    }
 
     Get.lazyPut<SyncFcmTokenUseCase>(
       () => SyncFcmTokenUseCase(Get.find<INotificationRepository>()),
@@ -77,6 +112,23 @@ class NotificationBinding extends Bindings {
       () => EmitChatMessageReceivedUseCase(Get.find<IEventBusRepository>()),
     );
 
+    // Register new UseCases
+    Get.lazyPut<SaveJobsUseCase>(
+      () => SaveJobsUseCase(Get.find<IJobRepository>()),
+    );
+
+    Get.lazyPut<SaveMessagesUseCase>(
+      () => SaveMessagesUseCase(Get.find<IJobChatRepository>()),
+    );
+
+    Get.lazyPut<MarkMessagesAsDeliveredUseCase>(
+      () => MarkMessagesAsDeliveredUseCase(Get.find<IJobChatRepository>()),
+    );
+
+    Get.lazyPut<ClearConversationNotificationsUseCase>(
+      () => ClearConversationNotificationsUseCase(Get.find<INotificationRepository>()),
+    );
+
     Get.put<NotificationController>(
       NotificationController(
         syncFcmTokenUseCase: Get.find(),
@@ -87,6 +139,10 @@ class NotificationBinding extends Bindings {
         deleteNotificationsUseCase: Get.find(),
         retryFailedAcksUseCase: Get.find(),
         emitChatMessageReceivedUseCase: Get.find(),
+        saveJobsUseCase: Get.find(),
+        saveMessagesUseCase: Get.find(),
+        markMessagesAsDeliveredUseCase: Get.find(),
+        clearConversationNotificationsUseCase: Get.find(),
       ),
     );
   }

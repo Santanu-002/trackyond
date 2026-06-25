@@ -24,10 +24,11 @@ import 'package:trackyond/features/notification/domain/usecases/retry_failed_ack
 import 'package:trackyond/features/notification/domain/usecases/show_local_notification_usecase.dart';
 import 'package:trackyond/features/notification/domain/usecases/sync_fcm_token_usecase.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:trackyond/core/services/notification/local_notification_service.dart';
 import 'package:trackyond/features/notification/domain/usecases/update_notifications_status_usecase.dart';
-import 'package:trackyond/features/worker/dashboard/data/datasources/job_local_datasource.dart';
-import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
+import 'package:trackyond/features/worker/dashboard/domain/usecases/save_jobs_use_case.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/save_messages_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/mark_messages_as_delivered_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/clear_conversation_notifications_usecase.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/controllers/worker_dashboard_controller.dart';
 
 class NotificationController extends GetxController {
@@ -39,6 +40,10 @@ class NotificationController extends GetxController {
   final DeleteNotificationsUseCase _deleteNotificationsUseCase;
   final RetryFailedAcksUseCase _retryFailedAcksUseCase;
   final EmitChatMessageReceivedUseCase _emitChatMessageReceivedUseCase;
+  final SaveJobsUseCase _saveJobsUseCase;
+  final SaveMessagesUseCase _saveMessagesUseCase;
+  final MarkMessagesAsDeliveredUseCase _markMessagesAsDeliveredUseCase;
+  final ClearConversationNotificationsUseCase _clearConversationNotificationsUseCase;
 
   NotificationController({
     required SyncFcmTokenUseCase syncFcmTokenUseCase,
@@ -49,6 +54,10 @@ class NotificationController extends GetxController {
     required DeleteNotificationsUseCase deleteNotificationsUseCase,
     required RetryFailedAcksUseCase retryFailedAcksUseCase,
     required EmitChatMessageReceivedUseCase emitChatMessageReceivedUseCase,
+    required SaveJobsUseCase saveJobsUseCase,
+    required SaveMessagesUseCase saveMessagesUseCase,
+    required MarkMessagesAsDeliveredUseCase markMessagesAsDeliveredUseCase,
+    required ClearConversationNotificationsUseCase clearConversationNotificationsUseCase,
   })  : _syncFcmTokenUseCase = syncFcmTokenUseCase,
         _deleteFcmTokenUseCase = deleteFcmTokenUseCase,
         _showLocalNotificationUseCase = showLocalNotificationUseCase,
@@ -56,7 +65,11 @@ class NotificationController extends GetxController {
         _updateNotificationsStatusUseCase = updateNotificationsStatusUseCase,
         _deleteNotificationsUseCase = deleteNotificationsUseCase,
         _retryFailedAcksUseCase = retryFailedAcksUseCase,
-        _emitChatMessageReceivedUseCase = emitChatMessageReceivedUseCase;
+        _emitChatMessageReceivedUseCase = emitChatMessageReceivedUseCase,
+        _saveJobsUseCase = saveJobsUseCase,
+        _saveMessagesUseCase = saveMessagesUseCase,
+        _markMessagesAsDeliveredUseCase = markMessagesAsDeliveredUseCase,
+        _clearConversationNotificationsUseCase = clearConversationNotificationsUseCase;
 
   final _lock = Lock();
   StreamSubscription<String>? _tokenRefreshSubscription;
@@ -188,7 +201,7 @@ class NotificationController extends GetxController {
       (_) {
         for (var i = 0; i < notifications.length; i++) {
           if (!notifications[i].isSeen) {
-            notifications[i] = notifications[i].copyWith(isSeen: true);
+            notifications[i] = notifications[i].copyWithEntity(isSeen: true);
           }
         }
         unreadCount.value = 0;
@@ -211,7 +224,7 @@ class NotificationController extends GetxController {
         for (var i = 0; i < notifications.length; i++) {
           if (ids.contains(notifications[i].id)) {
             notifications[i] =
-                notifications[i].copyWith(isRead: true, isSeen: true);
+                notifications[i].copyWithEntity(isRead: true, isSeen: true);
           }
         }
         unreadCount.value = notifications.where((n) => !n.isSeen).length;
@@ -246,7 +259,7 @@ class NotificationController extends GetxController {
         if (jobDataStr != null) {
           final jobJson = jsonDecode(jobDataStr);
           final jobModel = JobModel.fromJson(jobJson);
-          final jobEntity = jobModel.toEntity();
+          final jobEntity = jobModel;
           Get.toNamed(AppRoutes.common.jobChat, arguments: jobEntity);
           return;
         }
@@ -288,7 +301,7 @@ class NotificationController extends GetxController {
       final jobId = data['jobId'];
       if (jobId != null) {
         FlutterLocalNotificationsPlugin().cancel(id: jobId.hashCode);
-        LocalNotificationService.clearConversationMessagesStatic(jobId);
+        await _clearConversationNotificationsUseCase(jobId);
         debugPrint('FCM: Cancelled foreground notification for job $jobId');
       }
       return;
@@ -299,8 +312,7 @@ class NotificationController extends GetxController {
       try {
         final jobJson = jsonDecode(jobJsonStr);
         final jobModel = JobModel.fromJson(jobJson as Map<String, dynamic>);
-        final jobLocalDataSource = Get.find<IJobLocalDataSource>();
-        await jobLocalDataSource.saveJobs([jobModel]);
+        await _saveJobsUseCase([jobModel]);
         debugPrint('FCM Foreground: Cached job ${jobModel.jobId} details in SQLite.');
       } catch (e) {
         debugPrint('FCM Foreground: Error saving job to database: $e');
@@ -316,12 +328,16 @@ class NotificationController extends GetxController {
           final messageEntity = messageModel;
 
           // Save message to SQLite database first!
-          final localDataSource = Get.find<IJobChatLocalDataSource>();
-          await localDataSource.saveMessages([messageModel]);
+          await _saveMessagesUseCase([messageModel]);
           debugPrint('FCM Foreground: Successfully cached message ${messageEntity.uid} in SQLite.');
 
           // Mark message as delivered since we received it in foreground
-          await LocalNotificationService.markAsDelivered(messageEntity.jobId, [messageEntity.uid]);
+          await _markMessagesAsDeliveredUseCase(
+            MarkMessagesAsDeliveredParams(
+              jobId: messageEntity.jobId,
+              messageUids: [messageEntity.uid],
+            ),
+          );
 
           bool isChatOpen = false;
           if (Get.isRegistered<JobChatController>()) {
@@ -371,7 +387,7 @@ class NotificationController extends GetxController {
         if (jobDataStr != null) {
           final jobJson = jsonDecode(jobDataStr);
           final jobModel = JobModel.fromJson(jobJson);
-          final jobEntity = jobModel.toEntity();
+          final jobEntity = jobModel;
 
           if (Get.isRegistered<WorkerDashboardController>()) {
             Get.find<WorkerDashboardController>().onNewJobReceived(jobEntity);

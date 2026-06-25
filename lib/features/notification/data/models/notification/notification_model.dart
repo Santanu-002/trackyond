@@ -6,7 +6,7 @@ part 'notification_model.freezed.dart';
 part 'notification_model.g.dart';
 
 @freezed
-sealed class NotificationModel with _$NotificationModel {
+sealed class NotificationModel with _$NotificationModel implements NotificationEntity {
   const factory NotificationModel({
     required String id,
     required String title,
@@ -22,22 +22,40 @@ sealed class NotificationModel with _$NotificationModel {
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) => _$NotificationModelFromJson(json);
 
-  NotificationEntity toEntity() {
-    Map<String, dynamic>? data;
+  @override
+  Map<String, dynamic>? get data {
     if (dataPayload != null) {
       try {
-        data = jsonDecode(dataPayload!);
+        return jsonDecode(dataPayload!);
       } catch (_) {}
     }
+    return null;
+  }
 
+  @override
+  List<Object?> get props => [id, title, body, createdAt, data, isRead, isSeen];
+
+  @override
+  bool? get stringify => null;
+
+  @override
+  NotificationEntity copyWithEntity({
+    String? id,
+    String? title,
+    String? body,
+    DateTime? createdAt,
+    Map<String, dynamic>? data,
+    bool? isRead,
+    bool? isSeen,
+  }) {
     return NotificationEntity(
-      id: id,
-      title: title,
-      body: body,
-      createdAt: createdAt,
-      data: data,
-      isRead: isRead,
-      isSeen: isSeen,
+      id: id ?? this.id,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      createdAt: createdAt ?? this.createdAt,
+      data: data ?? this.data,
+      isRead: isRead ?? this.isRead,
+      isSeen: isSeen ?? this.isSeen,
     );
   }
 }

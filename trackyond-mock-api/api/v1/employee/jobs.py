@@ -6,7 +6,7 @@ from core.responses.models import GenericResponse
 from api.dependencies import get_current_user
 from typing import Optional
 from core.constants.enums import JobStatus
-from services.jobs_service import get_employee_assigned_jobs, update_job_status_for_employee, create_mock_job_for_employee
+from services.jobs_service import get_employee_assigned_jobs, update_job_status_for_employee, create_mock_job_for_employee, get_job_by_id
 
 
 router = APIRouter(prefix="/jobs", tags=["Employee/Jobs"])
@@ -82,9 +82,7 @@ async def update_job_status(
         raise HTTPException(status_code=code, detail=error)
     
     # Retrieve updated job and serialize it to return updated allowedActions
-    from services.jobs_service import get_job_with_details
-    job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
-    serialized_job = get_job_with_details(db, job)
+    serialized_job = get_job_by_id(db, job_id)
     
     return GenericResponse(
         success=True,

@@ -328,18 +328,21 @@ def delete_job_messages(db: Session, job_id: str, delete_req: schemas.JobChatMes
 
     if delete_req.delete_type == "forMe":
         for msg_uid in delete_req.message_uids:
-            msg = db.query(models.JobChatMessage).filter(models.JobChatMessage.uid == msg_uid, models.JobChatMessage.job_id == job_id).first()
+            msg = db.query(models.JobChatMessage).filter(
+                (models.JobChatMessage.uid == msg_uid) | (models.JobChatMessage.local_uid == msg_uid),
+                models.JobChatMessage.job_id == job_id
+            ).first()
             if not msg:
                 raise HTTPException(status_code=404, detail=f"Message {msg_uid} not found")
             
             # Check if record already exists to avoid unique constraint violations
             exists = db.query(models.MessageDeletedForUser).filter(
-                models.MessageDeletedForUser.message_uid == msg_uid,
+                models.MessageDeletedForUser.message_uid == msg.uid,
                 models.MessageDeletedForUser.user_uid == current_user.uid
             ).first()
             if not exists:
                 deleted_for_me = models.MessageDeletedForUser(
-                    message_uid=msg_uid,
+                    message_uid=msg.uid,
                     user_uid=current_user.uid
                 )
                 db.add(deleted_for_me)
@@ -347,7 +350,10 @@ def delete_job_messages(db: Session, job_id: str, delete_req: schemas.JobChatMes
 
     elif delete_req.delete_type == "forEveryone":
         for msg_uid in delete_req.message_uids:
-            msg = db.query(models.JobChatMessage).filter(models.JobChatMessage.uid == msg_uid, models.JobChatMessage.job_id == job_id).first()
+            msg = db.query(models.JobChatMessage).filter(
+                (models.JobChatMessage.uid == msg_uid) | (models.JobChatMessage.local_uid == msg_uid),
+                models.JobChatMessage.job_id == job_id
+            ).first()
             if not msg:
                 raise HTTPException(status_code=404, detail=f"Message {msg_uid} not found")
             

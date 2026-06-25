@@ -17,13 +17,13 @@ class DeleteMessagesParams {
   });
 }
 
-class DeleteMessagesUseCase implements BaseUseCase<void, DeleteMessagesParams> {
+class DeleteMessagesUseCase implements BaseUseCase<Unit, DeleteMessagesParams> {
   final IJobChatRepository _repository;
 
   DeleteMessagesUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, void>> call(DeleteMessagesParams params) {
+  Future<Either<AppFailure, Unit>> call(DeleteMessagesParams params) {
     return _repository.deleteMessages(
       jobId: params.jobId,
       deleteType: params.deleteType,

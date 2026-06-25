@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:get/get.dart';
 import 'package:fpdart/fpdart.dart';
-import 'package:trackyond/core/common/domain/usecase/upload_file_usecase.dart';
 import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/common/entities/user/user.dart';
@@ -16,6 +15,8 @@ import 'package:trackyond/features/job_chat/domain/usecases/get_job_messages_use
 import 'package:trackyond/features/job_chat/domain/usecases/listen_chat_events_use_case.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/send_message_usecase.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/mark_messages_seen_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/cancel_message_upload_usecase.dart';
+import 'package:trackyond/features/job_chat/domain/usecases/retry_message_upload_usecase.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_selection_controller.dart';
 import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_action_controller.dart';
 import 'package:trackyond/features/job_chat/domain/usecases/clear_conversation_notifications_usecase.dart';
@@ -29,10 +30,11 @@ import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_up
 class MockGetJobMessagesUseCase extends Mock implements GetJobMessagesUseCase {}
 class MockSendMessageUseCase extends Mock implements SendMessageUseCase {}
 class MockGetJobChatMembersUseCase extends Mock implements GetJobChatMembersUseCase {}
-class MockUploadFileUseCase extends Mock implements UploadFileUseCase {}
 class MockListenChatEventsUseCase extends Mock implements ListenChatEventsUseCase {}
 class MockMarkMessagesSeenUseCase extends Mock implements MarkMessagesSeenUseCase {}
 class MockClearConversationNotificationsUseCase extends Mock implements ClearConversationNotificationsUseCase {}
+class MockCancelMessageUploadUseCase extends Mock implements CancelMessageUploadUseCase {}
+class MockRetryMessageUploadUseCase extends Mock implements RetryMessageUploadUseCase {}
 class MockAuthController extends Mock implements AuthController {}
 
 class MockJobChatAttachmentController extends Mock implements JobChatAttachmentController {}
@@ -57,10 +59,11 @@ void main() {
     late MockGetJobMessagesUseCase mockMessagesUseCase;
     late MockSendMessageUseCase mockSendMessageUseCase;
     late MockGetJobChatMembersUseCase mockMembersUseCase;
-    late MockUploadFileUseCase mockUploadFileUseCase;
     late MockListenChatEventsUseCase mockListenEventsUseCase;
     late MockMarkMessagesSeenUseCase mockMarkSeenUseCase;
     late MockClearConversationNotificationsUseCase mockClearNotificationsUseCase;
+    late MockCancelMessageUploadUseCase mockCancelUploadUseCase;
+    late MockRetryMessageUploadUseCase mockRetryUploadUseCase;
     late MockAuthController mockAuthController;
 
     late JobChatController controller;
@@ -78,10 +81,11 @@ void main() {
       mockMessagesUseCase = MockGetJobMessagesUseCase();
       mockSendMessageUseCase = MockSendMessageUseCase();
       mockMembersUseCase = MockGetJobChatMembersUseCase();
-      mockUploadFileUseCase = MockUploadFileUseCase();
       mockListenEventsUseCase = MockListenChatEventsUseCase();
       mockMarkSeenUseCase = MockMarkMessagesSeenUseCase();
       mockClearNotificationsUseCase = MockClearConversationNotificationsUseCase();
+      mockCancelUploadUseCase = MockCancelMessageUploadUseCase();
+      mockRetryUploadUseCase = MockRetryMessageUploadUseCase();
       mockAuthController = MockAuthController();
 
       // Mock sub-controllers
@@ -120,8 +124,8 @@ void main() {
       // Mock setup responses
       when(() => mockMessagesUseCase(any())).thenAnswer((_) async => const Right([]));
       when(() => mockMembersUseCase(any())).thenAnswer((_) async => const Right([]));
-      when(() => mockMarkSeenUseCase(any())).thenAnswer((_) async => const Right(null));
-      when(() => mockClearNotificationsUseCase(any())).thenAnswer((_) async => const Right(null));
+      when(() => mockMarkSeenUseCase(any())).thenAnswer((_) async => const Right(unit));
+      when(() => mockClearNotificationsUseCase(any())).thenAnswer((_) async => const Right(unit));
       when(() => mockListenEventsUseCase(any())).thenAnswer((_) async => Right(Stream.empty()));
       when(() => mockAuthController.profile).thenAnswer((_) async => const MemberProfile(
         uid: 'my_profile_uid',
@@ -142,10 +146,11 @@ void main() {
         getMessagesUseCase: mockMessagesUseCase,
         sendMessageUseCase: mockSendMessageUseCase,
         getChatMembersUseCase: mockMembersUseCase,
-        uploadFileUseCase: mockUploadFileUseCase,
         listenChatEventsUseCase: mockListenEventsUseCase,
         markMessagesSeenUseCase: mockMarkSeenUseCase,
         clearConversationNotificationsUseCase: mockClearNotificationsUseCase,
+        cancelMessageUploadUseCase: mockCancelUploadUseCase,
+        retryMessageUploadUseCase: mockRetryUploadUseCase,
       );
     });
 

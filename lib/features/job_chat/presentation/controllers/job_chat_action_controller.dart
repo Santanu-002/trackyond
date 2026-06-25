@@ -327,18 +327,12 @@ class JobChatActionController extends GetxController {
             SendMessageParams(messages: [activityMsg]),
           );
 
-          result.fold((failure) => AppSnackbar.destructive(failure.message), (
-            sendResult,
-          ) {
-            _chatController.addOrUpdateMessage(
-              sendResult.message,
-            );
-            _chatController.scrollToLast(animate: true);
-            if (sendResult.job != null) {
-              _chatController.updateJob(sendResult.job!);
-            }
-            AppSnackbar.success('Action: ${jobAction.label}');
-          });
+          result.fold(
+            (failure) => AppSnackbar.destructive(failure.message),
+            (_) {
+              AppSnackbar.success('Action: ${jobAction.label}');
+            },
+          );
           break;
         case _:
           AppSnackbar.info('Action ${jobAction.label} not implemented yet.');
@@ -574,13 +568,8 @@ class JobChatActionController extends GetxController {
         (failure) {
           AppSnackbar.destructive(failure.message);
         },
-        (sendResult) {
+        (_) {
           sendSuccess = true;
-          _chatController.addOrUpdateMessage(sendResult.message);
-          _chatController.scrollToLast(animate: true);
-          if (sendResult.job != null) {
-            _chatController.updateJob(sendResult.job!);
-          }
           AppSnackbar.success('Action: ${jobAction.label}');
         },
       );
@@ -799,13 +788,8 @@ class JobChatActionController extends GetxController {
         (failure) {
           AppSnackbar.destructive(failure.message);
         },
-        (sendResult) {
+        (_) {
           sendSuccess = true;
-          _chatController.addOrUpdateMessage(sendResult.message);
-          _chatController.scrollToLast(animate: true);
-          if (sendResult.job != null) {
-            _chatController.updateJob(sendResult.job!);
-          }
           AppSnackbar.success(AppStrings.jobChat.statusUpdateSuccess);
         },
       );
@@ -1129,21 +1113,8 @@ class JobChatActionController extends GetxController {
         (failure) {
           AppSnackbar.destructive(failure.message);
         },
-        (sendResult) {
+        (_) {
           sendSuccess = true;
-          if (sendResult.messages.isNotEmpty) {
-            _chatController.messages.addAll(
-              sendResult.messages.map((m) => m.copyWith(isMe: true)),
-            );
-          } else {
-            _chatController.messages.add(
-              sendResult.message.copyWith(isMe: true),
-            );
-          }
-          _chatController.scrollToLast(animate: true);
-          if (sendResult.job != null) {
-            _chatController.updateJob(sendResult.job!);
-          }
         },
       );
 

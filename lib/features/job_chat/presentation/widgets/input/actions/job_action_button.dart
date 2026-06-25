@@ -60,7 +60,7 @@ class JobActionButton extends GetView<JobChatController> {
       final message = actionController.actionLoadingMessage.value;
       final progress = uploadController.uploadProgress.value;
       final isUploading = isThisActionLoading &&
-          (message == 'Uploading photo...' || progress > 0);
+          (message == AppStrings.jobChat.uploadingPhoto || progress > 0);
 
       Widget buttonChild;
       if (isThisActionLoading) {

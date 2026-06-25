@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:trackyond/core/common/widgets/image/app_image.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
@@ -10,7 +9,6 @@ import 'package:trackyond/features/job_chat/presentation/widgets/bubbles/types/c
 import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 import 'package:trackyond/core/utils/app_utils.dart';
 import 'package:trackyond/core/network/api/api_endpoints.dart';
-import 'package:trackyond/features/job_chat/presentation/controllers/job_chat_controller.dart';
 
 import 'package:trackyond/core/common/enums/job_chat_message_status.dart';
 
@@ -21,7 +19,6 @@ class ChatImageGridItem extends StatelessWidget {
   final bool isLast;
   final double imageRadius;
   final bool showTimeOverlay;
-  final bool skipPendingOverlay;
 
   const ChatImageGridItem({
     super.key,
@@ -31,12 +28,10 @@ class ChatImageGridItem extends StatelessWidget {
     this.isLast = false,
     required this.imageRadius,
     this.showTimeOverlay = false,
-    this.skipPendingOverlay = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final chatController = Get.find<JobChatController>();
     final isPending = message.status == JobChatMessageStatus.pending;
     final content = imageContents[index];
     final path = content.content ?? '';
@@ -113,114 +108,46 @@ class ChatImageGridItem extends StatelessWidget {
       );
     }
 
-    return Obx(() {
-      final uploadProgress = chatController.uploadProgressMap[message.uid];
-      final uploadError = chatController.uploadErrorMap[message.uid];
+    return GestureDetector(
+      onTap: isPending
+          ? null
+          : () {
+              final routeArgs = {
+                'imageUrls': imageContents.map((c) => c.content ?? c.metadata?['url'] as String? ?? '').toList(),
+                'blurHashes': imageContents.map((c) {
+                  if (c.type == JobChatMessageContentType.video) {
+                    final dynamic videoMeta = c.metadata?['videoMetadata'];
+                    return (videoMeta is Map ? videoMeta['thumbnailBlurHash'] : null) ?? c.metadata?['thumbnailBlurHash'] as String?;
+                  } else {
+                    final dynamic imageMeta = c.metadata?['imageMetadata'];
+                    return (imageMeta is Map ? imageMeta['blurHash'] : null) ??
+                        c.metadata?['blurHash'] as String? ??
+                        c.metadata?['blur_hash'] as String?;
+                  }
+                }).toList(),
+                'contentTypes': imageContents.map((c) => c.type.value).toList(),
+                'initialIndex': index,
+                'messageUid': message.uid,
+                'message': message,
+              };
 
-      Widget mainWidget = img;
-      if (isPending && !skipPendingOverlay) {
-        mainWidget = Stack(
-          fit: StackFit.expand,
-          children: [
-            img,
-            if (uploadError != null)
-              Container(
-                color: Colors.black.withValues(alpha: 0.5),
-                child: Center(
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 16,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 28),
-                          onPressed: () => chatController.retryMessageUpload(message.uid),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
-                          onPressed: () => chatController.cancelMessageUpload(message.uid),
-                        ),
-                      ],
-                    ),
-                  ),
+              Navigator.push(
+                context,
+                TransparentPageRoute(
+                  builder: (context) => const MediaViewerPage(),
+                  settings: RouteSettings(arguments: routeArgs),
                 ),
-              )
-            else
-              Container(
-                color: Colors.black.withValues(alpha: 0.5),
-                child: Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        value: uploadProgress ?? 0.0,
-                        color: Colors.white,
-                        strokeWidth: 3,
-                      ),
-
-                      Positioned(
-                        bottom: 4,
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: InkWell(
-                            onTap: () => chatController.cancelMessageUpload(message.uid),
-                            borderRadius: BorderRadius.circular(12),
-                            child: const Padding(
-                              padding: EdgeInsets.all(4.0),
-                              child: Icon(Icons.close_rounded, color: Colors.white, size: 16),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        );
-      }
-
-      return GestureDetector(
-        onTap: isPending
-            ? null
-            : () {
-                final routeArgs = {
-                  'imageUrls': imageContents.map((c) => c.content ?? c.metadata?['url'] as String? ?? '').toList(),
-                  'blurHashes': imageContents.map((c) {
-                    if (c.type == JobChatMessageContentType.video) {
-                      final dynamic videoMeta = c.metadata?['videoMetadata'];
-                      return (videoMeta is Map ? videoMeta['thumbnailBlurHash'] : null) ?? c.metadata?['thumbnailBlurHash'] as String?;
-                    } else {
-                      final dynamic imageMeta = c.metadata?['imageMetadata'];
-                      return (imageMeta is Map ? imageMeta['blurHash'] : null) ??
-                          c.metadata?['blurHash'] as String? ??
-                          c.metadata?['blur_hash'] as String?;
-                    }
-                  }).toList(),
-                  'contentTypes': imageContents.map((c) => c.type.value).toList(),
-                  'initialIndex': index,
-                  'messageUid': message.uid,
-                  'message': message,
-                };
-
-                Navigator.push(
-                  context,
-                  TransparentPageRoute(
-                    builder: (context) => const MediaViewerPage(),
-                    settings: RouteSettings(arguments: routeArgs),
-                  ),
-                );
-              },
-        child: Hero(
-          tag: 'image_${message.uid}_$index',
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(imageRadius),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                mainWidget,
-                if (showTimeOverlay || isVideo)
+              );
+            },
+      child: Hero(
+        tag: 'image_${message.uid}_$index',
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(imageRadius),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              img,
+              if (showTimeOverlay || isVideo)
                 Positioned(
                   left: 0,
                   right: 0,
@@ -286,7 +213,6 @@ class ChatImageGridItem extends StatelessWidget {
         ),
       ),
     );
-  });
   }
 }
 

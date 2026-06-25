@@ -30,6 +30,7 @@ abstract interface class IJobChatLocalDataSource {
     List<String> messageUids,
     DateTime deliveredAt,
   );
+  Future<JobChatMessageModel?> getMessageByUid(String uid);
 
   // Members
   Future<void> saveChatMembers(List<MemberProfileModel> members);
@@ -40,6 +41,18 @@ class JobChatLocalDataSourceImpl implements IJobChatLocalDataSource {
   final IDatabaseService _databaseService;
 
   JobChatLocalDataSourceImpl(this._databaseService);
+
+  @override
+  Future<JobChatMessageModel?> getMessageByUid(String uid) async {
+    final List<Map<String, dynamic>> maps = await _databaseService.query(
+      ChatMessageTable.tableName,
+      where: '${ChatMessageTable.columnNames.uid} = ?',
+      whereArgs: [uid],
+      limit: 1,
+    );
+    if (maps.isEmpty) return null;
+    return JobChatMessageModel.fromDbMap(maps.first);
+  }
 
   @override
   Future<void> saveMessages(List<JobChatMessageModel> messages) async {

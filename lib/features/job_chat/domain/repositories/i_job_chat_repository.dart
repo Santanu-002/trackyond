@@ -4,7 +4,6 @@ import 'package:trackyond/core/common/entities/member/member_profile.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/send_message_entity.dart';
-import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
 import 'package:trackyond/features/job_chat/domain/entities/message_query_options.dart';
 
@@ -13,15 +12,18 @@ abstract interface class IJobChatRepository {
     String jobId, {
     MessageQueryOptions? options,
   });
-  Future<Either<AppFailure, SendMessageResult>> sendMessage(List<SendMessageEntity> messages);
+  Future<Either<AppFailure, Unit>> sendMessage(List<SendMessageEntity> messages);
   Future<Either<AppFailure, JobEntity>> updateJobStatus(String jobId, String status);
   Future<Either<AppFailure, List<MemberProfile>>> getChatMembers(String jobId);
-  Future<Either<AppFailure, void>> deleteMessages({
+  Future<Either<AppFailure, Unit>> deleteMessages({
     required String jobId,
     required String deleteType,
     required List<String> messageUids,
     required DateTime deletedByUserAt,
   });
-  Future<Either<AppFailure, void>> markMessagesAsSeen(String jobId, {List<String>? messageUids});
-  Future<Either<AppFailure, void>> markMessagesAsDelivered(String jobId, List<String> messageUids);
+  Future<Either<AppFailure, Unit>> markMessagesAsSeen(String jobId, {List<String>? messageUids});
+  Future<Either<AppFailure, Unit>> markMessagesAsDelivered(String jobId, List<String> messageUids);
+  Future<Either<AppFailure, Unit>> saveMessages(List<JobChatMessageEntity> messages);
+  Future<Either<AppFailure, Unit>> cancelMessageUpload(String messageUid);
+  Future<Either<AppFailure, Unit>> retryMessageUpload(String messageUid);
 }

@@ -10,13 +10,13 @@ class MarkMessagesSeenParams {
   const MarkMessagesSeenParams({required this.jobId, this.messageUids});
 }
 
-class MarkMessagesSeenUseCase implements BaseUseCase<void, MarkMessagesSeenParams> {
+class MarkMessagesSeenUseCase implements BaseUseCase<Unit, MarkMessagesSeenParams> {
   final IJobChatRepository _repository;
 
   MarkMessagesSeenUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, void>> call(MarkMessagesSeenParams params) async {
+  Future<Either<AppFailure, Unit>> call(MarkMessagesSeenParams params) async {
     return await _repository.markMessagesAsSeen(params.jobId, messageUids: params.messageUids);
   }
 }

@@ -14,7 +14,6 @@ class ChatImageGridLayout extends StatelessWidget {
   final double imageRadius;
   final double rowHeight;
   final double spacing;
-  final bool skipPendingOverlay;
   final double? width;
   final bool showTimeOverlay;
 
@@ -25,7 +24,6 @@ class ChatImageGridLayout extends StatelessWidget {
     required this.imageRadius,
     required this.rowHeight,
     required this.spacing,
-    required this.skipPendingOverlay,
     this.width,
     this.showTimeOverlay = false,
   });
@@ -78,7 +76,6 @@ class ChatImageGridLayout extends StatelessWidget {
       imageContents: imageContents,
       imageRadius: imageRadius,
       showTimeOverlay: showTimeOverlay,
-      skipPendingOverlay: skipPendingOverlay,
     );
 
     if (isVideo && videoAspectRatio != null && videoAspectRatio > 0) {
@@ -107,9 +104,11 @@ class ChatImageGridLayout extends StatelessWidget {
       );
     } else {
       return SizedBox(
-        width: width ?? 200,
-        height: 150,
-        child: imgWidget,
+        width: width ?? 240,
+        child: AspectRatio(
+          aspectRatio: 1.0,
+          child: imgWidget,
+        ),
       );
     }
   }
@@ -126,7 +125,6 @@ class ChatImageGridLayout extends StatelessWidget {
               message: message,
               imageContents: imageContents,
               imageRadius: imageRadius,
-              skipPendingOverlay: skipPendingOverlay,
             ),
           ),
           SizedBox(width: spacing),
@@ -136,7 +134,6 @@ class ChatImageGridLayout extends StatelessWidget {
               message: message,
               imageContents: imageContents,
               imageRadius: imageRadius,
-              skipPendingOverlay: skipPendingOverlay,
             ),
           ),
         ],
@@ -157,7 +154,6 @@ class ChatImageGridLayout extends StatelessWidget {
               message: message,
               imageContents: imageContents,
               imageRadius: imageRadius,
-              skipPendingOverlay: skipPendingOverlay,
             ),
           ),
           SizedBox(height: spacing),
@@ -171,7 +167,6 @@ class ChatImageGridLayout extends StatelessWidget {
                     message: message,
                     imageContents: imageContents,
                     imageRadius: imageRadius,
-                    skipPendingOverlay: skipPendingOverlay,
                   ),
                 ),
                 SizedBox(width: spacing),
@@ -181,7 +176,6 @@ class ChatImageGridLayout extends StatelessWidget {
                     message: message,
                     imageContents: imageContents,
                     imageRadius: imageRadius,
-                    skipPendingOverlay: skipPendingOverlay,
                   ),
                 ),
               ],
@@ -209,7 +203,6 @@ class ChatImageGridLayout extends StatelessWidget {
                     message: message,
                     imageContents: imageContents,
                     imageRadius: imageRadius,
-                    skipPendingOverlay: skipPendingOverlay,
                   ),
                 ),
                 SizedBox(width: spacing),
@@ -219,7 +212,6 @@ class ChatImageGridLayout extends StatelessWidget {
                     message: message,
                     imageContents: imageContents,
                     imageRadius: imageRadius,
-                    skipPendingOverlay: skipPendingOverlay,
                   ),
                 ),
               ],
@@ -236,7 +228,6 @@ class ChatImageGridLayout extends StatelessWidget {
                     message: message,
                     imageContents: imageContents,
                     imageRadius: imageRadius,
-                    skipPendingOverlay: skipPendingOverlay,
                   ),
                 ),
                 SizedBox(width: spacing),
@@ -247,7 +238,6 @@ class ChatImageGridLayout extends StatelessWidget {
                     imageContents: imageContents,
                     isLast: true,
                     imageRadius: imageRadius,
-                    skipPendingOverlay: skipPendingOverlay,
                   ),
                 ),
               ],

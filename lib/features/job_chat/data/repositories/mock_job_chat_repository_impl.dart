@@ -10,7 +10,6 @@ import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repos
 
 import 'package:trackyond/features/job_chat/domain/entities/send_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
-import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
 import 'package:trackyond/features/job_chat/domain/entities/message_query_options.dart';
 
@@ -56,31 +55,9 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
   }
 
   @override
-  Future<Either<AppFailure, SendMessageResult>> sendMessage(List<SendMessageEntity> messages) async {
+  Future<Either<AppFailure, Unit>> sendMessage(List<SendMessageEntity> messages) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    if (messages.isEmpty) {
-      return Left(ServerFailure('No messages to send'));
-    }
-    final msg = messages.last;
-    final mockMessage = JobChatMessageEntity(
-      uid: msg.localUid ?? 'mock_${DateTime.now().millisecondsSinceEpoch}',
-      serverUid: 'server_mock_${DateTime.now().millisecondsSinceEpoch}',
-      jobId: msg.jobId,
-      senderUid: msg.senderUid,
-      content: msg.content,
-      type: msg.type,
-      metadata: msg.metadata,
-      actionPerformed: msg.actionPerformed,
-      createdByAuthorAt: msg.createdByAuthorAt,
-      createdAt: DateTime.now(),
-      isMe: true,
-    );
-    return Right(SendMessageResult(
-      message: mockMessage,
-      messages: [mockMessage],
-      allowedActions: const [],
-      job: null,
-    ));
+    return const Right(unit);
   }
 
   @override
@@ -107,25 +84,40 @@ class MockJobChatRepositoryImpl implements IJobChatRepository {
   }
 
   @override
-  Future<Either<AppFailure, void>> deleteMessages({
+  Future<Either<AppFailure, Unit>> deleteMessages({
     required String jobId,
     required String deleteType,
     required List<String> messageUids,
     required DateTime deletedByUserAt,
   }) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    return const Right(null);
+    return const Right(unit);
   }
 
   @override
-  Future<Either<AppFailure, void>> markMessagesAsSeen(String jobId, {List<String>? messageUids}) async {
+  Future<Either<AppFailure, Unit>> markMessagesAsSeen(String jobId, {List<String>? messageUids}) async {
     await Future.delayed(const Duration(milliseconds: 100));
-    return const Right(null);
+    return const Right(unit);
   }
 
   @override
-  Future<Either<AppFailure, void>> markMessagesAsDelivered(String jobId, List<String> messageUids) async {
+  Future<Either<AppFailure, Unit>> markMessagesAsDelivered(String jobId, List<String> messageUids) async {
     await Future.delayed(const Duration(milliseconds: 100));
-    return const Right(null);
+    return const Right(unit);
+  }
+
+  @override
+  Future<Either<AppFailure, Unit>> saveMessages(List<JobChatMessageEntity> messages) async {
+    return const Right(unit);
+  }
+
+  @override
+  Future<Either<AppFailure, Unit>> cancelMessageUpload(String messageUid) async {
+    return const Right(unit);
+  }
+
+  @override
+  Future<Either<AppFailure, Unit>> retryMessageUpload(String messageUid) async {
+    return const Right(unit);
   }
 }

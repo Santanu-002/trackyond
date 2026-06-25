@@ -5,14 +5,14 @@ import 'package:trackyond/core/common/entities/job/job_entity.dart';
 import 'package:trackyond/core/common/repositories/i_event_bus_repository.dart';
 import 'package:trackyond/core/common/events/job_event.dart';
 
-class EmitJobUpdateUseCase implements BaseUseCase<void, JobEntity> {
+class EmitJobUpdateUseCase implements BaseUseCase<Unit, JobEntity> {
   final IEventBusRepository _eventBus;
 
   EmitJobUpdateUseCase(this._eventBus);
 
   @override
-  Future<Either<AppFailure, void>> call(JobEntity params) async {
+  Future<Either<AppFailure, Unit>> call(JobEntity params) async {
     _eventBus.fire(JobUpdatedEvent(params));
-    return right(null);
+    return right(unit);
   }
 }

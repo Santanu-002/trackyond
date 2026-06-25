@@ -38,5 +38,5 @@ sealed class SendMessageResponseModel with _$SendMessageResponseModel implements
   }
 
   @override
-  JobEntity? get job => jobModel?.toEntity();
+  JobEntity? get job => jobModel;
 }

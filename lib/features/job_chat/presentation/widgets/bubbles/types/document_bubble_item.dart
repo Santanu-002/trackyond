@@ -294,12 +294,17 @@ class _DocumentBubbleItemState extends State<DocumentBubbleItem> {
     final isPending = widget.isPending;
 
     return Obx(() {
+      final isUploading = widget.messageUid != null && chatController.uploadingMedia.contains(widget.messageUid!);
+      final isPendingInQueue = widget.messageUid != null && chatController.pendingUploads.contains(widget.messageUid!);
+      final isFailed = widget.messageUid != null && chatController.failedUploads.contains(widget.messageUid!);
       final uploadProgress = widget.messageUid != null ? chatController.uploadProgressMap[widget.messageUid!] : null;
       final uploadError = widget.messageUid != null ? chatController.uploadErrorMap[widget.messageUid!] : null;
 
+      final shouldShowRetry = isFailed || uploadError != null || (!isUploading && !isPendingInQueue);
+
       final Widget rightWidget;
       if (isPending) {
-        if (uploadError != null) {
+        if (shouldShowRetry) {
           rightWidget = Row(
             mainAxisSize: MainAxisSize.min,
             spacing: 8,
@@ -331,7 +336,6 @@ class _DocumentBubbleItemState extends State<DocumentBubbleItem> {
             ],
           );
         } else {
-          final progress = uploadProgress ?? 0.0;
           rightWidget = Padding(
             padding: const EdgeInsets.all(4.0),
             child: Stack(
@@ -341,7 +345,7 @@ class _DocumentBubbleItemState extends State<DocumentBubbleItem> {
                   width: 28,
                   height: 28,
                   child: CircularProgressIndicator(
-                    value: progress,
+                    value: uploadProgress,
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
                       isMe ? colorScheme.onPrimary : colorScheme.primary,

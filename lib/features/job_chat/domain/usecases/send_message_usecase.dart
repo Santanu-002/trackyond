@@ -4,7 +4,6 @@ import 'package:trackyond/core/exception/app_failures.dart';
 import 'package:trackyond/features/job_chat/domain/entities/send_message_entity.dart';
 import 'package:trackyond/features/job_chat/domain/repositories/i_job_chat_repository.dart';
 
-import 'package:trackyond/features/job_chat/domain/entities/send_message_result.dart';
 
 class SendMessageParams {
   final List<SendMessageEntity> messages;
@@ -12,13 +11,13 @@ class SendMessageParams {
   SendMessageParams({required this.messages});
 }
 
-class SendMessageUseCase implements BaseUseCase<SendMessageResult, SendMessageParams> {
+class SendMessageUseCase implements BaseUseCase<Unit, SendMessageParams> {
   final IJobChatRepository _repository;
 
   SendMessageUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, SendMessageResult>> call(SendMessageParams params) {
+  Future<Either<AppFailure, Unit>> call(SendMessageParams params) {
     return _repository.sendMessage(params.messages);
   }
 }

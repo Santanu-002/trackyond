@@ -1,206 +1,151 @@
-import 'dart:async';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:trackyond/core/common/enums/websocket_events.dart';
+import 'package:get/get.dart';
 import 'package:trackyond/core/common/enums/job_chat_message_type.dart';
-import 'package:trackyond/core/common/models/api_response/api_response.dart';
-import 'package:trackyond/core/services/sync/models/enqueue_task.dart';
-import 'package:trackyond/core/services/sync/models/queue_response.dart';
-import 'package:trackyond/core/services/sync/sync_service.dart';
+import 'package:trackyond/core/common/enums/job_chat_message_content_type.dart';
 import 'package:trackyond/core/services/websocket/websocket_service.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_local_datasource.dart';
 import 'package:trackyond/features/job_chat/data/datasources/job_chat_remote_datasource.dart';
-import 'package:trackyond/features/job_chat/data/models/response/job_chat_message_model.dart';
-import 'package:trackyond/features/job_chat/data/models/response/send_message_response_model.dart';
 import 'package:trackyond/features/job_chat/data/repositories/job_chat_repository_impl.dart';
 import 'package:trackyond/features/job_chat/domain/entities/send_message_entity.dart';
+import 'package:trackyond/features/job_chat/domain/entities/job_chat_message_content_entity.dart';
+import 'package:trackyond/core/services/queue_service/queue_service.dart';
+import 'package:trackyond/core/common/models/queue/queue_task.dart';
+import 'package:trackyond/core/common/enums/queue_task_type.dart';
+import 'package:trackyond/core/common/enums/queue_priority.dart';
+import 'package:trackyond/core/common/enums/queue_task_status.dart';
 
 class MockJobChatRemoteDataSource extends Mock implements IJobChatRemoteDataSource {}
 class MockJobChatLocalDataSource extends Mock implements IJobChatLocalDataSource {}
 class MockWebSocketService extends Mock implements WebSocketService {}
-class MockSyncService extends Mock implements SyncService {}
+class MockQueueService extends Mock implements QueueService {
+  @override
+  InternalFinalCallback<void> get onStart => InternalFinalCallback<void>(callback: () {});
+  @override
+  InternalFinalCallback<void> get onDelete => InternalFinalCallback<void>(callback: () {});
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
-    registerFallbackValue(
-      const EnqueueTask(action: 'dummy', data: {}, requestId: 'dummy')
-    );
-
-    // Mock platform channel for Connectivity
-    const channel = MethodChannel('dev.fluttercommunity.plus/connectivity');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      channel,
-      (message) async {
-        if (message.method == 'check') {
-          return ['wifi']; // Represents connected state
-        }
-        return null;
-      },
-    );
+    registerFallbackValue(QueueTask(
+      id: 'fallback_id',
+      type: QueueTaskType.none,
+      priority: QueuePriority.low,
+      payload: const {},
+      status: QueueTaskStatus.pending,
+      createdAt: DateTime(2026, 6, 24),
+      updatedAt: DateTime(2026, 6, 24),
+    ));
   });
 
   late MockJobChatRemoteDataSource mockRemoteDataSource;
   late MockJobChatLocalDataSource mockLocalDataSource;
   late MockWebSocketService mockWebSocketService;
-  late MockSyncService mockSyncService;
+  late MockQueueService mockQueueService;
   late JobChatRepositoryImpl repository;
 
   setUp(() {
     mockRemoteDataSource = MockJobChatRemoteDataSource();
     mockLocalDataSource = MockJobChatLocalDataSource();
     mockWebSocketService = MockWebSocketService();
-    mockSyncService = MockSyncService();
+    mockQueueService = MockQueueService();
+
+    Get.put<QueueService>(mockQueueService);
 
     repository = JobChatRepositoryImpl(
       mockRemoteDataSource,
       mockLocalDataSource,
       mockWebSocketService,
-      mockSyncService,
     );
 
     // Default stubs
     when(() => mockLocalDataSource.saveMessages(any())).thenAnswer((_) async => {});
+    when(() => mockQueueService.enqueue(any())).thenAnswer((_) async => {});
   });
 
-  group('JobChatRepositoryImpl sendMessage WebSocket tests', () {
-    test('sendMessage triggers WebSocket sendRequestWithResponse', () async {
+  tearDown(() {
+    Get.reset();
+  });
+
+  group('JobChatRepositoryImpl sendMessage Queue Routing tests', () {
+    test('sendMessage with plain text enqueues SendMessage QueueTask', () async {
       final messages = [
         SendMessageEntity(
           jobId: 'job_123',
           senderUid: 'sender_123',
-          content: const [],
+          content: const [
+            JobChatMessageContentEntity(
+              type: JobChatMessageContentType.text,
+              content: 'Hello world',
+            ),
+          ],
           type: JobChatMessageType.message,
           createdByAuthorAt: DateTime(2026, 6, 24),
           localUid: 'local_temp_123',
         )
       ];
 
-      when(() => mockWebSocketService.isConnected).thenReturn(true);
-      
-      // Stub WebSocket to return a successfully matched response
-      when(() => mockWebSocketService.sendRequestWithResponse(
-        any(),
-        event: WebSocketEvents.message,
-        type: WebSocketMessageType.sendMessage,
-      )).thenAnswer((invocation) async {
-        final task = invocation.positionalArguments[0] as EnqueueTask;
-        // Verify task gets generated with correct matched local_temp_123 requestId
-        expect(task.requestId, equals('local_temp_123'));
-
-        return QueueResponse(
-          action: 'send_message',
-          success: true,
-          data: {
-            'messages': [
-              {
-                'uid': 'server_uid_123',
-                'localUid': 'local_temp_123',
-                'jobId': 'job_123',
-                'senderUid': 'sender_123',
-                'type': 'message',
-                'createdByAuthorAt': '2026-06-24T12:00:00Z',
-                'createdAt': '2026-06-24T12:00:01Z',
-                'updatedAt': '2026-06-24T12:00:01Z',
-                'active': true,
-                'deleted': false,
-                'content': [],
-              }
-            ],
-            'job': {
-              'jobId': 'job_123',
-              'jobTitle': 'Test Job',
-              'customerName': 'Customer',
-              'customerPhone': '1234567890',
-              'workerProfileUid': 'worker_123',
-              'status': 'pending',
-              'requirePhotoOnStart': false,
-              'requirePhotoOnComplete': false,
-              'captureLocation': false,
-              'createdAt': '2026-06-24T12:00:00Z',
-              'allowedActions': [],
-            }
-          },
-          requestId: task.requestId,
-        );
-      });
-
       final result = await repository.sendMessage(messages);
 
       expect(result.isRight(), isTrue);
-      verify(() => mockLocalDataSource.saveMessages(any())).called(2); // Once for local preview, once for server response
+
+      // Verify local database save
+      verify(() => mockLocalDataSource.saveMessages(any())).called(1);
+
+      // Verify QueueService enqueue
+      final capturedTasks = verify(() => mockQueueService.enqueue(captureAny())).captured;
+
+      expect(capturedTasks.first, isA<QueueTask>());
+      final task = capturedTasks.first as QueueTask;
+      expect(task.type, equals(QueueTaskType.sendMessage));
+      expect(task.priority, equals(QueuePriority.high));
+      expect(task.id, equals('local_temp_123'));
+      expect(task.payload['jobId'], equals('job_123'));
     });
 
-    test('sendMessage falls back to REST when WebSocket times out (demonstrating the flaw)', () async {
+    test('sendMessage with media enqueues UploadMedia QueueTask', () async {
       final messages = [
         SendMessageEntity(
           jobId: 'job_123',
           senderUid: 'sender_123',
-          content: const [],
+          content: const [
+            JobChatMessageContentEntity(
+              type: JobChatMessageContentType.image,
+              content: 'local/path/to/image.jpg',
+            ),
+            JobChatMessageContentEntity(
+              type: JobChatMessageContentType.text,
+              content: 'caption text',
+            ),
+          ],
           type: JobChatMessageType.message,
           createdByAuthorAt: DateTime(2026, 6, 24),
           localUid: 'local_temp_123',
         )
       ];
 
-      when(() => mockWebSocketService.isConnected).thenReturn(true);
-      
-      // Simulate timeout exception (the flaw where requestIds do not match and WebSocket waits 8 seconds)
-      when(() => mockWebSocketService.sendRequestWithResponse(
-        any(),
-        event: WebSocketEvents.message,
-        type: WebSocketMessageType.sendMessage,
-      )).thenAnswer((_) async => throw TimeoutException('WebSocket request timed out'));
-
-      // Stub REST API fallback response
-      final restResponse = SendMessageResponseModel(
-        messages: [
-          JobChatMessageModel(
-            uid: 'local_temp_123',
-            serverUid: 'server_uid_123',
-            jobId: 'job_123',
-            senderUid: 'sender_123',
-            type: JobChatMessageType.message,
-            createdByAuthorAt: DateTime(2026, 6, 24),
-            createdAt: DateTime(2026, 6, 24),
-            updatedAt: DateTime(2026, 6, 24),
-            active: true,
-            deleted: false,
-            content: const [],
-          )
-        ],
-        message: JobChatMessageModel(
-          uid: 'local_temp_123',
-          serverUid: 'server_uid_123',
-          jobId: 'job_123',
-          senderUid: 'sender_123',
-          type: JobChatMessageType.message,
-          createdByAuthorAt: DateTime(2026, 6, 24),
-          createdAt: DateTime(2026, 6, 24),
-          updatedAt: DateTime(2026, 6, 24),
-          active: true,
-          deleted: false,
-          content: const [],
-        ),
-        allowedActions: const [],
-      );
-
-      final apiSuccess = ApiResponse<SendMessageResponseModel>.success(
-        success: true,
-        message: 'Success',
-        data: restResponse,
-      );
-
-      when(() => mockRemoteDataSource.sendMessage(messages: any(named: 'messages')))
-          .thenAnswer((_) async => apiSuccess);
-
       final result = await repository.sendMessage(messages);
 
       expect(result.isRight(), isTrue);
-      // Verify fallback was invoked
-      verify(() => mockRemoteDataSource.sendMessage(messages: any(named: 'messages'))).called(1);
+
+      // Verify local database save
+      verify(() => mockLocalDataSource.saveMessages(any())).called(1);
+
+      // Verify QueueService enqueue
+      final capturedTasks = verify(() => mockQueueService.enqueue(captureAny())).captured;
+
+      expect(capturedTasks.first, isA<QueueTask>());
+      final task = capturedTasks.first as QueueTask;
+      expect(task.type, equals(QueueTaskType.uploadMedia));
+      expect(task.priority, equals(QueuePriority.high));
+      expect(task.id, equals('local_temp_123'));
+      expect(task.payload['jobId'], equals('job_123'));
+      final items = List<Map<String, dynamic>>.from(task.payload['items'] as List);
+      expect(items.length, equals(1));
+      expect(items.first['path'], equals('local/path/to/image.jpg'));
+      expect(task.payload['caption'], equals('caption text'));
     });
   });
 }

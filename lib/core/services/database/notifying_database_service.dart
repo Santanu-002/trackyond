@@ -54,9 +54,9 @@ class NotifyingDatabaseService implements IDatabaseService {
         if (table == JobTable.tableName) {
           final model = JobModel.fromDbMap(row);
           if (operation == DbOperation.insert) {
-            _eventBus.fire(JobInsertedEvent([model.toEntity()]));
+            _eventBus.fire(JobInsertedEvent([model]));
           } else {
-            _eventBus.fire(JobUpdatedEvent(model.toEntity()));
+            _eventBus.fire(JobUpdatedEvent(model));
           }
         } else if (table == ChatMessageTable.tableName) {
           final model = JobChatMessageModel.fromDbMap(row);
@@ -70,7 +70,7 @@ class NotifyingDatabaseService implements IDatabaseService {
                 whereArgs: [model.jobId],
               );
               if (jobRows.isNotEmpty) {
-                jobEntity = JobModel.fromDbMap(jobRows.first).toEntity();
+                jobEntity = JobModel.fromDbMap(jobRows.first);
               }
             } catch (e) {
               debugPrint('NotifyingDatabaseService: Error querying job relation: $e');

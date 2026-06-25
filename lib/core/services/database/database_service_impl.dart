@@ -5,6 +5,7 @@ import 'package:trackyond/core/services/database/tables/job_table.dart';
 import 'package:trackyond/core/services/database/tables/chat_message_table.dart';
 import 'package:trackyond/core/services/database/tables/member_table.dart';
 import 'package:trackyond/core/services/database/tables/sync_queue_table.dart';
+import 'package:trackyond/core/services/database/tables/queue_tasks_table.dart';
 
 class DatabaseServiceImpl implements IDatabaseService {
   Database? _db;
@@ -21,12 +22,13 @@ class DatabaseServiceImpl implements IDatabaseService {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await db.execute(JobTable.tableCreate);
         await db.execute(ChatMessageTable.tableCreate);
         await db.execute(MemberTable.tableCreate);
         await db.execute(SyncQueueTable.tableCreate);
+        await db.execute(QueueTasksTable.tableCreate);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -43,6 +45,9 @@ class DatabaseServiceImpl implements IDatabaseService {
           await db.execute(ChatMessageTable.tableCreate);
           await db.execute(MemberTable.tableCreate);
           await db.execute(SyncQueueTable.tableCreate);
+        }
+        if (oldVersion < 4) {
+          await db.execute(QueueTasksTable.tableCreate);
         }
       },
     );
@@ -138,6 +143,7 @@ class DatabaseServiceImpl implements IDatabaseService {
       await txn.delete(ChatMessageTable.tableName);
       await txn.delete(MemberTable.tableName);
       await txn.delete(SyncQueueTable.tableName);
+      await txn.delete(QueueTasksTable.tableName);
     });
   }
 

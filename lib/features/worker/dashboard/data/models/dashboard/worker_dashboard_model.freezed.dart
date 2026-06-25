@@ -28,17 +28,13 @@ $WorkerDashboardModelCopyWith<WorkerDashboardModel> get copyWith => _$WorkerDash
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other.recentJobs, recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts)&&(identical(other.unreadNotificationCount, unreadNotificationCount) || other.unreadNotificationCount == unreadNotificationCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModel&&super == other&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other.recentJobs, recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts)&&(identical(other.unreadNotificationCount, unreadNotificationCount) || other.unreadNotificationCount == unreadNotificationCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(recentJobs),jobCounts,unreadNotificationCount);
+int get hashCode => Object.hash(runtimeType,super.hashCode,attendanceStatus,const DeepCollectionEquality().hash(recentJobs),jobCounts,unreadNotificationCount);
 
-@override
-String toString() {
-  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, jobCounts: $jobCounts, unreadNotificationCount: $unreadNotificationCount)';
-}
 
 
 }
@@ -251,17 +247,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModel&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other._recentJobs, _recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts)&&(identical(other.unreadNotificationCount, unreadNotificationCount) || other.unreadNotificationCount == unreadNotificationCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModel&&super == other&&(identical(other.attendanceStatus, attendanceStatus) || other.attendanceStatus == attendanceStatus)&&const DeepCollectionEquality().equals(other._recentJobs, _recentJobs)&&(identical(other.jobCounts, jobCounts) || other.jobCounts == jobCounts)&&(identical(other.unreadNotificationCount, unreadNotificationCount) || other.unreadNotificationCount == unreadNotificationCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,attendanceStatus,const DeepCollectionEquality().hash(_recentJobs),jobCounts,unreadNotificationCount);
+int get hashCode => Object.hash(runtimeType,super.hashCode,attendanceStatus,const DeepCollectionEquality().hash(_recentJobs),jobCounts,unreadNotificationCount);
 
-@override
-String toString() {
-  return 'WorkerDashboardModel(attendanceStatus: $attendanceStatus, recentJobs: $recentJobs, jobCounts: $jobCounts, unreadNotificationCount: $unreadNotificationCount)';
-}
 
 
 }
@@ -336,17 +328,13 @@ $WorkerDashboardModelStatsCopyWith<WorkerDashboardModelStats> get copyWith => _$
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModelStats&&(identical(other.todayStats, todayStats) || other.todayStats == todayStats)&&(identical(other.overallStats, overallStats) || other.overallStats == overallStats));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WorkerDashboardModelStats&&super == other&&(identical(other.todayStats, todayStats) || other.todayStats == todayStats)&&(identical(other.overallStats, overallStats) || other.overallStats == overallStats));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,todayStats,overallStats);
+int get hashCode => Object.hash(runtimeType,super.hashCode,todayStats,overallStats);
 
-@override
-String toString() {
-  return 'WorkerDashboardModelStats(todayStats: $todayStats, overallStats: $overallStats)';
-}
 
 
 }
@@ -549,17 +537,13 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModelStats&&(identical(other.todayStats, todayStats) || other.todayStats == todayStats)&&(identical(other.overallStats, overallStats) || other.overallStats == overallStats));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WorkerDashboardModelStats&&super == other&&(identical(other.todayStats, todayStats) || other.todayStats == todayStats)&&(identical(other.overallStats, overallStats) || other.overallStats == overallStats));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,todayStats,overallStats);
+int get hashCode => Object.hash(runtimeType,super.hashCode,todayStats,overallStats);
 
-@override
-String toString() {
-  return 'WorkerDashboardModelStats(todayStats: $todayStats, overallStats: $overallStats)';
-}
 
 
 }

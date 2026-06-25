@@ -2,7 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:trackyond/core/common/entities/attendance/attendance_entity.dart';
 import 'package:trackyond/core/common/usecase/usecase.dart';
 import 'package:trackyond/core/exception/app_failures.dart';
-import 'package:trackyond/features/worker/attendance/domain/repositories/attendance_repository.dart';
+import 'package:trackyond/features/worker/attendance/domain/repositories/i_attendance_repository.dart';
 
 class StartAttendanceUseCase
     implements BaseUseCase<AttendanceEntity, StartAttendanceParams> {

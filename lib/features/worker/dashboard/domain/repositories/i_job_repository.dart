@@ -8,4 +8,6 @@ abstract interface class IJobRepository {
     int offset = 0,
     String? status,
   });
+
+  Future<Either<AppFailure, Unit>> saveJobs(List<JobEntity> jobs);
 }

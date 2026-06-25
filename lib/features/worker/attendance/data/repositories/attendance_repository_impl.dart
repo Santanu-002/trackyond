@@ -5,7 +5,7 @@ import 'package:trackyond/features/worker/attendance/data/data_sources/attendanc
 import 'package:trackyond/features/worker/attendance/data/models/request/attendance_request_model.dart';
 import 'package:trackyond/core/common/entities/attendance/attendance_entity.dart';
 import 'package:trackyond/core/common/entities/attendance/attendance_status_entity.dart';
-import 'package:trackyond/features/worker/attendance/domain/repositories/attendance_repository.dart';
+import 'package:trackyond/features/worker/attendance/domain/repositories/i_attendance_repository.dart';
 
 class AttendanceRepositoryImpl implements IAttendanceRepository {
   final IAttendanceRemoteDataSource _remoteDataSource;
@@ -29,7 +29,7 @@ class AttendanceRepositoryImpl implements IAttendanceRepository {
 
     return response.when(
       success: (_, _, data) {
-        if (data != null) return Right(data.toEntity());
+        if (data != null) return Right(data);
         return Left(ServerFailure('Data is null'));
       },
       error: (_, message, _, _) => Left(ServerFailure(message)),
@@ -53,7 +53,7 @@ class AttendanceRepositoryImpl implements IAttendanceRepository {
 
     return response.when(
       success: (_, _, data) {
-        if (data != null) return Right(data.toEntity());
+        if (data != null) return Right(data);
         return Left(ServerFailure('Data is null'));
       },
       error: (_, message, _, _) => Left(ServerFailure(message)),
@@ -68,7 +68,7 @@ class AttendanceRepositoryImpl implements IAttendanceRepository {
 
     return response.when(
       success: (_, _, data) {
-        if (data != null) return Right(data.toEntity());
+        if (data != null) return Right(data);
         return Left(ServerFailure('Data is null'));
       },
       error: (_, message, _, _) => Left(ServerFailure(message)),

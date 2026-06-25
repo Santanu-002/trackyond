@@ -15,16 +15,16 @@ class WorkerDashboardRepositoryImpl implements IWorkerDashboardRepository {
   Future<Either<AppFailure, WorkerDashboardData>> getDashboardData() async {
     final ApiResponse<WorkerDashboardModel> result = await _dataSource.getDashboardData();
     return result.when(
-      success: (success, message, model) => right(model!.toEntity()),
+      success: (success, message, model) => right(model!),
       error: (success, message, data, statusCode) => left(ServerFailure(message)),
     );
   }
 
   @override
-  Future<Either<AppFailure, void>> sendMockJobNotification() async {
+  Future<Either<AppFailure, Unit>> sendMockJobNotification() async {
     final ApiResponse<void> result = await _dataSource.triggerMockJobNotification();
     return result.when(
-      success: (success, message, _) => right(null),
+      success: (success, message, _) => right(unit),
       error: (success, message, data, statusCode) => left(ServerFailure(message)),
     );
   }

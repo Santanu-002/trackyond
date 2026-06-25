@@ -17,10 +17,10 @@ class WorkerProfilePage extends GetView<WorkerProfileController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Profile Page Placeholder'),
+            Text(AppStrings.workerProfile.profilePlaceholder),
             AppUIConstants.widgets.verticalBox$24,
             AppButton.filled(
-              text: 'Logout (Testing)',
+              text: AppStrings.workerProfile.logoutTesting,
               onPressed: controller.logout,
               color: context.theme.colorScheme.error,
             ),

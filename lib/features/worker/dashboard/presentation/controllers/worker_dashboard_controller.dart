@@ -266,14 +266,14 @@ class WorkerDashboardController extends GetxController {
 
     // 2. Update Stats
     // For a new job assignment, totalAssigned and pending/assigned count increases.
-    _todayStats.value = _todayStats.value.copyWith(
+    _todayStats.value = _todayStats.value.copyWithEntity(
       totalAssigned: _todayStats.value.totalAssigned + 1,
       pending:
           _todayStats.value.pending +
           1, // Assuming new jobs are pending/assigned
     );
 
-    _overallStats.value = _overallStats.value.copyWith(
+    _overallStats.value = _overallStats.value.copyWithEntity(
       totalAssigned: _overallStats.value.totalAssigned + 1,
       pending: _overallStats.value.pending + 1,
     );

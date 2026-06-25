@@ -4,6 +4,7 @@ import 'package:trackyond/core/common/widgets/avatar/member_avatar.dart';
 import 'package:trackyond/core/common/widgets/icons/app_notification_bell.dart';
 import 'package:trackyond/core/common/widgets/scaffold/app_scaffold.dart';
 import 'package:trackyond/core/common/widgets/skeleton/app_skeleton_avatar.dart';
+import 'package:trackyond/core/common/widgets/skeleton/app_shimmer.dart';
 import 'package:trackyond/core/constants/app_ui_constants.dart';
 import 'package:trackyond/features/notification/presentation/controllers/notification_controller.dart';
 import 'package:trackyond/features/worker/dashboard/presentation/controllers/worker_dashboard_controller.dart';
@@ -26,8 +27,10 @@ class WorkerDashboardPage extends GetView<WorkerDashboardController> {
         child: Center(
           child: Obx(() {
             if (controller.isProfileLoading.value) {
-              return AppSkeletonAvatar(
-                size: AppUIConstants.radius.radius$16 * 2,
+              return AppShimmer(
+                child: AppSkeletonAvatar(
+                  size: AppUIConstants.radius.radius$16 * 2,
+                ),
               );
             }
             return MemberAvatar(

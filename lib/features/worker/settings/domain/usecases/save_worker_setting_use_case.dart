@@ -11,13 +11,13 @@ class SaveWorkerSettingParams {
 }
 
 class SaveWorkerSettingUseCase
-    implements BaseUseCase<void, SaveWorkerSettingParams> {
+    implements BaseUseCase<Unit, SaveWorkerSettingParams> {
   final IWorkerSettingsRepository _repository;
 
   SaveWorkerSettingUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, void>> call(SaveWorkerSettingParams params) {
+  Future<Either<AppFailure, Unit>> call(SaveWorkerSettingParams params) {
     if (params.value is bool) {
       return _repository.saveBool(params.key, params.value as bool);
     } else if (params.value is String) {

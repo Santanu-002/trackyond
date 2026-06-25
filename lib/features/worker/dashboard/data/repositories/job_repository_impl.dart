@@ -28,8 +28,7 @@ class JobRepositoryImpl extends BaseSyncRepository implements IJobRepository {
         offset: offset,
       ),
       fetchLocal: () async {
-        final cached = await _localDataSource.getCachedJobs(status: status);
-        return cached.map((e) => e.toEntity()).toList();
+        return await _localDataSource.getCachedJobs(status: status);
       },
       fetchRemote: () async {
         final response = await _remoteDataSource.getAssignedJobs(
@@ -46,5 +45,16 @@ class JobRepositoryImpl extends BaseSyncRepository implements IJobRepository {
         await _localDataSource.saveJobs(data);
       },
     );
+  }
+
+  @override
+  Future<Either<AppFailure, Unit>> saveJobs(List<JobEntity> jobs) async {
+    try {
+      final models = jobs.map((e) => JobModel.fromEntity(e)).toList();
+      await _localDataSource.saveJobs(models);
+      return const Right(unit);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
   }
 }

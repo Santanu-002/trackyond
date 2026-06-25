@@ -9,7 +9,7 @@ part 'worker_dashboard_model.freezed.dart';
 part 'worker_dashboard_model.g.dart';
 
 @freezed
-sealed class WorkerDashboardModel with _$WorkerDashboardModel {
+sealed class WorkerDashboardModel with _$WorkerDashboardModel implements WorkerDashboardData {
   const factory WorkerDashboardModel({
     required AttendanceStatusModel attendanceStatus,
     required List<JobModel> recentJobs,
@@ -22,16 +22,15 @@ sealed class WorkerDashboardModel with _$WorkerDashboardModel {
   factory WorkerDashboardModel.fromJson(Map<String, dynamic> json) =>
       _$WorkerDashboardModelFromJson(json);
 
-  WorkerDashboardData toEntity() => WorkerDashboardData(
-    attendanceStatus: attendanceStatus.toEntity(),
-    recentJobs: recentJobs.map((e) => e.toEntity()).toList(),
-    jobCounts: jobCounts.toEntity(),
-    unreadNotificationCount: unreadNotificationCount,
-  );
+  @override
+  List<Object?> get props => [attendanceStatus, recentJobs, jobCounts, unreadNotificationCount];
+
+  @override
+  bool? get stringify => true;
 }
 
 @freezed
-sealed class WorkerDashboardModelStats with _$WorkerDashboardModelStats {
+sealed class WorkerDashboardModelStats with _$WorkerDashboardModelStats implements JobCountsEntity {
   const factory WorkerDashboardModelStats({
     required JobSummaryStatsModel todayStats,
     required JobSummaryStatsModel overallStats,
@@ -42,8 +41,9 @@ sealed class WorkerDashboardModelStats with _$WorkerDashboardModelStats {
   factory WorkerDashboardModelStats.fromJson(Map<String, dynamic> json) =>
       _$WorkerDashboardModelStatsFromJson(json);
 
-  JobCountsEntity toEntity() => JobCountsEntity(
-    todayStats: todayStats.toEntity(),
-    overallStats: overallStats.toEntity(),
-  );
+  @override
+  List<Object?> get props => [todayStats, overallStats];
+
+  @override
+  bool? get stringify => true;
 }

@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:trackyond/features/worker/attendance/data/data_sources/attendance_remote_data_source.dart';
 import 'package:trackyond/features/worker/attendance/data/repositories/attendance_repository_impl.dart';
-import 'package:trackyond/features/worker/attendance/domain/repositories/attendance_repository.dart';
+import 'package:trackyond/features/worker/attendance/domain/repositories/i_attendance_repository.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/start_attendance_usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/end_attendance_usecase.dart';
 import 'package:trackyond/features/worker/attendance/domain/usecases/get_attendance_status_usecase.dart';

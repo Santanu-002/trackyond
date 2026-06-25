@@ -6,15 +6,18 @@ import 'package:trackyond/core/services/database/tables/member_table.dart';
 part 'member_profile_model.freezed.dart';
 part 'member_profile_model.g.dart';
 
+Gender? _genderFromJson(String? value) => value != null ? Gender.fromString(value) : null;
+String? _genderToJson(Gender? gender) => gender?.value;
+
 @freezed
-sealed class MemberProfileModel with _$MemberProfileModel {
+sealed class MemberProfileModel with _$MemberProfileModel implements MemberProfile {
   const factory MemberProfileModel({
     required String uid,
     required String userUid,
     required String name,
     required String phone,
     required String designation,
-    String? gender,
+    @JsonKey(fromJson: _genderFromJson, toJson: _genderToJson) Gender? gender,
     String? image,
     String? companyUid,
     String? createdBy,
@@ -32,7 +35,7 @@ sealed class MemberProfileModel with _$MemberProfileModel {
       MemberTable.columnNames.name: name,
       MemberTable.columnNames.phone: phone,
       MemberTable.columnNames.designation: designation,
-      MemberTable.columnNames.gender: gender,
+      MemberTable.columnNames.gender: gender?.value,
       MemberTable.columnNames.image: image,
       MemberTable.columnNames.companyUid: companyUid,
       MemberTable.columnNames.createdBy: createdBy,
@@ -46,24 +49,14 @@ sealed class MemberProfileModel with _$MemberProfileModel {
       name: map[MemberTable.columnNames.name] as String,
       phone: map[MemberTable.columnNames.phone] as String,
       designation: map[MemberTable.columnNames.designation] as String,
-      gender: map[MemberTable.columnNames.gender] as String?,
+      gender: map[MemberTable.columnNames.gender] != null
+          ? Gender.fromString(map[MemberTable.columnNames.gender] as String)
+          : null,
       image: map[MemberTable.columnNames.image] as String?,
       companyUid: map[MemberTable.columnNames.companyUid] as String?,
       createdBy: map[MemberTable.columnNames.createdBy] as String?,
     );
   }
-
-  MemberProfile toEntity() => MemberProfile(
-        uid: uid,
-        userUid: userUid,
-        name: name,
-        phone: phone,
-        designation: designation,
-        gender: gender != null ? Gender.fromString(gender!) : null,
-        image: image,
-        companyUid: companyUid,
-        createdBy: createdBy,
-      );
 
   factory MemberProfileModel.fromEntity(MemberProfile entity) =>
       MemberProfileModel(
@@ -72,7 +65,7 @@ sealed class MemberProfileModel with _$MemberProfileModel {
         name: entity.name,
         phone: entity.phone,
         designation: entity.designation,
-        gender: entity.gender?.value,
+        gender: entity.gender,
         image: entity.image,
         companyUid: entity.companyUid,
         createdBy: entity.createdBy,

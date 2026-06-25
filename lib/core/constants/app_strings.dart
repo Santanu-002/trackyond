@@ -94,6 +94,8 @@ class CommonStrings {
 
   String get edit => 'Edit';
 
+  String get retry => 'RETRY';
+
   String get searchPlaceholder => 'Search...';
 
   String get noResultsFound => 'No results found';
@@ -444,6 +446,8 @@ class WorkerProfileStrings {
   const WorkerProfileStrings();
 
   String get title => 'My Profile';
+  String get logoutTesting => 'Logout (Testing)';
+  String get profilePlaceholder => 'Profile Page Placeholder';
 }
 
 class TeamStatusStrings {
@@ -617,6 +621,7 @@ class JobDetailsStrings {
   String get photoRequiredOnCompletion => 'Photo required on completion';
   String get locationTrackingEnabled => 'Location tracking enabled';
   String get jobId => 'Job ID';
+  String get editJob => 'Edit Job';
 }
 
 class JobChatStrings {
@@ -626,6 +631,7 @@ class JobChatStrings {
   String get jobUpdateBannerTitle => 'Job Update';
   String get timeFormat => 'hh:mm a';
   String get justNow => 'Just now';
+  String get readMore => ' Read more';
   String jobSubtitle(String jobId, String status) => 'Job #$jobId • $status';
   String get somethingWentWrong => 'Something went wrong';
   String get retry => 'Retry';

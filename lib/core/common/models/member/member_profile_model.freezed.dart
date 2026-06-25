@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MemberProfileModel {
 
- String get uid; String get userUid; String get name; String get phone; String get designation; String? get gender; String? get image; String? get companyUid; String? get createdBy;
+ String get uid; String get userUid; String get name; String get phone; String get designation;@JsonKey(fromJson: _genderFromJson, toJson: _genderToJson) Gender? get gender; String? get image; String? get companyUid; String? get createdBy;
 /// Create a copy of MemberProfileModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $MemberProfileModelCopyWith<$Res>  {
   factory $MemberProfileModelCopyWith(MemberProfileModel value, $Res Function(MemberProfileModel) _then) = _$MemberProfileModelCopyWithImpl;
 @useResult
 $Res call({
- String uid, String userUid, String name, String phone, String designation, String? gender, String? image, String? companyUid, String? createdBy
+ String uid, String userUid, String name, String phone, String designation,@JsonKey(fromJson: _genderFromJson, toJson: _genderToJson) Gender? gender, String? image, String? companyUid, String? createdBy
 });
 
 
@@ -73,7 +73,7 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,designation: null == designation ? _self.designation : designation // ignore: cast_nullable_to_non_nullable
 as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
-as String?,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as Gender?,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
 as String?,companyUid: freezed == companyUid ? _self.companyUid : companyUid // ignore: cast_nullable_to_non_nullable
 as String?,createdBy: freezed == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -158,7 +158,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String userUid,  String name,  String phone,  String designation,  String? gender,  String? image,  String? companyUid,  String? createdBy)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String userUid,  String name,  String phone,  String designation, @JsonKey(fromJson: _genderFromJson, toJson: _genderToJson)  Gender? gender,  String? image,  String? companyUid,  String? createdBy)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MemberProfileModel() when $default != null:
 return $default(_that.uid,_that.userUid,_that.name,_that.phone,_that.designation,_that.gender,_that.image,_that.companyUid,_that.createdBy);case _:
@@ -179,7 +179,7 @@ return $default(_that.uid,_that.userUid,_that.name,_that.phone,_that.designation
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String userUid,  String name,  String phone,  String designation,  String? gender,  String? image,  String? companyUid,  String? createdBy)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String userUid,  String name,  String phone,  String designation, @JsonKey(fromJson: _genderFromJson, toJson: _genderToJson)  Gender? gender,  String? image,  String? companyUid,  String? createdBy)  $default,) {final _that = this;
 switch (_that) {
 case _MemberProfileModel():
 return $default(_that.uid,_that.userUid,_that.name,_that.phone,_that.designation,_that.gender,_that.image,_that.companyUid,_that.createdBy);}
@@ -196,7 +196,7 @@ return $default(_that.uid,_that.userUid,_that.name,_that.phone,_that.designation
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String userUid,  String name,  String phone,  String designation,  String? gender,  String? image,  String? companyUid,  String? createdBy)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String userUid,  String name,  String phone,  String designation, @JsonKey(fromJson: _genderFromJson, toJson: _genderToJson)  Gender? gender,  String? image,  String? companyUid,  String? createdBy)?  $default,) {final _that = this;
 switch (_that) {
 case _MemberProfileModel() when $default != null:
 return $default(_that.uid,_that.userUid,_that.name,_that.phone,_that.designation,_that.gender,_that.image,_that.companyUid,_that.createdBy);case _:
@@ -211,7 +211,7 @@ return $default(_that.uid,_that.userUid,_that.name,_that.phone,_that.designation
 @JsonSerializable()
 
 class _MemberProfileModel extends MemberProfileModel {
-  const _MemberProfileModel({required this.uid, required this.userUid, required this.name, required this.phone, required this.designation, this.gender, this.image, this.companyUid, this.createdBy}): super._();
+  const _MemberProfileModel({required this.uid, required this.userUid, required this.name, required this.phone, required this.designation, @JsonKey(fromJson: _genderFromJson, toJson: _genderToJson) this.gender, this.image, this.companyUid, this.createdBy}): super._();
   factory _MemberProfileModel.fromJson(Map<String, dynamic> json) => _$MemberProfileModelFromJson(json);
 
 @override final  String uid;
@@ -219,7 +219,7 @@ class _MemberProfileModel extends MemberProfileModel {
 @override final  String name;
 @override final  String phone;
 @override final  String designation;
-@override final  String? gender;
+@override@JsonKey(fromJson: _genderFromJson, toJson: _genderToJson) final  Gender? gender;
 @override final  String? image;
 @override final  String? companyUid;
 @override final  String? createdBy;
@@ -257,7 +257,7 @@ abstract mixin class _$MemberProfileModelCopyWith<$Res> implements $MemberProfil
   factory _$MemberProfileModelCopyWith(_MemberProfileModel value, $Res Function(_MemberProfileModel) _then) = __$MemberProfileModelCopyWithImpl;
 @override @useResult
 $Res call({
- String uid, String userUid, String name, String phone, String designation, String? gender, String? image, String? companyUid, String? createdBy
+ String uid, String userUid, String name, String phone, String designation,@JsonKey(fromJson: _genderFromJson, toJson: _genderToJson) Gender? gender, String? image, String? companyUid, String? createdBy
 });
 
 
@@ -282,7 +282,7 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,designation: null == designation ? _self.designation : designation // ignore: cast_nullable_to_non_nullable
 as String,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
-as String?,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as Gender?,image: freezed == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
 as String?,companyUid: freezed == companyUid ? _self.companyUid : companyUid // ignore: cast_nullable_to_non_nullable
 as String?,createdBy: freezed == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
 as String?,

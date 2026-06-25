@@ -10,13 +10,13 @@ class SaveSettingParams {
   SaveSettingParams({required this.key, required this.value});
 }
 
-class SaveSettingUseCase implements BaseUseCase<void, SaveSettingParams> {
+class SaveSettingUseCase implements BaseUseCase<Unit, SaveSettingParams> {
   final ISettingsRepository _repository;
 
   SaveSettingUseCase(this._repository);
 
   @override
-  Future<Either<AppFailure, void>> call(SaveSettingParams params) {
+  Future<Either<AppFailure, Unit>> call(SaveSettingParams params) {
     if (params.value is bool) {
       return _repository.saveBool(params.key, params.value as bool);
     } else if (params.value is String) {

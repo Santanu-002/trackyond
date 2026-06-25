@@ -6,7 +6,7 @@ part 'send_otp_response_model.freezed.dart';
 part 'send_otp_response_model.g.dart';
 
 @freezed
-sealed class SendOtpResponseModel with _$SendOtpResponseModel {
+sealed class SendOtpResponseModel with _$SendOtpResponseModel implements SendOtpResponseEntity {
   const factory SendOtpResponseModel({
     required String phone,
     required String otpId,
@@ -19,14 +19,6 @@ sealed class SendOtpResponseModel with _$SendOtpResponseModel {
 
   factory SendOtpResponseModel.fromJson(Map<String, dynamic> json) =>
       _$SendOtpResponseModelFromJson(json);
-
-  SendOtpResponseEntity toEntity() => SendOtpResponseEntity(
-    phone: phone,
-    otpId: otpId,
-    expiresAt: expiresAt,
-    resendableAt: resendableAt,
-    remainingAttempts: remainingAttempts,
-  );
 
   factory SendOtpResponseModel.fromEntity(SendOtpResponseEntity entity) =>
       SendOtpResponseModel(

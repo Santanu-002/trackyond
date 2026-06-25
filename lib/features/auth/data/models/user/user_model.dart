@@ -6,7 +6,7 @@ part 'user_model.freezed.dart';
 part 'user_model.g.dart';
 
 @freezed
-sealed class UserModel with _$UserModel {
+sealed class UserModel with _$UserModel implements User {
   const factory UserModel({
     required String uid,
     required String phone,
@@ -19,14 +19,6 @@ sealed class UserModel with _$UserModel {
       _$UserModelFromJson(json);
 
   const UserModel._();
-
-  User toEntity() => User(
-        uid: uid,
-        phone: phone,
-        role: role,
-        isNewUser: isNewUser,
-        primaryProfileUid: primaryProfileUid,
-      );
 
   factory UserModel.fromEntity(User entity) => UserModel(
         uid: entity.uid,

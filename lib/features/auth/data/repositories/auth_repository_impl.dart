@@ -41,7 +41,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         if (message.toLowerCase().contains('access denied')) {
           return Left(AccessDeniedFailure(message));
         }
-        if (data != null) return Right(data.toEntity());
+        if (data != null) return Right(data);
         return Left(ServerFailure(message));
       },
       error: (_, message, _, _) {
@@ -83,11 +83,11 @@ class AuthRepositoryImpl implements IAuthRepository {
 
           return Right(
             VerifyOtpEntity(
-              user: userModel.toEntity(),
+              user: userModel,
               isNewUser: data.isNewUser,
               role: role,
-              profile: data.profile?.toEntity(),
-              company: data.company?.toEntity(),
+              profile: data.profile,
+              company: data.company,
             ),
           );
         }
@@ -104,7 +104,7 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<Either<AppFailure, User?>> getAuthenticatedUser() async {
-    return Right(_userService.getUser()?.toEntity());
+    return Right(_userService.getUser());
   }
 
   @override
@@ -126,7 +126,7 @@ class AuthRepositoryImpl implements IAuthRepository {
             if (data.company != null) {
               _userService.setCompany(data.company!);
             }
-            return Right(data.profile!.toEntity());
+            return Right(data.profile!);
           }
           return const Right(null);
         },
@@ -151,7 +151,7 @@ class AuthRepositoryImpl implements IAuthRepository {
       });
     }
 
-    return Right(localProfile?.toEntity());
+    return Right(localProfile);
   }
 
   @override
@@ -168,14 +168,14 @@ class AuthRepositoryImpl implements IAuthRepository {
             if (data.profile != null) {
               _userService.setProfile(data.profile!);
             }
-            return Right(data.company!.toEntity());
+            return Right(data.company!);
           }
           return const Right(null);
         },
         error: (_, message, _, _) => Left(ServerFailure(message)),
       );
     }
-    return Right(localCompany?.toEntity());
+    return Right(localCompany);
   }
 
   @override
